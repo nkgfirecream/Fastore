@@ -5,16 +5,16 @@ using System.Text;
 
 namespace Fastore.Core
 {
-    //Need to implement Delete, Get, Contains, Binary searching, etc.
-    public class BTree<Key, Value> : IKeyValueTree<Key, Value>
+    //Incomplete... Basically still just a copy of the BTree.
+    public class PrefixBTree<Value> : IKeyValueTree<string, Value>
     {
         public int BranchingFactor = 10;
         public int LeafSize = 100;
-        private INode<Key,Value> Root;
-        private ILeafSubscriber<Key,Value> Parent;
+        private INode<string,Value> Root;
+        private ILeafSubscriber<string,Value> Parent;
         private int Column;
 
-        public BTree(int branching, int leafsize, ILeafSubscriber<Key,Value> parent, int column)
+        public PrefixBTree(int branching, int leafsize, ILeafSubscriber<string,Value> parent, int column)
         {
             if (branching < 2)
                 throw new ArgumentException("Minimum branching factor is 2.");
@@ -24,7 +24,7 @@ namespace Fastore.Core
             Parent = parent;
             Column = column;
             
-            Root = new Leaf<Key,Value>(this);
+            Root = new PrefixLeaf<Value>(this);
         }
 
         public void Dump()
@@ -37,12 +37,12 @@ namespace Fastore.Core
             return Root.OrderedValues();
         }
 
-        public void Insert(Key key, Value value, out ILeaf<Key,Value> leaf)
+        public void Insert(string key, Value value, out ILeaf<string,Value> leaf)
         {
             var result = Root.Insert(key, value, out leaf);
             if(result != null)
             {
-                var tmp = new Branch<Key,Value>(this);
+                var tmp = new PrefixBranch<Value>(this);
                 tmp.children[0] = result.left;
                 tmp.children[1] = result.right;
                 tmp.keys[0] = result.key;
@@ -51,7 +51,7 @@ namespace Fastore.Core
             }
         }
 
-        public void UpdateLinks(ILeaf<Key, Value> leaf)
+        public void UpdateLinks(ILeaf<string, Value> leaf)
         {
             if (Parent != null)
             {
@@ -64,22 +64,24 @@ namespace Fastore.Core
         }
     }
 
-    public class Branch<Key, Value> : INode<Key, Value>
+    public class PrefixBranch<Value> : INode<string, Value>
     {
-        public INode<Key, Value>[] children;
-        private BTree<Key, Value> parent;
+        public INode<string, Value>[] children;
+        private PrefixBTree<Value> parent;
         public int count;
 
-        public Key[] keys;
+        private string prefix;
 
-        public Branch(BTree<Key, Value> parent)
+        public string[] keys;
+
+        public PrefixBranch(PrefixBTree<Value> parent)
         {
             this.parent = parent;
-            keys = new Key[parent.BranchingFactor - 1];
-            children = new INode<Key, Value>[parent.BranchingFactor];
+            keys = new string[parent.BranchingFactor - 1];
+            children = new INode<string, Value>[parent.BranchingFactor];
         }
 
-        public Split<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
+        public Split<string, Value> Insert(string key, Value value, out ILeaf<string, Value> leaf)
         {
             //count is numbers of keys. Number of children is keys + 1;
             //An optimization would to split from the bottom up, rather than to top down
@@ -88,7 +90,7 @@ namespace Fastore.Core
             {
                 int mid = (count + 1) / 2;
                 int size = count - mid;
-                Branch<Key, Value> node = new Branch<Key, Value>(parent);
+                PrefixBranch<Value> node = new PrefixBranch<Value>(parent);
                 node.count = size;
 
                 Array.Copy(keys, mid, node.keys, 0, size);
@@ -96,8 +98,8 @@ namespace Fastore.Core
 
                 count = mid - 1;
 
-                Split<Key, Value> result = new Split<Key, Value>() { key = keys[mid - 1], left = this, right = node };
-                if (Comparer<Key>.Default.Compare(key, result.key) < 0)
+                Split<string, Value> result = new Split<string, Value>() { key = keys[mid - 1], left = this, right = node };
+                if (key.CompareTo(result.key) < 0)
                 {
                     InternalInsert(key, value, out leaf);
                 }
@@ -115,7 +117,7 @@ namespace Fastore.Core
             }
         }
 
-        public void InternalInsert(Key key, Value value, out ILeaf<Key, Value> leaf)
+        public void InternalInsert(string key, Value value, out ILeaf<string, Value> leaf)
         {
             var index = IndexOf(key);
             var result = children[index].Insert(key, value, out leaf);
@@ -131,7 +133,7 @@ namespace Fastore.Core
             }
         }
 
-        private int IndexOf(Key key)
+        private int IndexOf(string key)
         {
             var result = Array.BinarySearch(keys, 0, count, key);
             if (result < 0)
@@ -166,30 +168,32 @@ namespace Fastore.Core
         }
     }
 
-    public class Leaf<Key, Value> : ILeaf<Key, Value>
+    public class PrefixLeaf<Value> : ILeaf<string, Value>
     {
         public ISet<Value>[] Values { get; set; }
-        public Key[] Keys { get; set; }
+        public string[] Keys { get; set; }
         public int Count { get; set; }
 
-        private BTree<Key, Value> parent;
+        private string prefix;
 
-        public Leaf(BTree<Key, Value> parent)
+        private PrefixBTree<Value> parent;
+
+        public PrefixLeaf(PrefixBTree<Value> parent)
         {
             this.parent = parent;
-            Keys = new Key[parent.LeafSize];
+            Keys = new string[parent.LeafSize];
             Values = new HashSet<Value>[parent.LeafSize];
         }
 
 
-        public Split<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
+        public Split<string, Value> Insert(string key, Value value, out ILeaf<string, Value> leaf)
         {
             int pos = IndexOf(key);
             if (Count == parent.LeafSize)
             {
                 int mid = (parent.LeafSize + 1) / 2;
                 int size = Count - mid;
-                var node = new Leaf<Key, Value>(parent);
+                var node = new PrefixLeaf<Value>(parent);
                 node.Count = mid;
 
                 Array.Copy(Keys, mid, node.Keys, 0, size);
@@ -207,7 +211,7 @@ namespace Fastore.Core
 
                 parent.UpdateLinks(node);
 
-                var result = new Split<Key, Value>() { key = node.Keys[0], left = this, right = node };
+                var result = new Split<string, Value>() { key = node.Keys[0], left = this, right = node };
 
                 return result;
             }
@@ -218,7 +222,7 @@ namespace Fastore.Core
             }
         }
 
-        public void InternalInsert(Key key, Value value, int index, out ILeaf<Key, Value> leaf)
+        public void InternalInsert(string key, Value value, int index, out ILeaf<string, Value> leaf)
         {
             if (Keys[index] != null && Keys[index].Equals(key))
             {
@@ -239,7 +243,7 @@ namespace Fastore.Core
             leaf = this;
         }
 
-        private int IndexOf(Key key)
+        private int IndexOf(string key)
         {
             var result = Array.BinarySearch(Keys, 0, Count, key);
             if (result < 0)
@@ -273,7 +277,7 @@ namespace Fastore.Core
             }
         }
 
-        public Key GetKey(Value value)
+        public string GetKey(Value value)
         {
             for (int i = 0; i < Count; i++)
             {
@@ -282,7 +286,7 @@ namespace Fastore.Core
             }
             //Still missing leaves... what the deal?
             //throw new Exception("Incorrect leaf!");
-            return default(Key);
+            return default(string);
         }
     }
 }

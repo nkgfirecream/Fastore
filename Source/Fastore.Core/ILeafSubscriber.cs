@@ -7,6 +7,6 @@ namespace Fastore.Core
 {
     public interface ILeafSubscriber<Key,Value>
     {
-        void UpdateLink(Value row, int column, Leaf<Key, Value> leaf);
+        void UpdateLink(Value row, int column, ILeaf<Key, Value> leaf);
     }
 }
