@@ -8,281 +8,289 @@ namespace Fastore.Core
     //Need to implement Delete, Get, Contains, Binary searching, etc.
     public class BTree<Key, Value> : IKeyValueTree<Key, Value>
     {
-        public int BranchingFactor = 10;
+		public BTree(IComparer<Key> comparer = null)
+		{
+			Comparer = comparer ?? Comparer<Key>.Default;
+			_root = new Leaf<Key, Value>(this);
+		}
+
+		public IComparer<Key> Comparer { get; private set; }
+
+		private int _branchingFactor = 10;
+        public int BranchingFactor
+		{
+			get { return _branchingFactor; }
+			set 
+			{
+				if (value < 2)
+					throw new ArgumentException("Minimum branching factor is 2.");
+				_branchingFactor = value;
+			}
+		}
+
         public int LeafSize = 100;
-        private INode<Key,Value> Root;
-        private ILeafSubscriber<Key,Value> Parent;
-        private int Column;
-
-        public BTree(int branching, int leafsize, ILeafSubscriber<Key,Value> parent, int column)
-        {
-            if (branching < 2)
-                throw new ArgumentException("Minimum branching factor is 2.");
-
-            BranchingFactor = branching;
-            LeafSize = leafsize;
-            Parent = parent;
-            Column = column;
-            
-            Root = new Leaf<Key,Value>(this);
-        }
+		public event ValueMovedHandler<Key, Value> ValueMoved;
+		
+		private INode<Key, Value> _root;
 
         public void Dump()
         {
-            Root.Dump();
+            _root.Dump();
         }
 
-        public IEnumerable<Value> OrderedValues()
+		public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
+		{
+			return _root.Get(isForward);
+		}
+
+		/// <summary> Attempts to insert a given key/value</summary>
+		/// <param name="leaf"> The leaf in which the entry was located. </param>
+		/// <returns> If the key already exists, nothing is changed and the existing value is returned. </returns>
+        public Value? Insert(Key key, Value value, out ILeaf<Key,Value> leaf)
         {
-            return Root.OrderedValues();
+            var result = _root.Insert(key, value, out leaf);
+            if (result.Split != null)
+                _root = new Branch(this, _root, result.Split.Right, result.Split.Key);
+			return result.Found;
         }
 
-        public void Insert(Key key, Value value, out ILeaf<Key,Value> leaf)
+        internal void DoValuesMoved(ILeaf<Key, Value> leaf)
         {
-            var result = Root.Insert(key, value, out leaf);
-            if(result != null)
-            {
-                var tmp = new Branch<Key,Value>(this);
-                tmp.children[0] = result.left;
-                tmp.children[1] = result.right;
-                tmp.keys[0] = result.key;
-                tmp.count = 1;
-                Root = tmp;
-            }
+            if (ValueMoved != null)
+				foreach (var entry in leaf.Get(true))
+					ValueMoved(entry.Value, leaf);
         }
 
-        public void UpdateLinks(ILeaf<Key, Value> leaf)
-        {
-            if (Parent != null)
-            {
-                for (int i = 0; i < leaf.Count; i++)
-                {
-                    foreach (var item in leaf.Values[i])
-                        Parent.UpdateLink(item, Column, leaf);
-                }
-            }
-        }
-    }
+		class Branch : INode<Key, Value>
+		{
+			public Branch(BTree<Key, Value> tree)
+			{
+				_tree = tree;
+				_keys = new Key[tree.BranchingFactor - 1];
+				_children = new INode<Key, Value>[tree.BranchingFactor];
+			}
 
-    public class Branch<Key, Value> : INode<Key, Value>
-    {
-        public INode<Key, Value>[] children;
-        private BTree<Key, Value> parent;
-        public int count;
+			public Branch(BTree<Key, Value> tree, INode<Key, Value> left, INode<Key, Value> right, Key key)
+				: this(tree)
+			{
+				_children[0] = left;
+				_children[1] = right;
+				_keys[0] = key;
+				Count = 1;
+			}
 
-        public Key[] keys;
+			private Key[] _keys;
+			private INode<Key, Value>[] _children;
+			private BTree<Key, Value> _tree;
 
-        public Branch(BTree<Key, Value> parent)
-        {
-            this.parent = parent;
-            keys = new Key[parent.BranchingFactor - 1];
-            children = new INode<Key, Value>[parent.BranchingFactor];
-        }
+			/// <summary> Count is numbers of keys. Number of children is keys + 1. </summary>
+			public int Count { get; private set; }
 
-        public Split<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
-        {
-            //count is numbers of keys. Number of children is keys + 1;
-            //An optimization would to split from the bottom up, rather than to top down
-            //That way we only split when we actually need to.
-            if (count == parent.BranchingFactor - 1)
-            {
-                int mid = (count + 1) / 2;
-                int size = count - mid;
-                Branch<Key, Value> node = new Branch<Key, Value>(parent);
-                node.count = size;
+			public InsertResult<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
+			{
+				var index = IndexOf(key);
+				var result = _children[index].Insert(key, value, out leaf);
 
-                Array.Copy(keys, mid, node.keys, 0, size);
-                Array.Copy(children, mid, node.children, 0, size + 1);
+				// If child split, add the adjacent node
+				if (result.Split != null)
+					result.Split = InsertWithSplit(index + 1, result.Key, result.Right);
+				return result;
+			}
 
-                count = mid - 1;
+			private Split<Key, Value> InsertWithSplit(int index, Key key, INode<Key, Value> child)
+			{
+				// If full, split
+				if (Count == _tree.BranchingFactor - 1)
+				{
+					int mid = (Count + 1) / 2;
 
-                Split<Key, Value> result = new Split<Key, Value>() { key = keys[mid - 1], left = this, right = node };
-                if (Comparer<Key>.Default.Compare(key, result.key) < 0)
-                {
-                    InternalInsert(key, value, out leaf);
-                }
-                else
-                {
-                    node.InternalInsert(key, value, out leaf);
-                }
+					// Create new sibling node
+					Branch<Key, Value> node = new Branch<Key, Value>(_tree);
+					node.Count = Count - mid - 1;
+					Array.Copy(_keys, mid + 1, node._keys, 0, node.Count);
+					Array.Copy(_children, mid + 1, node._children, 0, node.Count + 1);
 
-                return result;
-            }
-            else
-            {
-                InternalInsert(key, value, out leaf);
-                return null;
-            }
-        }
+					Count = mid;
 
-        public void InternalInsert(Key key, Value value, out ILeaf<Key, Value> leaf)
-        {
-            var index = IndexOf(key);
-            var result = children[index].Insert(key, value, out leaf);
-            if (result != null)
-            {
-                int size = count - index;
-                Array.Copy(keys, index, keys, index + 1, size);
-                Array.Copy(children, index, children, index + 1, size + 1);
+					Split<Key, Value> result = new Split<Key, Value>() { Key = _keys[mid], Right = node };
 
-                keys[index] = result.key;
-                children[index + 1] = result.right;
-                count++;
-            }
-        }
+					if (index < Count)
+						InternalInsert(index, key, child);
+					else
+						node.InternalInsert(index - Count, key, child);
 
-        private int IndexOf(Key key)
-        {
-            var result = Array.BinarySearch(keys, 0, count, key);
-            if (result < 0)
-            {
-                var index = ~result;
-                if (index > count)
-                    return count;
-                else
-                    return index;
-            }
-            else
-                return result;
-        }
+					return result;
+				}
+				else
+				{
+					InternalInsert(index, key, child);
+					return null;
+				}
+			}
 
-        public void Dump()
-        {
-            for (int i = 0; i <= count; i++)
-            {
-                children[i].Dump();
-            }
-        }
+			private void InternalInsert(int index, Key key, INode<Key, Value> child)
+			{
+				int size = Count - index;
+				Array.Copy(_keys, index, _keys, index + 1, size);
+				Array.Copy(_children, index, _children, index + 1, size + 1);
 
-        public IEnumerable<Value> OrderedValues()
-        {
-            for (int i = 0; i <= count; i++)
-            {
-                foreach (var value in children[i].OrderedValues())
-                {
-                    yield return value;
-                }
-            }
-        }
-    }
+				_keys[index] = key;
+				_children[index + 1] = child;
+				Count++;
+			}
 
-    public class Leaf<Key, Value> : ILeaf<Key, Value>
-    {
-        public ISet<Value>[] Values { get; set; }
-        public Key[] Keys { get; set; }
-        public int Count { get; set; }
+			private int IndexOf(Key key)
+			{
+				var result = Array.BinarySearch(_keys, 0, Count, key);
+				if (result < 0)
+				{
+					var index = ~result;
+					if (index > Count)
+						return Count;
+					else
+						return index;
+				}
+				else
+					return result;
+			}
 
-        private BTree<Key, Value> parent;
+			public void Dump()
+			{
+				for (int i = 0; i <= Count; i++)
+				{
+					_children[i].Dump();
+				}
+			}
 
-        public Leaf(BTree<Key, Value> parent)
-        {
-            this.parent = parent;
-            Keys = new Key[parent.LeafSize];
-            Values = new HashSet<Value>[parent.LeafSize];
-        }
+			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
+			{
+				if (isForward)
+				{
+					for (int i = 0; i <= Count; i++)
+						foreach (var entry in _children[i].Get(isForward))
+							yield return entry;
+				}
+				else
+				{
+					for (int i = Count - 1; i >= 0; i--)
+						foreach (var entry in _children[i].Get(isForward))
+							yield return entry;
+				}
+			}
+		}
 
+		class Leaf : ILeaf<Key, Value>
+		{
+			private Value[] _values { get; set; }
+			private Key[] _keys { get; set; }
+			private int Count { get; set; }
 
-        public Split<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
-        {
-            int pos = IndexOf(key);
-            if (Count == parent.LeafSize)
-            {
-                int mid = (parent.LeafSize + 1) / 2;
-                int size = Count - mid;
-                var node = new Leaf<Key, Value>(parent);
-                node.Count = mid;
+			private BTree<Key, Value> _tree;
 
-                Array.Copy(Keys, mid, node.Keys, 0, size);
-                Array.Copy(Values, mid, node.Values, 0, size);
-                Count = mid;
+			public Leaf(BTree<Key, Value> parent)
+			{
+				_tree = parent;
+				_keys = new Key[parent.LeafSize];
+				_values = new Value[parent.LeafSize];
+			}
 
-                if (pos < mid)
-                {
-                    InternalInsert(key, value, pos, out leaf);
-                }
-                else
-                {
-                    node.InternalInsert(key, value, pos - Count, out leaf);
-                }
+			public InsertResult<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
+			{
+				int pos = IndexOf(key);
+				var result = new InsertResult<Key, Value>();
+				if (Count == _tree.LeafSize)
+				{
+					var node = new Leaf<Key, Value>(_tree);
+					node.Count = (_tree.LeafSize + 1) / 2;
+					Count = Count - node.Count;
 
-                parent.UpdateLinks(node);
+					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
+					Array.Copy(_values, node.Count, node._values, 0, node.Count);
 
-                var result = new Split<Key, Value>() { key = node.Keys[0], left = this, right = node };
+					if (pos < Count)
+						result.Found = InternalInsert(key, value, pos, out leaf);
+					else
+						result.Found = node.InternalInsert(key, value, pos - Count, out leaf);
 
-                return result;
-            }
-            else
-            {
-                InternalInsert(key, value, pos, out leaf);
-                return null;
-            }
-        }
+					_tree.DoValuesMoved(node);
 
-        public void InternalInsert(Key key, Value value, int index, out ILeaf<Key, Value> leaf)
-        {
-            if (Keys[index] != null && Keys[index].Equals(key))
-            {
-                if (Values[index] == null)
-                    Values[index] = new HashSet<Value>();
-                Values[index].Add(value);
-            }
-            else
-            {
-                Array.Copy(Keys, index, Keys, index + 1, Count - index);
-                Array.Copy(Values, index, Values, index + 1, Count - index);
-                Keys[index] = key;
-                Values[index] = new HashSet<Value>();
-                Values[index].Add(value);
-                Count++;
-            }
+					result.Split = new Split<Key, Value>() { Key = node._keys[0], Right = node };
+				}
+				else
+					result.Found = InternalInsert(key, value, pos, out leaf);
 
-            leaf = this;
-        }
+				return result;
+			}
 
-        private int IndexOf(Key key)
-        {
-            var result = Array.BinarySearch(Keys, 0, Count, key);
-            if (result < 0)
-            {
-                var index = ~result;
-                if (index > Count)
-                    return Count;
-                else
-                    return index;
-            }
-            else
-                return result;
-        }
+			public Value? InternalInsert(Key key, Value value, int index, out ILeaf<Key, Value> leaf)
+			{
+				leaf = this;
+				if (_tree.Comparer.Compare(_keys[index], key) == 0)
+					return _values[index];
+				else
+				{
+					Array.Copy(_keys, index, _keys, index + 1, Count - index);
+					Array.Copy(_values, index, _values, index + 1, Count - index);
+					_keys[index] = key;
+					_values[index] = value;
+					Count++;
+					return null;
+				}
+			}
 
-        public void Dump()
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                Console.WriteLine(Keys[i]);
-            }
-        }
+			private int IndexOf(Key key)
+			{
+				var result = Array.BinarySearch(_keys, 0, Count, key, _tree.Comparer);
+				if (result < 0)
+				{
+					var index = ~result;
+					if (index > Count)
+						return Count;
+					else
+						return index;
+				}
+				else
+					return result;
+			}
 
-        public IEnumerable<Value> OrderedValues()
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                foreach (var value in Values[i])
-                {
-                    yield return value;
-                }
-            }
-        }
+			public override string ToString()
+			{
+				var sb = new StringBuilder("{");
+				foreach (var entry in Get(true))
+				{
+					sb.Append(entry.Key);
+					sb.Append(" : ");
+					sb.Append(entry.Value);
+				}
+				sb.Append("}");
+				return sb.ToString();
+			}
 
-        public Key GetKey(Value value)
-        {
-            for (int i = 0; i < Count; i++)
-            {
-                if (Values[i].Contains(value))
-                    return Keys[i];
-            }
-            //Still missing leaves... what the deal?
-            //throw new Exception("Incorrect leaf!");
-            return default(Key);
-        }
-    }
+			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
+			{
+				if (isForward)
+				{
+					for (int i = 0; i < Count; i++)
+						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+				}
+				else
+				{
+					for (int i = Count - 1; i >= 0; i--)
+						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+				}
+			}
+
+			public Key? GetKey(Value value, IComparer<Value> comparer)
+			{
+				for (int i = 0; i < Count; i++)
+				{
+					if (comparer.Compare(_values[i], value) == 0)
+						return _keys[i];
+				}
+				return null;
+			}
+		}
+	}
+
+	public delegate void ValueMovedHandler<Key, Value>(Value row, ILeaf<Key, Value> newLeaf);
 }

@@ -5,25 +5,28 @@ using System.Text;
 
 namespace Fastore.Core
 {
-    public interface INode<Key,Value>
+    public interface INode<Key, Value>
     {
-        Split<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf);
+        InsertResult<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf);
         void Dump();
-        IEnumerable<Value> OrderedValues();
+		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
+	}
+
+    public interface ILeaf<Key, Value> : INode<Key, Value>
+    {
+        Key? GetKey(Value value, IComparer<Value> comparer);
+		IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward);
     }
 
-    public interface ILeaf<Key, Value> : INode<Key,Value>
-    {
-        Key[] Keys { get; set; }
-        int Count { get; set; }
-        ISet<Value>[] Values {get; set;}
-        Key GetKey(Value value);
-    }
+	public struct InsertResult<Key, Value>
+	{
+		public Value? Found;
+		public Split<Key, Value> Split;
+	}
 
     public class Split<Key, Value>
     {
-        public Key key;
-        public INode<Key, Value> left;
-        public INode<Key, Value> right;
+        public Key Key;
+        public INode<Key, Value> Right;
     }
 }

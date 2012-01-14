@@ -51,7 +51,7 @@ namespace Fastore.Core
             }
         }
 
-        public void UpdateLinks(ILeaf<string, Value> leaf)
+        public void DoValuesMoved(ILeaf<string, Value> leaf)
         {
             if (Parent != null)
             {
@@ -98,8 +98,8 @@ namespace Fastore.Core
 
                 count = mid - 1;
 
-                Split<string, Value> result = new Split<string, Value>() { key = keys[mid - 1], left = this, right = node };
-                if (key.CompareTo(result.key) < 0)
+                Split<string, Value> result = new Split<string, Value>() { Key = keys[mid - 1], left = this, Right = node };
+                if (key.CompareTo(result.Key) < 0)
                 {
                     InternalInsert(key, value, out leaf);
                 }
@@ -171,7 +171,7 @@ namespace Fastore.Core
     public class PrefixLeaf<Value> : ILeaf<string, Value>
     {
         public ISet<Value>[] Values { get; set; }
-        public string[] Keys { get; set; }
+        public string[] _keys { get; set; }
         public int Count { get; set; }
 
         private string prefix;
@@ -181,7 +181,7 @@ namespace Fastore.Core
         public PrefixLeaf(PrefixBTree<Value> parent)
         {
             this.parent = parent;
-            Keys = new string[parent.LeafSize];
+            _keys = new string[parent.LeafSize];
             Values = new HashSet<Value>[parent.LeafSize];
         }
 
@@ -196,7 +196,7 @@ namespace Fastore.Core
                 var node = new PrefixLeaf<Value>(parent);
                 node.Count = mid;
 
-                Array.Copy(Keys, mid, node.Keys, 0, size);
+                Array.Copy(_keys, mid, node._keys, 0, size);
                 Array.Copy(Values, mid, node.Values, 0, size);
                 Count = mid;
 
@@ -209,9 +209,9 @@ namespace Fastore.Core
                     node.InternalInsert(key, value, pos - Count, out leaf);
                 }
 
-                parent.UpdateLinks(node);
+                parent.DoValuesMoved(node);
 
-                var result = new Split<string, Value>() { key = node.Keys[0], left = this, right = node };
+                var result = new Split<string, Value>() { Key = node._keys[0], left = this, Right = node };
 
                 return result;
             }
@@ -224,7 +224,7 @@ namespace Fastore.Core
 
         public void InternalInsert(string key, Value value, int index, out ILeaf<string, Value> leaf)
         {
-            if (Keys[index] != null && Keys[index].Equals(key))
+            if (_keys[index] != null && _keys[index].Equals(key))
             {
                 if (Values[index] == null)
                     Values[index] = new HashSet<Value>();
@@ -232,9 +232,9 @@ namespace Fastore.Core
             }
             else
             {
-                Array.Copy(Keys, index, Keys, index + 1, Count - index);
+                Array.Copy(_keys, index, _keys, index + 1, Count - index);
                 Array.Copy(Values, index, Values, index + 1, Count - index);
-                Keys[index] = key;
+                _keys[index] = key;
                 Values[index] = new HashSet<Value>();
                 Values[index].Add(value);
                 Count++;
@@ -245,7 +245,7 @@ namespace Fastore.Core
 
         private int IndexOf(string key)
         {
-            var result = Array.BinarySearch(Keys, 0, Count, key);
+            var result = Array.BinarySearch(_keys, 0, Count, key);
             if (result < 0)
             {
                 var index = ~result;
@@ -262,7 +262,7 @@ namespace Fastore.Core
         {
             for (int i = 0; i < Count; i++)
             {
-                Console.WriteLine(Keys[i]);
+                Console.WriteLine(_keys[i]);
             }
         }
 
@@ -282,7 +282,7 @@ namespace Fastore.Core
             for (int i = 0; i < Count; i++)
             {
                 if (Values[i].Contains(value))
-                    return Keys[i];
+                    return _keys[i];
             }
             //Still missing leaves... what the deal?
             //throw new Exception("Incorrect leaf!");

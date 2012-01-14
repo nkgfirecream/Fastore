@@ -8,8 +8,8 @@
     <ProjectGuid>{AAF3B01E-3982-4130-9269-A21366981891}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Fastore.Engine</RootNamespace>
-    <AssemblyName>Fastore.Engine</AssemblyName>
+    <RootNamespace>Fastore.Core</RootNamespace>
+    <AssemblyName>Fastore.Core</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -41,10 +41,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BTree.cs" />
+    <Compile Include="ColumnStore.cs" />
+    <Compile Include="KeyOnlyBTree.cs" />
     <Compile Include="PrefixBTree.cs" />
     <Compile Include="INode.cs" />
     <Compile Include="ITree.cs" />
-    <Compile Include="ILeafSubscriber.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RowList.cs" />
   </ItemGroup>
