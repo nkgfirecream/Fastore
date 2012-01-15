@@ -55,7 +55,7 @@ namespace Fastore.Core.Test
 
 			var test = new BTree<int, int>(4, 4, null, 0);
 
-			ILeaf<int, int> dummy;
+			IBTreeLeaf<int, int> dummy;
 			for (int i = 0; i < 100; i++)
 			{
 				test.Insert(i, i, out dummy);
@@ -86,7 +86,7 @@ namespace Fastore.Core.Test
 		[TestMethod]
 		public void Test2()
 		{
-			ILeaf<Guid, string> dummy;
+			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("BTree tests");
 
 			Debug.WriteLine("Branching Factor Tests");
@@ -288,7 +288,7 @@ namespace Fastore.Core.Test
 			int numrows = 10;
 			var test = new BTree<Guid, string>(32, 32, null, 0);
 
-			ILeaf<Guid, string> dummy;
+			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("Inserting Rows...");
 			var watch = new Stopwatch();
 			watch.Start();

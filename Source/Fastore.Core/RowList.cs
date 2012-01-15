@@ -8,7 +8,7 @@ namespace Fastore.Core
     public class RowList
         : ILeafSubscriber<string, Guid>
     {
-        private Dictionary<Guid, ILeaf<string, Guid>[]> rows = new Dictionary<Guid, ILeaf<string, Guid>[]>();
+        private Dictionary<Guid, IBTreeLeaf<string, Guid>[]> rows = new Dictionary<Guid, IBTreeLeaf<string, Guid>[]>();
         private List<IKeyValueTree<string, Guid>> columns = new List<IKeyValueTree<string, Guid>>();
 
 
@@ -27,12 +27,12 @@ namespace Fastore.Core
             if (values.Length != _numcolumns)
                 throw new ArgumentException("Hey! We need the same number of values as columns!");
 
-            var list = new ILeaf<string, Guid>[_numcolumns];
+            var list = new IBTreeLeaf<string, Guid>[_numcolumns];
 
             rows.Add(key, list);
             for (int i = 0; i < _numcolumns; i++)
             {
-                ILeaf<string, Guid> leaf;
+                IBTreeLeaf<string, Guid> leaf;
                 columns[i].Insert(values[i], key, out leaf);
                 list[i] = leaf;
             }            
@@ -60,7 +60,7 @@ namespace Fastore.Core
             return builder.ToString();
         }
 
-        public void UpdateLink(Guid row, int column, ILeaf<string, Guid> leaf)
+        public void UpdateLink(Guid row, int column, IBTreeLeaf<string, Guid> leaf)
         {
             rows[row][column] = leaf;
         }

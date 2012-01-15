@@ -11,7 +11,7 @@ namespace Fastore.Core
 		public BTree(IComparer<Key> comparer = null)
 		{
 			Comparer = comparer ?? Comparer<Key>.Default;
-			_root = new Leaf<Key, Value>(this);
+			_root = new Leaf(this);
 		}
 
 		public IComparer<Key> Comparer { get; private set; }
@@ -31,11 +31,11 @@ namespace Fastore.Core
         public int LeafSize = 100;
 		public event ValueMovedHandler<Key, Value> ValueMoved;
 		
-		private INode<Key, Value> _root;
+		private INode _root;
 
-        public void Dump()
+        public override string ToString()
         {
-            _root.Dump();
+            return _root.ToString();
         }
 
 		public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
@@ -46,7 +46,7 @@ namespace Fastore.Core
 		/// <summary> Attempts to insert a given key/value</summary>
 		/// <param name="leaf"> The leaf in which the entry was located. </param>
 		/// <returns> If the key already exists, nothing is changed and the existing value is returned. </returns>
-        public Value? Insert(Key key, Value value, out ILeaf<Key,Value> leaf)
+        public Value? Insert(Key key, Value value, out IBTreeLeaf<Key,Value> leaf)
         {
             var result = _root.Insert(key, value, out leaf);
             if (result.Split != null)
@@ -54,23 +54,23 @@ namespace Fastore.Core
 			return result.Found;
         }
 
-        internal void DoValuesMoved(ILeaf<Key, Value> leaf)
+        internal void DoValuesMoved(IBTreeLeaf<Key, Value> leaf)
         {
             if (ValueMoved != null)
 				foreach (var entry in leaf.Get(true))
 					ValueMoved(entry.Value, leaf);
         }
 
-		class Branch : INode<Key, Value>
+		class Branch : INode
 		{
 			public Branch(BTree<Key, Value> tree)
 			{
 				_tree = tree;
 				_keys = new Key[tree.BranchingFactor - 1];
-				_children = new INode<Key, Value>[tree.BranchingFactor];
+				_children = new INode[tree.BranchingFactor];
 			}
 
-			public Branch(BTree<Key, Value> tree, INode<Key, Value> left, INode<Key, Value> right, Key key)
+			public Branch(BTree<Key, Value> tree, INode left, INode right, Key key)
 				: this(tree)
 			{
 				_children[0] = left;
@@ -80,13 +80,13 @@ namespace Fastore.Core
 			}
 
 			private Key[] _keys;
-			private INode<Key, Value>[] _children;
+			private INode[] _children;
 			private BTree<Key, Value> _tree;
 
 			/// <summary> Count is numbers of keys. Number of children is keys + 1. </summary>
 			public int Count { get; private set; }
 
-			public InsertResult<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
+			public InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf)
 			{
 				var index = IndexOf(key);
 				var result = _children[index].Insert(key, value, out leaf);
@@ -97,7 +97,7 @@ namespace Fastore.Core
 				return result;
 			}
 
-			private Split<Key, Value> InsertWithSplit(int index, Key key, INode<Key, Value> child)
+			private Split InsertWithSplit(int index, Key key, INode child)
 			{
 				// If full, split
 				if (Count == _tree.BranchingFactor - 1)
@@ -105,14 +105,14 @@ namespace Fastore.Core
 					int mid = (Count + 1) / 2;
 
 					// Create new sibling node
-					Branch<Key, Value> node = new Branch<Key, Value>(_tree);
+					Branch node = new Branch(_tree);
 					node.Count = Count - mid - 1;
 					Array.Copy(_keys, mid + 1, node._keys, 0, node.Count);
 					Array.Copy(_children, mid + 1, node._children, 0, node.Count + 1);
 
 					Count = mid;
 
-					Split<Key, Value> result = new Split<Key, Value>() { Key = _keys[mid], Right = node };
+					Split result = new Split() { Key = _keys[mid], Right = node };
 
 					if (index < Count)
 						InternalInsert(index, key, child);
@@ -128,7 +128,7 @@ namespace Fastore.Core
 				}
 			}
 
-			private void InternalInsert(int index, Key key, INode<Key, Value> child)
+			private void InternalInsert(int index, Key key, INode child)
 			{
 				int size = Count - index;
 				Array.Copy(_keys, index, _keys, index + 1, size);
@@ -154,12 +154,12 @@ namespace Fastore.Core
 					return result;
 			}
 
-			public void Dump()
+			public override string ToString()
 			{
+				var sb = new StringBuilder();
 				for (int i = 0; i <= Count; i++)
-				{
-					_children[i].Dump();
-				}
+					sb.AppendLine(_children[i].ToString());
+				return sb.ToString();
 			}
 
 			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
@@ -179,7 +179,7 @@ namespace Fastore.Core
 			}
 		}
 
-		class Leaf : ILeaf<Key, Value>
+		class Leaf : INode, IBTreeLeaf<Key, Value>
 		{
 			private Value[] _values { get; set; }
 			private Key[] _keys { get; set; }
@@ -194,13 +194,13 @@ namespace Fastore.Core
 				_values = new Value[parent.LeafSize];
 			}
 
-			public InsertResult<Key, Value> Insert(Key key, Value value, out ILeaf<Key, Value> leaf)
+			public InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf)
 			{
 				int pos = IndexOf(key);
-				var result = new InsertResult<Key, Value>();
+				var result = new InsertResult();
 				if (Count == _tree.LeafSize)
 				{
-					var node = new Leaf<Key, Value>(_tree);
+					var node = new Leaf(_tree);
 					node.Count = (_tree.LeafSize + 1) / 2;
 					Count = Count - node.Count;
 
@@ -214,7 +214,7 @@ namespace Fastore.Core
 
 					_tree.DoValuesMoved(node);
 
-					result.Split = new Split<Key, Value>() { Key = node._keys[0], Right = node };
+					result.Split = new Split() { Key = node._keys[0], Right = node };
 				}
 				else
 					result.Found = InternalInsert(key, value, pos, out leaf);
@@ -222,7 +222,7 @@ namespace Fastore.Core
 				return result;
 			}
 
-			public Value? InternalInsert(Key key, Value value, int index, out ILeaf<Key, Value> leaf)
+			public Value? InternalInsert(Key key, Value value, int index, out IBTreeLeaf<Key, Value> leaf)
 			{
 				leaf = this;
 				if (_tree.Comparer.Compare(_keys[index], key) == 0)
@@ -290,7 +290,25 @@ namespace Fastore.Core
 				return null;
 			}
 		}
+
+		private interface INode
+		{
+			InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf);
+			IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
+		}
+
+		private struct InsertResult
+		{
+			public Value? Found;
+			public Split Split;
+		}
+
+		private class Split
+		{
+			public Key Key;
+			public INode Right;
+		}
 	}
 
-	public delegate void ValueMovedHandler<Key, Value>(Value row, ILeaf<Key, Value> newLeaf);
+	public delegate void ValueMovedHandler<Key, Value>(Value row, IBTreeLeaf<Key, Value> newLeaf);
 }

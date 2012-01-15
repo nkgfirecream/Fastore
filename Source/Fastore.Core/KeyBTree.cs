@@ -7,10 +7,9 @@ namespace Fastore.Core
 {
 	/// <summary> Maintains a set of keys ordered by a given comparer. </summary>
 	/// <typeparam name="K"> Key type. </typeparam>
-	/// <typeparam name="O"> Owner type. </typeparam>
-	public class KeyOnlyBTree<K>
+	public class KeyBTree<K>
 	{
-		public KeyOnlyBTree(IComparer<K> comparer)
+		public KeyBTree(IComparer<K> comparer)
 		{
 			Comparer = comparer ?? Comparer<K>.Default;
 		}
@@ -21,14 +20,13 @@ namespace Fastore.Core
 		
 		// ... rest of BTree implementation
 
-		// NOTE: the leaf must implement INode<K, KeyOnlyBTree<K>> by walking through the owner to find the leaf holding this tree
-
 		public IEnumerator<K> Get(bool isForward)
 		{
 			throw new NotImplementedException();
 		}
 
-		public void Insert(K rowId)
+		/// <returns> True if an item was added (not already existing). </returns>
+		public bool Insert(long rowId, out IKeyLeaf<K> leaf)
 		{
 			throw new NotImplementedException();
 		}

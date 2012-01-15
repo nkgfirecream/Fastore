@@ -37,7 +37,7 @@ namespace Fastore.Core
             return Root.OrderedValues();
         }
 
-        public void Insert(string key, Value value, out ILeaf<string,Value> leaf)
+        public void Insert(string key, Value value, out IBTreeLeaf<string,Value> leaf)
         {
             var result = Root.Insert(key, value, out leaf);
             if(result != null)
@@ -51,7 +51,7 @@ namespace Fastore.Core
             }
         }
 
-        public void DoValuesMoved(ILeaf<string, Value> leaf)
+        public void DoValuesMoved(IBTreeLeaf<string, Value> leaf)
         {
             if (Parent != null)
             {
@@ -81,7 +81,7 @@ namespace Fastore.Core
             children = new INode<string, Value>[parent.BranchingFactor];
         }
 
-        public Split<string, Value> Insert(string key, Value value, out ILeaf<string, Value> leaf)
+        public Split<string, Value> Insert(string key, Value value, out IBTreeLeaf<string, Value> leaf)
         {
             //count is numbers of keys. Number of children is keys + 1;
             //An optimization would to split from the bottom up, rather than to top down
@@ -117,7 +117,7 @@ namespace Fastore.Core
             }
         }
 
-        public void InternalInsert(string key, Value value, out ILeaf<string, Value> leaf)
+        public void InternalInsert(string key, Value value, out IBTreeLeaf<string, Value> leaf)
         {
             var index = IndexOf(key);
             var result = children[index].Insert(key, value, out leaf);
@@ -168,7 +168,7 @@ namespace Fastore.Core
         }
     }
 
-    public class PrefixLeaf<Value> : ILeaf<string, Value>
+    public class PrefixLeaf<Value> : IBTreeLeaf<string, Value>
     {
         public ISet<Value>[] Values { get; set; }
         public string[] _keys { get; set; }
@@ -186,7 +186,7 @@ namespace Fastore.Core
         }
 
 
-        public Split<string, Value> Insert(string key, Value value, out ILeaf<string, Value> leaf)
+        public Split<string, Value> Insert(string key, Value value, out IBTreeLeaf<string, Value> leaf)
         {
             int pos = IndexOf(key);
             if (Count == parent.LeafSize)
@@ -222,7 +222,7 @@ namespace Fastore.Core
             }
         }
 
-        public void InternalInsert(string key, Value value, int index, out ILeaf<string, Value> leaf)
+        public void InternalInsert(string key, Value value, int index, out IBTreeLeaf<string, Value> leaf)
         {
             if (_keys[index] != null && _keys[index].Equals(key))
             {
