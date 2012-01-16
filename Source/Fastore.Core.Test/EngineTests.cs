@@ -259,7 +259,7 @@ namespace Fastore.Core.Test
 			watch.Start();
 			for (int j = 0; j < numrows; j++)
 			{
-				rowlist.Add(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomString(RandomG.RandomInt(8)));
+				rowlist.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomString(RandomG.RandomInt(8)));
 			}
 			watch.Stop();
 

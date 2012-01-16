@@ -2,65 +2,84 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Fastore.Core
 {
     public class Table
     {
-		private List<ColumnDef> columnDefs = new List<ColumnDef>();
+		private List<ColumnDef> _defs = new List<ColumnDef>();
+		private List<object> _stores = new List<object>();
+		private long _nextID;
 
+		public void AddColumn(int index, ColumnDef def)
+		{
+			var storeType = typeof(ColumnStore<>).MakeGenericType(new Type[] { def.Type });
+			
+			// TODO: allow for a custom value sorter
+			// TODO: wire up row sorter to next column
+			var store = Activator.CreateInstance(storeType, new object[] { null, null });
+			
+			_stores.Insert(index, store);
 
-        private int _numcolumns;
-        public Table(int numcolumns)
+			_defs.Insert(index, def);
+		}
+
+        public void Insert(long id, params object[] values)
         {
-            _numcolumns = numcolumns;
-            for (int i = 0; i < numcolumns; i++)
-            {
-                columns.Add(new BTree<string, Guid>(32, 16, this, i));
-            }
-        }
-
-        public void Add(Guid key, params string[] values)
-        {
-            if (values.Length != _numcolumns)
+            if (values.Length != _defs.Count)
                 throw new ArgumentException("Hey! We need the same number of values as columns!");
 
-            var list = new IBTreeLeaf<string, Guid>[_numcolumns];
-
-            rows.Add(key, list);
-            for (int i = 0; i < _numcolumns; i++)
+            for (int i = 0; i < values.Length; i++)
             {
-                IBTreeLeaf<string, Guid> leaf;
-                columns[i].Insert(values[i], key, out leaf);
-                list[i] = leaf;
+				var value = values[i];
+				if (value != null)
+				{
+					var def = _defs[i];
+					dynamic store = _stores[i];
+					store.Insert(values[i], id);
+				}
             }            
         }
 
-        public IEnumerable<string> OrderBy(int column)
+		public long Insert(params object[] values)
+		{
+			var id = Interlocked.Increment(ref _nextID);
+			Insert(id, values);
+			return id;
+		}
+
+        public object[] Select(long id, int[] projection)
         {
-            foreach (var rowID in columns[column].OrderedValues())
+			var values = new object[projection.Length];
+            for (int i = 0; i < projection.Length; i++)
             {
-                yield return ReconstructRow(rowID);
-            }
+				dynamic store = _stores[projection[i]];
+				values[i] = store.GetValue(id);
+			}
+			return values;
         }
 
-        private string ReconstructRow(Guid row)
-        {
-            var list = rows[row];
-
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < list.Length; i++)
-            {
-                builder.Append(list[i].GetKey(row));
-                builder.Append("\t");
-            }
-
-            return builder.ToString();
-        }
-
-        public void UpdateLink(Guid row, int column, IBTreeLeaf<string, Guid> leaf)
-        {
-            rows[row][column] = leaf;
-        }
+		public IEnumerator<object[]> Select(int column, bool isForward, int[] projection)
+		{
+			dynamic store = _stores[column];
+			foreach (var entry in store.GetRows(isForward))
+			{
+				var id = entry.Value;
+				var values = new object[projection.Length];
+				for (int i = 0; i < projection.Length; i++)
+				{
+					var colIndex = projection[i];
+					if (colIndex == column)
+						values[i] = entry.Key;
+					else
+					{
+						dynamic other = _stores[colIndex];
+						values[i] = other.GetValue(id);
+					}
+				}
+				yield return values;
+			}
+		}
     }
 }

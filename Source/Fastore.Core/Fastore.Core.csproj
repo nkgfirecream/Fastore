@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BTree.cs" />
+    <Compile Include="ColumnDef.cs" />
     <Compile Include="ColumnStore.cs" />
     <Compile Include="IKeyLeaf.cs" />
     <Compile Include="KeyBTree.cs" />
