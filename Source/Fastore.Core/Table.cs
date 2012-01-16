@@ -5,15 +5,13 @@ using System.Text;
 
 namespace Fastore.Core
 {
-    public class RowList
-        : ILeafSubscriber<string, Guid>
+    public class Table
     {
-        private Dictionary<Guid, IBTreeLeaf<string, Guid>[]> rows = new Dictionary<Guid, IBTreeLeaf<string, Guid>[]>();
-        private List<IKeyValueTree<string, Guid>> columns = new List<IKeyValueTree<string, Guid>>();
+		private List<ColumnDef> columnDefs = new List<ColumnDef>();
 
 
         private int _numcolumns;
-        public RowList(int numcolumns)
+        public Table(int numcolumns)
         {
             _numcolumns = numcolumns;
             for (int i = 0; i < numcolumns; i++)

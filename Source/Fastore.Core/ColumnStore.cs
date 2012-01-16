@@ -42,10 +42,16 @@ namespace Fastore.Core
 
 		public IEnumerable<KeyValuePair<long, T>> GetRows(T start, bool isForward)
 		{
+			foreach (var valueEntry in _values.Get(start, isForward))
+				foreach (var rowEntry in valueEntry.Value.Get(isForward))
+					yield return rowEntry;
 		}
 
 		public IEnumerable<KeyValuePair<long, T>> GetRows(T start, T end, bool isForward)
 		{
+			foreach (var valueEntry in _values.Get(start, end, isForward))
+				foreach (var rowEntry in valueEntry.Value.Get(isForward))
+					yield return rowEntry;
 		}
 
 		public void Insert(T value, long rowId)

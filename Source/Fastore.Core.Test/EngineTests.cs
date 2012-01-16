@@ -252,7 +252,7 @@ namespace Fastore.Core.Test
 		public void Test3()
 		{
 			int numrows = 1000000;
-			var rowlist = new RowList(3);
+			var rowlist = new Table(3);
 
 			Debug.WriteLine("Inserting Rows...");
 			var watch = new Stopwatch();

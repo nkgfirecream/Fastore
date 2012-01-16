@@ -43,6 +43,16 @@ namespace Fastore.Core
 			return _root.Get(isForward);
 		}
 
+		public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+		{
+			return _root.Get(start, isForward);
+		}
+
+		public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+		{
+			return _root.Get(start, end, isForward);
+		}
+
 		/// <summary> Attempts to insert a given key/value</summary>
 		/// <param name="leaf"> The leaf in which the entry was located. </param>
 		/// <returns> If the key already exists, nothing is changed and the existing value is returned. </returns>
@@ -172,7 +182,42 @@ namespace Fastore.Core
 				}
 				else
 				{
-					for (int i = Count - 1; i >= 0; i--)
+					for (int i = Count; i >= 0; i--)
+						foreach (var entry in _children[i].Get(isForward))
+							yield return entry;
+				}
+			}
+
+			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+			{
+				var index = IndexOf(start);
+				if (isForward)
+				{
+					for (int i = index; i <= Count; i++)
+						foreach (var entry in _children[i].Get(isForward))
+							yield return entry;
+				}
+				else
+				{
+					for (int i = Count; i >= index; i--)
+						foreach (var entry in _children[i].Get(isForward))
+							yield return entry;
+				}
+			}
+
+			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+			{
+				var startIndex = IndexOf(start);
+				var endIndex = IndexOf(end);
+				if (isForward)
+				{
+					for (int i = startIndex; i <= endIndex; i++)
+						foreach (var entry in _children[i].Get(isForward))
+							yield return entry;
+				}
+				else
+				{
+					for (int i = endIndex; i >= startIndex; i--)
 						foreach (var entry in _children[i].Get(isForward))
 							yield return entry;
 				}
@@ -295,6 +340,8 @@ namespace Fastore.Core
 		{
 			InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf);
 			IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
+			IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward);
+			IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward);
 		}
 
 		private struct InsertResult
