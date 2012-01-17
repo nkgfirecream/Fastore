@@ -116,9 +116,9 @@ namespace Fastore.Core
 
 					// Create new sibling node
 					Branch node = new Branch(_tree);
-					node.Count = Count - mid - 1;
-					Array.Copy(_keys, mid + 1, node._keys, 0, node.Count);
-					Array.Copy(_children, mid + 1, node._children, 0, node.Count + 1);
+					node.Count = Count - mid;
+					Array.Copy(_keys, mid, node._keys, 0, node.Count);
+					Array.Copy(_children, mid, node._children, 0, node.Count + 1);
 
 					Count = mid;
 
@@ -168,7 +168,7 @@ namespace Fastore.Core
 			{
 				var sb = new StringBuilder("[");
 				for (int i = 0; i <= Count; i++)
-					sb.Append(i.ToString() + ": " + _children[i].ToString());
+					sb.AppendFormat("{0} : {1}", i, _children[i]);
 				sb.Append("]");
 				return sb.ToString();
 			}
