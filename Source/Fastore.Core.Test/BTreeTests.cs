@@ -273,7 +273,7 @@ namespace Fastore.Engine.Test
 
                 watch2.Start();
                 test2.Insert(value, key, out dummy);
-                watch.Stop();
+                watch2.Stop();
 			}
 
 			Debug.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));

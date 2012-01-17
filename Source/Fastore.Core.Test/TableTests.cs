@@ -14,7 +14,7 @@ namespace Fastore.Core.Test
 		[TestMethod]
 		public void TableTest1()
 		{
-			int numrows = 1000000;
+			int numrows = 100000;
 			var table = new Table();
 			table.AddColumn(0, new ColumnDef("ID", typeof(Guid)));
 			table.AddColumn(1, new ColumnDef("Name", typeof(string)));

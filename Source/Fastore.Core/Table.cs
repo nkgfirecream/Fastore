@@ -74,7 +74,7 @@ namespace Fastore.Core
 
 			foreach (var entry in store.GetRows(isForward))
 			{
-				var id = entry.Value;
+				long id = entry.Key;
 				var values = new object[projection.Length];
 				for (int i = 0; i < projection.Length; i++)
 				{
@@ -84,7 +84,7 @@ namespace Fastore.Core
 					else
 					{
 						dynamic other = _stores[colIndex];
-						values[i] = other.GetValue(id as dynamic);
+						values[i] = other.GetValue(id);
 					}
 				}
 				yield return new KeyValuePair<long, object[]>(id, values);

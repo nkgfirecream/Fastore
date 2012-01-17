@@ -30,7 +30,7 @@ namespace Fastore.Core
 
 			var tree = leaf.Tree;
 			var owner = (IBTreeLeaf<T, KeyBTree<long>>)tree.Owner;
-			return owner.GetKey(tree, Comparer<KeyBTree<long>>.Default);
+			return owner.GetKey(tree, ObjectReferenceComparer<KeyBTree<long>>.Instance);
 		}
 
 		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward)
