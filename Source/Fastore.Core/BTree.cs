@@ -38,17 +38,17 @@ namespace Fastore.Core
             return _root.ToString();
         }
 
-		public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
+		public IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward)
 		{
 			return _root.Get(isForward);
 		}
 
-		public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+		public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
 		{
 			return _root.Get(start, isForward);
 		}
 
-		public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+		public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
 		{
 			return _root.Get(start, end, isForward);
 		}
@@ -56,7 +56,7 @@ namespace Fastore.Core
 		/// <summary> Attempts to insert a given key/value</summary>
 		/// <param name="leaf"> The leaf in which the entry was located. </param>
 		/// <returns> If the key already exists, nothing is changed and the existing value is returned. </returns>
-        public Value? Insert(Key key, Value value, out IBTreeLeaf<Key,Value> leaf)
+        public Optional<Value> Insert(Key key, Value value, out IBTreeLeaf<Key,Value> leaf)
         {
             var result = _root.Insert(key, value, out leaf);
             if (result.Split != null)
@@ -103,7 +103,7 @@ namespace Fastore.Core
 
 				// If child split, add the adjacent node
 				if (result.Split != null)
-					result.Split = InsertWithSplit(index + 1, result.Key, result.Right);
+					result.Split = InsertWithSplit(index + 1, result.Split.Key, result.Split.Right);
 				return result;
 			}
 
@@ -172,7 +172,7 @@ namespace Fastore.Core
 				return sb.ToString();
 			}
 
-			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
+			public IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward)
 			{
 				if (isForward)
 				{
@@ -188,7 +188,7 @@ namespace Fastore.Core
 				}
 			}
 
-			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
 			{
 				var index = IndexOf(start);
 				if (isForward)
@@ -205,7 +205,7 @@ namespace Fastore.Core
 				}
 			}
 
-			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
 			{
 				var startIndex = IndexOf(start);
 				var endIndex = IndexOf(end);
@@ -267,7 +267,7 @@ namespace Fastore.Core
 				return result;
 			}
 
-			public Value? InternalInsert(Key key, Value value, int index, out IBTreeLeaf<Key, Value> leaf)
+			public Optional<Value> InternalInsert(Key key, Value value, int index, out IBTreeLeaf<Key, Value> leaf)
 			{
 				leaf = this;
 				if (_tree.Comparer.Compare(_keys[index], key) == 0)
@@ -279,7 +279,7 @@ namespace Fastore.Core
 					_keys[index] = key;
 					_values[index] = value;
 					Count++;
-					return null;
+					return Optional<Value>.Null;
 				}
 			}
 
@@ -311,7 +311,7 @@ namespace Fastore.Core
 				return sb.ToString();
 			}
 
-			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
+			public IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward)
 			{
 				if (isForward)
 				{
@@ -325,28 +325,59 @@ namespace Fastore.Core
 				}
 			}
 
-			public Key? GetKey(Value value, IComparer<Value> comparer)
+			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+			{
+				var index = IndexOf(start);
+				if (isForward)
+				{
+					for (int i = index; i < Count; i++)
+						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+				}
+				else
+				{
+					for (int i = Count - 1; i >= index; i--)
+						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+				}
+			}
+
+			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+			{
+				var startIndex = IndexOf(start);
+				var endIndex = IndexOf(end);
+				if (isForward)
+				{
+					for (int i = startIndex; i < endIndex; i++)
+						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+				}
+				else
+				{
+					for (int i = endIndex - 1; i >= startIndex; i--)
+						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+				}
+			}
+
+			public Optional<Key> GetKey(Value value, IComparer<Value> comparer)
 			{
 				for (int i = 0; i < Count; i++)
 				{
 					if (comparer.Compare(_values[i], value) == 0)
 						return _keys[i];
 				}
-				return null;
+				return Optional<Key>.Null;
 			}
 		}
 
 		private interface INode
 		{
 			InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf);
-			IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
-			IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward);
-			IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward);
+			IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward);
+			IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward);
+			IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward);
 		}
 
 		private struct InsertResult
 		{
-			public Value? Found;
+			public Optional<Value> Found;
 			public Split Split;
 		}
 

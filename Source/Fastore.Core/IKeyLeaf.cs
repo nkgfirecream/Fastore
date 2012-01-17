@@ -7,7 +7,7 @@ namespace Fastore.Core
 {
 	public interface IKeyLeaf<K>
 	{
-		IEnumerable<K> Get(bool isForward);
+		IEnumerator<K> Get(bool isForward);
 		KeyBTree<K> Tree { get; }
 	}
 }

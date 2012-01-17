@@ -22,32 +22,32 @@ namespace Fastore.Core
 
 		private Dictionary<long, IKeyLeaf<long>> _rows = new Dictionary<long, IKeyLeaf<long>>();
 
-		public T? GetValue(long rowId)
+		public Optional<T> GetValue(long rowId)
 		{
 			IKeyLeaf<long> leaf;
 			if (!_rows.TryGetValue(rowId, out leaf))
-				return null;
+				return Optional<T>.Null;
 
 			var tree = leaf.Tree;
 			var owner = (IBTreeLeaf<T, KeyBTree<long>>)tree.Owner;
 			return owner.GetKey(tree, Comparer<KeyBTree<long>>.Default);
 		}
 
-		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward)
+		public IEnumerator<KeyValuePair<long, T>> GetRows(bool isForward)
 		{
 			foreach (var valueEntry in _values.Get(isForward))
 				foreach (var rowEntry in valueEntry.Value.Get(isForward))
-					yield return rowEntry;
+				    yield return rowEntry;
 		}
 
-		public IEnumerable<KeyValuePair<long, T>> GetRows(T start, bool isForward)
+		public IEnumerator<KeyValuePair<long, T>> GetRows(T start, bool isForward)
 		{
 			foreach (var valueEntry in _values.Get(start, isForward))
 				foreach (var rowEntry in valueEntry.Value.Get(isForward))
 					yield return rowEntry;
 		}
 
-		public IEnumerable<KeyValuePair<long, T>> GetRows(T start, T end, bool isForward)
+		public IEnumerator<KeyValuePair<long, T>> GetRows(T start, T end, bool isForward)
 		{
 			foreach (var valueEntry in _values.Get(start, end, isForward))
 				foreach (var rowEntry in valueEntry.Value.Get(isForward))
@@ -65,7 +65,7 @@ namespace Fastore.Core
 
 			// If already existing, use it
 			var existingRows = _values.Insert(value, newRows, out valueLeaf);
-			if (existingRows != null)
+			if (existingRows != Optional<KeyBTree<long>>.Null)
 				newRows = existingRows.Value;
 			else
 				newRows.Owner = valueLeaf;
