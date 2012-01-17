@@ -120,14 +120,14 @@ namespace Fastore.Core
 					Array.Copy(_keys, mid, node._keys, 0, node.Count);
 					Array.Copy(_children, mid, node._children, 0, node.Count + 1);
 
-					Count = mid;
+					Count = mid - 1;
 
-					Split result = new Split() { Key = _keys[mid], Right = node };
+					Split result = new Split() { Key = _keys[mid - 1], Right = node };
 
 					if (index < Count)
 						InternalInsertChild(index, key, child);
 					else
-						node.InternalInsertChild(index - Count, key, child);
+						node.InternalInsertChild(index - (Count + 1), key, child);
 
 					return result;
 				}
@@ -142,7 +142,7 @@ namespace Fastore.Core
 			{
 				int size = Count - index;
 				Array.Copy(_keys, index, _keys, index + 1, size);
-				Array.Copy(_children, index, _children, index + 1, size);
+				Array.Copy(_children, index + 1, _children, index + 2, size);
 
 				_keys[index] = key;
 				_children[index + 1] = child;
@@ -168,7 +168,7 @@ namespace Fastore.Core
 			{
 				var sb = new StringBuilder("[");
 				for (int i = 0; i <= Count; i++)
-					sb.AppendFormat("{0} : {1}", i, _children[i]);
+					sb.Append(i.ToString() + ": " + _children[i].ToString());
 				sb.Append("]");
 				return sb.ToString();
 			}
@@ -186,7 +186,7 @@ namespace Fastore.Core
 			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start, Optional<Key> end)
 			{
 				var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
-				var endIndex = end.HasValue ? IndexOf(end.Value) : Count;
+				var endIndex = end.HasValue ? IndexOf(end.Value) : Count + 1;
 				if (isForward)
 				{
 					for (int i = startIndex; i <= endIndex; i++)
@@ -224,7 +224,7 @@ namespace Fastore.Core
 				if (Count == _tree.LeafSize)
 				{
 					var node = new Leaf(_tree);
-					node.Count = (Count + 1) / 2;
+					node.Count = (_tree.LeafSize + 1) / 2;
 					Count = Count - node.Count;
 
 					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
