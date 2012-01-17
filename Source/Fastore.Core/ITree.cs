@@ -13,4 +13,6 @@ namespace Fastore.Core
 		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start, Optional<Key> end);
 		event ValueMovedHandler<Key, Value> ValueMoved;
     }
+
+    public delegate void ValueMovedHandler<Key, Value>(Value row, IBTreeLeaf<Key, Value> newLeaf);
 }
