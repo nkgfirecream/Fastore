@@ -193,13 +193,13 @@ namespace Fastore.Core
 				var endIndex = end.HasValue ? IndexOf(end.Value) : Count + 1;
 				if (isForward)
 				{
-					for (int i = startIndex; i <= endIndex; i++)
+					for (int i = startIndex; i < endIndex; i++)
 						foreach (var entry in _children[i].Get(isForward))
 							yield return entry;
 				}
 				else
 				{
-					for (int i = endIndex; i >= startIndex; i--)
+					for (int i = endIndex - 1; i >= startIndex; i--)
 						foreach (var entry in _children[i].Get(isForward))
 							yield return entry;
 				}
