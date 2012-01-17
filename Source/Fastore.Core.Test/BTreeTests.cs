@@ -104,13 +104,14 @@ namespace Fastore.Engine.Test
 					var tree = new BTree<Guid, string>(fanout:factor, leafSize:8);
 
 					watch.Reset();
-					watch.Start();
 					for (int j = 0; j <= 500000; j++)
 					{
-						tree.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), out dummy);
+						var key = Guid.NewGuid();
+						var value = RandomG.RandomString(RandomG.RandomInt(8));
+						watch.Start();
+						tree.Insert(key, value, out dummy);
+						watch.Stop();
 					}
-
-					watch.Stop();
 
 					var time = watch.ElapsedTicks;
 
@@ -133,13 +134,14 @@ namespace Fastore.Engine.Test
 					var tree = new BTree<Guid, string>(fanout:bestFactor, leafSize:factor);
 
 					watch.Reset();
-					watch.Start();
 					for (int j = 0; j <= 500000; j++)
 					{
-						tree.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), out dummy);
+						var key = Guid.NewGuid();
+						var value = RandomG.RandomString(RandomG.RandomInt(8));
+						watch.Start();
+						tree.Insert(key, value, out dummy);
+						watch.Stop();
 					}
-
-					watch.Stop();
 
 					var time = watch.ElapsedTicks;
 
@@ -238,7 +240,7 @@ namespace Fastore.Engine.Test
 					var key = Guid.NewGuid();
 					var value = RandomG.RandomString(RandomG.RandomInt(8));
 					watch.Start();
-					test4.Add(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)));
+					test4.Add(key, value);
 					watch.Stop();
 				}
 
@@ -254,7 +256,7 @@ namespace Fastore.Engine.Test
 		public void BTreeTest4()
 		{
 			int numrows = 1000000;
-			var test = new BTree<Guid, string>(fanout:64, leafSize:64);
+			var test = new BTree<Guid, string>(fanout:128, leafSize:128);
 
 			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("Inserting Rows...");
@@ -264,7 +266,7 @@ namespace Fastore.Engine.Test
 				var key = Guid.NewGuid();
 				var value = RandomG.RandomString(RandomG.RandomInt(8));
 				watch.Start();
-				test.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), out dummy);
+				test.Insert(key, value, out dummy);
 				watch.Stop();
 			}
 
