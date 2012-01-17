@@ -54,7 +54,7 @@ namespace Fastore.Engine.Test
 			//test.Dump();
 
 
-			var test = new BTree<int, int>() { BranchingFactor = 4, LeafSize = 4 };
+			var test = new BTree<int, int>(fanout:4, leafSize:4);
 
 			IBTreeLeaf<int, int> dummy;
 			for (int i = 0; i < 100; i++)
@@ -62,9 +62,9 @@ namespace Fastore.Engine.Test
 				test.Insert(i, i, out dummy);
 			}
 
-			Console.WriteLine(test.ToString());
+			Debug.WriteLine(test.ToString());
 
-			test = new BTree<int, int>() { BranchingFactor = 32, LeafSize = 16 };
+			test = new BTree<int, int>(fanout:32, leafSize:16);
 
 			for (int i = 99; i >= 0; i--)
 			{
@@ -101,7 +101,7 @@ namespace Fastore.Engine.Test
 				int factor = (int)Math.Pow(2, i);
 				for (int x = 0; x < 1; x++)
 				{
-					var tree = new BTree<Guid, string>(null) { BranchingFactor = factor, LeafSize = 8 };
+					var tree = new BTree<Guid, string>(fanout:factor, leafSize:8);
 
 					watch.Reset();
 					watch.Start();
@@ -130,7 +130,7 @@ namespace Fastore.Engine.Test
 				int factor = (int)Math.Pow(2, i);
 				for (int x = 0; x < 1; x++)
 				{
-					var tree = new BTree<Guid, string>(null) { BranchingFactor = bestFactor, LeafSize = factor };
+					var tree = new BTree<Guid, string>(fanout:bestFactor, leafSize:factor);
 
 					watch.Reset();
 					watch.Start();
@@ -159,7 +159,7 @@ namespace Fastore.Engine.Test
 			long totaltime = 0;
 			for (int x = 0; x <= 5; x++)
 			{
-				test = new BTree<Guid, string>(null) { BranchingFactor = bestFactor, LeafSize = bestSize };
+				test = new BTree<Guid, string>(fanout:bestFactor, leafSize:bestSize);
 
 				watch.Reset();
 				watch.Start();
@@ -253,7 +253,7 @@ namespace Fastore.Engine.Test
 		public void BTreeTest4()
 		{
 			int numrows = 10;
-			var test = new BTree<Guid, string>(null) { BranchingFactor = 32, LeafSize = 32 };
+			var test = new BTree<Guid, string>(fanout:32, leafSize:32);
 
 			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("Inserting Rows...");

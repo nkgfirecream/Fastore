@@ -8,28 +8,31 @@ namespace Fastore.Core
     //Need to implement Delete, Get, Contains, Binary searching, etc.
     public class BTree<Key, Value> : IKeyValueTree<Key, Value>
     {
-		public BTree(IComparer<Key> comparer = null)
+		public BTree(IComparer<Key> comparer = null, int fanout = 16, int leafSize = 100)
 		{
+			if (fanout < 2 || leafSize < 2)
+				throw new ArgumentException("Minimum fan-out and leaf size is 2.");
+			_fanout = fanout;
+			_leafSize = leafSize;
+
 			Comparer = comparer ?? Comparer<Key>.Default;
 			_root = new Leaf(this);
 		}
 
 		public IComparer<Key> Comparer { get; private set; }
 
-		private int _branchingFactor = 10;
-        public int BranchingFactor
+		private int _fanout = 10;
+        public int Fanout
 		{
-			get { return _branchingFactor; }
-			set 
-			{
-				if (value < 2)
-					throw new ArgumentException("Minimum branching factor is 2.");
-				_branchingFactor = value;
-			}
+			get { return _fanout; }
 		}
 
         private int _leafSize = 100;
-        public int LeafSize { get { return _leafSize; } set { _leafSize = value; } }
+		public int LeafSize
+		{
+			get { return _leafSize; }
+		}
+
 		public event ValueMovedHandler<Key, Value> ValueMoved;
 		
 		private INode _root;
@@ -77,8 +80,8 @@ namespace Fastore.Core
 			public Branch(BTree<Key, Value> tree)
 			{
 				_tree = tree;
-				_keys = new Key[tree.BranchingFactor - 1];
-				_children = new INode[tree.BranchingFactor];
+				_keys = new Key[tree.Fanout - 1];
+				_children = new INode[tree.Fanout];
 			}
 
 			public Branch(BTree<Key, Value> tree, INode left, INode right, Key key)
@@ -111,7 +114,7 @@ namespace Fastore.Core
 			private Split InsertChild(int index, Key key, INode child)
 			{
 				// If full, split
-				if (Count == _tree.BranchingFactor - 1)
+				if (Count == _tree.Fanout - 1)
 				{
 					int mid = (Count + 1) / 2;
 
@@ -214,18 +217,18 @@ namespace Fastore.Core
 			public Leaf(BTree<Key, Value> parent)
 			{
 				_tree = parent;
-				_keys = new Key[parent.LeafSize];
-				_values = new Value[parent.LeafSize];
+				_keys = new Key[parent._leafSize];
+				_values = new Value[parent._leafSize];
 			}
 
 			public InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf)
 			{
 				int pos = IndexOf(key);
 				var result = new InsertResult();
-				if (Count == _tree.LeafSize)
+				if (Count == _tree._leafSize)
 				{
 					var node = new Leaf(_tree);
-					node.Count = (_tree.LeafSize + 1) / 2;
+					node.Count = (_tree._leafSize + 1) / 2;
 					Count = Count - node.Count;
 
 					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
