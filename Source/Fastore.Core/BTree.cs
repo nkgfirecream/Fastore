@@ -345,6 +345,4 @@ namespace Fastore.Core
 			public INode Right;
 		}
 	}
-
-	public delegate void ValueMovedHandler<Key, Value>(Value row, IBTreeLeaf<Key, Value> newLeaf);
 }

@@ -43,8 +43,8 @@
     <Compile Include="BTree.cs" />
     <Compile Include="ColumnDef.cs" />
     <Compile Include="ColumnStore.cs" />
-    <Compile Include="PrefixBTree.cs" />
-    <Compile Include="SimplePrefixBTree.cs" />
+    <None Include="PrefixBTree.cs" />
+    <None Include="SimplePrefixBTree.cs" />
     <Compile Include="IKeyLeaf.cs" />
     <Compile Include="KeyBTree.cs" />
     <Compile Include="IBTreeLeaf.cs" />
