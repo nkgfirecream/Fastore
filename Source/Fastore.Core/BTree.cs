@@ -103,7 +103,7 @@ namespace Fastore.Core
 
 				// If child split, add the adjacent node
 				if (result.Split != null)
-					result.Split = InsertChild(index + 1, result.Split.Key, result.Split.Right);
+					result.Split = InsertChild(index, result.Split.Key, result.Split.Right);
 				return result;
 			}
 
@@ -142,7 +142,7 @@ namespace Fastore.Core
 			{
 				int size = Count - index;
 				Array.Copy(_keys, index, _keys, index + 1, size);
-				Array.Copy(_children, index, _children, index + 1, size + 1);
+				Array.Copy(_children, index, _children, index + 1, size);
 
 				_keys[index] = key;
 				_children[index + 1] = child;
@@ -224,7 +224,7 @@ namespace Fastore.Core
 				if (Count == _tree.LeafSize)
 				{
 					var node = new Leaf(_tree);
-					node.Count = (_tree.LeafSize + 1) / 2;
+					node.Count = (Count + 1) / 2;
 					Count = Count - node.Count;
 
 					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
