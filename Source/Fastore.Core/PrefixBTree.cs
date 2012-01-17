@@ -43,15 +43,15 @@ namespace Fastore.Core
 			return _root.Get(isForward);
 		}
 
-		public IEnumerable<KeyValuePair<string, Value>> Get(string start, bool isForward)
-		{
-			return _root.Get(start, isForward);
-		}
+        public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start)
+        {
+            return _root.Get(isForward, start);
+        }
 
-		public IEnumerable<KeyValuePair<string, Value>> Get(string start, string end, bool isForward)
-		{
-			return _root.Get(start, end, isForward);
-		}
+        public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start, Optional<string> end)
+        {
+            return _root.Get(isForward, start, end);
+        }
 
 		/// <summary> Attempts to insert a given key/value</summary>
 		/// <param name="leaf"> The leaf in which the entry was located. </param>
@@ -243,56 +243,33 @@ namespace Fastore.Core
 				return sb.ToString();
 			}
 
-			public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward)
-			{
-				if (isForward)
-				{
-					for (int i = 0; i <= Count; i++)
-						foreach (var entry in _children[i].Get(isForward))
-							yield return entry;
-				}
-				else
-				{
-					for (int i = Count; i >= 0; i--)
-						foreach (var entry in _children[i].Get(isForward))
-							yield return entry;
-				}
-			}
+            public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward)
+            {
+                return Get(isForward, Optional<string>.Null);
+            }
 
-			public IEnumerable<KeyValuePair<string, Value>> Get(string start, bool isForward)
-			{
-				var index = IndexOf(start);
-				if (isForward)
-				{
-					for (int i = index; i <= Count; i++)
-						foreach (var entry in _children[i].Get(isForward))
-							yield return entry;
-				}
-				else
-				{
-					for (int i = Count; i >= index; i--)
-						foreach (var entry in _children[i].Get(isForward))
-							yield return entry;
-				}
-			}
+            public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start)
+            {
+                return Get(isForward, start, Optional<string>.Null);
+            }
 
-			public IEnumerable<KeyValuePair<string, Value>> Get(string start, string end, bool isForward)
-			{
-				var startIndex = IndexOf(start);
-				var endIndex = IndexOf(end);
-				if (isForward)
-				{
-					for (int i = startIndex; i <= endIndex; i++)
-						foreach (var entry in _children[i].Get(isForward))
-							yield return entry;
-				}
-				else
-				{
-					for (int i = endIndex; i >= startIndex; i--)
-						foreach (var entry in _children[i].Get(isForward))
-							yield return entry;
-				}
-			}
+            public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start, Optional<string> end)
+            {
+                var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
+                var endIndex = end.HasValue ? IndexOf(end.Value) : Count;
+                if (isForward)
+                {
+                    for (int i = startIndex; i <= endIndex; i++)
+                        foreach (var entry in _children[i].Get(isForward))
+                            yield return entry;
+                }
+                else
+                {
+                    for (int i = endIndex; i >= startIndex; i--)
+                        foreach (var entry in _children[i].Get(isForward))
+                            yield return entry;
+                }
+            }
 		}
 
 		class Leaf : INode, IBTreeLeaf<string, Value>
@@ -455,69 +432,50 @@ namespace Fastore.Core
 				return sb.ToString();
 			}
 
-			public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward)
-			{
-				if (isForward)
-				{
-					for (int i = 0; i < Count; i++)
-						yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
-				}
-				else
-				{
-					for (int i = Count - 1; i >= 0; i--)
-						yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
-				}
-			}
+            public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward)
+            {
+                return Get(isForward, Optional<string>.Null);
+            }
 
-			public IEnumerable<KeyValuePair<string, Value>> Get(string start, bool isForward)
-			{
-				var index = IndexOf(start);
-				if (isForward)
-				{
-					for (int i = index; i < Count; i++)
-						yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
-				}
-				else
-				{
-					for (int i = Count - 1; i >= index; i--)
-						yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
-				}
-			}
+            public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start)
+            {
+                return Get(isForward, start, Optional<string>.Null);
+            }
 
-			public IEnumerable<KeyValuePair<string, Value>> Get(string start, string end, bool isForward)
-			{
-				var startIndex = IndexOf(start);
-				var endIndex = IndexOf(end);
-				if (isForward)
-				{
-					for (int i = startIndex; i < endIndex; i++)
-						yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
-				}
-				else
-				{
-					for (int i = endIndex - 1; i >= startIndex; i--)
-						yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
-				}
-			}
+            public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start, Optional<string> end)
+            {
+                var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
+                var endIndex = end.HasValue ? IndexOf(end.Value) : Count;
+                if (isForward)
+                {
+                    for (int i = startIndex; i < endIndex; i++)
+                        yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
+                }
+                else
+                {
+                    for (int i = endIndex - 1; i >= startIndex; i--)
+                        yield return new KeyValuePair<string, Value>(_keys[i], _values[i]);
+                }
+            }
 
-			public Optional<string> GetKey(Value value, IComparer<Value> comparer)
-			{
-				for (int i = 0; i < Count; i++)
-				{
-					if (comparer.Compare(_values[i], value) == 0)
-						return _keys[i];
-				}
-				return Optional<string>.Null;
-			}
+            public Optional<string> GetKey(Value value, IComparer<Value> comparer)
+            {
+                for (int i = 0; i < Count; i++)
+                {
+                    if (comparer.Compare(_values[i], value) == 0)
+                        return _keys[i];
+                }
+                return Optional<string>.Null;
+            }
 		}
 
-		private interface INode
-		{
-			InsertResult Insert(string key, int stripped, Value value, out IBTreeLeaf<string, Value> leaf);
-			IEnumerable<KeyValuePair<string, Value>> Get(bool isForward);
-			IEnumerable<KeyValuePair<string, Value>> Get(string start, bool isForward);
-			IEnumerable<KeyValuePair<string, Value>> Get(string start, string end, bool isForward);
-		}
+        private interface INode
+        {
+            InsertResult Insert(string key,int stripped, Value value, out IBTreeLeaf<string, Value> leaf);
+            IEnumerable<KeyValuePair<string, Value>> Get(bool isForward);
+            IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start);
+            IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start, Optional<string> end);
+        }
 
 		private struct InsertResult
 		{
