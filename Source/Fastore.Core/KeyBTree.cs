@@ -20,7 +20,7 @@ namespace Fastore.Core
 		
 		// ... rest of BTree implementation
 
-		public IEnumerator<K> Get(bool isForward)
+		public IEnumerable<K> Get(bool isForward)
 		{
 			throw new NotImplementedException();
 		}

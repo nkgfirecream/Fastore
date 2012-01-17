@@ -60,7 +60,7 @@ namespace Fastore.Core
 			return values;
         }
 
-		public IEnumerator<object[]> Select(int column, bool isForward, int[] projection)
+		public IEnumerable<object[]> Select(int column, bool isForward, int[] projection)
 		{
 			dynamic store = _stores[column];
 			foreach (var entry in store.GetRows(isForward))

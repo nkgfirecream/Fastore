@@ -7,7 +7,7 @@ namespace Fastore.Core
 {
     public interface IBTreeLeaf<Key, Value>
     {
-		IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward);
+		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
 		Optional<Key> GetKey(Value value, IComparer<Value> comparer);
     }
 }

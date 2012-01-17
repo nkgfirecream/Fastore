@@ -33,25 +33,25 @@ namespace Fastore.Core
 			return owner.GetKey(tree, Comparer<KeyBTree<long>>.Default);
 		}
 
-		public IEnumerator<KeyValuePair<long, T>> GetRows(bool isForward)
+		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward)
 		{
 			foreach (var valueEntry in _values.Get(isForward))
 				foreach (var rowEntry in valueEntry.Value.Get(isForward))
-				    yield return rowEntry;
+				    yield return new KeyValuePair<long, T>(rowEntry, valueEntry.Key);
 		}
 
-		public IEnumerator<KeyValuePair<long, T>> GetRows(T start, bool isForward)
+		public IEnumerable<KeyValuePair<long, T>> GetRows(T start, bool isForward)
 		{
 			foreach (var valueEntry in _values.Get(start, isForward))
 				foreach (var rowEntry in valueEntry.Value.Get(isForward))
-					yield return rowEntry;
+					yield return new KeyValuePair<long, T>(rowEntry, valueEntry.Key);
 		}
 
-		public IEnumerator<KeyValuePair<long, T>> GetRows(T start, T end, bool isForward)
+		public IEnumerable<KeyValuePair<long, T>> GetRows(T start, T end, bool isForward)
 		{
 			foreach (var valueEntry in _values.Get(start, end, isForward))
 				foreach (var rowEntry in valueEntry.Value.Get(isForward))
-					yield return rowEntry;
+					yield return new KeyValuePair<long, T>(rowEntry, valueEntry.Key);
 		}
 
 		public void Insert(T value, long rowId)

@@ -38,17 +38,17 @@ namespace Fastore.Core
             return _root.ToString();
         }
 
-		public IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward)
+		public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
 		{
 			return _root.Get(isForward);
 		}
 
-		public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+		public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
 		{
 			return _root.Get(start, isForward);
 		}
 
-		public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+		public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
 		{
 			return _root.Get(start, end, isForward);
 		}
@@ -172,7 +172,7 @@ namespace Fastore.Core
 				return sb.ToString();
 			}
 
-			public IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward)
+			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
 			{
 				if (isForward)
 				{
@@ -188,7 +188,7 @@ namespace Fastore.Core
 				}
 			}
 
-			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
 			{
 				var index = IndexOf(start);
 				if (isForward)
@@ -205,7 +205,7 @@ namespace Fastore.Core
 				}
 			}
 
-			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
 			{
 				var startIndex = IndexOf(start);
 				var endIndex = IndexOf(end);
@@ -311,7 +311,7 @@ namespace Fastore.Core
 				return sb.ToString();
 			}
 
-			public IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward)
+			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
 			{
 				if (isForward)
 				{
@@ -325,7 +325,7 @@ namespace Fastore.Core
 				}
 			}
 
-			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
+			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward)
 			{
 				var index = IndexOf(start);
 				if (isForward)
@@ -340,7 +340,7 @@ namespace Fastore.Core
 				}
 			}
 
-			public IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
+			public IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward)
 			{
 				var startIndex = IndexOf(start);
 				var endIndex = IndexOf(end);
@@ -370,9 +370,9 @@ namespace Fastore.Core
 		private interface INode
 		{
 			InsertResult Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf);
-			IEnumerator<KeyValuePair<Key, Value>> Get(bool isForward);
-			IEnumerator<KeyValuePair<Key, Value>> Get(Key start, bool isForward);
-			IEnumerator<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward);
+			IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
+			IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward);
+			IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward);
 		}
 
 		private struct InsertResult
