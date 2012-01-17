@@ -166,9 +166,10 @@ namespace Fastore.Core
 
 			public override string ToString()
 			{
-				var sb = new StringBuilder();
+				var sb = new StringBuilder("[");
 				for (int i = 0; i <= Count; i++)
-					sb.AppendLine(_children[i].ToString());
+					sb.Append(i.ToString() + ": " + _children[i].ToString());
+				sb.Append("]");
 				return sb.ToString();
 			}
 
@@ -247,7 +248,7 @@ namespace Fastore.Core
 			public Optional<Value> InternalInsert(Key key, Value value, int index, out IBTreeLeaf<Key, Value> leaf)
 			{
 				leaf = this;
-				if (_tree.Comparer.Compare(_keys[index], key) == 0)
+				if (index < Count && _tree.Comparer.Compare(_keys[index], key) == 0)
 					return _values[index];
 				else
 				{
@@ -278,8 +279,14 @@ namespace Fastore.Core
 			public override string ToString()
 			{
 				var sb = new StringBuilder("{");
+				var first = true;
 				foreach (var entry in Get(true))
 				{
+					if (first)
+					{
+						sb.Append(",");
+						first = false;
+					}
 					sb.Append(entry.Key);
 					sb.Append(" : ");
 					sb.Append(entry.Value);
