@@ -42,7 +42,8 @@
   <ItemGroup>
     <Compile Include="BTree.cs" />
     <Compile Include="ColumnDef.cs" />
-    <Compile Include="ColumnStore.cs" />
+    <Compile Include="ColumnBag.cs" />
+    <Compile Include="ColumnSet.cs" />
     <Compile Include="IKeyLeaf.cs" />
     <Compile Include="KeyBTree.cs" />
     <Compile Include="IBTreeLeaf.cs" />

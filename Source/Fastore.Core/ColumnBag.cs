@@ -6,13 +6,13 @@ using System.Collections;
 
 namespace Fastore.Core
 {
-	public class ColumnStore<T>
+	public class ColumnBag<T>
 	{
-		public ColumnStore(IComparer<T> comparer = null, IComparer<long> rowComparer = null)
+		public ColumnBag(IComparer<T> comparer = null, IComparer<long> rowComparer = null)
 		{
 			_comparer = comparer ?? Comparer<T>.Default;
 			_rowComparer = rowComparer ?? Comparer<long>.Default;
-			_values = new BTree<T, KeyBTree<long>>(comparer);
+			_values = new BTree<T, KeyBTree<long>>(_comparer);
 		}
 
 		private IComparer<T> _comparer;
@@ -54,7 +54,7 @@ namespace Fastore.Core
 					yield return new KeyValuePair<long, T>(rowEntry, valueEntry.Key);
 		}
 
-		public void Insert(T value, long rowId)
+		public bool Insert(T value, long rowId)
 		{
 			// TODO: avoid constructing row btree until needed
 			// Create a new row bucket in case there isn't only for the given value  
@@ -76,7 +76,11 @@ namespace Fastore.Core
 			{
 				// If a row was added, add the row leaf to the hash table
 				_rows.Add(rowId, idLeaf);
+
+				return true;
 			}
+			else
+				return false;
 		}
 	}
 }

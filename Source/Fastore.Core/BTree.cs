@@ -8,7 +8,7 @@ namespace Fastore.Core
     //Need to implement Delete, Get, Contains, Binary searching, etc.
     public class BTree<Key, Value> : IKeyValueTree<Key, Value>
     {
-		public BTree(IComparer<Key> comparer = null, int fanout = 16, int leafSize = 100)
+		public BTree(IComparer<Key> comparer = null, int fanout = 128, int leafSize = 128)
 		{
 			if (fanout < 2 || leafSize < 2)
 				throw new ArgumentException("Minimum fan-out and leaf size is 2.");

@@ -15,11 +15,14 @@ namespace Fastore.Core.Test
 		public void TableTest1()
 		{
 			int numrows = 100000;
-			var table = new Table();
-			table.AddColumn(0, new ColumnDef("ID", typeof(Guid)));
-			table.AddColumn(1, new ColumnDef("Name", typeof(string)));
-			table.AddColumn(2, new ColumnDef("Age", typeof(int)));
-			table.AddColumn(3, new ColumnDef("Comments", typeof(string)));
+			var table = 
+				new Table
+				(
+					new ColumnDef("ID", typeof(Guid), true),
+					new ColumnDef("Name", typeof(string), false),
+					new ColumnDef("Age", typeof(int), false),
+					new ColumnDef("Comments", typeof(string), false)
+				);
 
 			Debug.WriteLine("Inserting Rows...");
 			var watch = new Stopwatch();
