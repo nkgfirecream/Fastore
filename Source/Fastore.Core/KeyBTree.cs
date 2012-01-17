@@ -35,21 +35,21 @@ namespace Fastore.Core
 		{
             var result = _root.Insert(rowId, out leaf);
             if (result.Split != null)
-                _root = new Branch(this, _root, result.Split.Right, result.Split.Key);
+                _root = new KeyBranch(this, _root, result.Split.Right, result.Split.Key);
 
             return result.Added;
 		}
 
-        class Branch : IKeyNode
+        class KeyBranch : IKeyNode
         {
-            public Branch(KeyBTree<K> tree)
+            public KeyBranch(KeyBTree<K> tree)
             {
                 _tree = tree;
                 _keys = new K[KeyBTree<K>.BranchingFactor - 1];
                 _children = new IKeyNode[KeyBTree<K>.BranchingFactor];
             }
 
-            public Branch(KeyBTree<K> tree, IKeyNode left, IKeyNode right, K key)
+            public KeyBranch(KeyBTree<K> tree, IKeyNode left, IKeyNode right, K key)
                 : this(tree)
             {
                 _children[0] = left;
@@ -83,8 +83,8 @@ namespace Fastore.Core
                 {
                     int mid = (Count + 1) / 2;
 
-                    // Create new sibling node
-                    Branch node = new Branch(_tree);
+                    //// Create new sibling node
+                    KeyBranch node = new KeyBranch(_tree);
                     node.Count = Count - mid;
                     Array.Copy(_keys, mid, node._keys, 0, node.Count);
                     Array.Copy(_children, mid, node._children, 0, node.Count + 1);
@@ -96,7 +96,7 @@ namespace Fastore.Core
                     if (index < Count)
                         InternalInsert(index, key, child);
                     else
-                        node.InternalInsert(index - Count, key, child);
+                        node.InternalInsert(index - (Count + 1), key, child);
 
                     return result;
                 }
@@ -111,7 +111,7 @@ namespace Fastore.Core
             {
                 int size = Count - index;
                 Array.Copy(_keys, index, _keys, index + 1, size);
-                Array.Copy(_children, index, _children, index + 1, size + 1);
+                Array.Copy(_children, index + 1, _children, index + 2, size);
 
                 _keys[index] = key;
                 _children[index + 1] = child;
@@ -151,7 +151,7 @@ namespace Fastore.Core
                 }
                 else
                 {
-                    for (int i = Count - 1; i >= 0; i--)
+                    for (int i = Count; i >= 0; i--)
                         foreach (var entry in _children[i].Get(isForward))
                             yield return entry;
                 }
@@ -200,7 +200,7 @@ namespace Fastore.Core
             public bool InternalInsert(K key, int index, out IKeyLeaf<K> leaf)
             {
                 leaf = this;
-                if (Tree.Comparer.Compare(_keys[index], key) == 0)
+                if (index < Count && Tree.Comparer.Compare(_keys[index], key) == 0)
                     return false;
                 else
                 {
@@ -232,6 +232,7 @@ namespace Fastore.Core
                 foreach (var entry in Get(true))
                 {
                     sb.Append(entry);
+                    sb.Append(":");
                 }
                 sb.Append("}");
                 return sb.ToString();

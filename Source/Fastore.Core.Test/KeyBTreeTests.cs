@@ -18,7 +18,7 @@ namespace Fastore.Engine.Test
 
             IKeyLeaf<long> dummy;
             long i = 0;
-            for (i = 0; i < 10000; i++)
+            for (i = 0; i <= 10000; i++)
             {
                 btree.Insert(i, out dummy);
             }
@@ -26,48 +26,62 @@ namespace Fastore.Engine.Test
             i = 0;
             foreach (var item in btree.Get(true))
             {
-                Debug.WriteLine(item);
                 if (item != i)
                     throw new Exception("Out of order items in tree");
 
                 i++;
             }
 
+            if (i != 10001)
+                throw new Exception("Missing Items!");
+
             i = 10000;
             foreach (var item in btree.Get(false))
             {
-                Debug.WriteLine(item);
                 if (item != i)
                     throw new Exception("Out of order items in tree");
 
                 i--;
             }
+
+            if (i != -1)
+                throw new Exception("Missing Items!");
 
             btree = new KeyBTree<long>(Comparer<long>.Default);
-            for (i = 10000; i > 10000; i++)
+            for (i = 10000; i >=0; i--)
             {
                 btree.Insert(i, out dummy);
             }
 
+            if (i != -1)
+                throw new Exception("Missing Items!");
+
             i = 0;
             foreach (var item in btree.Get(true))
             {
-                Debug.WriteLine(item);
                 if (item != i)
                     throw new Exception("Out of order items in tree");
 
                 i++;
             }
 
+
+            if (i != 10001)
+                throw new Exception("Missing Items!");
+
+
             i = 10000;
             foreach (var item in btree.Get(false))
             {
-                Debug.WriteLine(item);
                 if (item != i)
                     throw new Exception("Out of order items in tree");
 
                 i--;
             }
+
+            if (i != -1)
+                throw new Exception("Missing Items!");
+
         }
     }
 }
