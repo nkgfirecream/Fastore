@@ -37,7 +37,7 @@ namespace Fastore.Core
 				{
 					var def = _defs[i];
 					dynamic store = _stores[i];
-					store.Insert(values[i], id);
+					store.Insert(values[i] as dynamic, id);
 				}
             }            
         }
@@ -84,7 +84,7 @@ namespace Fastore.Core
 					else
 					{
 						dynamic other = _stores[colIndex];
-						values[i] = other.GetValue(id);
+						values[i] = other.GetValue(id as dynamic);
 					}
 				}
 				yield return new KeyValuePair<long, object[]>(id, values);
