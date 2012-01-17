@@ -8,28 +8,30 @@ namespace Fastore.Core
     //Need to implement Delete, Get, Contains, Binary searching, etc.
     public class SimplePrefixBTree<Value> : IKeyValueTree<string, Value>
     {
-		public SimplePrefixBTree(IComparer<string> comparer = null)
+		public SimplePrefixBTree(IComparer<string> comparer = null, int fanout = 16, int leafSize = 100)
 		{
+			if (fanout < 2 || leafSize < 2)
+				throw new ArgumentException("Minimum fan-out and leaf size is 2.");
+			_fanout = fanout;
+			_leafSize = leafSize;
+
 			Comparer = comparer ?? Comparer<string>.Default;
 			_root = new Leaf(this);
 		}
 
 		public IComparer<string> Comparer { get; private set; }
 
-		private int _branchingFactor = 10;
-        public int BranchingFactor
+		private int _fanout = 10;
+        public int Fanout
 		{
-			get { return _branchingFactor; }
-			set 
-			{
-				if (value < 2)
-					throw new ArgumentException("Minimum branching factor is 2.");
-				_branchingFactor = value;
-			}
+			get { return _fanout; }
 		}
 
-        public int LeafSize = 100;
-		public event ValueMovedHandler<string, Value> ValueMoved;
+        private int _leafSize = 100;
+		public int LeafSize
+		{
+			get { return _leafSize; }
+		}
 		
 		private INode _root;
 
@@ -37,6 +39,8 @@ namespace Fastore.Core
         {
             return _root.ToString();
         }
+
+        public event ValueMovedHandler<string, Value> ValueMoved;
 
 		public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward)
 		{
@@ -76,8 +80,8 @@ namespace Fastore.Core
             public Branch(SimplePrefixBTree<Value> tree)
 			{
 				_tree = tree;
-				_keys = new string[tree.BranchingFactor - 1];
-				_children = new INode[tree.BranchingFactor];
+				_keys = new string[tree.Fanout - 1];
+				_children = new INode[tree.Fanout];
 			}
 
 			public Branch(SimplePrefixBTree<Value> tree, INode left, INode right, string key)
@@ -103,47 +107,47 @@ namespace Fastore.Core
 
 				// If child split, add the adjacent node
 				if (result.Split != null)
-					result.Split = InsertWithSplit(index + 1, result.Split.Key, result.Split.Right);
+					result.Split = InsertWithSplit(index, result.Split.Key, result.Split.Right);
 				return result;
 			}
 
 			private Split InsertWithSplit(int index, string key, INode child)
 			{
-				// If full, split
-				if (Count == _tree.BranchingFactor - 1)
-				{
-					int mid = (Count + 1) / 2;
+                // If full, split
+                if (Count == _tree.Fanout - 1)
+                {
+                    int mid = (Count + 1) / 2;
 
-					// Create new sibling node
-					Branch node = new Branch(_tree);
-					node.Count = Count - mid - 1;
-					Array.Copy(_keys, mid + 1, node._keys, 0, node.Count);
-					Array.Copy(_children, mid + 1, node._children, 0, node.Count + 1);
+                    // Create new sibling node
+                    Branch node = new Branch(_tree);
+                    node.Count = Count - mid;
+                    Array.Copy(_keys, mid, node._keys, 0, node.Count);
+                    Array.Copy(_children, mid, node._children, 0, node.Count + 1);
 
-					Count = mid;
+                    Count = mid - 1;
 
-					Split result = new Split() { Key = _keys[mid], Right = node };
+                    Split result = new Split() { Key = _keys[mid - 1], Right = node };
 
-					if (index < Count)
-						InternalInsert(index, key, child);
-					else
-						node.InternalInsert(index - Count, key, child);
+                    if (index <= Count)
+                        InternalInsert(index, key, child);
+                    else
+                        node.InternalInsert(index - (Count + 1), key, child);
 
-					return result;
-				}
-				else
-				{
-					InternalInsert(index, key, child);
-					return null;
-				}
+                    return result;
+                }
+                else
+                {
+                    InternalInsert(index, key, child);
+                    return null;
+                }
 			}
            
 
 			private void InternalInsert(int index, string key, INode child)
 			{
-				int size = Count - index;
-				Array.Copy(_keys, index, _keys, index + 1, size);
-				Array.Copy(_children, index, _children, index + 1, size + 1);
+                int size = Count - index;
+                Array.Copy(_keys, index, _keys, index + 1, size);
+                Array.Copy(_children, index + 1, _children, index + 2, size);
 
                 //This stores the shortest possible tring to differentiate between the key below the new one, and the new one.
                 //If there is not a differentiating string, we will store the new key.
@@ -219,7 +223,7 @@ namespace Fastore.Core
             public IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start, Optional<string> end)
             {
                 var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
-                var endIndex = end.HasValue ? IndexOf(end.Value) : Count;
+                var endIndex = end.HasValue ? IndexOf(end.Value) : Count + 1;
                 if (isForward)
                 {
                     for (int i = startIndex; i <= endIndex; i++)

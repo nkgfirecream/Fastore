@@ -255,25 +255,32 @@ namespace Fastore.Engine.Test
 		[TestMethod]
 		public void BTreeTest4()
 		{
-			int numrows = 1000000;
-			var test = new BTree<Guid, string>(fanout:128, leafSize:128);
+			int numrows = 500000;
+            var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
+            var test2 = new BTree<string, Guid>(fanout: 128, leafSize: 128);
 
-			IBTreeLeaf<Guid, string> dummy;
+			IBTreeLeaf<string, Guid> dummy;
 			Debug.WriteLine("Inserting Rows...");
 			var watch = new Stopwatch();
+            var watch2 = new Stopwatch();
 			for (int j = 0; j < numrows; j++)
 			{
 				var key = Guid.NewGuid();
 				var value = RandomG.RandomString(RandomG.RandomInt(8));
 				watch.Start();
-				test.Insert(key, value, out dummy);
+				test.Insert(value, key, out dummy);
 				watch.Stop();
+
+                watch2.Start();
+                test2.Insert(value, key, out dummy);
+                watch.Stop();
 			}
 
-			Debug.WriteLine("Inserts Per Second: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
+			Debug.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
+            Debug.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch2.ElapsedMilliseconds / 1000));
 
-			Debug.WriteLine("Reconstructing Rows...");
-
+			
+			
 			//Debug.WriteLine(test.ToString());
 		}
 
