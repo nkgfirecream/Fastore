@@ -63,6 +63,15 @@ namespace Fastore.Core
 		public IEnumerable<object[]> Select(int column, bool isForward, int[] projection)
 		{
 			dynamic store = _stores[column];
+			
+			// Create a default projection of all columns if not specified
+			if (projection == null)
+			{
+				projection = new int[_defs.Count];
+				for (var i = 0; i < _defs.Count; i++)
+					projection[i] = i;
+			}
+
 			foreach (var entry in store.GetRows(isForward))
 			{
 				var id = entry.Value;

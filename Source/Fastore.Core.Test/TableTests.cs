@@ -12,7 +12,7 @@ namespace Fastore.Core.Test
 	public class EngineTests
 	{
 		[TestMethod]
-		public void Test1()
+		public void BTreeTest1()
 		{
 			//var test = new BTree<string, string>(8, 8, null, 0, StringComparer.CurrentCulture);
 
@@ -53,7 +53,7 @@ namespace Fastore.Core.Test
 			//test.Dump();
 
 
-			var test = new BTree<int, int>(4, 4, null, 0);
+			var test = new BTree<int, int>() { BranchingFactor = 4, LeafSize = 4 };
 
 			IBTreeLeaf<int, int> dummy;
 			for (int i = 0; i < 100; i++)
@@ -61,16 +61,16 @@ namespace Fastore.Core.Test
 				test.Insert(i, i, out dummy);
 			}
 
-			test.Dump();
+			Console.WriteLine(test.ToString());
 
-			test = new BTree<int, int>(32, 16, null, 0);
+			test = new BTree<int, int>() { BranchingFactor = 32, LeafSize = 16 };
 
 			for (int i = 99; i >= 0; i--)
 			{
 				test.Insert(i, i, out dummy);
 			}
 
-			test.Dump();
+			Debug.WriteLine(test.ToString());
 
 
 			//var test2 = new BTree<Guid, int>(4, 4, null, 0, Comparer<Guid>.Default);
@@ -84,7 +84,7 @@ namespace Fastore.Core.Test
 		}
 
 		[TestMethod]
-		public void Test2()
+		public void BTreeTest2()
 		{
 			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("BTree tests");
@@ -100,7 +100,7 @@ namespace Fastore.Core.Test
 				int factor = (int)Math.Pow(2, i);
 				for (int x = 0; x < 1; x++)
 				{
-					var tree = new BTree<Guid, string>(factor, 8, null, 0);
+					var tree = new BTree<Guid, string>(null) { BranchingFactor = factor, LeafSize = 8 };
 
 					watch.Reset();
 					watch.Start();
@@ -129,7 +129,7 @@ namespace Fastore.Core.Test
 				int factor = (int)Math.Pow(2, i);
 				for (int x = 0; x < 1; x++)
 				{
-					var tree = new BTree<Guid, string>(bestFactor, factor, null, 0);
+					var tree = new BTree<Guid, string>(null) { BranchingFactor = bestFactor, LeafSize = factor };
 
 					watch.Reset();
 					watch.Start();
@@ -158,7 +158,7 @@ namespace Fastore.Core.Test
 			long totaltime = 0;
 			for (int x = 0; x <= 5; x++)
 			{
-				test = new BTree<Guid, string>(bestFactor, bestSize, null, 0);
+				test = new BTree<Guid, string>(null) { BranchingFactor = bestFactor, LeafSize = bestSize };
 
 				watch.Reset();
 				watch.Start();
@@ -249,44 +249,49 @@ namespace Fastore.Core.Test
 		}
 
 		[TestMethod]
-		public void Test3()
+		public void TableTest1()
 		{
 			int numrows = 1000000;
-			var rowlist = new Table(3);
+			var table = new Table();
+			table.AddColumn(0, new ColumnDef("ID", typeof(Guid)));
+			table.AddColumn(1, new ColumnDef("Name", typeof(string)));
+			table.AddColumn(2, new ColumnDef("Age", typeof(int)));
+			table.AddColumn(3, new ColumnDef("Comments", typeof(string)));
 
 			Debug.WriteLine("Inserting Rows...");
 			var watch = new Stopwatch();
-			watch.Start();
 			for (int j = 0; j < numrows; j++)
 			{
-				rowlist.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomString(RandomG.RandomInt(8)));
+				var row = new object[] { Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), RandomG.RandomInt(99), RandomG.RandomString(RandomG.RandomInt(16)) };
+				watch.Start();
+				table.Insert(row);
+				watch.Stop();
 			}
-			watch.Stop();
 
 			Debug.WriteLine("Inserts Per Second: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
 
 			Debug.WriteLine("Reconstructing Rows...");
 
 			watch.Reset();
-			watch.Start();
+			var selection = table.Select(0, true, null);
 			int i = 0;
-			foreach (var item in rowlist.OrderBy(0))
+			watch.Start();
+			foreach (var item in selection)
 			{
 				//Debug.WriteLine(item);
 				i++;
 			}
-
+			watch.Stop();
 			Debug.WriteLine(i);
 
-			watch.Stop();
 			Debug.WriteLine("Rows Reconstructed per Second: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
 		}
 
 		[TestMethod]
-		public void Test4()
+		public void BTreeTest4()
 		{
 			int numrows = 10;
-			var test = new BTree<Guid, string>(32, 32, null, 0);
+			var test = new BTree<Guid, string>(null) { BranchingFactor = 32, LeafSize = 32 };
 
 			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("Inserting Rows...");
@@ -302,7 +307,7 @@ namespace Fastore.Core.Test
 
 			Debug.WriteLine("Reconstructing Rows...");
 
-			test.Dump();
+			Debug.WriteLine(test.ToString());
 		}
 	}
 }
