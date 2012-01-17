@@ -157,23 +157,23 @@ namespace Fastore.Engine.Test
 
 			BTree<Guid, string> test;
 			long totaltime = 0;
+			watch.Reset();
 			for (int x = 0; x <= 5; x++)
 			{
 				test = new BTree<Guid, string>(fanout:bestFactor, leafSize:bestSize);
 
-				watch.Reset();
-				watch.Start();
 				for (int j = 0; j <= 100000; j++)
 				{
-					test.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), out dummy);
+					var key = Guid.NewGuid();
+					var value = RandomG.RandomString(RandomG.RandomInt(8));
+					watch.Start();
+					test.Insert(key, value, out dummy);
+					watch.Stop();
 				}
-
-				watch.Stop();
-
-				totaltime += watch.ElapsedMilliseconds;
 
 				Debug.WriteLine("Load Test: {0}", x);
 			}
+			totaltime = watch.ElapsedMilliseconds;
 
 			Debug.WriteLine("Total Number of Seconds Elapsed: " + ((double)totaltime / 1000));
 			Debug.WriteLine("Inserts Per Second: " + (double)500000 / ((double)totaltime / 1000));
@@ -182,23 +182,24 @@ namespace Fastore.Engine.Test
 			Debug.WriteLine("Sorted List Test");
 			SortedList<Guid, string> test2;
 			totaltime = 0;
+			watch.Reset();
 			for (int x = 0; x <= 5; x++)
 			{
 				test2 = new SortedList<Guid, string>();
 
-				watch.Reset();
-				watch.Start();
 				for (int j = 0; j <= 10000; j++)
 				{
-					test2.Add(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)));
+					var key = Guid.NewGuid();
+					var value = RandomG.RandomString(RandomG.RandomInt(8));
+					watch.Start();
+					test2.Add(key, value);
+					watch.Stop();
 				}
 
-				watch.Stop();
-
-				totaltime += watch.ElapsedMilliseconds;
 
 				Debug.WriteLine("Load Test: {0}", x);
 			}
+			totaltime = watch.ElapsedMilliseconds;
 
 			Debug.WriteLine("Total Number of Seconds Elapsed: " + ((double)totaltime / 1000));
 			Debug.WriteLine("Inserts Per Second: " + (double)50000 / ((double)totaltime / 1000));
@@ -206,44 +207,44 @@ namespace Fastore.Engine.Test
 			Debug.WriteLine("Dictionary Test");
 			Dictionary<Guid, string> test3;
 			totaltime = 0;
+			watch.Reset();
 			for (int x = 0; x <= 5; x++)
 			{
 				test3 = new Dictionary<Guid, string>();
 
-				watch.Reset();
-				watch.Start();
 				for (int j = 0; j <= 100000; j++)
 				{
-					test3.Add(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)));
+					var key = Guid.NewGuid();
+					var value = RandomG.RandomString(RandomG.RandomInt(8));
+					watch.Start();
+					test3.Add(key, value);
+					watch.Stop();
 				}
-
-				watch.Stop();
-
-				totaltime += watch.ElapsedMilliseconds;
 
 				Debug.WriteLine("Load Test: {0}", x);
 			}
+			totaltime = watch.ElapsedMilliseconds;
 
 			Debug.WriteLine("SortedDictionary Test");
 			SortedDictionary<Guid, string> test4;
 			totaltime = 0;
+			watch.Reset();
 			for (int x = 0; x <= 5; x++)
 			{
 				test4 = new SortedDictionary<Guid, string>();
 
-				watch.Reset();
-				watch.Start();
 				for (int j = 0; j <= 100000; j++)
 				{
+					var key = Guid.NewGuid();
+					var value = RandomG.RandomString(RandomG.RandomInt(8));
+					watch.Start();
 					test4.Add(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)));
+					watch.Stop();
 				}
-
-				watch.Stop();
-
-				totaltime += watch.ElapsedMilliseconds;
 
 				Debug.WriteLine("Load Test: {0}", x);
 			}
+			totaltime = watch.ElapsedMilliseconds;
 
 			Debug.WriteLine("Total Number of Seconds Elapsed: " + ((double)totaltime / 1000));
 			Debug.WriteLine("Inserts Per Second: " + (double)500000 / ((double)totaltime / 1000));
@@ -252,24 +253,26 @@ namespace Fastore.Engine.Test
 		[TestMethod]
 		public void BTreeTest4()
 		{
-			int numrows = 10;
-			var test = new BTree<Guid, string>(fanout:32, leafSize:32);
+			int numrows = 1000000;
+			var test = new BTree<Guid, string>(fanout:64, leafSize:64);
 
 			IBTreeLeaf<Guid, string> dummy;
 			Debug.WriteLine("Inserting Rows...");
 			var watch = new Stopwatch();
-			watch.Start();
 			for (int j = 0; j < numrows; j++)
 			{
+				var key = Guid.NewGuid();
+				var value = RandomG.RandomString(RandomG.RandomInt(8));
+				watch.Start();
 				test.Insert(Guid.NewGuid(), RandomG.RandomString(RandomG.RandomInt(8)), out dummy);
+				watch.Stop();
 			}
-			watch.Stop();
 
 			Debug.WriteLine("Inserts Per Second: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
 
 			Debug.WriteLine("Reconstructing Rows...");
 
-			Debug.WriteLine(test.ToString());
+			//Debug.WriteLine(test.ToString());
 		}
 
 	}
