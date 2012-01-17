@@ -12,10 +12,7 @@ namespace Fastore.Core
 		private bool hasValue;
 		internal T value;
 
-		public static Optional<T> Null 
-		{ 
-			get { return new Optional<T>(); } 
-		}
+		public static readonly Optional<T> Null = new Optional<T>();
 
 		public bool HasValue
 		{

@@ -9,8 +9,8 @@ namespace Fastore.Core
 	{
 		Optional<Value> Insert(Key key, Value value, out IBTreeLeaf<Key, Value> leaf);
 		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
-		IEnumerable<KeyValuePair<Key, Value>> Get(Key start, bool isForward);
-		IEnumerable<KeyValuePair<Key, Value>> Get(Key start, Key end, bool isForward);
+		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start);
+		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start, Optional<Key> end);
 		event ValueMovedHandler<Key, Value> ValueMoved;
     }
 }

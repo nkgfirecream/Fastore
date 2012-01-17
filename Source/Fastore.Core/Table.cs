@@ -60,7 +60,7 @@ namespace Fastore.Core
 			return values;
         }
 
-		public IEnumerable<object[]> Select(int column, bool isForward, int[] projection)
+		public IEnumerable<KeyValuePair<long, object[]>> Select(int column, bool isForward, int[] projection)
 		{
 			dynamic store = _stores[column];
 			
@@ -87,7 +87,7 @@ namespace Fastore.Core
 						values[i] = other.GetValue(id);
 					}
 				}
-				yield return values;
+				yield return new KeyValuePair<long, object[]>(id, values);
 			}
 		}
     }
