@@ -49,6 +49,15 @@ namespace Fastore.Core
 
 		private void RecompileLogic()
 		{
+			RecompileInsertHandlers();
+			RecompileSelectHandlers();
+		}
+
+		private delegate void InsertHandler(Table table, object value, long id);
+		private InsertHandler[] _insertHandlers;
+
+		private void RecompileInsertHandlers()
+		{
 			_insertHandlers = new InsertHandler[_defs.Count];
 			for (int i = 0; i < _defs.Count; i++)
 			{
@@ -77,24 +86,12 @@ namespace Fastore.Core
 			return
 				Expression.Call
 				(
-					Expression.Convert
-					(
-						Expression.Property
-						(
-							Expression.Field(table, typeof(Table).GetField("_stores", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)), 
-							"Item", 
-							Expression.Constant(column)
-						),
-						storeType
-					), 
+					BuildStoreConverter(column, table, storeType), 
 					storeType.GetMethod("Insert"), 
 					Expression.Convert(value, _defs[column].Type), 
 					id
 				);
 		}
-
-		private delegate void InsertHandler(Table table, object value, long id);
-		private InsertHandler[] _insertHandlers;
 
         public void Insert(long id, int[] projection, params object[] values)
         {
@@ -125,13 +122,64 @@ namespace Fastore.Core
 			return Insert((int[])null, values);
 		}
 
-        public object[] Select(long id, int[] projection)
+		private delegate object SelectHandler(Table table, long id);
+		private SelectHandler[] _selectHandlers;
+
+		private void RecompileSelectHandlers()
+		{
+			_selectHandlers = new SelectHandler[_defs.Count];
+			for (int i = 0; i < _defs.Count; i++)
+			{
+				_selectHandlers[i] = BuildSelectLambda(i).Compile();
+			}
+		}
+
+		private Expression<SelectHandler> BuildSelectLambda(int column)
+		{
+			var table = Expression.Parameter(typeof(Table), "table");
+			var id = Expression.Parameter(typeof(long), "id");
+			return
+				Expression.Lambda<SelectHandler>
+				(
+					BuildSelectBody(column, table, id),
+					table,
+					id
+				);
+		}
+
+		private Expression BuildSelectBody(int column, ParameterExpression table, ParameterExpression id)
+		{
+			var storeType = _stores[column].GetType();
+			return
+				Expression.Call
+				(
+					BuildStoreConverter(column, table, storeType),
+					storeType.GetMethod("GetValue"),
+					id
+				);
+		}
+
+		private static UnaryExpression BuildStoreConverter(int column, ParameterExpression table, Type storeType)
+		{
+			return 
+				Expression.Convert
+				(
+					Expression.Property
+					(
+						Expression.Field(table, typeof(Table).GetField("_stores", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)),
+						"Item",
+						Expression.Constant(column)
+					),
+					storeType
+				);
+		}
+
+		public object[] Select(long id, int[] projection)
         {
 			var values = new object[projection.Length];
             for (int i = 0; i < projection.Length; i++)
             {
-				dynamic store = _stores[projection[i]];
-				values[i] = store.GetValue(id);
+				values[i] = _selectHandlers[projection[i]](this, id);
 			}
 			return values;
         }
