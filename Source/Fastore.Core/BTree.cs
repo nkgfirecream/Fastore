@@ -282,11 +282,10 @@ namespace Fastore.Core
 				var first = true;
 				foreach (var entry in Get(true))
 				{
-					if (first)
-					{
+					if (!first)
 						sb.Append(",");
+					else
 						first = false;
-					}
 					sb.Append(entry.Key);
 					sb.Append(" : ");
 					sb.Append(entry.Value);
