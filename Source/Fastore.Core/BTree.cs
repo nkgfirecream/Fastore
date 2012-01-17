@@ -28,7 +28,8 @@ namespace Fastore.Core
 			}
 		}
 
-        public int LeafSize = 100;
+        private int _leafSize = 100;
+        public int LeafSize { get { return _leafSize; } set { _leafSize = value; } }
 		public event ValueMovedHandler<Key, Value> ValueMoved;
 		
 		private INode _root;
@@ -124,7 +125,7 @@ namespace Fastore.Core
 
 					Split result = new Split() { Key = _keys[mid - 1], Right = node };
 
-					if (index < Count)
+					if (index <= Count)
 						InternalInsertChild(index, key, child);
 					else
 						node.InternalInsertChild(index - (Count + 1), key, child);

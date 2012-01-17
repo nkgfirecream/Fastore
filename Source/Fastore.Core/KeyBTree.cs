@@ -93,10 +93,10 @@ namespace Fastore.Core
 
                     Split result = new Split() { Key = _keys[mid - 1], Right = node };
 
-                    if (index < Count)
+                    if (index <= Count)
                         InternalInsert(index, key, child);
                     else
-                        node.InternalInsert(index - (Count + 1), key, child);
+                        node.InternalInsert(index - (Count+ 1), key, child);
 
                     return result;
                 }
