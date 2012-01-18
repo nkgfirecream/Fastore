@@ -27,6 +27,14 @@ namespace Fastore.Engine.Test
             tree.Insert("rubber", "rubber");
             tree.Insert("hobo", "hobo");
             tree.Insert("homo", "homo");
+            tree.Insert("romane", "romane");
+            tree.Insert("roman", "roman");
+
+            Debug.WriteLine(tree.GetValue("roman"));
+            Debug.WriteLine(tree.GetValue("romane"));
+            Debug.WriteLine(tree.GetValue("bobo"));
+            Debug.WriteLine(tree.GetValue("hobo"));
+            Debug.WriteLine(tree.GetValue("ro"));
 
             tree.DisplayAsTree();
         }
@@ -34,7 +42,7 @@ namespace Fastore.Engine.Test
         [TestMethod]
         public void TestInsertSpeed()
         {
-            int numrows = 100000;
+            int numrows = 1000;
             var test = new PatriciaTrie<Guid>();
 
             Debug.WriteLine("Inserting Rows...");

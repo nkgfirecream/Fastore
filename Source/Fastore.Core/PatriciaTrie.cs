@@ -7,7 +7,6 @@ using System.Diagnostics;
 
 namespace Fastore.Core
 {
-
     //Todo: Delete
     public class PatriciaTrie<Value>
     {
@@ -18,9 +17,9 @@ namespace Fastore.Core
             _root = new Node();
         }       
 
-        public void Insert(string key, Value value)
+        public Optional<Value> Insert(string key, Value value)
         {
-            AddChild(_root, key, value);
+            return AddChild(_root, key, value);
         }
 
         private int CommonPrefixLength(string left, string right)
@@ -34,16 +33,31 @@ namespace Fastore.Core
             return size;
         }
 
-        private void InternalInsert(Node node, string key, Value value)
+        private Optional<Value> InternalInsert(Node node, string key, Value value)
         {
             int matchlength = CommonPrefixLength(key, node.Key);
 
+            //Duplicate value
+            if (matchlength == node.Key.Length && matchlength == key.Length)
+            {
+                //Node had a value
+                if (node.Value != Optional<Value>.Null)
+                {
+                    return node.Value;
+                }
+                //Node was a routing midpoint
+                else
+                {
+                    node.Value = value;
+                    return Optional<Value>.Null;
+                }
+            }
             //The nodes entire key was matched.
             //Add the tail as a child
-            if (matchlength == node.Key.Length)
+            else if (matchlength == node.Key.Length)
             {
                 key = key.Substring(matchlength, key.Length - matchlength);
-                AddChild(node, key, value);
+                return AddChild(node, key, value);
             }
             //A subpart of the nodes key was matched
             //That means it needs to split into two nodes The node must have a minimum of two children.
@@ -67,14 +81,16 @@ namespace Fastore.Core
 
                 //The node now just has the common value
                 node.Key = common;
-                node.Value = default(Value); //Optional.. Need to add that.
+                node.Value = Optional<Value>.Null;
                 node.Children = new List<Node>();
                 node.Children.Add(left);
                 node.Children.Add(right);
+
+                return Optional<Value>.Null;
             }
         }
       
-        private void AddChild(Node node, string key, Value value)
+        private Optional<Value> AddChild(Node node, string key, Value value)
         {
             //No children on this node yet,
             //Add entire key (which is a tail of another key)
@@ -85,7 +101,7 @@ namespace Fastore.Core
                 newchild.Key = key;
                 newchild.Value = value;
                 node.Children.Add(newchild);
-
+                return Optional<Value>.Null;
             }
             else
             {
@@ -111,22 +127,23 @@ namespace Fastore.Core
                     right.Key = key;
                     right.Value = value;
                     node.Children.Add(right);
+                    return Optional<Value>.Null;
                 }
                 else
                 {
-                    InternalInsert(node.Children[bestindex], key, value);
+                    return InternalInsert(node.Children[bestindex], key, value);
                 }
             }
         }
 
-        public Value Get(string key)
+        public Optional<Value> GetValue(string key)
         {
             Node curnode = _root;
             while (curnode != null)
             {
                 //Key wasn't a match, no more children to search
                 if (curnode.Children.Count == 0)
-                    return default(Value);
+                    return Optional<Value>.Null;
 
                 //Find closest match
                 int bestindex = -1;
@@ -154,11 +171,11 @@ namespace Fastore.Core
                 else
                 {
                     //No match
-                    return default(Value);
+                    return Optional<Value>.Null;
                 }
             }
 
-            return default(Value);
+            return Optional<Value>.Null;
         }
 
         public void DisplayAsTree()
@@ -184,7 +201,7 @@ namespace Fastore.Core
         {
             public List<Node> Children = new List<Node>();
             public string Key { get; set; }
-            public Value Value { get; set; }
+            public Optional<Value> Value { get; set; }
         }
     }
 }
