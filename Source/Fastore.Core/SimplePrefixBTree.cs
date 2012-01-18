@@ -140,8 +140,7 @@ namespace Fastore.Core
                     InternalInsert(index, key, child);
                     return null;
                 }
-			}
-           
+			}           
 
 			private void InternalInsert(int index, string key, INode child)
 			{
@@ -151,41 +150,10 @@ namespace Fastore.Core
 
                 //This stores the shortest possible tring to differentiate between the key below the new one, and the new one.
                 //If there is not a differentiating string, we will store the new key.
-                _keys[index] = MinSeparation(_keys[index], key, _tree.Comparer);
+                _keys[index] = key;
 				_children[index + 1] = child;
 				Count++;
 			}
-
-            private string MinSeparation(string left, string right, IComparer<string> comparer)
-            {
-                if (String.IsNullOrEmpty(left))
-                    return right;
-                //Make sure they aren't equal beforehand. If they are, this will fail.
-                int size = left.Length > right.Length ? right.Length : left.Length;
-
-                //go until the strings are distinguished
-                int i;
-                for (i = 0; i < size; i++)
-                {
-                    if (left[i] != right[i])
-                        break;
-                }
-
-                //If we haven't distinguished the strings, just use a key as long as the shortest string
-                //This is why it's important to make sure the string aren't equal beforehand.
-                if (i == size)
-                    return right.Substring(0, Math.Min(right.Length, left.Length + 1));
-
-                //If we have distinguished the strings, try to find one between the two
-                var prefix = left.Substring(0, i) + (char)(((int)left[i] + (int)right[i]) / 2);
-
-                //if we've blown it, just give up. The strings are probably so similar we aren't going to see any savings.
-                //We could try for several more iterations, but there are cases such as aaaa and aaaaa where there simply aren't any distinguishing strings.
-                if (comparer.Compare(prefix, left) < 0)
-                    return right;
-
-                return prefix;
-            }
 
 			private int IndexOf(string key)
 			{
@@ -247,6 +215,78 @@ namespace Fastore.Core
 
 			private SimplePrefixBTree<Value> _tree;
 
+            private string _prefix = "";
+           // bool compressed = false;
+
+            public void CompressPrefix()
+            {
+                var newprefix = CommonPrefix();
+
+                //There's a larger common prefix due to a split 
+                if (!string.IsNullOrEmpty(newprefix))
+                {
+                    for (int i = 0; i < Count; i++)
+                        _keys[i] = _keys[i].Substring(newprefix.Length, _keys[i].Length - newprefix.Length);
+                }
+
+                //prefix gets longer
+                _prefix = _prefix + newprefix;
+
+                //compressed = true;
+            }
+
+            public void DecompressPrefix()
+            {
+                for (int i = 0; i < Count; i++)
+                {
+                    _keys[i] = _prefix + _keys[i];
+                }
+
+                _prefix = "";
+
+                //compressed = false;
+            }
+
+            private string CommonPrefix()
+            {
+                if (Count == 0)
+                    return "";
+
+                if (Count == 1)
+                    return _keys[0];
+
+
+                int prefixindex = 0;
+                foreach(char c in _keys[0])
+                {
+                    for (int i = 0; i < Count; i++)
+                        if (_keys[i].Length < prefixindex || _keys[i][prefixindex] != c)
+                            return _keys[0].Substring(0, prefixindex);
+
+                    prefixindex++;
+                }
+
+                return "";
+            }
+
+            private string MinSeparation(string left, string right)
+            {
+                if (String.IsNullOrEmpty(left))
+                    return right;
+
+                int size = left.Length > right.Length ? right.Length : left.Length;
+
+                //go until the strings are distinguished
+                int i;
+                for (i = 0; i < size; i++)
+                {
+                    if (left[i] != right[i])
+                        break;
+                }
+
+                return (i < size) ? _prefix + right.Substring(0, i) : _prefix + right.Substring(0, i + 1);
+            }
+
 			public Leaf(SimplePrefixBTree<Value> parent)
 			{
 				_tree = parent;
@@ -256,28 +296,50 @@ namespace Fastore.Core
 
 			public InsertResult Insert(string key, Value value, out IBTreeLeaf<string, Value> leaf)
 			{
+                if(!key.StartsWith(_prefix))
+                //{
+                    DecompressPrefix();
+                //}
+                //else
+                //{
+                    key = key.Substring(_prefix.Length, key.Length - _prefix.Length);
+                //}
+
 				int pos = IndexOf(key);
 				var result = new InsertResult();
-				if (Count == _tree.LeafSize)
-				{
-					var node = new Leaf(_tree);
-					node.Count = (_tree.LeafSize + 1) / 2;
-					Count = Count - node.Count;
+                if (Count == _tree.LeafSize)
+                {
+                    var node = new Leaf(_tree);
+                    node.Count = (_tree.LeafSize + 1) / 2;
+                    Count = Count - node.Count;
 
-					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
-					Array.Copy(_values, node.Count, node._values, 0, node.Count);
+                    Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
+                    Array.Copy(_values, node.Count, node._values, 0, node.Count);
 
-					if (pos < Count)
-						result.Found = InternalInsert(key, value, pos, out leaf);
-					else
-						result.Found = node.InternalInsert(key, value, pos - Count, out leaf);
+                    if (pos < Count)
+                        result.Found = InternalInsert(key, value, pos, out leaf);
+                    else
+                        result.Found = node.InternalInsert(key, value, pos - Count, out leaf);
 
-					_tree.DoValuesMoved(node);
+                    _tree.DoValuesMoved(node);
 
-					result.Split = new Split() { Key = node._keys[0], Right = node };
-				}
-				else
-					result.Found = InternalInsert(key, value, pos, out leaf);
+                    result.Split = new Split() { Key = MinSeparation(_keys[Count - 1], node._keys[0]), Right = node };
+
+                    //if (!compressed)
+                    //{
+                        node.CompressPrefix();
+                        CompressPrefix();
+                    //}
+
+                    
+                }
+                else
+                {
+                    result.Found = InternalInsert(key, value, pos, out leaf);
+
+                    //if (!compressed)
+                        CompressPrefix();
+                }
 
 				return result;
 			}

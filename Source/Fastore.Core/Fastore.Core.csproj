@@ -54,7 +54,6 @@
     <Compile Include="Table.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PrefixBTree.cs" />
     <Compile Include="SimplePrefixBTree.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
