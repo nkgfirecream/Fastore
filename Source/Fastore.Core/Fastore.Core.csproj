@@ -51,6 +51,7 @@
     <Compile Include="ObjectReferenceComparer.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PatriciaTrie.cs" />
     <Compile Include="Table.cs" />
   </ItemGroup>
   <ItemGroup>
