@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Fastore.Core;
 using System.Diagnostics;
+using Fastore.Core.Test;
 
 namespace Fastore.Engine.Test
 {
@@ -23,8 +24,32 @@ namespace Fastore.Engine.Test
             tree.Insert("ruber", "ruber");
             tree.Insert("rubicon", "rubicon");
             tree.Insert("rubicundus", "rubicundus");
+            tree.Insert("rubber", "rubber");
+            tree.Insert("hobo", "hobo");
+            tree.Insert("homo", "homo");
 
             tree.DisplayAsTree();
+        }
+
+        [TestMethod]
+        public void TestInsertSpeed()
+        {
+            int numrows = 100000;
+            var test = new PatriciaTrie<Guid>();
+
+            Debug.WriteLine("Inserting Rows...");
+            var watch = new Stopwatch();
+
+            for (int j = 0; j < numrows; j++)
+            {
+                var key = Guid.NewGuid();
+                var value = RandomG.RandomString(RandomG.RandomInt(8));
+                watch.Start();
+                test.Insert(value, key);
+                watch.Stop();
+            }
+
+            Debug.WriteLine("Inserts Per Second: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
         }
     }
 }
