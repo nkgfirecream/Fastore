@@ -10,6 +10,7 @@ namespace Fastore.Core
     //Todo: Delete
     public class PatriciaTrie<Value>
     {
+        private static int MinArraySize = 16;
         private Node _root;
 
         public PatriciaTrie()
@@ -20,56 +21,78 @@ namespace Fastore.Core
         public PatriciaTrie(Node branch)
         {
             _root = new Node();
-            branch.Parent = _root;
-            _root.Children.Add(branch);
+            _root.Children[0] = branch;
+            _root.Count++;
         }
 
-        public PatriciaTrie<Value> SplitTreeAtKey(string key)
+        private void InsertChild(Node parent, Node child, int index)
         {
-            var node = GetNode(key);
-
-            return SplitTreeAtNode(node);
-        }
-
-        private PatriciaTrie<Value> SplitTreeAtNode(Node node)
-        {
-            node.Key = BuildKeyFromNode(node);
-
-            var parent = node.Parent;
-            parent.Children.Remove(node);
-
-            if (parent.Children.Count == 1)
-                MergeWithParent(parent.Children[0]);
-            else if (parent.Children.Count == 0 && parent.Value == Optional<Value>.Null && parent != _root)
-                Delete(parent);
-
-            node.Parent = null;           
-
-            return new PatriciaTrie<Value>(node);
-        }
-
-        //public string GetKey(Value value)
-        //{
-            
-        //}
-
-        private string BuildKeyFromNode(Node node)
-        {
-            string key = "";
-            var curnode = node;
-            while(curnode != _root)
+            var oldchildren = parent.Children;
+            if (parent.Count == parent.Children.Length)
             {
-                key = curnode.Key + key;
-                curnode = curnode.Parent;
+                var newchildren = new Node[parent.Children.Length * 2];               
+                parent.Children = newchildren;
             }
 
-            return key;
+            Array.Copy(oldchildren, 0, parent.Children, 0, index);
+            Array.Copy(oldchildren, index, parent.Children, index + 1, parent.Count - index);
+
+            parent.Children[index] = child;
+            parent.Count++;
         }
 
-        public IEnumerable<Value> GetValues()
+        private void RemoveChild(Node parent, int index)
         {
-            return _root.GetValues();
+            var oldchildren = parent.Children;
+            if (parent.Count < parent.Children.Length / 2 && parent.Children.Length > PatriciaTrie<Value>.MinArraySize)
+            {
+                var newchildren = new Node[parent.Children.Length / 2];
+                parent.Children = newchildren;
+            }
+
+            Array.Copy(oldchildren, 0, parent.Children, 0, index);
+            Array.Copy(oldchildren, index + 1, parent.Children, index, parent.Count - index);
+
+            parent.Count--;
         }
+
+        //public PatriciaTrie<Value> SplitTreeAtKey(string key)
+        //{
+        //    var node = GetNode(key);
+
+        //    return SplitTreeAtNode(node);
+        //}
+
+        //private PatriciaTrie<Value> SplitTreeAtNode(Node node)
+        //{
+        //    node.Key = BuildKeyFromNode(node);
+
+        //    var parent = node.Parent;
+        //    parent.Children.Remove(node);
+
+        //    if (parent.Children.Count == 1)
+        //        MergeWithParent(parent.Children[0]);
+        //    else if (parent.Children.Count == 0 && parent.Value == Optional<Value>.Null && parent != _root)
+        //        Delete(parent);
+
+        //    node.Parent = null;           
+
+        //    return new PatriciaTrie<Value>(node);
+        //}
+
+        //private string BuildKeyFromNode(Node node)
+        //{
+        //    string key = "";
+        //    var curnode = node;
+        //    while(curnode != _root)
+        //    {
+        //        key = curnode.Key + key;
+        //        curnode = curnode.Parent;
+        //    }
+
+        //    return key;
+        //}
+
 
         public Optional<Value> Insert(string key, Value value)
         {
@@ -85,6 +108,12 @@ namespace Fastore.Core
                     return i;
 
             return size;
+        }
+
+        private int NodeArrayBinarySearch(string key, int keyoffset, Node[] array)
+        {
+
+
         }
 
         private Optional<Value> InternalInsert(Node node, string key, Value value)
@@ -128,18 +157,15 @@ namespace Fastore.Core
                 left.Key = node.Key.Substring(matchlength, node.Key.Length - matchlength);
                 left.Value = node.Value;
                 left.Children = node.Children;
-                foreach(var item in node.Children)
-                {
-                    item.Parent = left;
-                }
-                left.Parent = node;
+                left.Count = node.Count;
+
+                node.Key = common;
+                node.Children = new Node[PatriciaTrie<Value>.MinArraySize];
+                node.Count = 0;
+                InsertChild(node, left, 0);
 
                 //Our new tail goes to the right child, if we still have a tail. If we no longer have a tail, we go into the current node.
                 var tail = key.Substring(matchlength, key.Length - matchlength);
-                node.Key = common;                
-                node.Children = new List<Node>();
-                node.Children.Add(left);
-
                 if (tail != String.Empty)
                 {
                     node.Value = Optional<Value>.Null;
@@ -147,9 +173,7 @@ namespace Fastore.Core
                     Node right = new Node();
                     right.Key = tail;
                     right.Value = value;
-                    right.Parent = node;
-                    //The node now just has the common value                                   
-                    node.Children.Add(right);
+                    InsertChild(node, right, node.Count);           
                 }
                 else
                 {
@@ -164,14 +188,12 @@ namespace Fastore.Core
         {
             //No children on this node yet,
             //Add entire key (which is a tail of another key)
-            if (node.Children.Count == 0)
+            if (node.Count == 0)
             {
-                node.Children = new List<Node>();
                 Node newchild = new Node();
-                newchild.Parent = node;
                 newchild.Key = key;
                 newchild.Value = value;
-                node.Children.Add(newchild);
+                InsertChild(node, newchild, 0);
                 return Optional<Value>.Null;
             }
             else
@@ -180,7 +202,7 @@ namespace Fastore.Core
                 //TODO: Some sort of ordering would help us match faster
                 int bestindex = -1;
                 int bestlength = 0;
-                for (int i = 0; i < node.Children.Count; i++)
+                for (int i = 0; i < node.Count; i++)
                 {
                     int b = CommonPrefixLength(node.Children[i].Key, key);
 
@@ -195,10 +217,9 @@ namespace Fastore.Core
                 if (bestindex == -1)
                 {
                     Node right = new Node();
-                    right.Parent = node;
                     right.Key = key;
                     right.Value = value;
-                    node.Children.Add(right);
+                    InsertChild(node, right, node.Count);
                     return Optional<Value>.Null;
                 }
                 else
@@ -209,121 +230,121 @@ namespace Fastore.Core
         }
 
         //Returns true if found and deleted
-        public bool Delete(string key)
-        {
-            var node = GetNode(key);
-            if(node != null)
-            {
-                return Delete(node);
-            }
+        //public bool Delete(string key)
+        //{
+        //    var node = GetNode(key);
+        //    if(node != null)
+        //    {
+        //        return Delete(node);
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
-        private bool Delete(Node node)
-        {
-            var parent = node.Parent;
+        //private bool Delete(Node node)
+        //{
 
-            node.Value = Optional<Value>.Null;
-            //If we are less than two, attempt to merge with parent
-            if (node.Children.Count == 0)
-            {
-                node.Value = Optional<Value>.Null;
-                //TODO: Add some sort of linking. Otherwise we have to retraverse to find the parent.
-                parent.Children.Remove(node);
-                if (parent.Children.Count == 0 && parent.Value == Optional<Value>.Null && parent != _root)
-                {
-                    return Delete(parent);
-                }
-                else if (parent.Children.Count == 1) 
-                {
-                    MergeWithParent(parent.Children[0]);
-                }
-            }
-            else if(node.Children.Count == 1)
-            {               
-                MergeWithParent(node.Children[0]);
-            }
 
-            return true;
-        }
+        //    node.Value = Optional<Value>.Null;
+        //    //If we are less than two, attempt to merge with parent
+        //    if (node.Children.Count == 0)
+        //    {
+        //        node.Value = Optional<Value>.Null;
+        //        //TODO: Add some sort of linking. Otherwise we have to retraverse to find the parent.
+        //        parent.Children.Remove(node);
+        //        if (parent.Children.Count == 0 && parent.Value == Optional<Value>.Null && parent != _root)
+        //        {
+        //            return Delete(parent);
+        //        }
+        //        else if (parent.Children.Count == 1) 
+        //        {
+        //            MergeWithParent(parent.Children[0]);
+        //        }
+        //    }
+        //    else if(node.Children.Count == 1)
+        //    {               
+        //        MergeWithParent(node.Children[0]);
+        //    }
 
-        private void MergeWithParent(Node child)
-        {
-            var parent = child.Parent;
+        //    return true;
+        //}
 
-            //Merge if parent is not storing its own value, and it's not a routing node.
-            if (parent.Value == Optional<Value>.Null && parent != _root)
-            {
-                parent.Key = parent.Key + child.Key;
-                parent.Value = child.Value;
-                parent.Children.Remove(child);
-                foreach (var item in child.Children)
-                {
-                    item.Parent = parent;
-                    parent.Children.Add(item);
-                }
+        //private void MergeWithParent(Node child)
+        //{
+        //    var parent = child.Parent;
 
-                if(parent.Children.Count == 1)
-                    MergeWithParent(parent);
-            }
-            //If we've merged to the top of the tree, and haven't picked up any values, delete the child node
-            else if(parent == _root && child.Value == Optional<Value>.Null && child.Children.Count == 0)
-            {
-                Delete(child);
-            }
-        }
+        //    //Merge if parent is not storing its own value, and it's not a routing node.
+        //    if (parent.Value == Optional<Value>.Null && parent != _root)
+        //    {
+        //        parent.Key = parent.Key + child.Key;
+        //        parent.Value = child.Value;
+        //        parent.Children.Remove(child);
+        //        foreach (var item in child.Children)
+        //        {
+        //            item.Parent = parent;
+        //            parent.Children.Add(item);
+        //        }
 
-        private Node GetNode(string key)
-        {
-            Node curnode = _root;
-            while (curnode != null)
-            {
-                //Key wasn't a match, no more children to search
-                if (curnode.Children.Count == 0)
-                    return null;
+        //        if(parent.Children.Count == 1)
+        //            MergeWithParent(parent);
+        //    }
+        //    //If we've merged to the top of the tree, and haven't picked up any values, delete the child node
+        //    else if(parent == _root && child.Value == Optional<Value>.Null && child.Children.Count == 0)
+        //    {
+        //        Delete(child);
+        //    }
+        //}
 
-                //Find closest match
-                int bestindex = -1;
-                int bestlength = 0;
-                for (int i = 0; i < curnode.Children.Count; i++)
-                {
-                    int b = CommonPrefixLength(curnode.Children[i].Key, key);
-                    if (b > bestlength)
-                    {
-                        bestlength = b;
-                        bestindex = i;
-                    }
-                }
+        //private Node GetNode(string key)
+        //{
+        //    Node curnode = _root;
+        //    while (curnode != null)
+        //    {
+        //        //Key wasn't a match, no more children to search
+        //        if (curnode.Children.Count == 0)
+        //            return null;
 
-                //Found a potentential match;
-                if (bestindex != -1)
-                {
-                    key = key.Substring(bestlength, key.Length - bestlength);
-                    curnode = curnode.Children[bestindex];
+        //        //Find closest match
+        //        int bestindex = -1;
+        //        int bestlength = 0;
+        //        for (int i = 0; i < curnode.Children.Count; i++)
+        //        {
+        //            int b = CommonPrefixLength(curnode.Children[i].Key, key);
+        //            if (b > bestlength)
+        //            {
+        //                bestlength = b;
+        //                bestindex = i;
+        //            }
+        //        }
 
-                    //All out of tail.
-                    if (key.Length == 0)
-                        return curnode;
-                }
-                else
-                {
-                    //No match
-                    return null;
-                }
-            }
+        //        //Found a potentential match;
+        //        if (bestindex != -1)
+        //        {
+        //            key = key.Substring(bestlength, key.Length - bestlength);
+        //            curnode = curnode.Children[bestindex];
 
-            return null;
-        }
+        //            //All out of tail.
+        //            if (key.Length == 0)
+        //                return curnode;
+        //        }
+        //        else
+        //        {
+        //            //No match
+        //            return null;
+        //        }
+        //    }
 
-        public Optional<Value> GetValue(string key)
-        {
-            var node = GetNode(key);
-            if (node != null)
-                return node.Value;
+        //    return null;
+        //}
 
-            return Optional<Value>.Null;
-        }
+        //public Optional<Value> GetValue(string key)
+        //{
+        //    var node = GetNode(key);
+        //    if (node != null)
+        //        return node.Value;
+
+        //    return Optional<Value>.Null;
+        //}
 
         public void DisplayAsTree()
         {
@@ -337,29 +358,19 @@ namespace Fastore.Core
             Debug.WriteLine("<{0}> = <{1}>", n.Key, n.Value);
             if (n.Children != null)
             {
-                foreach (Node c in n.Children)
+                for (int i = 0; i < n.Count; i++)
                 {
-                    DisplayAsTree(c, offset + 1);
+                    DisplayAsTree(n.Children[i], offset + 1);
                 }
             }
         }
 
         public class Node
         {
-            public Node Parent { get; set;}
-            public List<Node> Children = new List<Node>();
-            public string Key { get; set; }
-            public Optional<Value> Value { get; set; }
-
-            public IEnumerable<Value> GetValues()
-            {
-                if (Value != Optional<Value>.Null)
-                    yield return Value.Value;
-
-                foreach (var node in Children)
-                    foreach (var item in node.GetValues())
-                        yield return item;
-            }
+            public Node[] Children = new Node[PatriciaTrie<Value>.MinArraySize];
+            public string Key;
+            public Optional<Value> Value;
+            public int Count = 0;
         }
     }
 }

@@ -38,11 +38,11 @@ namespace Fastore.Engine.Test
             tree.Insert("watertight", "watertight");
             tree.Insert("waterfall", "waterfall");
 
-            Debug.WriteLine(tree.GetValue("roman"));
-            Debug.WriteLine(tree.GetValue("romane"));
-            Debug.WriteLine(tree.GetValue("bobo"));
-            Debug.WriteLine(tree.GetValue("hobo"));
-            Debug.WriteLine(tree.GetValue("ro"));
+            //Debug.WriteLine(tree.GetValue("roman"));
+            //Debug.WriteLine(tree.GetValue("romane"));
+            //Debug.WriteLine(tree.GetValue("bobo"));
+            //Debug.WriteLine(tree.GetValue("hobo"));
+            //Debug.WriteLine(tree.GetValue("ro"));
 
             tree.DisplayAsTree();
         }
@@ -76,36 +76,36 @@ namespace Fastore.Engine.Test
             tree.Insert("watertight", "watertight");
             tree.Insert("waterfall", "waterfall");
 
-            tree.DisplayAsTree();
-            Debug.WriteLine("");
+            //tree.DisplayAsTree();
+            //Debug.WriteLine("");
 
-            tree.Delete("watertight");
-            tree.Delete("waterfall"); 
-            tree.Delete("hobo");
-            tree.Delete("homo");
-            tree.Delete("roman");
-            tree.Delete("water");
-            tree.Delete("waterproof");
-            tree.Delete("waiter");
-            tree.Delete ("wait");
-            tree.Delete("rubens");
-            tree.Delete("rubensandwich");
-            tree.Delete("waiting");
-            tree.Delete("rubens");
+            //tree.Delete("watertight");
+            //tree.Delete("waterfall"); 
+            //tree.Delete("hobo");
+            //tree.Delete("homo");
+            //tree.Delete("roman");
+            //tree.Delete("water");
+            //tree.Delete("waterproof");
+            //tree.Delete("waiter");
+            //tree.Delete ("wait");
+            //tree.Delete("rubens");
+            //tree.Delete("rubensandwich");
+            //tree.Delete("waiting");
+            //tree.Delete("rubens");
 
 
-            //Trees one and three should be identical
-            //TODO: Visual check for now, add enumeration and ensure that it enumerates the same way.
-            tree.DisplayAsTree();
-            Debug.WriteLine("");
+            ////Trees one and three should be identical
+            ////TODO: Visual check for now, add enumeration and ensure that it enumerates the same way.
+            //tree.DisplayAsTree();
+            //Debug.WriteLine("");
 
-            tree.Delete("romane");
-            tree.Delete("romanus");
-            tree.Delete("romulus");
-            tree.Delete("ruber");
-            tree.Delete("rubicon");
-            tree.Delete("rubicundus");
-            tree.Delete("rubber");
+            //tree.Delete("romane");
+            //tree.Delete("romanus");
+            //tree.Delete("romulus");
+            //tree.Delete("ruber");
+            //tree.Delete("rubicon");
+            //tree.Delete("rubicundus");
+            //tree.Delete("rubber");
 
 
             //Should be empty
@@ -137,25 +137,25 @@ namespace Fastore.Engine.Test
             tree.Insert("watertight", "watertight");
             tree.Insert("waterfall", "waterfall");
 
-            tree.DisplayAsTree();
-            Debug.WriteLine("");
-            var tree2 = tree.SplitTreeAtKey("water");
+            //tree.DisplayAsTree();
+            //Debug.WriteLine("");
+            //var tree2 = tree.SplitTreeAtKey("water");
 
-            tree.DisplayAsTree();
-            Debug.WriteLine("");
-            tree2.DisplayAsTree();
-            Debug.WriteLine("");
+            //tree.DisplayAsTree();
+            //Debug.WriteLine("");
+            //tree2.DisplayAsTree();
+            //Debug.WriteLine("");
 
-            var tree3 = tree.SplitTreeAtKey("roman");
-            tree.DisplayAsTree();
-            Debug.WriteLine("");
-            tree3.DisplayAsTree();
+            //var tree3 = tree.SplitTreeAtKey("roman");
+            //tree.DisplayAsTree();
+            //Debug.WriteLine("");
+            //tree3.DisplayAsTree();
         }
 
         [TestMethod]
         public void TestInsertSpeed()
         {
-            int numrows = 1000;
+            int numrows = 100000;
             var test = new PatriciaTrie<Guid>();
 
             Debug.WriteLine("Inserting Rows...");
@@ -197,13 +197,13 @@ namespace Fastore.Engine.Test
             tree.Insert("watertight", "watertight");
             tree.Insert("waterfall", "waterfall");
 
-            foreach (var item in tree.GetValues())
-                Debug.WriteLine(item);
+            //foreach (var item in tree.GetValues())
+            //    Debug.WriteLine(item);
 
-            Debug.WriteLine("");
-            Debug.WriteLine(tree.GetValue("roman"));
-            Debug.WriteLine(tree.GetValue("hobo"));
-            Debug.WriteLine(tree.GetValue("romulus"));
+            //Debug.WriteLine("");
+            //Debug.WriteLine(tree.GetValue("roman"));
+            //Debug.WriteLine(tree.GetValue("hobo"));
+            //Debug.WriteLine(tree.GetValue("romulus"));
         }
     }
 }
