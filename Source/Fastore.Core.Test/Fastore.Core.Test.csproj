@@ -33,6 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -46,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BTreeTests.cs" />
+    <Compile Include="MemoryUsageTests.cs" />
     <Compile Include="PatriciaTrieTests.cs" />
     <Compile Include="KeyBTreeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

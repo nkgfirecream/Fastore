@@ -38,13 +38,19 @@ namespace Fastore.Engine.Test
             tree.Insert("watertight", "watertight");
             tree.Insert("waterfall", "waterfall");
 
-            //Debug.WriteLine(tree.GetValue("roman"));
-            //Debug.WriteLine(tree.GetValue("romane"));
-            //Debug.WriteLine(tree.GetValue("bobo"));
-            //Debug.WriteLine(tree.GetValue("hobo"));
-            //Debug.WriteLine(tree.GetValue("ro"));
+            Debug.WriteLine(tree.GetValue("roman"));
+            Debug.WriteLine(tree.GetValue("romane"));
+            Debug.WriteLine(tree.GetValue("bobo"));
+            Debug.WriteLine(tree.GetValue("hobo"));
+            Debug.WriteLine(tree.GetValue("ro"));
+            Debug.WriteLine(tree.GetValue("rubensandwhich"));
+            Debug.WriteLine(tree.GetValue("waiter"));
+            Debug.WriteLine(tree.GetValue("water"));
+            Debug.WriteLine(tree.GetValue("waterproof"));
+            Debug.WriteLine(tree.GetValue("rubber"));
 
-            tree.DisplayAsTree();
+            Debug.WriteLine(tree.ToString());
+            Debug.WriteLine(tree.Count);
         }
 
         [TestMethod]
@@ -60,8 +66,8 @@ namespace Fastore.Engine.Test
             tree.Insert("rubicundus", "rubicundus");
             tree.Insert("rubber", "rubber");
 
-            tree.DisplayAsTree();
-            Debug.WriteLine("");
+            Debug.WriteLine(tree.ToString());
+            Debug.WriteLine(tree.Count);
 
             tree.Insert("rubens", "rubens");
             tree.Insert("rubensandwich", "rubensandwhich");
@@ -76,40 +82,41 @@ namespace Fastore.Engine.Test
             tree.Insert("watertight", "watertight");
             tree.Insert("waterfall", "waterfall");
 
-            //tree.DisplayAsTree();
-            //Debug.WriteLine("");
+            Debug.WriteLine(tree.ToString());
+            Debug.WriteLine(tree.Count);
 
-            //tree.Delete("watertight");
-            //tree.Delete("waterfall"); 
-            //tree.Delete("hobo");
-            //tree.Delete("homo");
-            //tree.Delete("roman");
-            //tree.Delete("water");
-            //tree.Delete("waterproof");
-            //tree.Delete("waiter");
-            //tree.Delete ("wait");
-            //tree.Delete("rubens");
-            //tree.Delete("rubensandwich");
-            //tree.Delete("waiting");
-            //tree.Delete("rubens");
+            tree.Delete("watertight");
+            tree.Delete("waterfall");
+            tree.Delete("hobo");
+            tree.Delete("homo");
+            tree.Delete("roman");
+            tree.Delete("water");
+            tree.Delete("waterproof");
+            tree.Delete("waiter");
+            tree.Delete("wait");
+            tree.Delete("rubens");
+            tree.Delete("rubensandwich");
+            tree.Delete("waiting");
+            tree.Delete("rubens");
 
 
-            ////Trees one and three should be identical
-            ////TODO: Visual check for now, add enumeration and ensure that it enumerates the same way.
-            //tree.DisplayAsTree();
-            //Debug.WriteLine("");
+            //Trees one and three should be identical
+            //TODO: Visual check for now, add enumeration and ensure that it enumerates the same way.
+            Debug.WriteLine(tree.ToString());
+            Debug.WriteLine(tree.Count);
 
-            //tree.Delete("romane");
-            //tree.Delete("romanus");
-            //tree.Delete("romulus");
-            //tree.Delete("ruber");
-            //tree.Delete("rubicon");
-            //tree.Delete("rubicundus");
-            //tree.Delete("rubber");
+            tree.Delete("romane");
+            tree.Delete("romanus");
+            tree.Delete("romulus");
+            tree.Delete("ruber");
+            tree.Delete("rubicon");
+            tree.Delete("rubicundus");
+            tree.Delete("rubber");
 
 
             //Should be empty
-            tree.DisplayAsTree();
+            Debug.WriteLine(tree.ToString());
+            Debug.WriteLine(tree.Count);
         }
 
         [TestMethod]
@@ -155,18 +162,21 @@ namespace Fastore.Engine.Test
         [TestMethod]
         public void TestInsertSpeed()
         {
-            int numrows = 100000;
+            int numrows = 1000000;
+            //var test = new BTree<string,Guid>();
             var test = new PatriciaTrie<Guid>();
 
+            IBTreeLeaf<string, Guid> dummy;
             Debug.WriteLine("Inserting Rows...");
             var watch = new Stopwatch();
 
             for (int j = 0; j < numrows; j++)
             {
-                var key = Guid.NewGuid();
-                var value = RandomG.RandomString(RandomG.RandomInt(8));
+                var value = Guid.NewGuid();
+                var key = RandomG.RandomString(RandomG.RandomInt(8));
                 watch.Start();
-                test.Insert(value, key);
+                //test.Insert(key, value, out dummy);
+                test.Insert(key, value);
                 watch.Stop();
             }
 
