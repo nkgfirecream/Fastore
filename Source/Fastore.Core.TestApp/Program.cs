@@ -12,7 +12,7 @@ namespace Fastore.Core.TestApp
         {
             var test = new MemoryUsageTests();
 
-            test.TestMethod2();
+            test.TestMethod1();
         }
     }
 }

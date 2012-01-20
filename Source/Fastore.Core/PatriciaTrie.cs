@@ -162,11 +162,11 @@ namespace Fastore.Core
             //That means it needs to split into two nodes.
             else
             {
-                string common = node.Key.Substring(0, matchlength);
+                string common = String.Intern(node.Key.Substring(0, matchlength));
 
                 //Our old tail goes into one child
                 Node left = new Node();
-                left.Key = node.Key.Substring(matchlength, node.Key.Length - matchlength);
+                left.Key = string.Intern(node.Key.Substring(matchlength, node.Key.Length - matchlength));
                 left.Value = node.Value;
                 left.Children = node.Children;
                 left.Count = node.Count;
@@ -178,7 +178,7 @@ namespace Fastore.Core
 
                 //Our new tail goes to the other child, if we still have a tail. If we no longer have a tail, we go into the current node.
                 var start = matchlength + keyoffset;
-                var tail = key.Substring(start, key.Length - start);
+                var tail = String.Intern(key.Substring(start, key.Length - start));
                 if (tail != String.Empty)
                 {
                     node.Value = Optional<Value>.Null;
@@ -212,7 +212,7 @@ namespace Fastore.Core
             if (node.Count == 0)
             {
                 Node newchild = new Node();
-                newchild.Key = key.Substring(keyoffset, key.Length - keyoffset);
+                newchild.Key = String.Intern(key.Substring(keyoffset, key.Length - keyoffset));
                 newchild.Value = value;
                 InsertChild(node, newchild, 0);
                 //Add a child with a new value;
@@ -231,7 +231,7 @@ namespace Fastore.Core
                 if (bestlength == 0)
                 {
                     Node right = new Node();
-                    right.Key = key.Substring(keyoffset, key.Length - keyoffset);
+                    right.Key = string.Intern(key.Substring(keyoffset, key.Length - keyoffset));
                     right.Value = value;
                     InsertChild(node, right, index);
                     //Add a child with a new Value;
@@ -289,7 +289,7 @@ namespace Fastore.Core
                 var result = Delete(node.Children[index], key, keyoffset + matchlength);
                 if (result == true)
                 {
-                    //Check and see if the child is empty. If so, remove it.
+                    //Check and see if the child is empty. If so, remove it. If not, atttempt to merge.
                     var child = node.Children[index];
                     if (child.Value == Optional<Value>.Null)
                     {
