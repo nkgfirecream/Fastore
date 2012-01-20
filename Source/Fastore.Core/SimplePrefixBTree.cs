@@ -310,8 +310,12 @@ namespace Fastore.Core
                 if (Count == _tree.LeafSize)
                 {
                     var node = new Leaf(_tree);
-                    node.Count = (_tree.LeafSize + 1) / 2;
-                    Count = Count - node.Count;
+					// Determine the new node size - if the insert is to the end, leave this node full, assume contiguous insertions
+					node.Count =
+						pos == Count
+							? 0
+							: (_tree._leafSize + 1) / 2;
+					Count = Count - node.Count;
 
                     Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
                     Array.Copy(_values, node.Count, node._values, 0, node.Count);
