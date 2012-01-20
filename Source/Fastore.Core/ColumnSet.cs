@@ -25,7 +25,7 @@ namespace Fastore.Core
 			if (!_rows.TryGetValue(rowId, out leaf))
 				return Optional<T>.Null;
 
-			return leaf.GetKey(rowId, Comparer<long>.Default);
+			return leaf.GetKey(v => v == rowId);
 		}
 
 		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward)

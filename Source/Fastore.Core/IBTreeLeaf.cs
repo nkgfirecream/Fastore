@@ -8,6 +8,6 @@ namespace Fastore.Core
     public interface IBTreeLeaf<Key, Value>
     {
 		IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward);
-		Optional<Key> GetKey(Value value, IComparer<Value> comparer);
+		Optional<Key> GetKey(Func<Value, bool> predicate);
     }
 }

@@ -324,11 +324,11 @@ namespace Fastore.Core
 				}
 			}
 
-			public Optional<Key> GetKey(Value value, IComparer<Value> comparer)
+			public Optional<Key> GetKey(Func<Value, bool> predicate)
 			{
 				for (int i = 0; i < Count; i++)
 				{
-					if (comparer.Compare(_values[i], value) == 0)
+					if (predicate(_values[i]))
 						return _keys[i];
 				}
 				return Optional<Key>.Null;

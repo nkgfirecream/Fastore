@@ -414,15 +414,15 @@ namespace Fastore.Core
                 }
             }
 
-            public Optional<string> GetKey(Value value, IComparer<Value> comparer)
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (comparer.Compare(_values[i], value) == 0)
-                        return _keys[i];
-                }
-                return Optional<string>.Null;
-            }
+			public Optional<string> GetKey(Func<Value, bool> predicate)
+			{
+				for (int i = 0; i < Count; i++)
+				{
+					if (predicate(_values[i]))
+						return _keys[i];
+				}
+				return Optional<string>.Null;
+			}
 		}
 
         private interface INode

@@ -33,13 +33,13 @@ namespace Fastore.Core
 			object store;
 			if (def.IsUnique)
 			{
-				var storeType = typeof(ColumnSet<>).MakeGenericType(new Type[] { def.Type });
+				var storeType = typeof(ColumnSet<>).MakeGenericType(def.Type);
 				store = Activator.CreateInstance(storeType, new object[] { null });
 			}
 			else
 			{
-				var storeType = typeof(ColumnBag<>).MakeGenericType(new Type[] { def.Type });
-				store = Activator.CreateInstance(storeType, new object[] { null, null });
+				var storeType = typeof(ColumnHash<>).MakeGenericType(def.Type);
+				store = Activator.CreateInstance(storeType, new object[] { null });
 			}
 
 			_stores.Insert(index, store);
@@ -82,11 +82,12 @@ namespace Fastore.Core
 
 		private Expression BuildInsertBody(int column, ParameterExpression table, ParameterExpression value, ParameterExpression id)
 		{
+			// Pseudo code:  { _stores[column].Insert(value, id); }
 			var storeType = _stores[column].GetType();
 			return
 				Expression.Call
 				(
-					BuildStoreConverter(column, table, storeType), 
+					BuildStoreGetter(column, table, storeType), 
 					storeType.GetMethod("Insert"), 
 					Expression.Convert(value, _defs[column].Type), 
 					id
@@ -149,17 +150,38 @@ namespace Fastore.Core
 
 		private Expression BuildSelectBody(int column, ParameterExpression table, ParameterExpression id)
 		{
+			// Pseudo code:  { dynamic ov = _stores[column].GetValue(id); return (object)(ov.HasValue ? ov.Value : null); }
 			var storeType = _stores[column].GetType();
+			var columnType = _defs[column].Type;
+			var optionalValue = Expression.Variable(typeof(Optional<>).MakeGenericType(columnType), "optionalValue");
 			return
-				Expression.Call
+				Expression.Block
 				(
-					BuildStoreConverter(column, table, storeType),
-					storeType.GetMethod("GetValue"),
-					id
+					new[] { optionalValue },
+					Expression.Assign
+					(
+						optionalValue,
+						Expression.Call
+						(
+							BuildStoreGetter(column, table, storeType),
+							storeType.GetMethod("GetValue"),
+							id
+						)
+					),
+					Expression.Condition
+					(
+						Expression.Property(optionalValue, "HasValue"),
+						Expression.Convert
+						(
+							Expression.Property(optionalValue, "Value"),
+							typeof(object)
+						),
+						Expression.Constant(null, typeof(object))
+					)
 				);
 		}
 
-		private static UnaryExpression BuildStoreConverter(int column, ParameterExpression table, Type storeType)
+		private static UnaryExpression BuildStoreGetter(int column, ParameterExpression table, Type storeType)
 		{
 			return 
 				Expression.Convert
@@ -184,13 +206,11 @@ namespace Fastore.Core
 			return values;
         }
 
-		public IEnumerable<KeyValuePair<long, object[]>> Select(int column, bool isForward, int[] projection)
+		public IEnumerable<KeyValuePair<long, object[]>> Select(int column, object start, object end, bool isForward, int[] projection)
 		{
-			dynamic store = _stores[column];
-			
 			projection = EnsureProjection(projection);
 
-			foreach (var entry in store.GetRows(isForward))
+			foreach (var entry in GetRows(column, start, end, isForward))
 			{
 				long id = entry.Key;
 				var values = new object[projection.Length];
@@ -198,15 +218,24 @@ namespace Fastore.Core
 				{
 					var colIndex = projection[i];
 					if (colIndex == column)
-						values[i] = entry.Key;
+						values[i] = entry.Value;
 					else
-					{
-						dynamic other = _stores[colIndex];
-						values[i] = other.GetValue(id);
-					}
+						values[i] = _selectHandlers[colIndex](this, id);
 				}
 				yield return new KeyValuePair<long, object[]>(id, values);
 			}
+		}
+
+		private dynamic GetRows(int column, object start, object end, bool isForward)
+		{
+			var store = _stores[column];
+			var storeType = store.GetType();
+			var dataType = storeType.GetGenericArguments()[0];
+			var optionalType = typeof(Optional<>).MakeGenericType(dataType);
+			var nullOptional = optionalType.GetField("Null", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).GetValue(null);
+			var optionalStart = start == null ? nullOptional : Activator.CreateInstance(optionalType, start);
+			var optionalEnd = end == null ? nullOptional : Activator.CreateInstance(optionalType, end);
+			return storeType.GetMethod("GetRows", new Type[] { typeof(bool), optionalType, optionalType }).Invoke(store, new object[] { isForward, optionalStart, optionalEnd });
 		}
 
 		private int[] EnsureProjection(int[] projection)
