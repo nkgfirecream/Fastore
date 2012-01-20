@@ -7,7 +7,7 @@ using Microsoft.VisualBasic.FileIO;
 using Fastore.Core;
 using System.Diagnostics;
 
-namespace Fastore.Engine.Test
+namespace Fastore.Core.Test
 {
     /// <summary>
     /// Summary description for MemoryUsageTests
@@ -23,14 +23,11 @@ namespace Fastore.Engine.Test
             parser.Delimiters = new string[] { "," };
 
             var test = new PatriciaTrie<long>();
-            //var test = new BTree<string, int>();
-            //var test = new SimplePrefixBTree<int>();
 
             IBTreeLeaf<string, int> dummy;
-
             var watch = new Stopwatch();
 
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 10000; i++)
             {
                 var line = parser.ReadFields()[1];
                 watch.Start();
@@ -38,7 +35,57 @@ namespace Fastore.Engine.Test
                 watch.Stop();
             }
 
-            Debug.WriteLine(1000000 / ((double)watch.ElapsedMilliseconds / 1000));
+            Debug.WriteLine(10000 / ((double)watch.ElapsedMilliseconds / 1000));
         }
+
+        [TestMethod]
+        public void TestMethod2()
+        {
+            TextFieldParser parser = new TextFieldParser(@"C:\owt.person.csv");
+            parser.Delimiters = new string[] { "," };
+
+            var test = new BTree<string, int>();
+
+            //var test = new SimplePrefixBTree<int>();
+
+            IBTreeLeaf<string, int> dummy;
+
+            var watch = new Stopwatch();
+
+            for (int i = 0; i < 10000; i++)
+            {
+                var line = parser.ReadFields()[1];
+                watch.Start();
+                test.Insert(line, i, out dummy);
+                watch.Stop();
+            }
+
+            Debug.WriteLine(10000 / ((double)watch.ElapsedMilliseconds / 1000));
+        }
+
+        [TestMethod]
+        public void TestMethod3()
+        {
+            TextFieldParser parser = new TextFieldParser(@"C:\owt.person.csv");
+            parser.Delimiters = new string[] { "," };
+
+            var test = new SimplePrefixBTree<int>();
+
+            IBTreeLeaf<string, int> dummy;
+
+            var watch = new Stopwatch();
+
+            for (int i = 0; i < 10000; i++)
+            {
+                var line = parser.ReadFields()[1];
+                watch.Start();
+                test.Insert(line, i, out dummy);
+                watch.Stop();
+            }
+
+            Debug.WriteLine(10000 / ((double)watch.ElapsedMilliseconds / 1000));
+        }
+
+
     }
 }

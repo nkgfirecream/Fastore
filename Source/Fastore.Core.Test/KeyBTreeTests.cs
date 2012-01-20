@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Fastore.Core;
 using System.Diagnostics;
 
-namespace Fastore.Engine.Test
+namespace Fastore.Core.Test
 {
     [TestClass]
     public class KeyBTreeTests

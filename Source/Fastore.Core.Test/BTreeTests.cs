@@ -7,7 +7,7 @@ using Fastore.Core;
 using System.Diagnostics;
 using Fastore.Core.Test;
 
-namespace Fastore.Engine.Test
+namespace Fastore.Core.Test
 {
     [TestClass]
     public class BTreeTests
