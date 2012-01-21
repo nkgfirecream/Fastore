@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace Fastore.Core
 {
@@ -18,6 +19,7 @@ namespace Fastore.Core
 
 		private List<ColumnDef> _defs = new List<ColumnDef>();
 		private List<object> _stores = new List<object>();
+		private List<WorkerQueue> _workers = new List<WorkerQueue>();
 		private long _nextID;
 
 		public void AddColumn(int index, ColumnDef def)
@@ -45,6 +47,8 @@ namespace Fastore.Core
 			_stores.Insert(index, store);
 
 			_defs.Insert(index, def);
+
+			_workers.Insert(index, new WorkerQueue());
 		}
 
 		private void RecompileLogic()
@@ -94,9 +98,12 @@ namespace Fastore.Core
 				);
 		}
 
+		
         public void Insert(long id, int[] projection, params object[] values)
         {
-			projection = EnsureProjection(projection);
+			// TODO: Ensure that the projection doesn't contain duplicates - this doesn't makes sense for insertion
+
+			projection = EnsureProjection(projection); 
 			
 			for (int i = 0; i < projection.Length; i++)
 			{
@@ -104,12 +111,18 @@ namespace Fastore.Core
 				var value = values[i];
 				if (value != null)
 				{
-					_insertHandlers[colIndex](this, value, id);
+					_workers[i].Queue(() => _insertHandlers[colIndex](this, value, id));
 
 					// TODO: roll-back other columns if insert fails for any column
 				}
 			}            
         }
+
+		// Temporary routine, wouldn't need because selection would replace this.
+		public void WaitForWorkers()
+		{
+			WaitHandle.WaitAll(_workers.Select<WorkerQueue, WaitHandle>(q => q.Handle).ToArray());
+		}
 
 		public long Insert(int[] projection, object[] values)
 		{

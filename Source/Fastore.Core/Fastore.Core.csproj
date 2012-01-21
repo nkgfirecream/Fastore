@@ -47,13 +47,13 @@
     <Compile Include="ColumnHash.cs" />
     <Compile Include="IKeyLeaf.cs" />
     <Compile Include="KeyBTree.cs" />
-    <Compile Include="IBTreeLeaf.cs" />
     <Compile Include="ITree.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="PartitionedList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PatriciaTrie.cs" />
     <Compile Include="Table.cs" />
+    <Compile Include="WorkerQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="SimplePrefixBTree.cs" />

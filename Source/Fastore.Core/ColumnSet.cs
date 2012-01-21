@@ -17,11 +17,11 @@ namespace Fastore.Core
 
 		private BTree<T, long> _values;
 
-		private Dictionary<long, IBTreeLeaf<T, long>> _rows = new Dictionary<long, IBTreeLeaf<T, long>>();
+		private Dictionary<long, IKeyValueLeaf<T, long>> _rows = new Dictionary<long, IKeyValueLeaf<T, long>>();
 
 		public Optional<T> GetValue(long rowId)
 		{
-			IBTreeLeaf<T, long> leaf;
+			IKeyValueLeaf<T, long> leaf;
 			if (!_rows.TryGetValue(rowId, out leaf))
 				return Optional<T>.Null;
 
@@ -48,7 +48,7 @@ namespace Fastore.Core
 
 		public bool Insert(T value, long rowId)
 		{
-			IBTreeLeaf<T, long> valueLeaf;
+			IKeyValueLeaf<T, long> valueLeaf;
 
 			var existingRows = _values.Insert(value, rowId, out valueLeaf);
 			if (existingRows != Optional<long>.Null)

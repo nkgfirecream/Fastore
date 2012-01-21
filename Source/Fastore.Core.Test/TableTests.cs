@@ -33,6 +33,7 @@ namespace Fastore.Core.Test
 				table.Insert(row);
 				watch.Stop();
 			}
+			table.WaitForWorkers();
 
 			Debug.WriteLine("Inserts Per Second: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
 

@@ -24,7 +24,7 @@ namespace Fastore.Core.Test
 
             var test = new PatriciaTrie<long>();
 
-            IBTreeLeaf<string, int> dummy;
+            IKeyValueLeaf<string, int> dummy;
             var watch = new Stopwatch();
 
             for (int i = 0; i < 100000; i++)
@@ -48,7 +48,7 @@ namespace Fastore.Core.Test
 
             //var test = new SimplePrefixBTree<int>();
 
-            IBTreeLeaf<string, int> dummy;
+            IKeyValueLeaf<string, int> dummy;
 
             var watch = new Stopwatch();
 
@@ -71,7 +71,7 @@ namespace Fastore.Core.Test
 
             var test = new SimplePrefixBTree<int>();
 
-            IBTreeLeaf<string, int> dummy;
+            IKeyValueLeaf<string, int> dummy;
 
             var watch = new Stopwatch();
 

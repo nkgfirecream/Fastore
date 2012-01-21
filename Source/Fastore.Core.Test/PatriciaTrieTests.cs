@@ -13,7 +13,7 @@ namespace Fastore.Core.Test
     public class PatriciaTrieTests
     {
         [TestMethod]
-        public void TestInsert()
+        public void PatriciaInsert()
         {
             var tree = new PatriciaTrie<string>();
 
@@ -54,7 +54,7 @@ namespace Fastore.Core.Test
         }
 
         [TestMethod]
-        public void TestDelete()
+		public void PatriciaDelete()
         {
             var tree = new PatriciaTrie<string>();
 
@@ -120,7 +120,7 @@ namespace Fastore.Core.Test
         }
 
         [TestMethod]
-        public void TestSplit()
+		public void PatriciaSplit()
         {
             var tree = new PatriciaTrie<string>();
 
@@ -160,13 +160,13 @@ namespace Fastore.Core.Test
         }
 
         [TestMethod]
-        public void TestInsertSpeed()
+		public void PatriciaInsertSpeed()
         {
             int numrows = 1000000;
             //var test = new BTree<string,Guid>();
             var test = new PatriciaTrie<Guid>();
 
-            IBTreeLeaf<string, Guid> dummy;
+            IKeyValueLeaf<string, Guid> dummy;
             Debug.WriteLine("Inserting Rows...");
             var watch = new Stopwatch();
 
@@ -184,7 +184,7 @@ namespace Fastore.Core.Test
         }
 
         [TestMethod]
-        public void TestGetValues()
+		public void PatriciaGetValues()
         {
             var tree = new PatriciaTrie<string>();
             tree.Insert("romane", "romane");

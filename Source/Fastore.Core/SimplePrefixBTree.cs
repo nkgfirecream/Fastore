@@ -60,7 +60,7 @@ namespace Fastore.Core
 		/// <summary> Attempts to insert a given key/value</summary>
 		/// <param name="leaf"> The leaf in which the entry was located. </param>
 		/// <returns> If the key already exists, nothing is changed and the existing value is returned. </returns>
-        public Optional<Value> Insert(string key, Value value, out IBTreeLeaf<string,Value> leaf)
+        public Optional<Value> Insert(string key, Value value, out IKeyValueLeaf<string,Value> leaf)
         {
             var result = _root.Insert(key, value, out leaf);
             if (result.Split != null)
@@ -68,7 +68,7 @@ namespace Fastore.Core
 			return result.Found;
         }
 
-        internal void DoValuesMoved(IBTreeLeaf<string, Value> leaf)
+        internal void DoValuesMoved(IKeyValueLeaf<string, Value> leaf)
         {
             if (ValueMoved != null)
 				foreach (var entry in leaf.Get(true))
@@ -100,7 +100,7 @@ namespace Fastore.Core
 			/// <summary> Count is numbers of keys. Number of children is keys + 1. </summary>
 			public int Count { get; private set; }
 
-			public InsertResult Insert(string key, Value value, out IBTreeLeaf<string, Value> leaf)
+			public InsertResult Insert(string key, Value value, out IKeyValueLeaf<string, Value> leaf)
 			{
 				var index = IndexOf(key);
 				var result = _children[index].Insert(key, value, out leaf);
@@ -207,7 +207,7 @@ namespace Fastore.Core
             }			
 		}
 
-		class Leaf : INode, IBTreeLeaf<string, Value>
+		class Leaf : INode, IKeyValueLeaf<string, Value>
 		{
 			private Value[] _values { get; set; }
 			private string[] _keys { get; set; }
@@ -294,7 +294,7 @@ namespace Fastore.Core
 				_values = new Value[parent.LeafSize];
 			}
 
-			public InsertResult Insert(string key, Value value, out IBTreeLeaf<string, Value> leaf)
+			public InsertResult Insert(string key, Value value, out IKeyValueLeaf<string, Value> leaf)
 			{
                 if(!key.StartsWith(_prefix))
                 //{
@@ -348,7 +348,7 @@ namespace Fastore.Core
 				return result;
 			}
 
-			public Optional<Value> InternalInsert(string key, Value value, int index, out IBTreeLeaf<string, Value> leaf)
+			public Optional<Value> InternalInsert(string key, Value value, int index, out IKeyValueLeaf<string, Value> leaf)
 			{
 				leaf = this;
 				if (_tree.Comparer.Compare(_keys[index], key) == 0)
@@ -431,7 +431,7 @@ namespace Fastore.Core
 
         private interface INode
         {
-            InsertResult Insert(string key, Value value, out IBTreeLeaf<string, Value> leaf);
+            InsertResult Insert(string key, Value value, out IKeyValueLeaf<string, Value> leaf);
             IEnumerable<KeyValuePair<string, Value>> Get(bool isForward);
             IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start);
             IEnumerable<KeyValuePair<string, Value>> Get(bool isForward, Optional<string> start, Optional<string> end);

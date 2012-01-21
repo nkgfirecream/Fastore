@@ -18,11 +18,11 @@ namespace Fastore.Core
 
 		private BTree<T, ISet<long>> _values;
 
-		private Dictionary<long, IBTreeLeaf<T, ISet<long>>> _rows = new Dictionary<long, IBTreeLeaf<T, ISet<long>>>();
+		private Dictionary<long, IKeyValueLeaf<T, ISet<long>>> _rows = new Dictionary<long, IKeyValueLeaf<T, ISet<long>>>();
 
 		public Optional<T> GetValue(long rowId)
 		{
-			IBTreeLeaf<T, ISet<long>> leaf;
+			IKeyValueLeaf<T, ISet<long>> leaf;
 			if (!_rows.TryGetValue(rowId, out leaf))
 				return Optional<T>.Null;
 
@@ -82,7 +82,7 @@ namespace Fastore.Core
 			ISet<long> newRows = new HashSet<long>();
 
 			// Attempt to insert the row bucket
-			IBTreeLeaf<T, ISet<long>> valueLeaf;
+			IKeyValueLeaf<T, ISet<long>> valueLeaf;
 			var existingRows = _values.Insert(value, newRows, out valueLeaf);
 			// If already existing, use it
 			if (existingRows != Optional<ISet<long>>.Null)

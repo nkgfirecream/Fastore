@@ -29,7 +29,7 @@ namespace Fastore.Core
 				return Optional<T>.Null;
 
 			var tree = leaf.Tree;
-			var owner = (IBTreeLeaf<T, KeyBTree<long>>)tree.Owner;
+			var owner = (IKeyValueLeaf<T, KeyBTree<long>>)tree.Owner;
 			return owner.GetKey(v => Object.ReferenceEquals(v, tree));
 		}
 
@@ -61,7 +61,7 @@ namespace Fastore.Core
 			var newRows = new KeyBTree<long>(_rowComparer);
 
 			// Attempt to insert the row bucket
-			IBTreeLeaf<T, KeyBTree<long>> valueLeaf;
+			IKeyValueLeaf<T, KeyBTree<long>> valueLeaf;
 
 			// If already existing, use it
 			var existingRows = _values.Insert(value, newRows, out valueLeaf);
