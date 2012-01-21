@@ -27,7 +27,7 @@ namespace Fastore.Core.Test
             IBTreeLeaf<string, int> dummy;
             var watch = new Stopwatch();
 
-            for (int i = 0; i < 1000000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 var line = parser.ReadFields()[1];
                 watch.Start();
@@ -35,7 +35,7 @@ namespace Fastore.Core.Test
                 watch.Stop();
             }
 
-            Debug.WriteLine(1000000 / ((double)watch.ElapsedMilliseconds / 1000));
+            Debug.WriteLine(100000 / ((double)watch.ElapsedMilliseconds / 1000));
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace Fastore.Core.Test
 
             var watch = new Stopwatch();
 
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 var line = parser.ReadFields()[1];
                 watch.Start();
@@ -60,7 +60,7 @@ namespace Fastore.Core.Test
                 watch.Stop();
             }
 
-            Debug.WriteLine(10000 / ((double)watch.ElapsedMilliseconds / 1000));
+            Debug.WriteLine(100000 / ((double)watch.ElapsedMilliseconds / 1000));
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace Fastore.Core.Test
 
             var watch = new Stopwatch();
 
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 100000; i++)
             {
                 var line = parser.ReadFields()[1];
                 watch.Start();
@@ -83,7 +83,7 @@ namespace Fastore.Core.Test
                 watch.Stop();
             }
 
-            Debug.WriteLine(10000 / ((double)watch.ElapsedMilliseconds / 1000));
+            Debug.WriteLine(100000 / ((double)watch.ElapsedMilliseconds / 1000));
         }
 
 
