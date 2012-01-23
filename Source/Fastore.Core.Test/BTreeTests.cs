@@ -258,11 +258,14 @@ namespace Fastore.Core.Test
             int numrows = 1000000;
             var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
             var test3 = new BTree<string, Guid>(fanout: 128, leafSize: 128);
+			var test4 = new KeyBTree<Guid>(null);
 
             IKeyValueLeaf<string, Guid> dummy;
+			IKeyLeaf<Guid> dummy2;
             Debug.WriteLine("Inserting Rows...");
             var watch = new Stopwatch();
             var watch3 = new Stopwatch();
+			var watch4 = new Stopwatch();
             for (int j = 0; j < numrows; j++)
             {
                 var key = Guid.NewGuid();
@@ -274,10 +277,15 @@ namespace Fastore.Core.Test
                 watch3.Start();
                 test3.Insert(value, key, out dummy);
                 watch3.Stop();
+
+				watch4.Start();
+				test4.Insert(key, out dummy2);
+				watch3.Stop();
             }
 
             Debug.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
             Debug.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
+			Debug.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
 
         }
 

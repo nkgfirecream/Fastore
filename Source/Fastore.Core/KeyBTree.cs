@@ -9,8 +9,8 @@ namespace Fastore.Core
 	/// <typeparam name="K"> Key type. </typeparam>
 	public class KeyBTree<K>
 	{
-        public static int BranchingFactor = 10;
-        public static int LeafSize = 100;
+        public static int BranchingFactor = 128;
+        public static int LeafSize = 128;
 
         private IKeyNode _root;
 
@@ -120,7 +120,7 @@ namespace Fastore.Core
 
             private int IndexOf(K key)
             {
-                var result = Array.BinarySearch(_keys, 0, Count, key);
+                var result = Array.BinarySearch(_keys, 0, Count, key, _tree.Comparer);
                 if (result < 0)
                 {
                     var index = ~result;
