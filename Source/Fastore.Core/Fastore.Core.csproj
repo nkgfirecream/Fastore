@@ -49,7 +49,9 @@
     <Compile Include="KeyBTree.cs" />
     <Compile Include="ITree.cs" />
     <Compile Include="Optional.cs" />
-    <Compile Include="PartitionedList.cs" />
+    <Compile Include="PartitionedList.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PatriciaTrie.cs" />
     <Compile Include="Table.cs" />

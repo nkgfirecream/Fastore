@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -51,6 +52,10 @@
     <ProjectReference Include="..\Fastore.Core.Test\Fastore.Core.Test.csproj">
       <Project>{CFABCFE0-7D86-4427-AE81-52E8B2269341}</Project>
       <Name>Fastore.Core.Test</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Fastore.Core\Fastore.Core.csproj">
+      <Project>{AAF3B01E-3982-4130-9269-A21366981891}</Project>
+      <Name>Fastore.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

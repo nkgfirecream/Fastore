@@ -43,7 +43,7 @@ namespace Fastore.Core.Test
             Debug.WriteLine(tree.GetValue("bobo"));
             Debug.WriteLine(tree.GetValue("hobo"));
             Debug.WriteLine(tree.GetValue("ro"));
-            Debug.WriteLine(tree.GetValue("rubensandwhich"));
+            Debug.WriteLine(tree.GetValue("rubensandwich"));
             Debug.WriteLine(tree.GetValue("waiter"));
             Debug.WriteLine(tree.GetValue("water"));
             Debug.WriteLine(tree.GetValue("waterproof"));

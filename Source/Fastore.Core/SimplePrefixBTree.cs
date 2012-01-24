@@ -150,7 +150,7 @@ namespace Fastore.Core
 
                 //This stores the shortest possible tring to differentiate between the key below the new one, and the new one.
                 //If there is not a differentiating string, we will store the new key.
-                _keys[index] = key;
+                _keys[index] = string.Intern(key);
 				_children[index + 1] = child;
 				Count++;
 			}
@@ -226,11 +226,11 @@ namespace Fastore.Core
                 if (!string.IsNullOrEmpty(newprefix))
                 {
                     for (int i = 0; i < Count; i++)
-                        _keys[i] = _keys[i].Substring(newprefix.Length, _keys[i].Length - newprefix.Length);
+                        _keys[i] = string.Intern(_keys[i].Substring(newprefix.Length, _keys[i].Length - newprefix.Length));
                 }
 
                 //prefix gets longer
-                _prefix = _prefix + newprefix;
+                _prefix = string.Intern(_prefix + newprefix);
 
                 //compressed = true;
             }
@@ -239,7 +239,7 @@ namespace Fastore.Core
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    _keys[i] = _prefix + _keys[i];
+                    _keys[i] = string.Intern(_prefix + _keys[i]);
                 }
 
                 _prefix = "";
@@ -261,7 +261,7 @@ namespace Fastore.Core
                 {
                     for (int i = 0; i < Count; i++)
                         if (_keys[i].Length < prefixindex || _keys[i][prefixindex] != c)
-                            return _keys[0].Substring(0, prefixindex);
+                            return string.Intern(_keys[0].Substring(0, prefixindex));
 
                     prefixindex++;
                 }
@@ -327,7 +327,7 @@ namespace Fastore.Core
 
                     _tree.DoValuesMoved(node);
 
-                    result.Split = new Split() { Key = MinSeparation(_keys[Count - 1], node._keys[0]), Right = node };
+                    result.Split = new Split() { Key = string.Intern(MinSeparation(_keys[Count - 1], node._keys[0])), Right = node };
 
                     //if (!compressed)
                     //{

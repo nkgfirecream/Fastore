@@ -227,6 +227,9 @@ namespace Fastore.Core.Test
             }
             totaltime = watch.ElapsedMilliseconds;
 
+            Debug.WriteLine("Total Number of Seconds Elapsed: " + ((double)totaltime / 1000));
+            Debug.WriteLine("Inserts Per Second: " + (double)500000 / ((double)totaltime / 1000));
+
             Debug.WriteLine("SortedDictionary Test");
             SortedDictionary<Guid, string> test4;
             totaltime = 0;
@@ -241,6 +244,30 @@ namespace Fastore.Core.Test
                     var value = RandomG.RandomString(RandomG.RandomInt(8));
                     watch.Start();
                     test4.Add(key, value);
+                    watch.Stop();
+                }
+
+                Debug.WriteLine("Load Test: {0}", x);
+            }
+            totaltime = watch.ElapsedMilliseconds;
+
+            Debug.WriteLine("Total Number of Seconds Elapsed: " + ((double)totaltime / 1000));
+            Debug.WriteLine("Inserts Per Second: " + (double)500000 / ((double)totaltime / 1000));
+
+            Debug.WriteLine("List Test");
+            List<string> test5;
+            totaltime = 0;
+            watch.Reset();
+            for (int x = 0; x <= 5; x++)
+            {
+                test5 = new List<string>();
+
+                for (int j = 0; j <= 100000; j++)
+                {
+                    
+                    var value = RandomG.RandomString(RandomG.RandomInt(8));
+                    watch.Start();
+                    test5.Add(value);
                     watch.Stop();
                 }
 
@@ -331,18 +358,17 @@ namespace Fastore.Core.Test
         public void BTreeTest5()
         {
             int numrows = 1000000;
-            var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
+            var test = new KeyBTree<string>(Comparer<string>.Default);
 
-            IKeyValueLeaf<string, Guid> dummy;
+            IKeyLeaf<string> dummy;
             Debug.WriteLine("Inserting Rows...");
             var watch = new Stopwatch();
       
             for (int j = 0; j < numrows; j++)
             {
-                var key = Guid.NewGuid();
                 var value = RandomG.RandomString(RandomG.RandomInt(8));
                 watch.Start();
-                test.Insert(value, key, out dummy);
+                test.Insert(value, out dummy);
                 watch.Stop();
             }
 

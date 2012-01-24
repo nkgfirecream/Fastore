@@ -207,6 +207,8 @@ namespace Fastore.Core
       
         private Optional<Value> AddSubNode(Node node, string key, int keyoffset, Value value)
         {
+            if (node.Children == null)
+                node.Children = new Node[PatriciaTrie<Value>.MinArraySize];
             //No children on this node yet,
             //Add entire key (which is a tail of another key)
             if (node.Count == 0)
@@ -390,12 +392,12 @@ namespace Fastore.Core
             return sb.ToString();
         }
 
-        public class Node
+        public struct Node
         {
-            public Node[] Children = new Node[PatriciaTrie<Value>.MinArraySize];
+            public Node[] Children;
             public string Key;
             public Optional<Value> Value;
-            public int Count = 0;
+            public int Count;
            // private int PublicCount;
         }
     }
