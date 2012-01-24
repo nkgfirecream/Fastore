@@ -6,9 +6,9 @@ using System.Text;
 namespace Fastore.Core
 {
     //Need to implement Delete, Get, Contains, Binary searching, etc.
-    public class BTree<Key, Value> : IKeyValueTree<Key, Value>
+    public class KeyValueLeafBTree<Key, Value> : IKeyValueTree<Key, Value>
     {
-		public BTree(IComparer<Key> comparer = null, int fanout = 128, int leafSize = 128)
+		public KeyValueLeafBTree(IComparer<Key> comparer = null, int fanout = 128, int leafSize = 128)
 		{
 			if (fanout < 2 || leafSize < 2)
 				throw new ArgumentException("Minimum fan-out and leaf size is 2.");
@@ -20,6 +20,7 @@ namespace Fastore.Core
 		}
 
 		public IComparer<Key> Comparer { get; private set; }
+        public IComparer<KeyValuePair<Key, Value>> SortComparer { get; private set; }
 
 		private int _fanout = 10;
         public int Fanout
@@ -77,14 +78,14 @@ namespace Fastore.Core
 
 		class Branch : INode
 		{
-			public Branch(BTree<Key, Value> tree)
+			public Branch(KeyValueLeafBTree<Key, Value> tree)
 			{
 				_tree = tree;
 				_keys = new Key[tree.Fanout - 1];
 				_children = new INode[tree.Fanout];
 			}
 
-			public Branch(BTree<Key, Value> tree, INode left, INode right, Key key)
+			public Branch(KeyValueLeafBTree<Key, Value> tree, INode left, INode right, Key key)
 				: this(tree)
 			{
 				_children[0] = left;
@@ -95,7 +96,7 @@ namespace Fastore.Core
 
 			private Key[] _keys;
 			private INode[] _children;
-			private BTree<Key, Value> _tree;
+			private KeyValueLeafBTree<Key, Value> _tree;
 
 			/// <summary> Count is numbers of keys. Number of children is keys + 1. </summary>
 			public int Count { get; private set; }
@@ -208,26 +209,24 @@ namespace Fastore.Core
 
 		class Leaf : INode, IKeyValueLeaf<Key, Value>
 		{
-			private Value[] _values { get; set; }
-			private Key[] _keys { get; set; }
-
+            private KeyValuePair<Key, Value>[] _items { get; set; }
 			private int Count { get; set; }
 
-			private BTree<Key, Value> _tree;
+			private KeyValueLeafBTree<Key, Value> _tree;
 
-			public Leaf(BTree<Key, Value> parent)
+			public Leaf(KeyValueLeafBTree<Key, Value> parent)
 			{
 				_tree = parent;
-				_keys = new Key[parent._leafSize];
-				_values = new Value[parent._leafSize];
+                _items = new KeyValuePair<Key, Value>[parent._leafSize];
 			}
 
 			public InsertResult Insert(Key key, Value value, out IKeyValueLeaf<Key, Value> leaf)
 			{
-				int pos = IndexOf(key);
+                int pos = IndexOf(key);
+
 				var result = new InsertResult();
 				if (Count == _tree._leafSize)
-				{
+				{                 
 					var node = new Leaf(_tree);
 					// Determine the new node size - if the insert is to the end, leave this node full, assume contiguous insertions
 					node.Count = 
@@ -236,8 +235,7 @@ namespace Fastore.Core
 							: (_tree._leafSize + 1) / 2;
 					Count = Count - node.Count;
 
-					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
-					Array.Copy(_values, node.Count, node._values, 0, node.Count);
+					Array.Copy(_items, node.Count, node._items, 0, node.Count);
 
 					if (pos < Count)
 						result.Found = InternalInsert(key, value, pos, out leaf);
@@ -246,7 +244,7 @@ namespace Fastore.Core
 
 					_tree.DoValuesMoved(node);
 
-					result.Split = new Split() { Key = node._keys[0], Right = node };
+					result.Split = new Split() { Key = node._items[0].Key, Right = node };
 				}
 				else
 					result.Found = InternalInsert(key, value, pos, out leaf);
@@ -257,14 +255,12 @@ namespace Fastore.Core
 			public Optional<Value> InternalInsert(Key key, Value value, int index, out IKeyValueLeaf<Key, Value> leaf)
 			{
 				leaf = this;
-				if (index < Count && _tree.Comparer.Compare(_keys[index], key) == 0)
-					return _values[index];
+				if (index < Count && _tree.Comparer.Compare(_items[index].Key, key) == 0)
+					return _items[index].Value;
 				else
 				{
-					Array.Copy(_keys, index, _keys, index + 1, Count - index);
-					Array.Copy(_values, index, _values, index + 1, Count - index);
-					_keys[index] = key;
-					_values[index] = value;
+					Array.Copy(_items, index, _items, index + 1, Count - index);
+                    _items[index] = new KeyValuePair<Key, Value>(key, value);
 					Count++;
 					return Optional<Value>.Null;
 				}
@@ -272,17 +268,28 @@ namespace Fastore.Core
 
 			private int IndexOf(Key key)
 			{
-				var result = Array.BinarySearch(_keys, 0, Count, key, _tree.Comparer);
-				if (result < 0)
-				{
-					var index = ~result;
-					if (index > Count)
-						return Count;
-					else
-						return index;
-				}
-				else
-					return result;
+                int lo = 0;
+                int hi = Count - 1;
+                int localIndex = 0;
+                int result = -1;
+
+                while (lo <= hi)
+                {
+                    localIndex = (lo + hi) / 2;
+                    result = result = _tree.Comparer.Compare(key, _items[localIndex].Key);
+
+                    if (result == 0)
+                        break;
+                    else if (result < 0)
+                        hi = localIndex - 1;
+                    else
+                        lo = localIndex + 1;
+                }
+
+                if (result == 0)
+                    return localIndex;
+                else
+                    return lo;
 			}
 
 			public override string ToString()
@@ -315,17 +322,18 @@ namespace Fastore.Core
 
 			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start, Optional<Key> end)
 			{
+
 				var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
 				var endIndex = end.HasValue ? IndexOf(end.Value) : Count; 
 				if (isForward)
 				{
 					for (int i = startIndex; i < endIndex; i++)
-						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+						yield return _items[i];
 				}
 				else
 				{
 					for (int i = endIndex - 1; i >= startIndex; i--)
-						yield return new KeyValuePair<Key, Value>(_keys[i], _values[i]);
+						yield return _items[i];
 				}
 			}
 
@@ -333,8 +341,8 @@ namespace Fastore.Core
 			{
 				for (int i = 0; i < Count; i++)
 				{
-					if (predicate(_values[i]))
-						return _keys[i];
+					if (predicate(_items[i].Value))
+						return _items[i].Key;
 				}
 				return Optional<Key>.Null;
 			}

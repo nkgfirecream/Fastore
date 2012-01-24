@@ -45,6 +45,7 @@
     <Compile Include="ColumnBag.cs" />
     <Compile Include="ColumnSet.cs" />
     <Compile Include="ColumnHash.cs" />
+    <Compile Include="KeyValueLeafBTree.cs" />
     <Compile Include="IKeyLeaf.cs" />
     <Compile Include="KeyBTree.cs" />
     <Compile Include="ITree.cs" />

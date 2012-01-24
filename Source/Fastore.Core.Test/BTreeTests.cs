@@ -289,6 +289,7 @@ namespace Fastore.Core.Test
 				var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
 				var test3 = new BTree<string, Guid>(fanout: 128, leafSize: 128);
 				var test4 = new KeyBTree<Guid>(null);
+                var test5 = new KeyValueLeafBTree<string, Guid>(fanout: 128, leafSize: 128);
 
 				IKeyValueLeaf<string, Guid> dummy;
 				IKeyLeaf<Guid> dummy2;
@@ -296,6 +297,7 @@ namespace Fastore.Core.Test
 				var watch = new Stopwatch();
 				var watch3 = new Stopwatch();
 				var watch4 = new Stopwatch();
+                var watch5 = new Stopwatch();
 				for (int j = 0; j < numrows; j++)
 				{
 					var key = Guid.NewGuid();
@@ -310,12 +312,17 @@ namespace Fastore.Core.Test
 
 					watch4.Start();
 					test4.Insert(key, out dummy2);
-					watch3.Stop();
+					watch4.Stop();
+
+                    watch5.Start();
+                    test5.Insert(value, key, out dummy);
+                    watch5.Stop();
 				}
 
 				Trace.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
+                Trace.WriteLine("Inserts Per Second KeyValueLeafBtree: " + (double)numrows / ((double)watch5.ElapsedMilliseconds / 1000));
 
 				Trace.Flush();
 			}
@@ -330,12 +337,14 @@ namespace Fastore.Core.Test
 				int numrows = 1000000;
 				var test3 = new BTree<long, long>(fanout: 128, leafSize: 128);
 				var test4 = new KeyBTree<long>(null);
+                var test5 = new KeyValueLeafBTree<long, long>(fanout: 128, leafSize: 128);
 
 				IKeyValueLeaf<long, long> dummy;
 				IKeyLeaf<long> dummy2;
 				Trace.WriteLine("Inserting Rows...");
 				var watch3 = new Stopwatch();
 				var watch4 = new Stopwatch();
+                var watch5 = new Stopwatch();
 				for (int j = 0; j < numrows; j++)
 				{
 					watch3.Start();
@@ -344,11 +353,16 @@ namespace Fastore.Core.Test
 
 					watch4.Start();
 					test4.Insert(j, out dummy2);
-					watch3.Stop();
+					watch4.Stop();
+
+                    watch5.Start();
+                    test5.Insert(j, j, out dummy);
+                    watch5.Stop();
 				}
 
 				Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
+                Trace.WriteLine("Inserts Per Second KeyValueLeafBtree: " + (double)numrows / ((double)watch5.ElapsedMilliseconds / 1000));
 
 				Trace.Flush();
 			}

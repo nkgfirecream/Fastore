@@ -179,8 +179,12 @@ namespace Fastore.Core
                 if (Count == KeyBTree<K>.LeafSize)
                 {
                     var node = new Leaf(Tree);
-                    node.Count = (KeyBTree<K>.LeafSize + 1) / 2;
+                    node.Count =
+                        pos == Count
+                            ? 0
+                            : (KeyBTree<K>.LeafSize + 1) / 2;
                     Count = Count - node.Count;
+      
 
                     Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
 
