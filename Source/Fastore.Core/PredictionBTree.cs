@@ -259,7 +259,7 @@ namespace Fastore.Core
 			public Optional<Value> InternalInsert(Key key, Value value, int index, out IKeyValueLeaf<Key, Value> leaf)
 			{
 				leaf = this;
-				if (index > Count || _tree.Comparer.Compare(_items[index].Key, key) != 0)
+				if (index < Count && _tree.Comparer.Compare(_items[index].Key, key) == 0)
                 {
                     return _items[index].Value;
                 }
