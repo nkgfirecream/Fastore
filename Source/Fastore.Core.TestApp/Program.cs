@@ -43,12 +43,12 @@ namespace Fastore.Core.TestApp
 
             var test = new SimplePrefixBTree<string>();
 
-            IBTreeLeaf<string,string> dummy;
-            while (!file.EndOfStream)
-            {
-                var item = file.ReadLine();
-                test.Insert(item, item, out dummy);
-            }
+            //IBTreeLeaf<string,string> dummy;
+            //while (!file.EndOfStream)
+            //{
+            //    var item = file.ReadLine();
+            //    test.Insert(item, item, out dummy);
+            //}
 
             file.Close();
             file.Dispose();
