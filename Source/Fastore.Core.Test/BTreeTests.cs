@@ -253,41 +253,79 @@ namespace Fastore.Core.Test
         }
 
         [TestMethod]
-        public void BTreeTest4()
+        public void BTreeRandomGUIDTimings()
         {
-            int numrows = 1000000;
-            var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
-            var test3 = new BTree<string, Guid>(fanout: 128, leafSize: 128);
-			var test4 = new KeyBTree<Guid>(null);
+			//using (var outStream = new System.IO.FileStream("results.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write))
+			{
+				//Trace.Listeners.Add(new TextWriterTraceListener(outStream));
+				int numrows = 1000000;
+				var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
+				var test3 = new BTree<string, Guid>(fanout: 128, leafSize: 128);
+				var test4 = new KeyBTree<Guid>(null);
 
-            IKeyValueLeaf<string, Guid> dummy;
-			IKeyLeaf<Guid> dummy2;
-            Debug.WriteLine("Inserting Rows...");
-            var watch = new Stopwatch();
-            var watch3 = new Stopwatch();
-			var watch4 = new Stopwatch();
-            for (int j = 0; j < numrows; j++)
-            {
-                var key = Guid.NewGuid();
-                var value = RandomG.RandomString(RandomG.RandomInt(8));
-                watch.Start();
-                test.Insert(value, key, out dummy);
-                watch.Stop();
+				IKeyValueLeaf<string, Guid> dummy;
+				IKeyLeaf<Guid> dummy2;
+				Trace.WriteLine("Inserting Rows...");
+				var watch = new Stopwatch();
+				var watch3 = new Stopwatch();
+				var watch4 = new Stopwatch();
+				for (int j = 0; j < numrows; j++)
+				{
+					var key = Guid.NewGuid();
+					var value = RandomG.RandomString(RandomG.RandomInt(8));
+					watch.Start();
+					test.Insert(value, key, out dummy);
+					watch.Stop();
 
-                watch3.Start();
-                test3.Insert(value, key, out dummy);
-                watch3.Stop();
+					watch3.Start();
+					test3.Insert(value, key, out dummy);
+					watch3.Stop();
 
-				watch4.Start();
-				test4.Insert(key, out dummy2);
-				watch3.Stop();
-            }
+					watch4.Start();
+					test4.Insert(key, out dummy2);
+					watch3.Stop();
+				}
 
-            Debug.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
-            Debug.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
-			Debug.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
+				Trace.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
+				Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
+				Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
 
+				Trace.Flush();
+			}
         }
+
+		[TestMethod]
+		public void BTreeSequentialLongsTimings()
+		{
+			//using (var outStream = new System.IO.FileStream("results.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write))
+			{
+				//Trace.Listeners.Add(new TextWriterTraceListener(outStream));
+				int numrows = 1000000;
+				var test3 = new BTree<long, long>(fanout: 128, leafSize: 128);
+				var test4 = new KeyBTree<long>(null);
+
+				IKeyValueLeaf<long, long> dummy;
+				IKeyLeaf<long> dummy2;
+				Trace.WriteLine("Inserting Rows...");
+				var watch3 = new Stopwatch();
+				var watch4 = new Stopwatch();
+				for (int j = 0; j < numrows; j++)
+				{
+					watch3.Start();
+					test3.Insert(j, j, out dummy);
+					watch3.Stop();
+
+					watch4.Start();
+					test4.Insert(j, out dummy2);
+					watch3.Stop();
+				}
+
+				Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
+				Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
+
+				Trace.Flush();
+			}
+		}
 
         [TestMethod]
         public void BTreeTest5()
