@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <tchar.h>
 #include <windows.h>
+#include <time.h>
 #include "btree.h"
+#include "Stopwatch.h"
 using namespace std;
 
 int StringCompare(void* left, void* right)
@@ -44,7 +46,11 @@ void main()
 
 	BTree* tree = new BTree(128,128, StringCompare, StringString);	
 
-	QueryPerformanceCounter((LARGE_INTEGER *)&ctr1);
+	Stopwatch *watch = new Stopwatch();
+
+	cout << " freq: " << watch->GetFrequency() << "\r\n";
+
+	watch->StartTimer();
 
 	for(int i = 0; i < numrows; i++)
 	{
@@ -52,12 +58,13 @@ void main()
 		tree->Insert((void*)insert,(void*)insert);		
 	}
 
-	QueryPerformanceCounter((LARGE_INTEGER *)&ctr2);
-
-	QueryPerformanceFrequency((LARGE_INTEGER *)&freq);
-
-	cout << "Rows per second: " << (numrows /(((ctr2 - ctr1) * 1.0) / freq));
+	double secs = watch->StopTimer();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs;
+	
 	//cout << tree->ToString();
+
 	int what;
 	cin >> what;
 }
