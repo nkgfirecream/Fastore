@@ -16,6 +16,7 @@ namespace Fastore.Core
 			_leafSize = leafSize;
 
 			Comparer = comparer ?? Comparer<Key>.Default;
+
 			_root = new Leaf(this);
 		}
 
@@ -144,9 +145,12 @@ namespace Fastore.Core
 
 			private void InternalInsertChild(int index, Key key, INode child)
 			{
-				int size = Count - index;
-				Array.Copy(_keys, index, _keys, index + 1, size);
-				Array.Copy(_children, index + 1, _children, index + 2, size);
+                if (index != Count)
+                {
+                    int size = Count - index;
+                    Array.Copy(_keys, index, _keys, index + 1, size);
+                    Array.Copy(_children, index + 1, _children, index + 2, size);
+                }
 
 				_keys[index] = key;
 				_children[index + 1] = child;
@@ -222,11 +226,10 @@ namespace Fastore.Core
 			public InsertResult Insert(Key key, Value value, out IKeyValueLeaf<Key, Value> leaf)
 			{
                 int pos = IndexOf(key);
-
 				var result = new InsertResult();
 				if (Count == _tree._leafSize)
-				{
-
+				{                 
+                   
 					var node = new Leaf(_tree);
 					// Determine the new node size - if the insert is to the end, leave this node full, assume contiguous insertions
 					node.Count = 
@@ -257,13 +260,15 @@ namespace Fastore.Core
 				leaf = this;
 				if (index < Count && _tree.Comparer.Compare(_items[index].Key, key) == 0)
 					return _items[index].Value;
-				else
-				{
-					Array.Copy(_items, index, _items, index + 1, Count - index);
+                else
+                {
+                    if(index != Count)
+                        Array.Copy(_items, index, _items, index + 1, Count - index);
+
                     _items[index] = new KeyValuePair<Key, Value>(key, value);
-					Count++;
-					return Optional<Value>.Null;
-				}
+                    Count++;
+                    return Optional<Value>.Null;
+                }
 			}
 
 			private int IndexOf(Key key)
@@ -347,19 +352,19 @@ namespace Fastore.Core
 			}
 		}
 
-        private class KeyValueSortComparer : IComparer<KeyValuePair<Key,Value>>
-        {
-            public KeyValueSortComparer(IComparer<Key> comparer)
-            {
-                _comparer = comparer;
-            }
-            private IComparer<Key> _comparer;
+        //private class KVSortComparer : IComparer<KeyValuePair<Key,Value>>
+        //{
+        //    public KVSortComparer(IComparer<Key> comparer)
+        //    {
+        //        _comparer = comparer;
+        //    }
+        //    private IComparer<Key> _comparer;
 
-            public int Compare(KeyValuePair<Key, Value> x, KeyValuePair<Key, Value> y)
-            {
-                return _comparer.Compare(x.Key, y.Key);
-            }
-        }
+        //    public int Compare(KeyValuePair<Key, Value> x, KeyValuePair<Key, Value> y)
+        //    {
+        //        return _comparer.Compare(x.Key, y.Key);
+        //    }
+        //}
 
 		private interface INode
 		{
