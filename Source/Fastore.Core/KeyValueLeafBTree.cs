@@ -20,7 +20,6 @@ namespace Fastore.Core
 		}
 
 		public IComparer<Key> Comparer { get; private set; }
-        public IComparer<KeyValuePair<Key, Value>> SortComparer { get; private set; }
 
 		private int _fanout = 10;
         public int Fanout
@@ -226,7 +225,8 @@ namespace Fastore.Core
 
 				var result = new InsertResult();
 				if (Count == _tree._leafSize)
-				{                 
+				{
+
 					var node = new Leaf(_tree);
 					// Determine the new node size - if the insert is to the end, leave this node full, assume contiguous insertions
 					node.Count = 
@@ -322,7 +322,6 @@ namespace Fastore.Core
 
 			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start, Optional<Key> end)
 			{
-
 				var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
 				var endIndex = end.HasValue ? IndexOf(end.Value) : Count; 
 				if (isForward)
@@ -347,6 +346,20 @@ namespace Fastore.Core
 				return Optional<Key>.Null;
 			}
 		}
+
+        private class KeyValueSortComparer : IComparer<KeyValuePair<Key,Value>>
+        {
+            public KeyValueSortComparer(IComparer<Key> comparer)
+            {
+                _comparer = comparer;
+            }
+            private IComparer<Key> _comparer;
+
+            public int Compare(KeyValuePair<Key, Value> x, KeyValuePair<Key, Value> y)
+            {
+                return _comparer.Compare(x.Key, y.Key);
+            }
+        }
 
 		private interface INode
 		{
