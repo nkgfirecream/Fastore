@@ -11,13 +11,17 @@ public:
 
 	void StartTimer(void) ;
 
-	double StopTimer(void);
+	void StopTimer(void);
+
+	double TotalTime(void);
+
+	void Reset(void);
 
 private:
 	//LARGE_INTEGER start;
 
 	//LARGE_INTEGER stop;
-
+	clock_t total;
 	clock_t start;
 	clock_t end;
 	double frequency;

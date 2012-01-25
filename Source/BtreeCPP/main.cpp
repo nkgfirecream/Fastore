@@ -6,23 +6,42 @@
 #include <time.h>
 #include "btree.h"
 #include "Stopwatch.h"
+#include <sstream>
 using namespace std;
 
 int StringCompare(void* left, void* right)
 {
-	return strcmp((const char *)left, (const char *)right);
+	return wcscmp((const wchar_t*)left, (const wchar_t*)right);
 }
 
-char* StringString(void* item)
+
+wstring StringString(void* item)
 {
-	return (char*)item;
+	return (wchar_t*)item;
 }
 
-char* RandomString(int length)
+int LongCompare(void* left, void* right)
 {
-	string _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	if( *(long *)left < *(long *)right)
+		return - 1;
+	else if( *(long *)left == *(long *)right)
+		return 0;
+	else
+		return 1;
+}
 
-	char* result = new char[length + 1];
+wstring LongString(void* item)
+{
+	wstringstream mystream;
+    mystream << *(long*)item;
+	return mystream.str();
+}
+
+wchar_t* RandomString(int length)
+{
+	char* _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	wchar_t* result = new wchar_t[length + 1];
 
 	for(int i = 0; i < length; i++)
 	{
@@ -35,36 +54,77 @@ char* RandomString(int length)
 	return result;
 }
 
-void main()
+void StringTest()
 {
-	cout << "Testing...";
-
-	long ctr1 = 0, ctr2 = 0, freq = 0;
+	cout << "Testing Random Strings...";
+	
 	long numrows = 1000000;
-
-	long total = 0;
 
 	BTree* tree = new BTree(128,128, StringCompare, StringString);	
 
 	Stopwatch *watch = new Stopwatch();
 
-	cout << " freq: " << watch->GetFrequency() << "\r\n";
-
-	watch->StartTimer();
+	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
 	for(int i = 0; i < numrows; i++)
 	{
-		char* insert = RandomString(rand() % 8 + 1);		
-		tree->Insert((void*)insert,(void*)insert);		
+		wchar_t* insert = RandomString(rand() % 8 + 1);	
+		watch->StartTimer();
+		tree->Insert((void*)insert,(void*)insert);	
+		watch->StopTimer();
 	}
 
-	double secs = watch->StopTimer();
+	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
 	cout << "Rows per second: " << numrows / secs;
-	
-	//cout << tree->ToString();
-
-	int what;
-	cin >> what;
 }
+
+void SequentialLongTest()
+{
+	cout << "\nTesting  Sequential Longs...";
+	
+	long numrows = 1000000;
+
+	BTree* tree = new BTree(128,128, LongCompare, LongString);	
+
+	Stopwatch *watch = new Stopwatch();
+
+	cout << " freq: " << watch->GetFrequency() << "\r\n";	
+
+	for(int i = 0; i < numrows; i++)
+	{
+		long* item = new long;
+
+		*item = i;
+
+		watch->StartTimer();
+		tree->Insert(item, item);	
+		watch->StopTimer();
+	}
+
+	double secs = watch->TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs;
+
+	//wcout << tree->ToString();
+}
+
+void GuidTest()
+{
+	//To be implemented
+}
+
+
+void main()
+{
+	StringTest();
+	SequentialLongTest();
+	GuidTest();
+
+	int wait;
+	cin >> wait;
+}
+
+

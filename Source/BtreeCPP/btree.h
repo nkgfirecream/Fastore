@@ -16,7 +16,7 @@ class INode
 	public:
 		virtual ~INode() {}
 		virtual InsertResult Insert(void* key, void* value) = 0;
-		virtual string ToString() = 0;
+		virtual wstring ToString() = 0;
 };
 
 class Split
@@ -32,12 +32,12 @@ class BTree
 		int Fanout;
 		int LeafSize;
 		int (*Compare)(void* left, void* right);
-		char* (*ItemToString)(void* item);
+		wstring (*ItemToString)(void* item);
 	
-		BTree(int fanout, int leafsize, int(*)(void*,void*), char*(*)(void*));
+		BTree(int fanout, int leafsize, int(*)(void*,void*), wstring(*)(void*));
 
 		void* Insert(void* key, void* value);
-		string ToString();
+		wstring ToString();
 
 	private:
 		INode* _root;
@@ -54,7 +54,7 @@ class Leaf: public INode
 		Leaf(BTree* tree);
 
 		InsertResult INode::Insert(void* key, void* value);	
-		string INode::ToString();
+		wstring INode::ToString();
 
 	private:
 		int IndexOf(void* key);
@@ -74,7 +74,7 @@ class Branch : public INode
 		Branch(BTree* tree, INode* left, INode* right, void* key);
 
 		InsertResult INode::Insert(void* key, void* value);
-		string INode::ToString();		
+		wstring INode::ToString();		
 
 	private:
 		int IndexOf(void* key);
@@ -82,6 +82,7 @@ class Branch : public INode
 		void InternalInsertChild(int index, void* key, INode* child);
 		
 };
+
 
 
 

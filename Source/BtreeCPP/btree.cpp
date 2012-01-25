@@ -5,7 +5,7 @@
 using namespace std;
 
 //Tree
-BTree::BTree(int fanout, int leafsize, int (*compare)(void*,void*), char*(*tostring)(void*))
+BTree::BTree(int fanout, int leafsize, int (*compare)(void*,void*), wstring(*tostring)(void*))
 {
 	Compare = compare;
 	ItemToString = tostring;
@@ -26,7 +26,7 @@ void* BTree::Insert(void* key, void* value)
 	return result.found;
 }
 
-string BTree::ToString()
+wstring BTree::ToString()
 {
 	return _root->ToString();
 }
@@ -134,9 +134,9 @@ int Branch::IndexOf(void* key)
             return lo;
 }
 
-string Branch::ToString()
+wstring Branch::ToString()
 {
-	stringstream result;
+	wstringstream result;
 
 	result << "\n[";
 	bool first = true;
@@ -245,25 +245,27 @@ int Leaf::IndexOf(void* key)
         return lo;
 }
 
-string Leaf::ToString()
+wstring Leaf::ToString()
 {
-	string result = "\n{";
+	wstringstream result;
+	result << "\n{";
 	bool first = true;
 	for(int i = 0; i < Count; i++)
 	{
 		if(!first)
-			result += ",";
+			result << ",";
 		else
 			first = false;
 
-		result += _tree->ItemToString(_keys[i]);
-		result += ":";
-		result += _tree->ItemToString(_values[i]);
+		result << _tree->ItemToString(_keys[i]);
+		result << ":";
+		result << _tree->ItemToString(_values[i]);
 	}
-	result += "}";
+	result << "}";
 
-	return result;
+	return result.str();
 }
+
 		
 
 

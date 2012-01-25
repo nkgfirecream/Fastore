@@ -28,7 +28,7 @@ void Stopwatch::StartTimer()
 	start = clock();
 }
 
-double Stopwatch::StopTimer()
+void Stopwatch::StopTimer()
 {
 	//DWORD_PTR oldmask = ::SetThreadAffinityMask(::GetCurrentThread(), 0);
 
@@ -38,5 +38,16 @@ double Stopwatch::StopTimer()
 
 	//return ((stop.QuadPart - start.QuadPart) / frequency);
 	end = clock();
-	return difftime(end, start) / frequency;
+	total += end - start;
+	
+}
+
+void Stopwatch::Reset()
+{
+	total = 0;
+}
+
+double Stopwatch::TotalTime()
+{
+	return total / frequency;
 }
