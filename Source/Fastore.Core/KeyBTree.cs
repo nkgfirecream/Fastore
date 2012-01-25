@@ -110,8 +110,11 @@ namespace Fastore.Core
             private void InternalInsert(int index, K key, IKeyNode child)
             {
                 int size = Count - index;
-                Array.Copy(_keys, index, _keys, index + 1, size);
-                Array.Copy(_children, index + 1, _children, index + 2, size);
+				if (size > 0)
+				{
+					Array.Copy(_keys, index, _keys, index + 1, size);
+					Array.Copy(_children, index + 1, _children, index + 2, size);
+				}
 
                 _keys[index] = key;
                 _children[index + 1] = child;
@@ -179,14 +182,13 @@ namespace Fastore.Core
                 if (Count == KeyBTree<K>.LeafSize)
                 {
                     var node = new Leaf(Tree);
-                    node.Count =
-                        pos == Count
-                            ? 0
-                            : (KeyBTree<K>.LeafSize + 1) / 2;
-                    Count = Count - node.Count;
+					if (pos != Count)
+					{
+						node.Count =(KeyBTree<K>.LeafSize + 1) / 2;
+						Count = Count - node.Count;
       
-
-                    Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
+	                    Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
+					}
 
                     if (pos < Count)
                         result.Added = InternalInsert(key, pos, out leaf);
@@ -208,7 +210,8 @@ namespace Fastore.Core
                     return false;
                 else
                 {
-                    Array.Copy(_keys, index, _keys, index + 1, Count - index);
+					if (index != Count)
+						Array.Copy(_keys, index, _keys, index + 1, Count - index);
                     _keys[index] = key;
                     Count++;
                     return true;

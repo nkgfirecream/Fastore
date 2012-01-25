@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Fastore.Core
 {
-    //Need to implement Delete, Get, Contains, Binary searching, etc.
-    public class BTree<Key, Value> : IKeyValueTree<Key, Value>
-    {
+	//Need to implement Delete, Get, Contains, Binary searching, etc.
+	public class BTree<Key, Value> : IKeyValueTree<Key, Value>
+	{
 		public BTree(IComparer<Key> comparer = null, int fanout = 128, int leafSize = 128)
 		{
 			if (fanout < 2 || leafSize < 2)
@@ -22,25 +22,25 @@ namespace Fastore.Core
 		public IComparer<Key> Comparer { get; private set; }
 
 		private int _fanout = 10;
-        public int Fanout
+		public int Fanout
 		{
 			get { return _fanout; }
 		}
 
-        private int _leafSize = 100;
+		private int _leafSize = 100;
 		public int LeafSize
 		{
 			get { return _leafSize; }
 		}
 
 		public event ValueMovedHandler<Key, Value> ValueMoved;
-		
+
 		private INode _root;
 
-        public override string ToString()
-        {
-            return _root.ToString();
-        }
+		public override string ToString()
+		{
+			return _root.ToString();
+		}
 
 		public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward)
 		{
@@ -60,20 +60,20 @@ namespace Fastore.Core
 		/// <summary> Attempts to insert a given key/value</summary>
 		/// <param name="leaf"> The leaf in which the entry was located. </param>
 		/// <returns> If the key already exists, nothing is changed and the existing value is returned. </returns>
-        public Optional<Value> Insert(Key key, Value value, out IKeyValueLeaf<Key,Value> leaf)
-        {
-            var result = _root.Insert(key, value, out leaf);
-            if (result.Split != null)
-                _root = new Branch(this, _root, result.Split.Right, result.Split.Key);
+		public Optional<Value> Insert(Key key, Value value, out IKeyValueLeaf<Key, Value> leaf)
+		{
+			var result = _root.Insert(key, value, out leaf);
+			if (result.Split != null)
+				_root = new Branch(this, _root, result.Split.Right, result.Split.Key);
 			return result.Found;
-        }
+		}
 
-        internal void DoValuesMoved(IKeyValueLeaf<Key, Value> leaf)
-        {
-            if (ValueMoved != null)
+		internal void DoValuesMoved(IKeyValueLeaf<Key, Value> leaf)
+		{
+			if (ValueMoved != null)
 				foreach (var entry in leaf.Get(true))
 					ValueMoved(entry.Value, leaf);
-        }
+		}
 
 		class Branch : INode
 		{
@@ -114,7 +114,12 @@ namespace Fastore.Core
 			private Split InsertChild(int index, Key key, INode child)
 			{
 				// If full, split
-				if (Count == _tree.Fanout - 1)
+				if (Count != _tree.Fanout - 1)
+				{
+					InternalInsertChild(index, key, child);
+					return null;
+				}
+				else
 				{
 					int mid = (Count + 1) / 2;
 
@@ -128,25 +133,23 @@ namespace Fastore.Core
 
 					Split result = new Split() { Key = _keys[mid - 1], Right = node };
 
-					if (index <= Count)
-						InternalInsertChild(index, key, child);
-					else
+					if (index > Count)
 						node.InternalInsertChild(index - (Count + 1), key, child);
+					else
+						InternalInsertChild(index, key, child);
 
 					return result;
-				}
-				else
-				{
-					InternalInsertChild(index, key, child);
-					return null;
 				}
 			}
 
 			private void InternalInsertChild(int index, Key key, INode child)
 			{
-				int size = Count - index;
-				Array.Copy(_keys, index, _keys, index + 1, size);
-				Array.Copy(_children, index + 1, _children, index + 2, size);
+				if (index != Count)
+				{
+					int size = Count - index;
+					Array.Copy(_keys, index, _keys, index + 1, size);
+					Array.Copy(_children, index + 1, _children, index + 2, size);
+				}
 
 				_keys[index] = key;
 				_children[index + 1] = child;
@@ -226,30 +229,30 @@ namespace Fastore.Core
 			{
 				int pos = IndexOf(key);
 				var result = new InsertResult();
-				if (Count == _tree._leafSize)
+				if (Count != _tree._leafSize)
+					result.Found = InternalInsert(key, value, pos, out leaf);
+				else
 				{
 					var node = new Leaf(_tree);
 					// Determine the new node size - if the insert is to the end, leave this node full, assume contiguous insertions
-					node.Count = 
-						pos == Count
-							? 0
-							: (_tree._leafSize + 1) / 2;
-					Count = Count - node.Count;
+					if (pos != Count)
+					{
+						node.Count = (_tree._leafSize + 1) / 2;
+						Count = Count - node.Count;
 
-					Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
-					Array.Copy(_values, node.Count, node._values, 0, node.Count);
+						Array.Copy(_keys, node.Count, node._keys, 0, node.Count);
+						Array.Copy(_values, node.Count, node._values, 0, node.Count);
+					}
 
-					if (pos < Count)
-						result.Found = InternalInsert(key, value, pos, out leaf);
-					else
+					if (pos >= Count)
 						result.Found = node.InternalInsert(key, value, pos - Count, out leaf);
+					else
+						result.Found = InternalInsert(key, value, pos, out leaf);
 
 					_tree.DoValuesMoved(node);
 
 					result.Split = new Split() { Key = node._keys[0], Right = node };
 				}
-				else
-					result.Found = InternalInsert(key, value, pos, out leaf);
 
 				return result;
 			}
@@ -257,17 +260,20 @@ namespace Fastore.Core
 			public Optional<Value> InternalInsert(Key key, Value value, int index, out IKeyValueLeaf<Key, Value> leaf)
 			{
 				leaf = this;
-				if (index < Count && _tree.Comparer.Compare(_keys[index], key) == 0)
-					return _values[index];
-				else
+				if (index >= Count || _tree.Comparer.Compare(_keys[index], key) != 0)
 				{
-					Array.Copy(_keys, index, _keys, index + 1, Count - index);
-					Array.Copy(_values, index, _values, index + 1, Count - index);
+					if (index != Count)
+					{
+						Array.Copy(_keys, index, _keys, index + 1, Count - index);
+						Array.Copy(_values, index, _values, index + 1, Count - index);
+					}
 					_keys[index] = key;
 					_values[index] = value;
 					Count++;
 					return Optional<Value>.Null;
 				}
+				else
+					return _values[index];
 			}
 
 			private int IndexOf(Key key)
@@ -316,7 +322,7 @@ namespace Fastore.Core
 			public IEnumerable<KeyValuePair<Key, Value>> Get(bool isForward, Optional<Key> start, Optional<Key> end)
 			{
 				var startIndex = start.HasValue ? IndexOf(start.Value) : 0;
-				var endIndex = end.HasValue ? IndexOf(end.Value) : Count; 
+				var endIndex = end.HasValue ? IndexOf(end.Value) : Count;
 				if (isForward)
 				{
 					for (int i = startIndex; i < endIndex; i++)

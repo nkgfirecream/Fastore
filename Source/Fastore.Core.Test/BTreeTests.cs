@@ -290,8 +290,6 @@ namespace Fastore.Core.Test
                 var test = new SimplePrefixBTree<string>(fanout: 128, leafSize: 128);
                 var test3 = new BTree<string, string>(fanout: 128, leafSize: 128);
                 var test4 = new KeyBTree<string>(null);
-                var test5 = new KeyValueLeafBTree<string, string>(fanout: 128, leafSize: 128);
-                var test6 = new PredictionBTree<string, string>(fanout: 128, leafSize: 128);
 
                 IKeyValueLeaf<string, string> dummy;
                 IKeyLeaf<string> dummy2;
@@ -299,8 +297,6 @@ namespace Fastore.Core.Test
                 var watch = new Stopwatch();
                 var watch3 = new Stopwatch();
                 var watch4 = new Stopwatch();
-                var watch5 = new Stopwatch();
-                var watch6 = new Stopwatch();
                 for (int j = 0; j < numrows; j++)
                 {
                     var value = RandomG.RandomString(RandomG.RandomInt(8));
@@ -315,21 +311,11 @@ namespace Fastore.Core.Test
                     watch4.Start();
                     test4.Insert(value, out dummy2);
                     watch4.Stop();
-
-                    watch5.Start();
-                    test5.Insert(value, value, out dummy);
-                    watch5.Stop();
-
-                    watch6.Start();
-                    test6.Insert(value, value, out dummy);
-                    watch6.Stop();
                 }
 
                 Trace.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
                 Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
                 Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
-                Trace.WriteLine("Inserts Per Second KeyValueLeafBtree: " + (double)numrows / ((double)watch5.ElapsedMilliseconds / 1000));
-                Trace.WriteLine("Inserts Per Second PredictionBtree: " + (double)numrows / ((double)watch6.ElapsedMilliseconds / 1000));
 
                 Trace.Flush();
             }
@@ -347,8 +333,6 @@ namespace Fastore.Core.Test
 				var test = new SimplePrefixBTree<Guid>(fanout: 128, leafSize: 128);
 				var test3 = new BTree<string, Guid>(fanout: 128, leafSize: 128);
 				var test4 = new KeyBTree<Guid>(null);
-                var test5 = new KeyValueLeafBTree<string, Guid>(fanout: 128, leafSize: 128);
-                var test6 = new PredictionBTree<string, Guid>(fanout: 128, leafSize: 128);
 
 				IKeyValueLeaf<string, Guid> dummy;
 				IKeyLeaf<Guid> dummy2;
@@ -356,8 +340,6 @@ namespace Fastore.Core.Test
 				var watch = new Stopwatch();
 				var watch3 = new Stopwatch();
 				var watch4 = new Stopwatch();
-                var watch5 = new Stopwatch();
-                var watch6 = new Stopwatch();
 				for (int j = 0; j < numrows; j++)
 				{
 					var key = Guid.NewGuid();
@@ -373,47 +355,41 @@ namespace Fastore.Core.Test
 					watch4.Start();
 					test4.Insert(key, out dummy2);
 					watch4.Stop();
-
-                    watch5.Start();
-                    test5.Insert(value, key, out dummy);
-                    watch5.Stop();
-
-                    watch6.Start();
-                    test6.Insert(value, key, out dummy);
-                    watch6.Stop();
 				}
 
 				Trace.WriteLine("Inserts Per Second SimplePrefix: " + (double)numrows / ((double)watch.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
-                Trace.WriteLine("Inserts Per Second KeyValueLeafBtree: " + (double)numrows / ((double)watch5.ElapsedMilliseconds / 1000));
-                Trace.WriteLine("Inserts Per Second PredictionBtree: " + (double)numrows / ((double)watch6.ElapsedMilliseconds / 1000));
 
 				Trace.Flush();
 			}
         }
 
 		[TestMethod]
-		public void BTreeSequentialintsTimings()
+		public void BTreeIntsTimings()
 		{
 			using (var outStream = new System.IO.FileStream("results.txt", System.IO.FileMode.Create, System.IO.FileAccess.Write))
 			{
 				Trace.Listeners.Add(new TextWriterTraceListener(outStream));
 				int numrows = 1000000;
+				var test2 = new BTree<long, long>(fanout: 128, leafSize: 128);
 				var test3 = new BTree<int, int>(fanout: 128, leafSize: 128);
 				var test4 = new KeyBTree<int>(null);
-                var test5 = new KeyValueLeafBTree<int, int>(fanout: 128, leafSize: 128);
-                var test6 = new PredictionBTree<int, int>(fanout: 128, leafSize: 128);
 
 				IKeyValueLeaf<int, int> dummy;
 				IKeyLeaf<int> dummy2;
+				IKeyValueLeaf<long, long> dummy3;
 				Trace.WriteLine("Inserting Rows...");
+				var watch2 = new Stopwatch();
 				var watch3 = new Stopwatch();
 				var watch4 = new Stopwatch();
-                var watch5 = new Stopwatch();
-                var watch6 = new Stopwatch();
 				for (int j = 0; j < numrows; j++)
 				{
+					var v = RandomG.RandomLong();
+					watch2.Start();
+					test2.Insert(v, v, out dummy3);
+					watch2.Stop();
+
 					watch3.Start();
 					test3.Insert(j, j, out dummy);
 					watch3.Stop();
@@ -421,21 +397,11 @@ namespace Fastore.Core.Test
 					watch4.Start();
 					test4.Insert(j, out dummy2);
 					watch4.Stop();
-
-                    watch5.Start();
-                    test5.Insert(j, j, out dummy);
-                    watch5.Stop();
-
-                    watch6.Start();
-                    test6.Insert(j, j, out dummy);
-                    watch6.Stop();
 				}
 
+				Trace.WriteLine("Inserts Per Second Btree (random): " + (double)numrows / ((double)watch2.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second Btree: " + (double)numrows / ((double)watch3.ElapsedMilliseconds / 1000));
 				Trace.WriteLine("Inserts Per Second KeyBtree: " + (double)numrows / ((double)watch4.ElapsedMilliseconds / 1000));
-                Trace.WriteLine("Inserts Per Second KeyValueLeafBtree: " + (double)numrows / ((double)watch5.ElapsedMilliseconds / 1000));
-                Trace.WriteLine("Inserts Per Second PredictionBtree: " + (double)numrows / ((double)watch6.ElapsedMilliseconds / 1000));
-
 
 				Trace.Flush();
 			}

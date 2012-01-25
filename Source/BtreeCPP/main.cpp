@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <tchar.h>
 #include <windows.h>
-#include <time.h>
+#include <sstream>
+#include <conio.h>
 #include "btree.h"
 #include "Stopwatch.h"
-#include <sstream>
 using namespace std;
 
 int StringCompare(void* left, void* right)
@@ -22,12 +22,10 @@ wstring StringString(void* item)
 
 int LongCompare(void* left, void* right)
 {
-	if( *(long *)left < *(long *)right)
-		return - 1;
-	else if( *(long *)left == *(long *)right)
-		return 0;
-	else
-		return 1;
+	return 
+		( *(long *)left < *(long *)right) ? -1
+			: ( *(long *)left > *(long *)right) ? 1
+			: 0;
 }
 
 wstring LongString(void* item)
@@ -60,7 +58,7 @@ void StringTest()
 	
 	long numrows = 1000000;
 
-	BTree* tree = new BTree(128,128, StringCompare, StringString);	
+	BTree* tree = new BTree(128, 128, StringCompare, StringString);	
 
 	Stopwatch *watch = new Stopwatch();
 
@@ -77,18 +75,18 @@ void StringTest()
 	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs;
+	cout << "Rows per second: " << numrows / secs << "\r\n";
 }
 
 void SequentialLongTest()
 {
-	cout << "\nTesting  Sequential Longs...";
+	cout << "Testing Sequential Longs...";
 	
-	long numrows = 1000000;
+	long numrows = 10000000;
 
-	BTree* tree = new BTree(128,128, LongCompare, LongString);	
+	BTree* tree = new BTree(128, 128, LongCompare, LongString);	
 
-	Stopwatch *watch = new Stopwatch();
+	Stopwatch* watch = new Stopwatch();
 
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
@@ -106,7 +104,7 @@ void SequentialLongTest()
 	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs;
+	cout << "Rows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
 }
@@ -123,8 +121,7 @@ void main()
 	SequentialLongTest();
 	GuidTest();
 
-	int wait;
-	cin >> wait;
+	getch();
 }
 
 

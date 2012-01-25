@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include "btree.h"
+
 using namespace std;
 
 //Tree
@@ -17,7 +18,7 @@ BTree::BTree(int fanout, int leafsize, int (*compare)(void*,void*), wstring(*tos
 void* BTree::Insert(void* key, void* value)
 {
 	InsertResult result = _root->Insert(key,value);
-	if(result.split != NULL)
+	if (result.split != NULL)
 	{
 		_root = new Branch(this, _root, result.split->right, result.split->key);
 		delete(result.split);
@@ -56,7 +57,7 @@ InsertResult Branch::Insert(void* key, void* value)
 	int index = IndexOf(key);
 	InsertResult result = _children[index]->Insert(key, value);
 
-	if(result.split != NULL)
+	if (result.split != NULL)
 	{
 		Split* temp = result.split;
 		result.split = InsertChild(index, result.split->key, result.split->right);
@@ -67,7 +68,12 @@ InsertResult Branch::Insert(void* key, void* value)
 
 Split* Branch::InsertChild(int index, void* key, INode* child)
 {
-	if (Count == _tree->Fanout - 1)
+	if (Count != _tree->Fanout - 1)
+	{
+		InternalInsertChild(index, key, child);
+		return NULL;
+	}
+	else
 	{
 		int mid = (Count + 1) / 2;
 		Branch* node = new Branch(_tree);
@@ -81,17 +87,12 @@ Split* Branch::InsertChild(int index, void* key, INode* child)
 		split->key = _keys[mid - 1];
 		split->right = node;
 
-		if(index <= Count)
+		if (index <= Count)
 			InternalInsertChild(index, key, child);
 		else
 			node->InternalInsertChild(index - (Count + 1), key, child);
 
 		return split;
-	}
-	else
-	{
-		InternalInsertChild(index, key, child);
-		return NULL;
 	}
 }
 
@@ -99,8 +100,11 @@ Split* Branch::InsertChild(int index, void* key, INode* child)
 void Branch::InternalInsertChild(int index, void* key, INode* child)
 {
 	int size = Count - index;
-	memmove(&_keys[index + 1], &_keys[index],  size * sizeof(void*));
-	memmove(&_children[index + 2], &_children[index + 1],  size * sizeof(void*));
+	if (Count != index)
+	{
+		memmove(&_keys[index + 1], &_keys[index],  size * sizeof(void*));
+		memmove(&_children[index + 2], &_children[index + 1],  size * sizeof(void*));
+	}
 
 	_keys[index] = key;
 	_children[index + 1] = child;
@@ -110,28 +114,28 @@ void Branch::InternalInsertChild(int index, void* key, INode* child)
 
 int Branch::IndexOf(void* key)
 {	
-        int lo = 0;
-		int hi = Count - 1;
-		int localIndex = 0;
-		int result = -1;
+    int lo = 0;
+	int hi = Count - 1;
+	int localIndex = 0;
+	int result = -1;
 
-		while (lo <= hi)
-		{
-			localIndex = (lo + hi) / 2;
-            result = _tree->Compare(key, _keys[localIndex]);
+	while (lo <= hi)
+	{
+		localIndex = (lo + hi) / 2;
+        result = _tree->Compare(key, _keys[localIndex]);
 
-			if (result == 0)
-				break;
-			else if (result < 0)
-				hi = localIndex - 1;
-			else
-				lo = localIndex + 1;
-		}
+		if (result == 0)
+			break;
+		else if (result < 0)
+			hi = localIndex - 1;
+		else
+			lo = localIndex + 1;
+	}
 
-        if (result == 0)
-            return localIndex;
-        else
-            return lo;
+    if (result == 0)
+        return localIndex;
+    else
+        return lo;
 }
 
 wstring Branch::ToString()
@@ -140,9 +144,9 @@ wstring Branch::ToString()
 
 	result << "\n[";
 	bool first = true;
-	for(int i = 0; i <= Count; i++)
+	for (int i = 0; i <= Count; i++)
 	{
-		if(!first)
+		if (!first)
 			result << ",";
 		else
 			first = false;
@@ -167,23 +171,27 @@ InsertResult Leaf::Insert(void* key, void* value)
 {
 	int index = IndexOf(key);
 	InsertResult result;
-	if(Count == _tree->LeafSize)
+	if (Count != _tree->LeafSize)
+	{
+		result.found = InternalInsert(index, key, value);
+		result.split = NULL;
+	}
+	else
 	{
 		Leaf* node = new Leaf(_tree);
-		node->Count = (_tree->LeafSize + 1) / 2;
-		Count = Count - node->Count;
-
-		memcpy(&node->_keys[0], &_keys[node->Count],  node->Count * sizeof(void*));
-		memcpy(&node->_values[0], &_values[node->Count], node->Count * sizeof(void*));
-
-		if(index < Count)
+		if (index != Count)
 		{
+			node->Count = (_tree->LeafSize + 1) / 2;
+			Count = Count - node->Count;
+
+			memcpy(&node->_keys[0], &_keys[node->Count],  node->Count * sizeof(void*));
+			memcpy(&node->_values[0], &_values[node->Count], node->Count * sizeof(void*));
+		}
+
+		if (index < Count)
 			result.found = InternalInsert(index, key, value);
-		}
 		else
-		{
 			result.found = node->InternalInsert(index - Count, key, value);
-		}
 
 		Split* split = new Split();
 		split->key = node->_keys[0];
@@ -193,30 +201,27 @@ InsertResult Leaf::Insert(void* key, void* value)
 
 		return result;
 	}
-	else
-	{
-		result.found = InternalInsert(index, key, value);
-		result.split = NULL;
-	}
+
 
 	return result;
 }
 
 void* Leaf::InternalInsert(int index, void* key, void* value)
 {
-	if(index < Count && _tree->Compare(_keys[index], key) == 0)
+	if (index >= Count || _tree->Compare(_keys[index], key) != 0)
 	{
-		return _values[index];
-	}
-	else
-	{
-		memmove(&_keys[index + 1], &_keys[index], (Count - index) * sizeof(void*));
-		memmove(&_values[index + 1], &_values[index], (Count - index)  * sizeof(void*));
+		if (Count != index)
+		{
+			memmove(&_keys[index + 1], &_keys[index], (Count - index) * sizeof(void*));
+			memmove(&_values[index + 1], &_values[index], (Count - index)  * sizeof(void*));
+		}
 		_keys[index] = key;
 		_values[index] = value;
 		Count++;
 		return NULL;
 	}
+	else
+		return _values[index];
 }
 
 int Leaf::IndexOf(void* key)

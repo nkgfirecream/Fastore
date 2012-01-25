@@ -23,7 +23,12 @@ namespace Fastore.Core.Test
 
         public static int RandomInt(int max)
         {
-            return _rng.Next(1,max);
+            return _rng.Next(1, max);
         }
-    }
+
+		public static long RandomLong()
+		{
+			return (long)_rng.Next(int.MinValue, int.MaxValue) << 32 & (long)_rng.Next(int.MinValue, int.MaxValue);
+		}
+	}
 }
