@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <functional>
+#include "optional.h"
 //#include <BTreeObserver.h>
 
 using namespace std;
@@ -25,7 +26,7 @@ template <class K, class V>
 class InsertResult
 {
 	public:
-		V found;
+		optional<V> found;
 		Split<K, V>* split;
 };
 
@@ -59,7 +60,7 @@ class BTree
 	
 		BTree(int fanout, int leafSize, int(*compare)(K, K), wstring(*keyToString)(K), wstring(*valueToString)(V));
 
-		V Insert(K key, V value, Leaf<K, V>* leaf);
+		optional<V> Insert(K key, V value, Leaf<K, V>* leaf);
 		wstring ToString();
 
 	private:
@@ -87,7 +88,7 @@ class Leaf: public INode<K, V>
 		V* _values;
 
 		int IndexOf(K key);
-		V InternalInsert(int index, K key, V value, Leaf<K, V>* leaf);
+		optional<V> InternalInsert(int index, K key, V value, Leaf<K, V>* leaf);
 };
 
 template <class K, class V>
@@ -127,7 +128,7 @@ inline BTree<K, V>::BTree(int fanout, int leafSize, int (*compare)(K, K), wstrin
 }
 
 template <class K, class V>
-inline V BTree<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
+inline optional<V> BTree<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
 {
 	InsertResult<K, V> result = _root->Insert(key, value, leaf);
 	if (result.split != NULL)
@@ -338,7 +339,7 @@ inline InsertResult<K, V> Leaf<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
 }
 
 template <class K, class V>
-inline V Leaf<K, V>::InternalInsert(int index, K key, V value, Leaf<K, V>* leaf)
+inline optional<V> Leaf<K, V>::InternalInsert(int index, K key, V value, Leaf<K, V>* leaf)
 {
 	leaf = this;
 	if (index >= Count || _tree->Compare(_keys[index], key) != 0)
@@ -351,7 +352,7 @@ inline V Leaf<K, V>::InternalInsert(int index, K key, V value, Leaf<K, V>* leaf)
 		_keys[index] = key;
 		_values[index] = value;
 		Count++;
-		return NULL;
+		return optional<V>();
 	}
 	else
 		return _values[index];
