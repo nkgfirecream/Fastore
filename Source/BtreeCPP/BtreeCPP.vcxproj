@@ -164,16 +164,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
-    <ClCompile Include="ColumnHash.cpp" />
     <ClCompile Include="Hoard\usewinhoard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
+    <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
-    <ClInclude Include="BTreeObserver.h" />
-    <ClInclude Include="ColumnHash.h" />
     <ClInclude Include="Stopwatch.h" />
+    <ClInclude Include="Storage\fastfile.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

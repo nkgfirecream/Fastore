@@ -7,21 +7,34 @@
 #include <conio.h>
 #include "BTree.h"
 #include "Stopwatch.h"
-#include "ColumnHash.h"
+//#include "ColumnHash.h"
 using namespace std;
 
-int StringCompare(void* left, void* right)
+int StringCompare(wstring left, wstring right)
 {
-	return wcscmp((const wchar_t*)left, (const wchar_t*)right);
+	return left.compare(right);
 }
 
-
-wstring StringString(void* item)
+wstring StringString(wstring item)
 {
-	return (wchar_t*)item;
+	return item;
 }
 
-int LongCompare(void* left, void* right)
+int LongCompare(long left, long right)
+{
+	return left < right ? -1
+		: right < left ? 1
+		: 0;
+}
+
+wstring LongString(long item)
+{
+	wstringstream result;
+	result << item;
+	return result.str();
+}
+
+int PLongCompare(void* left, void* right)
 {
 	return 
 		( *(long *)left < *(long *)right) ? -1
@@ -29,7 +42,7 @@ int LongCompare(void* left, void* right)
 			: 0;
 }
 
-wstring LongString(void* item)
+wstring PLongString(void* item)
 {
 	wstringstream mystream;
     mystream << *(long*)item;
@@ -59,18 +72,18 @@ void StringTest()
 	
 	long numrows = 1000000;
 
-	BTree* tree = new BTree(128, 128, StringCompare, StringString);	
+	BTree<wstring, wstring>* tree = new BTree<wstring, wstring>(128, 128, StringCompare, StringString, StringString);	
 
 	Stopwatch *watch = new Stopwatch();
 
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
-	Leaf* dummy;
+	Leaf<wstring, wstring>* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		wchar_t* insert = RandomString(rand() % 8 + 1);	
 		watch->StartTimer();
-		tree->Insert((void*)insert,(void*)insert, dummy);	
+		tree->Insert(insert, insert, dummy);	
 		watch->StopTimer();
 	}
 
@@ -80,19 +93,19 @@ void StringTest()
 	cout << "Rows per second: " << numrows / secs << "\r\n";
 }
 
-void SequentialLongTest()
+void SequentialPLongTest()
 {
 	cout << "Testing Sequential Longs...";
 	
 	long numrows = 10000000;
 
-	BTree* tree = new BTree(128, 128, LongCompare, LongString);	
+	BTree<void*, void*>* tree = new BTree<void*, void*>(128, 128, PLongCompare, PLongString, PLongString);	
 
 	Stopwatch* watch = new Stopwatch();
 
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
-	Leaf* dummy;
+	Leaf<void*, void*>* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		long* item = new long;
@@ -112,55 +125,84 @@ void SequentialLongTest()
 	//wcout << tree->ToString();
 }
 
-void GuidTest()
+void SequentialLongTest()
 {
-	//To be implemented
-}
+	cout << "Testing Sequential Longs...";
+	
+	long numrows = 10000000;
 
-void ColumnHashTest()
-{
-		cout << "Testing ColumnHash...";
+	BTree<long, long>* tree = new BTree<long, long>(128, 128, LongCompare, LongString, LongString);	
 
-	ColumnHash* hash = new ColumnHash(StringCompare,StringString);
-	long numrows = 100000;
 	Stopwatch* watch = new Stopwatch();
+
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
-	for(long i = 0; i < numrows; i++)
+
+	Leaf<long, long>* dummy;
+	for(int i = 0; i < numrows; i++)
 	{
-		wchar_t* insert = RandomString(rand() % 8 + 1);	
 		watch->StartTimer();
-		hash->Insert(i,insert);
+		tree->Insert(i, i, dummy);	
 		watch->StopTimer();
 	}
 
 	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";
-
-	cout << "Entries per second: " << numrows / secs << "\r\n";
-
-	watch->Reset();
 	
-	for(long i = 0; i < 300; i++)
-	{
-		watch->StartTimer();
-		hash->GetValue(i);
-		watch->StopTimer();
-	}
+	cout << "Rows per second: " << numrows / secs << "\r\n";
 
-	secs = watch->TotalTime();
-	cout << " secs: " << secs << "\r\n";
-	cout << "Extractions per second: " << 300 / secs << "\r\n";
-	
-
+	//wcout << tree->ToString();
 }
+
+void GuidTest()
+{
+	//To be implemented
+}
+
+//void ColumnHashTest()
+//{
+//		cout << "Testing ColumnHash...";
+//
+//	ColumnHash* hash = new ColumnHash(StringCompare,StringString);
+//	long numrows = 100000;
+//	Stopwatch* watch = new Stopwatch();
+//	cout << " freq: " << watch->GetFrequency() << "\r\n";	
+//	for(long i = 0; i < numrows; i++)
+//	{
+//		wchar_t* insert = RandomString(rand() % 8 + 1);	
+//		watch->StartTimer();
+//		hash->Insert(i,insert);
+//		watch->StopTimer();
+//	}
+//
+//	double secs = watch->TotalTime();
+//	cout << " secs: " << secs << "\r\n";
+//
+//	cout << "Entries per second: " << numrows / secs << "\r\n";
+//
+//	watch->Reset();
+//	
+//	for(long i = 0; i < 300; i++)
+//	{
+//		watch->StartTimer();
+//		hash->GetValue(i);
+//		watch->StopTimer();
+//	}
+//
+//	secs = watch->TotalTime();
+//	cout << " secs: " << secs << "\r\n";
+//	cout << "Extractions per second: " << 300 / secs << "\r\n";
+//	
+//
+//}
 
 
 void main()
 {
 	StringTest();
 	SequentialLongTest();
+	SequentialPLongTest();
 	GuidTest();
-	ColumnHashTest();
+	//ColumnHashTest();
 	getch();
 }
 
