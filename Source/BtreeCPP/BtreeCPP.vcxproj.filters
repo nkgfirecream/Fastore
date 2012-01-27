@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="btree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Stopwatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -38,10 +35,10 @@
     <ClInclude Include="Stopwatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BTree.h">
+    <ClInclude Include="Storage\fastfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Storage\fastfile.h">
+    <ClInclude Include="btree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

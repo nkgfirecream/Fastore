@@ -163,14 +163,13 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BTree.cpp" />
     <ClCompile Include="Hoard\usewinhoard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BTree.h" />
+    <ClInclude Include="btree.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
   </ItemGroup>
