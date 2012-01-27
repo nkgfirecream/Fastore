@@ -163,13 +163,16 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="btree.cpp" />
+    <ClCompile Include="BTree.cpp" />
+    <ClCompile Include="ColumnHash.cpp" />
     <ClCompile Include="Hoard\usewinhoard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="btree.h" />
+    <ClInclude Include="BTree.h" />
+    <ClInclude Include="BTreeObserver.h" />
+    <ClInclude Include="ColumnHash.h" />
     <ClInclude Include="Stopwatch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

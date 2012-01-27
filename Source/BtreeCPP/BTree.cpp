@@ -1,23 +1,26 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include "btree.h"
+//#include <functional>
+#include "BTree.h"
 
 using namespace std;
 
 //Tree
+//Remove the Itemtostring once debugging is complete. The Table or ColumnStore will hande value to string if required.
 BTree::BTree(int fanout, int leafsize, int (*compare)(void*,void*), wstring(*tostring)(void*))
 {
 	Compare = compare;
 	ItemToString = tostring;
 	Fanout = fanout;
+	Observer = NULL;
 	LeafSize = leafsize;
 	_root = new Leaf(this);
 }
 
-void* BTree::Insert(void* key, void* value)
+void* BTree::Insert(void* key, void* value, Leaf* leaf)
 {
-	InsertResult result = _root->Insert(key,value);
+	InsertResult result = _root->Insert(key,value,leaf);
 	if (result.split != NULL)
 	{
 		_root = new Branch(this, _root, result.split->right, result.split->key);
@@ -25,6 +28,12 @@ void* BTree::Insert(void* key, void* value)
 	}
 
 	return result.found;
+}
+
+void BTree::DoValuesMoved(Leaf* leaf)
+{
+	if(Observer != NULL)
+		Observer->ValuesMoved(leaf);
 }
 
 wstring BTree::ToString()
@@ -52,10 +61,10 @@ Branch::Branch(BTree* tree, INode* left, INode* right, void* key)
 	Count = 1;
 }
 
-InsertResult Branch::Insert(void* key, void* value)
+InsertResult Branch::Insert(void* key, void* value, Leaf* leaf)
 {
 	int index = IndexOf(key);
-	InsertResult result = _children[index]->Insert(key, value);
+	InsertResult result = _children[index]->Insert(key, value, leaf);
 
 	if (result.split != NULL)
 	{
@@ -167,13 +176,13 @@ Leaf::Leaf(BTree* tree)
 	Count = 0;
 }
 
-InsertResult Leaf::Insert(void* key, void* value)
+InsertResult Leaf::Insert(void* key, void* value, Leaf* leaf)
 {
 	int index = IndexOf(key);
 	InsertResult result;
 	if (Count != _tree->LeafSize)
 	{
-		result.found = InternalInsert(index, key, value);
+		result.found = InternalInsert(index, key, value, leaf);
 		result.split = NULL;
 	}
 	else
@@ -189,9 +198,11 @@ InsertResult Leaf::Insert(void* key, void* value)
 		}
 
 		if (index < Count)
-			result.found = InternalInsert(index, key, value);
+			result.found = InternalInsert(index, key, value, leaf);
 		else
-			result.found = node->InternalInsert(index - Count, key, value);
+			result.found = node->InternalInsert(index - Count, key, value, leaf);
+
+		_tree->DoValuesMoved(node);
 
 		Split* split = new Split();
 		split->key = node->_keys[0];
@@ -206,8 +217,9 @@ InsertResult Leaf::Insert(void* key, void* value)
 	return result;
 }
 
-void* Leaf::InternalInsert(int index, void* key, void* value)
+void* Leaf::InternalInsert(int index, void* key, void* value, Leaf* leaf)
 {
+	leaf = this;
 	if (index >= Count || _tree->Compare(_keys[index], key) != 0)
 	{
 		if (Count != index)
@@ -269,6 +281,18 @@ wstring Leaf::ToString()
 	result << "}";
 
 	return result.str();
+}
+
+
+void* Leaf::GetKey(function<bool(void*)> predicate)
+{
+	for(int i = 0; i < Count; i++)
+	{
+		if(predicate(_values[i]))
+			return _keys[i];
+	}
+
+	return NULL;
 }
 
 		

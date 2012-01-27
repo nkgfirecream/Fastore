@@ -5,8 +5,9 @@
 #include <windows.h>
 #include <sstream>
 #include <conio.h>
-#include "btree.h"
+#include "BTree.h"
 #include "Stopwatch.h"
+#include "ColumnHash.h"
 using namespace std;
 
 int StringCompare(void* left, void* right)
@@ -64,11 +65,12 @@ void StringTest()
 
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
+	Leaf* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		wchar_t* insert = RandomString(rand() % 8 + 1);	
 		watch->StartTimer();
-		tree->Insert((void*)insert,(void*)insert);	
+		tree->Insert((void*)insert,(void*)insert, dummy);	
 		watch->StopTimer();
 	}
 
@@ -90,6 +92,7 @@ void SequentialLongTest()
 
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
+	Leaf* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		long* item = new long;
@@ -97,7 +100,7 @@ void SequentialLongTest()
 		*item = i;
 
 		watch->StartTimer();
-		tree->Insert(item, item);	
+		tree->Insert(item, item, dummy);	
 		watch->StopTimer();
 	}
 
@@ -114,13 +117,35 @@ void GuidTest()
 	//To be implemented
 }
 
+void ColumnHashTest()
+{
+		cout << "Testing ColumnHash";
+
+	ColumnHash* hash = new ColumnHash(StringCompare,StringString);
+	long numrows = 1000000;
+	Stopwatch* watch = new Stopwatch();
+	for(long i = 0; i < numrows; i++)
+	{
+		wchar_t* insert = RandomString(rand() % 8 + 1);	
+		watch->StartTimer();
+		hash->Insert(i,insert);
+		watch->StopTimer();
+	}
+
+	double secs = watch->TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+}
+
 
 void main()
 {
 	StringTest();
 	SequentialLongTest();
 	GuidTest();
-
+	ColumnHashTest();
 	getch();
 }
 

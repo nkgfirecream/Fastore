@@ -18,21 +18,30 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="btree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Stopwatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Hoard\usewinhoard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BTree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ColumnHash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="btree.h">
+    <ClInclude Include="Stopwatch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Stopwatch.h">
+    <ClInclude Include="BTree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ColumnHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BTreeObserver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
