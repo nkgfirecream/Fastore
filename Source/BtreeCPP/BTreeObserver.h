@@ -1,9 +1,13 @@
 #pragma once
-#include<iostream>
+#include <iostream>
+#include "BTree.h"
 using namespace std;
+
+class Leaf;
 
 class IObserver
 {
 	public:
-		virtual void ValuesMoved(void *) = 0;
+		virtual ~IObserver() {}
+		inline virtual void ValuesMoved(Leaf* leaf);
 };

@@ -173,6 +173,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
+    <ClInclude Include="BTreeObserver.h" />
+    <ClInclude Include="ColumnHash.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />

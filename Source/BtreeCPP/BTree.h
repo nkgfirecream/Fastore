@@ -4,194 +4,177 @@
 #include <string>
 #include <functional>
 #include "optional.h"
-//#include <BTreeObserver.h>
+#include "BTreeObserver.h"
 
 using namespace std;
 
-template <class K, class V>
 class Split;
-
-template <class K, class V>
 class Leaf;
 
-// TODO: temp due to missing file
-template <class K, class V>
-class IObserver
-{
-	public:
-		inline virtual void ValuesMoved(Leaf<K, V>* leaf);
-};
-
-template <class K, class V>
 class InsertResult
 {
 	public:
-		optional<V> found;
-		Split<K, V>* split;
+		//optional<V> found;
+		void* found;
+		Split* split;
 };
 
-template <class K, class V>
 class INode
 {
 	public:
 		virtual ~INode() {}
-		virtual InsertResult<K, V> Insert(K key, V value, Leaf<K, V>* leaf) = 0;
+		virtual InsertResult Insert(void* key, void* value, Leaf* leaf) = 0;
 		virtual wstring ToString() = 0;
 };
 
-template <class K, class V>
 class Split
 {
 	public:
-		K key;
-		INode<K, V>* right;
+		void* key;
+		INode* right;
 };
 
-template <class K, class V>
 class BTree
 {
 	public:
 		int Fanout;
 		int LeafSize;
-		int (*Compare)(K left, K right);
-		wstring (*KeyToString)(K item);
-		wstring (*ValueToString)(V item);
-		IObserver<K, V>* Observer;
+		int KeySize;
+		int ValueSize;
+		int (*Compare)(void* left, void* right);
+		wstring (*KeyToString)(void* item);
+		wstring (*ValueToString)(void* item);
+		IObserver* Observer;
 	
-		BTree(int fanout, int leafSize, int(*compare)(K, K), wstring(*keyToString)(K), wstring(*valueToString)(V));
+		BTree(int fanout, int leafSize, int keySize, int valueSize, int(*compare)(void*, void*), wstring(*keyToString)(void*), wstring(*valueToString)(void*));
 
-		optional<V> Insert(K key, V value, Leaf<K, V>* leaf);
+		//optional<V> Insert(K key, V value, Leaf* leaf);
+		void* Insert(void* key, void* value, Leaf* leaf);
 		wstring ToString();
 
 	private:
-		INode<K, V>* _root;
-		void DoValuesMoved(Leaf<K, V>*);
+		INode* _root;
+		void DoValuesMoved(Leaf*);
 
-	template <class K, class V> friend class Leaf;
-	template <class K, class V> friend class Branch;
+	 friend class Leaf;
+	 friend class Branch;
 };
 
-template <class K, class V>
-class Leaf: public INode<K, V>
+class Leaf: public INode
 {
 	public:
-		Leaf(BTree<K, V>* tree);
+		Leaf(BTree* tree);
 
-		InsertResult<K, V> Insert(K key, V value, Leaf<K, V>* leaf);	
-		K GetKey(function<bool(V)>);
+		InsertResult Insert(void* key, void* value, Leaf* leaf);	
+		void* GetKey(function<bool(void*)>);
 		wstring ToString();
 
 	private:
 		int Count;
-		BTree<K, V>* _tree;
-		K* _keys;
-		V* _values;
+		BTree* _tree;
+		byte* _keys;
+		byte* _values;
 
-		int IndexOf(K key);
-		optional<V> InternalInsert(int index, K key, V value, Leaf<K, V>* leaf);
+		int IndexOf(void* key);
+		//optional<V> InternalInsert(int index, K key, V value, Leaf* leaf);
+		void* InternalInsert(int index, void* key, void* value, Leaf* leaf);
 };
 
-template <class K, class V>
-class Branch : public INode<K, V>
+class Branch : public INode
 {
 	public:
-		Branch(BTree<K, V>* tree);
-		Branch(BTree<K, V>* tree, INode<K, V>* left, INode<K, V>* right, K key);
+		Branch(BTree* tree);
+		Branch(BTree* tree, INode* left, INode* right, void* key);
 
-		InsertResult<K, V> Insert(K key, V value, Leaf<K, V>* leaf);
+		InsertResult Insert(void* key, void* value, Leaf* leaf);
 		wstring ToString();		
 
 	private:
 		int Count;
-		BTree<K, V>* _tree;
-		K* _keys;
-		INode<K, V>** _children;
+		BTree* _tree;
+		byte* _keys;
+		INode** _children;
 
-		int IndexOf(K key);
-		Split<K, V>* InsertChild(int index, K key, INode<K, V>* child);
-		void InternalInsertChild(int index, K key, INode<K, V>* child);
+		int IndexOf(void* key);
+		Split* InsertChild(int index, void* key, INode* child);
+		void InternalInsertChild(int index, void* key, INode* child);
 };
 
 /* Template implementations */
 
 //Tree
-template <class K, class V>
-inline BTree<K, V>::BTree(int fanout, int leafSize, int (*compare)(K, K), wstring(*keyToString)(K), wstring(*valueToString)(V))
+inline BTree::BTree(int fanout, int leafSize, int keySize, int valueSize, int (*compare)(void*, void*), wstring(*keyToString)(void*), wstring(*valueToString)(void*))
 {
 	Compare = compare;
 	KeyToString = keyToString;
 	ValueToString = valueToString;
+	KeySize = keySize;
+	ValueSize = valueSize;
 	Fanout = fanout;
 	Observer = NULL;
 	LeafSize = leafSize;
-	_root = new Leaf<K, V>(this);
+	_root = new Leaf(this);
 }
 
-template <class K, class V>
-inline optional<V> BTree<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
+//optional<V>
+inline void* BTree::Insert(void* key, void* value, Leaf* leaf)
 {
-	InsertResult<K, V> result = _root->Insert(key, value, leaf);
+	InsertResult result = _root->Insert(key, value, leaf);
 	if (result.split != NULL)
 	{
-		_root = new Branch<K, V>(this, _root, result.split->right, result.split->key);
+		_root = new Branch(this, _root, result.split->right, result.split->key);
 		delete(result.split);
 	}
 
 	return result.found;
 }
 
-template <class K, class V>
-inline void BTree<K, V>::DoValuesMoved(Leaf<K, V>* leaf)
+inline void BTree::DoValuesMoved(Leaf* leaf)
 {
 	if (Observer != NULL)
 		Observer->ValuesMoved(leaf);
 }
 
-template <class K, class V>
-inline wstring BTree<K, V>::ToString()
+inline wstring BTree::ToString()
 {
 	return _root->ToString();
 }
 
 //Branch
-template <class K, class V>
-inline Branch<K, V>::Branch(BTree<K, V>* tree)
+inline Branch::Branch(BTree* tree)
 {
 	_tree = tree;
-	_children = new INode<K, V>*[_tree->Fanout];
-	_keys = new K[_tree->Fanout - 1];
+	_children = new INode*[_tree->Fanout];
+	_keys = new byte[(_tree->Fanout - 1) * _tree->KeySize];
 	Count = 0;
 }
 
-template <class K, class V>
-inline Branch<K, V>::Branch(BTree<K, V>* tree, INode<K, V>* left, INode<K, V>* right, K key)
+inline Branch::Branch(BTree* tree, INode* left, INode* right, void* key)
 {
 	_tree = tree;
-	_children = new INode<K, V>*[_tree->Fanout];
-	_keys = new K[_tree->Fanout - 1];
+	_children = new INode*[_tree->Fanout];
+	_keys = new  byte[(_tree->Fanout - 1) * _tree->KeySize];
 	_children[0] = left;
 	_children[1] = right;
-	_keys[0] = key;
+	memcpy(&_keys[0], key, _tree->KeySize);
 	Count = 1;
 }
 
-template <class K, class V>
-inline InsertResult<K, V> Branch<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
+inline InsertResult Branch::Insert(void* key, void* value, Leaf* leaf)
 {
 	int index = IndexOf(key);
-	InsertResult<K, V> result = _children[index]->Insert(key, value, leaf);
+	InsertResult result = _children[index]->Insert(key, value, leaf);
 
 	if (result.split != NULL)
 	{
-		Split<K, V>* temp = result.split;
+		Split* temp = result.split;
 		result.split = InsertChild(index, result.split->key, result.split->right);
 		delete(temp);
 	}
 	return result;
 }
 
-template <class K, class V>
-inline Split<K, V>* Branch<K, V>::InsertChild(int index, K key, INode<K, V>* child)
+inline Split* Branch::InsertChild(int index, void* key, INode* child)
 {
 	if (Count != _tree->Fanout - 1)
 	{
@@ -201,15 +184,15 @@ inline Split<K, V>* Branch<K, V>::InsertChild(int index, K key, INode<K, V>* chi
 	else
 	{
 		int mid = (Count + 1) / 2;
-		Branch<K, V>* node = new Branch<K, V>(_tree);
+		Branch* node = new Branch(_tree);
 		node->Count = Count - mid;
-		memcpy(&node->_keys[0], &_keys[mid], node->Count * sizeof(K));
-		memcpy(&node->_children[0], &_children[mid], (node->Count + 1) * sizeof(INode<K, V>*));
+		memcpy(&node->_keys[0], &_keys[mid * _tree->KeySize], node->Count * _tree->KeySize);
+		memcpy(&node->_children[0], &_children[mid], (node->Count + 1) * sizeof(INode*));
 
 		Count = mid - 1;
 
-		Split<K, V>* split = new Split<K, V>();
-		split->key = _keys[mid - 1];
+		Split* split = new Split();
+		split->key = &_keys[(mid - 1) * _tree->KeySize];
 		split->right = node;
 
 		if (index <= Count)
@@ -221,25 +204,21 @@ inline Split<K, V>* Branch<K, V>::InsertChild(int index, K key, INode<K, V>* chi
 	}
 }
 
-
-template <class K, class V>
-inline void Branch<K, V>::InternalInsertChild(int index, K key, INode<K, V>* child)
+inline void Branch::InternalInsertChild(int index, void* key, INode* child)
 {
 	int size = Count - index;
 	if (Count != index)
 	{
-		memmove(&_keys[index + 1], &_keys[index],  size * sizeof(K));
-		memmove(&_children[index + 2], &_children[index + 1],  size * sizeof(INode<K, V>*));
+		memmove(&_keys[(index + 1) *_tree->KeySize], &_keys[index * _tree->KeySize],  size * _tree->KeySize);
+		memmove(&_children[index + 2], &_children[index + 1],  size * sizeof(INode*));
 	}
 
-	_keys[index] = key;
+	memcpy(&_keys[index * _tree->KeySize], key, _tree->KeySize);
 	_children[index + 1] = child;
 	Count++;
 }
 
-
-template <class K, class V>
-inline int Branch<K, V>::IndexOf(K key)
+inline int Branch::IndexOf(void* key)
 {	
     int lo = 0;
 	int hi = Count - 1;
@@ -249,7 +228,7 @@ inline int Branch<K, V>::IndexOf(K key)
 	while (lo <= hi)
 	{
 		localIndex = (lo + hi) / 2;
-        result = _tree->Compare(key, _keys[localIndex]);
+        result = _tree->Compare(key, &_keys[localIndex * _tree->KeySize]);
 
 		if (result == 0)
 			break;
@@ -265,8 +244,7 @@ inline int Branch<K, V>::IndexOf(K key)
         return lo;
 }
 
-template <class K, class V>
-inline wstring Branch<K, V>::ToString()
+inline wstring Branch::ToString()
 {
 	wstringstream result;
 
@@ -287,20 +265,18 @@ inline wstring Branch<K, V>::ToString()
 }
 
 //Leaf
-template <class K, class V>
-inline Leaf<K, V>::Leaf(BTree<K, V>* tree)
+inline Leaf::Leaf(BTree* tree)
 {
 	_tree = tree;
-	_keys = new K[_tree->LeafSize];
-	_values = new V[_tree->LeafSize];
+	_keys = new byte[tree->LeafSize * _tree->KeySize];
+	_values = new byte[tree->LeafSize * _tree->ValueSize];
 	Count = 0;
 }
 
-template <class K, class V>
-inline InsertResult<K, V> Leaf<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
+inline InsertResult Leaf::Insert(void* key, void* value, Leaf* leaf)
 {
 	int index = IndexOf(key);
-	InsertResult<K, V> result;
+	InsertResult result;
 	if (Count != _tree->LeafSize)
 	{
 		result.found = InternalInsert(index, key, value, leaf);
@@ -308,14 +284,14 @@ inline InsertResult<K, V> Leaf<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
 	}
 	else
 	{
-		Leaf<K, V>* node = new Leaf<K, V>(_tree);
+		Leaf* node = new Leaf(_tree);
 		if (index != Count)
 		{
 			node->Count = (_tree->LeafSize + 1) / 2;
 			Count = Count - node->Count;
 
-			memcpy(&node->_keys[0], &_keys[node->Count],  node->Count * sizeof(K));
-			memcpy(&node->_values[0], &_values[node->Count], node->Count * sizeof(V));
+			memcpy(&node->_keys[0], &_keys[node->Count * _tree->KeySize],  node->Count * _tree->KeySize);
+			memcpy(&node->_values[0], &_values[node->Count * _tree->ValueSize], node->Count * _tree->ValueSize);
 		}
 
 		if (index < Count)
@@ -325,8 +301,8 @@ inline InsertResult<K, V> Leaf<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
 
 		_tree->DoValuesMoved(node);
 
-		Split<K, V>* split = new Split<K, V>();
-		split->key = node->_keys[0];
+		Split* split = new Split();
+		split->key = &node->_keys[0];
 		split->right = node;
 
 		result.split = split;
@@ -338,28 +314,27 @@ inline InsertResult<K, V> Leaf<K, V>::Insert(K key, V value, Leaf<K, V>* leaf)
 	return result;
 }
 
-template <class K, class V>
-inline optional<V> Leaf<K, V>::InternalInsert(int index, K key, V value, Leaf<K, V>* leaf)
+inline void* Leaf::InternalInsert(int index, void* key, void* value, Leaf* leaf)
 {
 	leaf = this;
-	if (index >= Count || _tree->Compare(_keys[index], key) != 0)
+	if (index >= Count || _tree->Compare(&_keys[index * _tree->KeySize], key) != 0)
 	{
 		if (Count != index)
 		{
-			memmove(&_keys[index + 1], &_keys[index], (Count - index) * sizeof(K));
-			memmove(&_values[index + 1], &_values[index], (Count - index)  * sizeof(V));
+			memmove(&_keys[(index + 1) * _tree->KeySize], &_keys[index], (Count - index) * _tree->KeySize);
+			memmove(&_values[(index + 1) * _tree->ValueSize], &_values[index], (Count - index) * _tree->ValueSize);
 		}
-		_keys[index] = key;
-		_values[index] = value;
+
+		memcpy(&_keys[index * _tree->KeySize], key, _tree->KeySize);
+		memcpy(&_values[index * _tree->ValueSize], value, _tree->ValueSize);
 		Count++;
-		return optional<V>();
+		return NULL;
 	}
 	else
-		return _values[index];
+		return &_values[index * _tree->KeySize];
 }
 
-template <class K, class V>
-inline int Leaf<K, V>::IndexOf(K key)
+inline int Leaf::IndexOf(void* key)
 {
 	int lo = 0;
 	int hi = Count - 1;
@@ -369,7 +344,7 @@ inline int Leaf<K, V>::IndexOf(K key)
 	while (lo <= hi)
 	{
 		localIndex = (lo + hi) / 2;
-        result = _tree->Compare(key, _keys[localIndex]);
+        result = _tree->Compare(key, &_keys[localIndex * _tree->KeySize]);
 
 		if (result == 0)
 			break;
@@ -385,8 +360,7 @@ inline int Leaf<K, V>::IndexOf(K key)
         return lo;
 }
 
-template <class K, class V>
-inline wstring Leaf<K, V>::ToString()
+inline wstring Leaf::ToString()
 {
 	wstringstream result;
 	result << "\n{";
@@ -398,22 +372,21 @@ inline wstring Leaf<K, V>::ToString()
 		else
 			first = false;
 
-		result << _tree->KeyToString(_keys[i]);
+		result << _tree->KeyToString(&_keys[i * _tree->KeySize]);
 		result << ":";
-		result << _tree->ValueToString(_values[i]);
+		result << _tree->ValueToString(&_values[i * _tree->ValueSize]);
 	}
 	result << "}";
 
 	return result.str();
 }
 
-template <class K, class V>
-inline K Leaf<K, V>::GetKey(function<bool(V)> predicate)
+inline void* Leaf::GetKey(function<bool(void*)> predicate)
 {
 	for (int i = 0; i < Count; i++)
 	{
-		if (predicate(_values[i]))
-			return _keys[i];
+		if (predicate(&_values[i * _tree->ValueSize]))
+			return &_keys[i * _tree->KeySize];
 	}
 
 	return NULL;
