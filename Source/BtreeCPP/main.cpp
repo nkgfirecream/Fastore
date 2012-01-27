@@ -34,6 +34,20 @@ wstring LongString(long item)
 	return result.str();
 }
 
+int IntCompare(int left, int right)
+{
+	return left < right ? -1
+		: right < left ? 1
+		: 0;
+}
+
+wstring IntString(int item)
+{
+	wstringstream result;
+	result << item;
+	return result.str();
+}
+
 int PLongCompare(void* left, void* right)
 {
 	return 
@@ -95,7 +109,7 @@ void StringTest()
 
 void SequentialPLongTest()
 {
-	cout << "Testing Sequential Longs...";
+	cout << "Testing Sequential PLongs...";
 	
 	long numrows = 10000000;
 
@@ -138,6 +152,34 @@ void SequentialLongTest()
 	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 
 	Leaf<long, long>* dummy;
+	for(int i = 0; i < numrows; i++)
+	{
+		watch->StartTimer();
+		tree->Insert(i, i, dummy);	
+		watch->StopTimer();
+	}
+
+	double secs = watch->TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree->ToString();
+}
+
+void SequentialIntTest()
+{
+	cout << "Testing Sequential Ints...";
+	
+	long numrows = 10000000;
+
+	BTree<int, int>* tree = new BTree<int, int>(128, 128, IntCompare, IntString, IntString);	
+
+	Stopwatch* watch = new Stopwatch();
+
+	cout << " freq: " << watch->GetFrequency() << "\r\n";	
+
+	Leaf<int, int>* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		watch->StartTimer();
@@ -198,9 +240,10 @@ void GuidTest()
 
 void main()
 {
-	StringTest();
-	SequentialLongTest();
-	SequentialPLongTest();
+	//StringTest();
+	//SequentialLongTest();
+	SequentialIntTest();
+	//SequentialPLongTest();
 	GuidTest();
 	//ColumnHashTest();
 	getch();

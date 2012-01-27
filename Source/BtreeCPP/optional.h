@@ -15,7 +15,6 @@ class optional
 			_value = t;
 		}
 
-		//Copy constructor
 		optional(const optional<T>& other)
 		{
 			_hasValue = other._hasValue;
@@ -23,7 +22,7 @@ class optional
 				_value = other._value;
 		}
 
-		/*** Overloaded Operators ***/
+		// Overloads
 
 		operator T()
 		{
