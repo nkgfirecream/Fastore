@@ -135,6 +135,10 @@ void ColumnHashTest()
 	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
+	for(long i = 0; i < 100; i++)
+	{
+		wcout << (wchar_t*)hash->GetValue(i) << '\n';
+	}
 	cout << "Rows per second: " << numrows / secs << "\r\n";
 
 }

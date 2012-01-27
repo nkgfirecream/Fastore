@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-//#include <functional>
+#include <functional>
 #include "BTree.h"
 
 using namespace std;
