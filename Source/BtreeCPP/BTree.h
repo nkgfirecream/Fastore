@@ -14,7 +14,6 @@ class Leaf;
 class InsertResult
 {
 	public:
-		//optional<V> found;
 		void* found;
 		Split* split;
 };
@@ -39,16 +38,15 @@ class BTree
 	public:
 		int Fanout;
 		int LeafSize;
-		int KeySize;
-		int ValueSize;
+		size_t KeySize;
+		size_t ValueSize;
 		int (*Compare)(void* left, void* right);
 		wstring (*KeyToString)(void* item);
 		wstring (*ValueToString)(void* item);
 		IObserver* Observer;
 	
-		BTree(int fanout, int leafSize, int keySize, int valueSize, int(*compare)(void*, void*), wstring(*keyToString)(void*), wstring(*valueToString)(void*));
+		BTree(int fanout, int leafSize, size_t keySize, size_t valueSize, int(*compare)(void*, void*), wstring(*keyToString)(void*), wstring(*valueToString)(void*));
 
-		//optional<V> Insert(K key, V value, Leaf* leaf);
 		void* Insert(void* key, void* value, Leaf* leaf);
 		wstring ToString();
 
@@ -76,7 +74,6 @@ class Leaf: public INode
 		byte* _values;
 
 		int IndexOf(void* key);
-		//optional<V> InternalInsert(int index, K key, V value, Leaf* leaf);
 		void* InternalInsert(int index, void* key, void* value, Leaf* leaf);
 };
 
@@ -103,7 +100,7 @@ class Branch : public INode
 /* Template implementations */
 
 //Tree
-inline BTree::BTree(int fanout, int leafSize, int keySize, int valueSize, int (*compare)(void*, void*), wstring(*keyToString)(void*), wstring(*valueToString)(void*))
+inline BTree::BTree(int fanout, int leafSize, size_t keySize, size_t valueSize, int (*compare)(void*, void*), wstring(*keyToString)(void*), wstring(*valueToString)(void*))
 {
 	Compare = compare;
 	KeyToString = keyToString;
@@ -188,7 +185,7 @@ inline Split* Branch::InsertChild(int index, void* key, INode* child)
 		node->Count = Count - mid;
 		memcpy(&node->_keys[0], &_keys[mid * _tree->KeySize], node->Count * _tree->KeySize);
 		memcpy(&node->_children[0], &_children[mid], (node->Count + 1) * sizeof(INode*));
-
+		
 		Count = mid - 1;
 
 		Split* split = new Split();
@@ -309,7 +306,6 @@ inline InsertResult Leaf::Insert(void* key, void* value, Leaf* leaf)
 
 		return result;
 	}
-
 
 	return result;
 }
