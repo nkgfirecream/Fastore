@@ -119,11 +119,12 @@ void GuidTest()
 
 void ColumnHashTest()
 {
-		cout << "Testing ColumnHash";
+		cout << "Testing ColumnHash...";
 
 	ColumnHash* hash = new ColumnHash(StringCompare,StringString);
-	long numrows = 1000000;
+	long numrows = 100000;
 	Stopwatch* watch = new Stopwatch();
+	cout << " freq: " << watch->GetFrequency() << "\r\n";	
 	for(long i = 0; i < numrows; i++)
 	{
 		wchar_t* insert = RandomString(rand() % 8 + 1);	
@@ -134,12 +135,22 @@ void ColumnHashTest()
 
 	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";
+
+	cout << "Entries per second: " << numrows / secs << "\r\n";
+
+	watch->Reset();
 	
-	for(long i = 0; i < 100; i++)
+	for(long i = 0; i < 300; i++)
 	{
-		wcout << (wchar_t*)hash->GetValue(i) << '\n';
+		watch->StartTimer();
+		hash->GetValue(i);
+		watch->StopTimer();
 	}
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	secs = watch->TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	cout << "Extractions per second: " << 300 / secs << "\r\n";
+	
 
 }
 
