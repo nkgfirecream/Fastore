@@ -1,7 +1,7 @@
 #include "Stopwatch.h"
 #include <time.h>
 
-Stopwatch::Stopwatch()
+Stopwatch::Stopwatch() : total(0) 
 {
 	frequency = GetFrequency();
 }
