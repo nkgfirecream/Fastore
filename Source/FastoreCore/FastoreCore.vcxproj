@@ -78,6 +78,7 @@
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
     <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -129,6 +130,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -172,10 +174,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
+    <ClCompile Include="EASTL\source\allocator.cpp" />
+    <ClCompile Include="EASTL\source\assert.cpp" />
+    <ClCompile Include="EASTL\source\fixed_pool.cpp" />
+    <ClCompile Include="EASTL\source\hashtable.cpp" />
+    <ClCompile Include="EASTL\source\red_black_tree.cpp" />
+    <ClCompile Include="EASTL\source\string.cpp" />
     <ClCompile Include="Hoard\usewinhoard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
+    <ClCompile Include="useEASTL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
