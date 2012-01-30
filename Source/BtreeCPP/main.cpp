@@ -18,7 +18,7 @@ wstring RandomString(int length)
 {
 	const wchar_t* _chars = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	wstringstream result = wstringstream();
+	wstringstream result;
 
 	for (int i = 0; i < length; i++)
 	{
@@ -35,11 +35,11 @@ void StringTest()
 	
 	long numrows = 1000000;
 
-	BTree tree = BTree(GetStringType(), GetStringType());	
-	BTree tree2 = BTree(GetPStringType(), GetPStringType());
+	BTree tree(GetStringType(), GetStringType());	
+	BTree tree2(GetPStringType(), GetPStringType());
 
-	Stopwatch watch = Stopwatch();
-	Stopwatch watch2 = Stopwatch();
+	Stopwatch watch;
+	Stopwatch watch2;
 
 	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
@@ -73,9 +73,9 @@ void SequentialPLongTest()
 	
 	long numrows = 10000000;
 
-	BTree tree = BTree(GetPLongType(), GetPLongType());	
+	BTree tree(GetPLongType(), GetPLongType());	
 
-	Stopwatch watch = Stopwatch();
+	Stopwatch watch;
 
 	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
@@ -105,9 +105,9 @@ void SequentialLongTest()
 	
 	long numrows = 10000000;
 
-	BTree tree = BTree(GetLongType(), GetLongType());	
+	BTree tree(GetLongType(), GetLongType());	
 
-	Stopwatch watch = Stopwatch();
+	Stopwatch watch;
 
 	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
@@ -133,9 +133,9 @@ void SequentialIntTest()
 	
 	long numrows = 1000000;
 
-	BTree tree = BTree(GetIntType(), GetIntType());	
+	BTree tree(GetIntType(), GetIntType());	
 
-	Stopwatch watch = Stopwatch();
+	Stopwatch watch;
 
 	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
@@ -201,7 +201,7 @@ void GuidTest()
 void InterlockedTest()
 {
 	cout << "Testing InterlockSpeed...";
-	Stopwatch watch = Stopwatch();
+	Stopwatch watch;
 	long numrows = 100000000;
 	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 	
@@ -225,7 +225,7 @@ void ArrayCopyTest()
 
 	int* intarray = (int*)alloca(numrows);
 
-	Stopwatch watch = Stopwatch();
+	Stopwatch watch;
 	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
 	cout << "Testing Assignment speed...";
