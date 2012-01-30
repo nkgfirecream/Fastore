@@ -255,13 +255,15 @@ void* Leaf::InternalInsert(int index, void* key, void* value, Leaf** leaf)
 	{
 		if (Count != index)
 		{
-			memmove(&_keys[(index + 1) * _tree->_keyType.Size], &_keys[index], (Count - index) * _tree->_keyType.Size);
-			memmove(&_values[(index + 1) * _tree->_valueType.Size], &_values[index], (Count - index) * _tree->_valueType.Size);
+			memmove(&_keys[(index + 1) * _tree->_keyType.Size], &_keys[index  * _tree->_keyType.Size], (Count - index) * _tree->_keyType.Size);
+			memmove(&_values[(index + 1) * _tree->_valueType.Size], &_values[index * _tree->_valueType.Size], (Count - index) * _tree->_valueType.Size);
 		}
 
 		memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
 		memcpy(&_values[index * _tree->_valueType.Size], value, _tree->_valueType.Size);
-		Count++;
+
+		Count++;	
+
 		return NULL;
 	}
 	else

@@ -38,31 +38,32 @@ void StringTest()
 	BTree tree(GetStringType(), GetStringType());	
 	BTree tree2(GetPStringType(), GetPStringType());
 
-	Stopwatch watch;
-	Stopwatch watch2;
+	Stopwatch* watch = new Stopwatch();
+	Stopwatch* watch2 = new Stopwatch();
 
-	cout << " freq: " << watch.GetFrequency() << "\r\n";	
+	cout << " freq: " << watch->GetFrequency() << "\r\n";	
+	cout << " freq2: " << watch2->GetFrequency() << "\r\n";	
 
 	Leaf* dummy;
 	Leaf* dummy2;
 	for(int i = 0; i < numrows; i++)
 	{
 		wstring insert = RandomString(rand() % 8 + 1);	
-		watch.StartTimer();
+		watch->StartTimer();
 		tree.Insert(&insert, &insert, &dummy);	
-		watch.StopTimer();
+		watch->StopTimer();
 
 		wstring* insert2 = new wstring(insert);
-		watch2.StartTimer();
+		watch2->StartTimer();
 		tree2.Insert(&insert2, &insert2, &dummy2);
-		watch2.StopTimer();
+		watch2->StopTimer();
 	}
 
-	double secs = watch.TotalTime();
+	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";	
 	cout << "Rows per second WString: " << numrows / secs << "\r\n";
 
-	double secs2 = watch2.TotalTime();
+	double secs2 = watch2->TotalTime();
 	cout << " secs: " << secs2 << "\r\n";	
 	cout << "Rows per second WString*: " << numrows / secs2 << "\r\n";
 }
@@ -259,9 +260,9 @@ void ArrayCopyTest()
 void main()
 {
 	StringTest();
-	SequentialLongTest();
-	SequentialIntTest();
-	SequentialPLongTest();
+	//SequentialLongTest();
+	//SequentialIntTest();
+	//SequentialPLongTest();
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
