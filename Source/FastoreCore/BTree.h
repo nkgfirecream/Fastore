@@ -9,6 +9,9 @@
 
 using namespace std;
 
+const int DefaultLeafCapacity = 128;
+const int DefaultBranchCapacity = 128;
+
 class Split;
 class Leaf;
 
@@ -69,7 +72,7 @@ class Leaf: public INode
 		wstring ToString();
 
 	private:
-		int Count;
+		int _count;
 		BTree* _tree;
 		char* _keys;
 		char* _values;
@@ -89,7 +92,7 @@ class Branch : public INode
 		wstring ToString();		
 
 	private:
-		int Count;
+		int _count;
 		BTree* _tree;
 		char* _keys;
 		INode** _children;
