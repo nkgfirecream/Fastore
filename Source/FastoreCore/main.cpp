@@ -1,16 +1,10 @@
+#include <EASTL\string.h>
 #include <iostream>
-#include <string.h>
-#include <stdlib.h>
-#include <tchar.h>
-#include <windows.h>
-#include <sstream>
-#include <conio.h>
-#include <malloc.h>
-
 #include "BTree.h"
 #include "Stopwatch.h"
 //#include "ColumnHash.h"
 #include "Schema/standardtypes.h"
+#include <conio.h>
 
 using namespace std;
 

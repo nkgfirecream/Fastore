@@ -129,7 +129,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/MD %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MD  /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

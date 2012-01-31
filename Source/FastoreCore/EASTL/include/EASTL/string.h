@@ -129,6 +129,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef _MSC_VER
     #pragma warning(push, 0)
 #endif
+
 #include <stddef.h>             // size_t, ptrdiff_t, etc.
 #include <stdarg.h>             // vararg functionality.
 #include <stdlib.h>             // malloc, free.

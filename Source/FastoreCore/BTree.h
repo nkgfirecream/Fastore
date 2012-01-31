@@ -1,7 +1,5 @@
 #pragma once
-
-#include <iostream>
-#include <string>
+#include <EASTL\string.h>
 #include <functional>
 #include "optional.h"
 #include "BTreeObserver.h"

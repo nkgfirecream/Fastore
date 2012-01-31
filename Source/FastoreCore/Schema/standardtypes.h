@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sstream>
-#include <string>
+#include <EASTL\string.h>
 #include "type.h"
 
 void IndirectDelete(void* item)

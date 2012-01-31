@@ -1,5 +1,5 @@
 #include "BTree.h"
-#include <string>
+#include <EASTL\string.h>
 #include <sstream>
 
 using namespace std;
