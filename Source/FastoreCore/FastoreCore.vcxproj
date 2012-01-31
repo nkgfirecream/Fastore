@@ -129,21 +129,22 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/MD  /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/MD /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>hoard/winhoard.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>hoard\winhoard.lib;tbb\lib\ia32\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)
+copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>winhoard.dll;%(Outputs)</Outputs>
+      <Outputs>winhoard.dll;tbb.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

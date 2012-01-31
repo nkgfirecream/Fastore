@@ -5,6 +5,7 @@
 //#include "ColumnHash.h"
 #include "Schema/standardtypes.h"
 #include <conio.h>
+#include <tbb\queuing_mutex.h>
 
 using namespace std;
 
@@ -193,6 +194,17 @@ void GuidTest()
 //
 //}
 
+void QueueingMutexTest()
+{
+	tbb::queuing_mutex qm;
+
+	tbb::queuing_mutex::scoped_lock lock(qm);
+
+	lock.release();
+
+	cout << "Yeah.. This does nothing..";
+}
+
 void InterlockedTest()
 {
 	cout << "Testing InterlockSpeed...";
@@ -253,6 +265,7 @@ void ArrayCopyTest()
 
 void main()
 {
+	QueueingMutexTest();
 	StringTest();
 	//SequentialLongTest();
 	//SequentialIntTest();
