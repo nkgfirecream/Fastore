@@ -10,7 +10,7 @@ using namespace std;
 const int DefaultLeafCapacity = 128;
 const int DefaultBranchCapacity = 128;
 
-class Split;
+struct Split;
 class Leaf;
 
 struct InsertResult

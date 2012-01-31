@@ -36,9 +36,6 @@ void StringTest()
 	Stopwatch* watch = new Stopwatch();
 	Stopwatch* watch2 = new Stopwatch();
 
-	cout << " freq: " << watch->GetFrequency() << "\r\n";	
-	cout << " freq2: " << watch2->GetFrequency() << "\r\n";	
-
 	Leaf* dummy;
 	Leaf* dummy2;
 	for(int i = 0; i < numrows; i++)
@@ -73,8 +70,6 @@ void SequentialPLongTest()
 
 	Stopwatch watch;
 
-	cout << " freq: " << watch.GetFrequency() << "\r\n";	
-
 	Leaf* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
@@ -105,8 +100,6 @@ void SequentialLongTest()
 
 	Stopwatch watch;
 
-	cout << " freq: " << watch.GetFrequency() << "\r\n";	
-
 	Leaf* dummy;
 	for(long i = 0; i < numrows; i++)
 	{
@@ -132,8 +125,6 @@ void SequentialIntTest()
 	BTree tree(GetIntType(), GetIntType());	
 
 	Stopwatch watch;
-
-	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
 	Leaf* dummy;
 	for(int i = 0; i < numrows; i++)
@@ -198,11 +189,22 @@ void QueueingMutexTest()
 {
 	tbb::queuing_mutex qm;
 
-	tbb::queuing_mutex::scoped_lock lock(qm);
+	cout << "Testing Queueing mutex...";
+	Stopwatch watch;
+	long numrows = 100000000;
+	
+	unsigned int val = 0;
+	for(int i = 0; i < numrows; i++)
+	{
+		watch.StartTimer();
+		tbb::queuing_mutex::scoped_lock lock(qm);
+		lock.release();
+		watch.StopTimer();
+	}
 
-	lock.release();
-
-	cout << "Yeah.. This does nothing..";
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	cout << "Mutexes per second: " << numrows / secs << "\r\n";
 }
 
 void InterlockedTest()
@@ -210,7 +212,6 @@ void InterlockedTest()
 	cout << "Testing InterlockSpeed...";
 	Stopwatch watch;
 	long numrows = 100000000;
-	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 	
 	unsigned int val = 0;
 	for(int i = 0; i < numrows; i++)
@@ -233,7 +234,6 @@ void ArrayCopyTest()
 	int* intarray = (int*)alloca(numrows);
 
 	Stopwatch watch;
-	cout << " freq: " << watch.GetFrequency() << "\r\n";	
 
 	cout << "Testing Assignment speed...";
 
@@ -266,11 +266,11 @@ void ArrayCopyTest()
 void main()
 {
 	QueueingMutexTest();
-	StringTest();
+	//StringTest();
 	//SequentialLongTest();
 	//SequentialIntTest();
 	//SequentialPLongTest();
-	//InterlockedTest();
+	InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
 	//ColumnHashTest();
