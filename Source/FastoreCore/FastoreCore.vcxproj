@@ -194,6 +194,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClCompile Include="EASTL\source\hashtable.cpp" />
     <ClCompile Include="EASTL\source\red_black_tree.cpp" />
     <ClCompile Include="EASTL\source\string.cpp" />
+    <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
@@ -204,6 +205,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="BTreeObserver.h" />
     <ClInclude Include="ColumnHash.h" />
     <ClInclude Include="EAHashTest.h" />
+    <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Schema\standardtypes.h" />
     <ClInclude Include="Schema\type.h" />
