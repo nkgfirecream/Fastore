@@ -5,10 +5,10 @@
 using namespace std;
 
 // The physical representation of a scalar type
-struct Type
+struct type
 {
 	size_t Size;
 	int (*Compare)(void* left, void* right);
-	wstring (*ToString)(void* item);
+	std::wstring (*ToString)(void* item);
 	void (*Free)(void* );
 };

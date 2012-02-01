@@ -1,12 +1,18 @@
 #pragma once
+#include "Schema\type.h"
+#include "EASTL\hash_set.h"
+#include "EASTL\hash_map.h"
 #include "BTree.h"
 #include "BTreeObserver.h"
 #include <hash_map>
 
+using namespace eastl;
+
+
 class ColumnHash
 {
 	public:
-		ColumnHash(const Type rowType, const Type valueType);
+		ColumnHash(const type rowType, const type valueType);
 		void* GetValue(void* value);
 		void* Include(void* value, void* rowID);
 		void* Exclude(void* value, void* rowID);
@@ -14,38 +20,35 @@ class ColumnHash
 		void UpdateValue(void* oldValue, void* newValue);
 
 	private:
-		void ValuesMoved(void* value, Leaf& newLeaf);
-		int (*_compare)(K left, K right);
-		hash_map<V, Leaf<K,V>*>* _rows;
-		BTree<K,V>* _values;
+		void ValuesMoved(void* value, Leaf** newLeaf);
+		eastl::hash_map<void*, Leaf**>* _rows;
+		BTree* _values;
 };
 
 
-template <class K, class V>
-inline ColumnHash<K,V>::ColumnHash(int(*compare)(K, K), wstring(*keyToString)(K), wstring(*valueToString)(V))
+
+inline ColumnHash::ColumnHash(const type rowType, const type valueType)
 {
-	_compare = compare;
+	//TODO: Hash of rowType
+	_values = new BTree(valueType, rowType);
 
-	_values = new BTree<K,V>(128,128, _compare, keyToString, valueToString);
-
-	_values->Observer = (IObserver<K,V>*)this;
-	_rows = new hash_map<V, Leaf<K,V>*>();
+	_rows = new eastl::hash_map<void*, Leaf**>();
 }
 
-template <class K, class V>
-inline K ColumnHash<K,V>::GetValue(V rowId)
+
+inline void* ColumnHash::GetValue(void* value)
 {
-	hash_map <V, Leaf<K,V>*> :: const_iterator hash_mapIterator;
-	hash_mapIterator = _rows->find(rowId);
+	eastl::hash_map <void*, Leaf**> :: const_iterator hash_mapIterator;
+	hash_mapIterator = _rows->find(value);
 	
-	if(hash_mapIterator != _rows->end())
+	if (hash_mapIterator != _rows->end())
 	{
-		Leaf<K,V>* leaf = hash_mapIterator->second;
-		return leaf->GetKey(
-			[rowId](V hash) -> bool
+		Leaf** leaf = hash_mapIterator->second;
+		return (*leaf)->GetKey(
+			[value](void* hash) -> bool
 			{
-				hash_set<V>* newrows = (hash_set<V>*)hash;
-				return newrows->find(rowID) != newrows->end();
+				eastl::hash_set<void*>* newrows = (eastl::hash_set<void*>*)hash;
+				return newrows->find(value) != newrows->end();
 			});
 	}
 	else
@@ -54,38 +57,65 @@ inline K ColumnHash<K,V>::GetValue(V rowId)
 	}
 }
 
-template <class K, class V>
-inline bool ColumnHash<K,V>::Insert(K value, V rowId)
+inline void* ColumnHash::Include(void* value, void* rowId)
 {
-	typedef pair <V,Leaf<K,V>*> ValueLeafPair;
-	Leaf<K,V>* valueLeaf;
-	hash_set<V>* newrows = new hash_set<V>();
-	void* existing = _values->Insert(value, newrows, valueLeaf);
+	typedef eastl::pair <void*,Leaf**> ValueLeafPair;
+	Leaf** valueLeaf;
+	eastl::hash_set<void*>* newrows = new eastl::hash_set<void*>();
+	void* existing = _values->Insert(value, &newrows, valueLeaf);
 	if(existing != NULL)
-		newrows = (hash_set<V>*)existing;
+		newrows = (eastl::hash_set<void*>*)existing;
 
-	if(newrows->insert(rowId).second)
+	//TODO: Correct Return types
+	if (newrows->insert(rowId).second)
 	{
 		_rows->insert(ValueLeafPair (rowId, valueLeaf));
-		return true;
+		return NULL;
 	}
 	else
-		return false;
+		return NULL;
 
 }
 
-template <class K, class V>
-inline void ColumnHash<K,V>::ValuesMoved(Leaf<K,V>* leaf)
+inline void* ColumnHash::Exclude(void* value, void* rowId)
 {
-	for(int i = 0; i < leaf->Count; i++)
+	return NULL;
+}
+
+inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
+{
+	//TODO: Add remove to BTree
+	eastl::hash_set<void*>* valuesToMove; // == (eastl::hash_set<void*>*)_values->Remove(oldValue);
+	Leaf** valueLeaf;
+	void* existing = _values->Insert(newValue, valuesToMove, valueLeaf);
+
+	if (existing != NULL)
 	{
-		hash_set<V>* current = (hash_set<V>*)leaf->_values[i];
-		hash_set<V> :: const_iterator hash_setIterator;
-		hash_setIterator = current->begin();
-		while(hash_setIterator != current->end())
+		//merge old and new
+		eastl::hash_set<void*>* existingValues = (eastl::hash_set<void*>*)existing;
+
+		eastl::hash_set<void*> :: iterator hash_SetIterator;
+		hash_SetIterator = valuesToMove->begin();
+
+		while (hash_SetIterator !=  valuesToMove->end())
 		{
-			_rows->find(*hash_setIterator)->second = leaf;
-			hash_setIterator++;
+			existingValues->insert(*hash_SetIterator);
+			ValuesMoved(*hash_SetIterator, valueLeaf);
 		}
 	}
+	else
+	{
+		eastl::hash_set<void*> :: iterator hash_SetIterator;
+		hash_SetIterator = valuesToMove->begin();
+
+		while (hash_SetIterator !=  valuesToMove->end())
+		{
+			ValuesMoved(*hash_SetIterator, valueLeaf);
+		}
+	}
+}
+
+inline void ColumnHash::ValuesMoved(void* value, Leaf** leaf)
+{
+	_rows->find(value)->second = leaf;
 }

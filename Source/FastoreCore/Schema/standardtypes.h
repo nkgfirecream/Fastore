@@ -1,8 +1,10 @@
 #pragma once
 
 #include <sstream>
-#include <EASTL\string.h>
-#include "type.h"
+#include <string.h>
+#include "Schema/type.h"
+
+using namespace std;
 
 void IndirectDelete(void* item)
 {
@@ -13,20 +15,20 @@ void IndirectDelete(void* item)
 
 int StringCompare(void* left, void* right)
 {
-	return ((wstring*)left)->compare(*(wstring*)right);
+	return ((std::wstring*)left)->compare(*(std::wstring*)right);
 }
 
-wstring StringString(void* item)
+std::wstring StringString(void* item)
 {
-	return *(wstring*)item;
+	return *(std::wstring*)item;
 }
 
-Type GetStringType()
+type GetStringType()
 {
-	Type type;
+	type type;
 	type.Compare = StringCompare;
 	type.Free = NULL;
-	type.Size = sizeof(wstring);
+	type.Size = sizeof(std::wstring);
 	type.ToString = StringString;
 	return type;
 }
@@ -35,20 +37,20 @@ Type GetStringType()
 
 int PStringCompare(void* left, void* right)
 {
-	return (*(wstring**)left)->compare(**(wstring**)right);
+	return (*(std::wstring**)left)->compare(**(std::wstring**)right);
 }
 
-wstring PStringString(void* item)
+std::wstring PStringString(void* item)
 {
-	return **(wstring**)item;
+	return **(std::wstring**)item;
 }
 
-Type GetPStringType()
+type GetPStringType()
 {
-	Type type;
+	type type;
 	type.Compare = PStringCompare;
 	type.Free = IndirectDelete;
-	type.Size = sizeof(wstring*);
+	type.Size = sizeof(std::wstring*);
 	type.ToString = PStringString;
 	return type;
 }
@@ -60,16 +62,16 @@ int LongCompare(void* left, void* right)
 	return *(long*)left - *(long*)right;
 }
 
-wstring LongString(void* item)
+std::wstring LongString(void* item)
 {
 	wstringstream result;
 	result << *(long*)item;
 	return result.str();
 }
 
-Type GetLongType()
+type GetLongType()
 {
-	Type type;
+	type type;
 	type.Compare = LongCompare;
 	type.Free = NULL;
 	type.Size = sizeof(long);
@@ -84,16 +86,16 @@ int IntCompare(void* left, void* right)
 	return *(int*)left - *(int*)right;
 }
 
-wstring IntString(void* item)
+std::wstring IntString(void* item)
 {
 	wstringstream result;
 	result << *(int*)item;
 	return result.str();
 }
 
-Type GetIntType()
+type GetIntType()
 {
-	Type type;
+	type type;
 	type.Compare = IntCompare;
 	type.Free = NULL;
 	type.Size = sizeof(int);
@@ -108,16 +110,16 @@ int PLongCompare(void* left, void* right)
 	return *(long*)left - *(long*)right;
 }
 
-wstring PLongString(void* item)
+std::wstring PLongString(void* item)
 {
 	wstringstream mystream;
     mystream << **(long**)item;
 	return mystream.str();
 }
 
-Type GetPLongType()
+type GetPLongType()
 {
-	Type type;
+	type type;
 	type.Compare = PLongCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(long*);

@@ -1,12 +1,13 @@
 #include "KeyTree.h"
 #include <EASTL\string.h>
+#include "Schema\type.h"
 #include <sstream>
 
 using namespace std;
 
 //Tree
 
-KeyTree::KeyTree(Type keyType) : 
+KeyTree::KeyTree(type keyType) : 
 	_keyType(keyType),
 	_BranchCapacity(DefaultKeyBranchCapacity), 
 	_LeafCapacity(DefaultKeyLeafCapacity)
@@ -46,16 +47,6 @@ int KeyTree::getBranchCapacity()
 int KeyTree::getLeafCapacity()
 {
 	return _LeafCapacity;
-}
-
-void KeyTree::DoValuesMoved(KeyLeaf& newKeyLeaf)
-{
-	if (_valuesMovedCallback != NULL)
-	{
-		KeyLeaf::iterator end = newKeyLeaf.keyEnd();
-		for (KeyLeaf::iterator i = newKeyLeaf.keyBegin(); i != end; i++)
-			_valuesMovedCallback(*i, newKeyLeaf);
-	}
 }
 
 wstring KeyTree::ToString()
@@ -113,7 +104,7 @@ KeyBranch::KeyBranch(KeyTree* tree, IKeyNode* left, IKeyNode* right, void* key) 
 KeyInsertResult KeyBranch::Insert(void* key, KeyLeaf** leaf)
 {
 	int index = IndexOf(key);
-	KeyInsertResult result = _children[index]->Insert(key,  leaf);
+	KeyInsertResult result = _children[index]->Insert(key, leaf);
 
 	if (result.split != NULL)
 	{
@@ -250,8 +241,6 @@ KeyInsertResult KeyLeaf::Insert(void* key, KeyLeaf** leaf)
 			result.found = InternalInsert(index, key,  leaf);
 		else
 			result.found = node->InternalInsert(index - _count, key,  leaf);
-
-		_tree->DoValuesMoved(*node);
 
 		KeySplit* split = new KeySplit();
 		split->key = &node->_keys[0];

@@ -3,7 +3,7 @@
 #include <functional>
 #include <iterator>
 #include "optional.h"
-#include "Schema/type.h"
+#include "Schema\type.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ class IKeyNode
 	public:
 		virtual ~IKeyNode() {}
 		virtual KeyInsertResult Insert(void* key, KeyLeaf** KeyLeaf) = 0;
-		virtual wstring ToString() = 0;
+		virtual std::wstring ToString() = 0;
 };
 
 struct KeySplit
@@ -33,35 +33,28 @@ struct KeySplit
 	IKeyNode* right;
 };
 
-typedef void (*valuesMovedHandler)(void* value, KeyLeaf& newKeyLeaf);
-
+//TODO: Tree iterator for all keys in KeyTree
 class KeyTree
 {
 	public:
-		KeyTree(Type keyType);
+		KeyTree(type keyType);
 		~KeyTree();
 
 		bool Insert(void* key, KeyLeaf** leaf);
 
-		wstring ToString();
+		 std::wstring ToString();
 
 		void setCapacity(int BranchCapacity, int LeafCapacity);
 		int getBranchCapacity();
 		int getLeafCapacity();
 
-		void setValuesMovedCallback(valuesMovedHandler callback);
-		valuesMovedHandler getValuesMovedCallback();
-
 	private:
 		IKeyNode* _root;
-
-		void DoValuesMoved(KeyLeaf& newKeyLeaf);
-		valuesMovedHandler _valuesMovedCallback;
 
 		int _BranchCapacity;
 		int _LeafCapacity;
 
-		Type _keyType;
+		type _keyType;
 
 	friend class KeyLeaf;
 	friend class KeyBranch;
@@ -82,41 +75,7 @@ class KeyLeaf: public IKeyNode
 
 		KeyInsertResult Insert(void* key, KeyLeaf** leaf);	
 		void* GetKey(function<bool(void*)>);
-		wstring ToString();
-
-		class iterator : public std::iterator<input_iterator_tag, void*>
-		{
-				char* _item;
-				int _size;
-				iterator(char* item, int size) : _item(item), _size(size) {}
-			public:
-				iterator(const iterator& iter) : _item(iter._item) {}
-				iterator& operator++() 
-				{
-					_item += _size; 
-					return *this;
-				}
-				iterator operator++(int)
-				{
-					iterator tmp(*this); 
-					operator++(); 
-					return tmp;
-				}
-				bool operator==(const iterator& rhs) {return _item==rhs._item;}
-				bool operator!=(const iterator& rhs) {return _item!=rhs._item;}
-				void* operator*() { return _item;}
-			friend class KeyLeaf;
-		};
-
-		iterator keyBegin()
-		{
-			return iterator(_keys, _tree->_keyType.Size);
-		}
-
-		iterator keyEnd()
-		{
-			return iterator(_keys + _tree->_keyType.Size * _count, _tree->_keyType.Size);
-		}
+		std::wstring ToString();
 };
 
 class KeyBranch : public IKeyNode
@@ -127,7 +86,7 @@ class KeyBranch : public IKeyNode
 		~KeyBranch();
 
 		KeyInsertResult Insert(void* key, KeyLeaf** leaf);
-		wstring ToString();		
+		std::wstring ToString();		
 
 	private:
 		int _count;
