@@ -6,11 +6,10 @@ using namespace std;
 
 //Tree
 
-BTree::BTree(type keyType, type valueType, IObserver* observer) : 
+BTree::BTree(Type keyType, Type valueType) : 
 	_keyType(keyType), _valueType(valueType), 
 	_branchCapacity(DefaultBranchCapacity), 
-	_leafCapacity(DefaultLeafCapacity), 
-	_observer(observer)
+	_leafCapacity(DefaultLeafCapacity)
 {
 	_root = new Leaf(this);
 }
@@ -49,10 +48,14 @@ int BTree::getLeafCapacity()
 	return _leafCapacity;
 }
 
-void BTree::DoValuesMoved(Leaf* leaf)
+void BTree::DoValuesMoved(Leaf& newLeaf)
 {
-	if (_observer != NULL)
-		_observer->ValuesMoved(leaf);
+	if (_valuesMovedCallback != NULL)
+	{
+		Leaf::iterator end = newLeaf.valueEnd();
+		for (Leaf::iterator i = newLeaf.valueBegin(); i != end; i++)
+			_valuesMovedCallback(*i, newLeaf);
+	}
 }
 
 wstring BTree::ToString()
@@ -259,7 +262,7 @@ InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 		else
 			result.found = node->InternalInsert(index - _count, key, value, leaf);
 
-		_tree->DoValuesMoved(node);
+		_tree->DoValuesMoved(*node);
 
 		Split* split = new Split();
 		split->key = &node->_keys[0];

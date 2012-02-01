@@ -1,6 +1,7 @@
 #pragma once
 #include <EASTL\string.h>
 #include <functional>
+#include <iterator>
 #include "optional.h"
 #include "BTreeObserver.h"
 #include "Schema/type.h"
@@ -33,27 +34,36 @@ struct Split
 	INode* right;
 };
 
+typedef void (*valuesMovedHandler)(void* value, Leaf& newLeaf);
+
 class BTree
 {
 	public:
-		BTree(type keyType, type valueType, IObserver* observer = NULL);
+		BTree(Type keyType, Type valueType);
 		~BTree();
 
 		void* Insert(void* key, void* value, Leaf** leaf);
+
 		wstring ToString();
+
 		void setCapacity(int branchCapacity, int leafCapacity);
 		int getBranchCapacity();
 		int getLeafCapacity();
 
+		void setValuesMovedCallback(valuesMovedHandler callback);
+		valuesMovedHandler getValuesMovedCallback();
+
 	private:
 		INode* _root;
-		void DoValuesMoved(Leaf*);
+
+		void DoValuesMoved(Leaf& newLeaf);
+		valuesMovedHandler _valuesMovedCallback;
 
 		int _branchCapacity;
 		int _leafCapacity;
-		type _keyType;
-		type _valueType;
-		IObserver* _observer;
+
+		Type _keyType;
+		Type _valueType;
 
 	friend class Leaf;
 	friend class Branch;
@@ -61,6 +71,14 @@ class BTree
 
 class Leaf: public INode
 {
+		int _count;
+		BTree* _tree;
+		char* _keys;
+		char* _values;
+
+		int IndexOf(void* key);
+		void* InternalInsert(int index, void* key, void* value, Leaf** leaf);
+
 	public:
 		Leaf(BTree* tree);
 		~Leaf();
@@ -69,14 +87,39 @@ class Leaf: public INode
 		void* GetKey(function<bool(void*)>);
 		wstring ToString();
 
-	private:
-		int _count;
-		BTree* _tree;
-		char* _keys;
-		char* _values;
+		class iterator : public std::iterator<input_iterator_tag, void*>
+		{
+				char* _item;
+				int _size;
+				iterator(char* item, int size) : _item(item), _size(size) {}
+			public:
+				iterator(const iterator& iter) : _item(iter._item) {}
+				iterator& operator++() 
+				{
+					_item += _size; 
+					return *this;
+				}
+				iterator operator++(int)
+				{
+					iterator tmp(*this); 
+					operator++(); 
+					return tmp;
+				}
+				bool operator==(const iterator& rhs) {return _item==rhs._item;}
+				bool operator!=(const iterator& rhs) {return _item!=rhs._item;}
+				void* operator*() { return _item;}
+			friend class Leaf;
+		};
 
-		int IndexOf(void* key);
-		void* InternalInsert(int index, void* key, void* value, Leaf** leaf);
+		iterator valueBegin()
+		{
+			return iterator(_values, _tree->_valueType.Size);
+		}
+
+		iterator valueEnd()
+		{
+			return iterator(_values + _tree->_valueType.Size * _count, _tree->_valueType.Size);
+		}
 };
 
 class Branch : public INode

@@ -21,9 +21,9 @@ wstring StringString(void* item)
 	return *(wstring*)item;
 }
 
-type GetStringType()
+Type GetStringType()
 {
-	type type;
+	Type type;
 	type.Compare = StringCompare;
 	type.Free = NULL;
 	type.Size = sizeof(wstring);
@@ -43,9 +43,9 @@ wstring PStringString(void* item)
 	return **(wstring**)item;
 }
 
-type GetPStringType()
+Type GetPStringType()
 {
-	type type;
+	Type type;
 	type.Compare = PStringCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(wstring*);
@@ -67,9 +67,9 @@ wstring LongString(void* item)
 	return result.str();
 }
 
-type GetLongType()
+Type GetLongType()
 {
-	type type;
+	Type type;
 	type.Compare = LongCompare;
 	type.Free = NULL;
 	type.Size = sizeof(long);
@@ -91,9 +91,9 @@ wstring IntString(void* item)
 	return result.str();
 }
 
-type GetIntType()
+Type GetIntType()
 {
-	type type;
+	Type type;
 	type.Compare = IntCompare;
 	type.Free = NULL;
 	type.Size = sizeof(int);
@@ -115,9 +115,9 @@ wstring PLongString(void* item)
 	return mystream.str();
 }
 
-type GetPLongType()
+Type GetPLongType()
 {
-	type type;
+	Type type;
 	type.Compare = PLongCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(long*);
