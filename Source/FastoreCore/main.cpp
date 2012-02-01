@@ -7,9 +7,12 @@
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
 
+#include "EAHashTest.h"
+#include "STDHashTest.h"
+
 using namespace std;
 
-wstring RandomString(int length)
+std::wstring RandomString(int length)
 {
 	const wchar_t* _chars = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -40,12 +43,12 @@ void StringTest()
 	Leaf* dummy2;
 	for(int i = 0; i < numrows; i++)
 	{
-		wstring insert = RandomString(rand() % 8 + 1);	
+		std::wstring insert = RandomString(rand() % 8 + 1);	
 		watch->StartTimer();
 		tree.Insert(&insert, &insert, &dummy);	
 		watch->StopTimer();
 
-		wstring* insert2 = new wstring(insert);
+		std::wstring* insert2 = new std::wstring(insert);
 		watch2->StartTimer();
 		tree2.Insert(&insert2, &insert2, &dummy2);
 		watch2->StopTimer();
@@ -140,6 +143,16 @@ void SequentialIntTest()
 	cout << "Rows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
+}
+
+void HashTests()
+{	
+	STDHashTest test2;
+	EAHashTest test1;
+
+	test2.RunTest();
+	test1.RunTest();
+
 }
 
 void GuidTest()
@@ -265,12 +278,13 @@ void ArrayCopyTest()
 
 void main()
 {
-	QueueingMutexTest();
+	HashTests();
+	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
 	//SequentialIntTest();
 	//SequentialPLongTest();
-	InterlockedTest();
+	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
 	//ColumnHashTest();

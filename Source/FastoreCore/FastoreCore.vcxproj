@@ -94,18 +94,17 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalOptions>/MD /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>hoard\winhoard.lib;tbb\lib\ia32\vc10\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>tbb\lib\ia32\vc10\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)
-copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
-      <Outputs>winhoard.dll;tbb_debug.dll;%(Outputs)</Outputs>
+      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,7 +141,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/MD /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions> /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -150,14 +149,13 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>hoard\winhoard.lib;tbb\lib\ia32\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>tbb\lib\ia32\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)
-copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>winhoard.dll;tbb.dll;%(Outputs)</Outputs>
+      <Outputs>tbb.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -196,7 +194,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClCompile Include="EASTL\source\hashtable.cpp" />
     <ClCompile Include="EASTL\source\red_black_tree.cpp" />
     <ClCompile Include="EASTL\source\string.cpp" />
-    <ClCompile Include="Hoard\usewinhoard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
@@ -206,9 +203,11 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="BTree.h" />
     <ClInclude Include="BTreeObserver.h" />
     <ClInclude Include="ColumnHash.h" />
+    <ClInclude Include="EAHashTest.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Schema\standardtypes.h" />
     <ClInclude Include="Schema\type.h" />
+    <ClInclude Include="STDHashTest.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
   </ItemGroup>
