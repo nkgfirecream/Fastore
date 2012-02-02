@@ -1,9 +1,9 @@
 #pragma once
-#include <EASTL\string.h>
+#include "Schema\type.h"
+#include "Schema\typedefs.h"
 #include <functional>
 #include "optional.h"
 #include "BTreeObserver.h"
-#include "Schema\type.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ class INode
 	public:
 		virtual ~INode() {}
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
-		virtual std::wstring ToString() = 0;
+		virtual fstring ToString() = 0;
 };
 
 struct Split
@@ -40,7 +40,7 @@ class BTree
 		~BTree();
 
 		void* Insert(void* key, void* value, Leaf** leaf);
-		std::wstring ToString();
+		fstring ToString();
 		void setCapacity(int branchCapacity, int leafCapacity);
 		int getBranchCapacity();
 		int getLeafCapacity();
@@ -67,7 +67,7 @@ class Leaf: public INode
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
 		void* GetKey(function<bool(void*)>);
-		std::wstring ToString();
+		fstring ToString();
 
 	private:
 		int _count;
@@ -87,7 +87,7 @@ class Branch : public INode
 		~Branch();
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
-		std::wstring ToString();		
+		fstring ToString();		
 
 	private:
 		int _count;

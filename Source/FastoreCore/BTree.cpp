@@ -1,5 +1,5 @@
 #include "BTree.h"
-#include <EASTL\string.h>
+#include "Schema\typedefs.h"
 #include <sstream>
 
 using namespace std;
@@ -55,7 +55,7 @@ void BTree::DoValuesMoved(Leaf* leaf)
 		_observer->ValuesMoved(leaf);
 }
 
-wstring BTree::ToString()
+fstring BTree::ToString()
 {
 	return _root->ToString();
 }
@@ -191,7 +191,7 @@ int Branch::IndexOf(void* key)
         return lo;
 }
 
-wstring Branch::ToString()
+fstring Branch::ToString()
 {
 	wstringstream result;
 
@@ -321,7 +321,7 @@ int Leaf::IndexOf(void* key)
         return lo;
 }
 
-wstring Leaf::ToString()
+fstring Leaf::ToString()
 {
 	wstringstream result;
 	result << "\n{";

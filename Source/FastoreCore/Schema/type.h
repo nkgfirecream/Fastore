@@ -1,14 +1,15 @@
 #pragma once
 
 #include <EASTL\string.h>
+#include "Schema\typedefs.h"
 
-using namespace std;
+using namespace eastl;
 
 // The physical representation of a scalar type
 struct type
 {
 	size_t Size;
 	int (*Compare)(void* left, void* right);
-	std::wstring (*ToString)(void* item);
+	fstring (*ToString)(void* item);
 	void (*Free)(void* );
 };

@@ -1,9 +1,9 @@
 #pragma once
-#include <EASTL\string.h>
+#include "Schema\type.h"
+#include "Schema\typedefs.h"
 #include <functional>
 #include <iterator>
 #include "optional.h"
-#include "Schema\type.h"
 
 using namespace std;
 
@@ -24,7 +24,7 @@ class IKeyNode
 	public:
 		virtual ~IKeyNode() {}
 		virtual KeyInsertResult Insert(void* key, KeyLeaf** KeyLeaf) = 0;
-		virtual std::wstring ToString() = 0;
+		virtual fstring ToString() = 0;
 };
 
 struct KeySplit
@@ -42,7 +42,7 @@ class KeyTree
 
 		bool Insert(void* key, KeyLeaf** leaf);
 
-		 std::wstring ToString();
+		fstring ToString();
 
 		void setCapacity(int BranchCapacity, int LeafCapacity);
 		int getBranchCapacity();
@@ -75,7 +75,7 @@ class KeyLeaf: public IKeyNode
 
 		KeyInsertResult Insert(void* key, KeyLeaf** leaf);	
 		void* GetKey(function<bool(void*)>);
-		std::wstring ToString();
+		fstring ToString();
 };
 
 class KeyBranch : public IKeyNode
@@ -86,7 +86,7 @@ class KeyBranch : public IKeyNode
 		~KeyBranch();
 
 		KeyInsertResult Insert(void* key, KeyLeaf** leaf);
-		std::wstring ToString();		
+		fstring ToString();		
 
 	private:
 		int _count;

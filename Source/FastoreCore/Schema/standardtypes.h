@@ -2,7 +2,8 @@
 
 #include <sstream>
 #include <string.h>
-#include "Schema/type.h"
+#include "Schema\type.h"
+#include "Schema\typedefs.h"
 
 using namespace std;
 
@@ -15,12 +16,12 @@ void IndirectDelete(void* item)
 
 int StringCompare(void* left, void* right)
 {
-	return ((std::wstring*)left)->compare(*(std::wstring*)right);
+	return ((fstring*)left)->compare(*(fstring*)right);
 }
 
-std::wstring StringString(void* item)
+fstring StringString(void* item)
 {
-	return *(std::wstring*)item;
+	return *(fstring*)item;
 }
 
 type GetStringType()
@@ -37,12 +38,12 @@ type GetStringType()
 
 int PStringCompare(void* left, void* right)
 {
-	return (*(std::wstring**)left)->compare(**(std::wstring**)right);
+	return (*(fstring**)left)->compare(**(fstring**)right);
 }
 
-std::wstring PStringString(void* item)
+fstring PStringString(void* item)
 {
-	return **(std::wstring**)item;
+	return **(fstring**)item;
 }
 
 type GetPStringType()
@@ -50,7 +51,7 @@ type GetPStringType()
 	type type;
 	type.Compare = PStringCompare;
 	type.Free = IndirectDelete;
-	type.Size = sizeof(std::wstring*);
+	type.Size = sizeof(fstring*);
 	type.ToString = PStringString;
 	return type;
 }
@@ -62,7 +63,7 @@ int LongCompare(void* left, void* right)
 	return *(long*)left - *(long*)right;
 }
 
-std::wstring LongString(void* item)
+fstring LongString(void* item)
 {
 	wstringstream result;
 	result << *(long*)item;
@@ -86,7 +87,7 @@ int IntCompare(void* left, void* right)
 	return *(int*)left - *(int*)right;
 }
 
-std::wstring IntString(void* item)
+fstring IntString(void* item)
 {
 	wstringstream result;
 	result << *(int*)item;
@@ -110,7 +111,7 @@ int PLongCompare(void* left, void* right)
 	return *(long*)left - *(long*)right;
 }
 
-std::wstring PLongString(void* item)
+fstring PLongString(void* item)
 {
 	wstringstream mystream;
     mystream << **(long**)item;

@@ -1,6 +1,6 @@
 #include "KeyTree.h"
-#include <EASTL\string.h>
 #include "Schema\type.h"
+#include "Schema\typedefs.h"
 #include <sstream>
 
 using namespace std;
@@ -49,7 +49,7 @@ int KeyTree::getLeafCapacity()
 	return _LeafCapacity;
 }
 
-wstring KeyTree::ToString()
+fstring KeyTree::ToString()
 {
 	return _root->ToString();
 }
@@ -185,7 +185,7 @@ int KeyBranch::IndexOf(void* key)
         return lo;
 }
 
-wstring KeyBranch::ToString()
+fstring KeyBranch::ToString()
 {
 	wstringstream result;
 
@@ -300,7 +300,7 @@ int KeyLeaf::IndexOf(void* key)
         return lo;
 }
 
-wstring KeyLeaf::ToString()
+fstring KeyLeaf::ToString()
 {
 	wstringstream result;
 	result << "\n{";
