@@ -16,12 +16,12 @@ void IndirectDelete(void* item)
 
 int StringCompare(void* left, void* right)
 {
-	return ((fstring*)left)->compare(*(fstring*)right);
+	return ((fs::wstring*)left)->compare(*(fs::wstring*)right);
 }
 
-fstring StringString(void* item)
+fs::wstring StringString(void* item)
 {
-	return *(fstring*)item;
+	return *(fs::wstring*)item;
 }
 
 Type GetStringType()
@@ -38,12 +38,12 @@ Type GetStringType()
 
 int PStringCompare(void* left, void* right)
 {
-	return (*(fstring**)left)->compare(**(fstring**)right);
+	return (*(fs::wstring**)left)->compare(**(fs::wstring**)right);
 }
 
-fstring PStringString(void* item)
+fs::wstring PStringString(void* item)
 {
-	return **(fstring**)item;
+	return **(fs::wstring**)item;
 }
 
 Type GetPStringType()
@@ -51,7 +51,7 @@ Type GetPStringType()
 	Type type;
 	type.Compare = PStringCompare;
 	type.Free = IndirectDelete;
-	type.Size = sizeof(fstring*);
+	type.Size = sizeof(fs::wstring*);
 	type.ToString = PStringString;
 	return type;
 }
@@ -63,7 +63,7 @@ int LongCompare(void* left, void* right)
 	return *(long*)left - *(long*)right;
 }
 
-fstring LongString(void* item)
+fs::wstring LongString(void* item)
 {
 	wstringstream result;
 	result << *(long*)item;
@@ -87,7 +87,7 @@ int IntCompare(void* left, void* right)
 	return *(int*)left - *(int*)right;
 }
 
-fstring IntString(void* item)
+fs::wstring IntString(void* item)
 {
 	wstringstream result;
 	result << *(int*)item;
@@ -111,7 +111,7 @@ int PLongCompare(void* left, void* right)
 	return *(long*)left - *(long*)right;
 }
 
-fstring PLongString(void* item)
+fs::wstring PLongString(void* item)
 {
 	wstringstream mystream;
     mystream << **(long**)item;
@@ -128,13 +128,3 @@ Type GetPLongType()
 	return type;
 }
 
-// HashSet type -- Can't be used as a keytype.
-Type GetHashSetType()
-{
-	Type type;
-	type.Compare = NULL;
-	type.Free = IndirectDelete;
-	type.Size = sizeof(ColumnHashSet*);
-	type.ToString = NULL;
-	return type;
-}

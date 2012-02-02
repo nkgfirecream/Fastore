@@ -8,6 +8,18 @@
 
 using namespace eastl;
 
+typedef eastl::hash_set<void*> ColumnHashSet;
+typedef eastl::hash_set<void*>::const_iterator ColumnHashSetConstIterator;
+typedef eastl::hash_map<void*, Leaf&> ColumnHashMap;
+typedef eastl::hash_map<void*, Leaf&>::iterator ColumnHashMapIterator;
+typedef eastl::pair <void*, Leaf&> ValueLeafPair;
+
+struct GetResult
+{
+	bool Limited;
+	eastl::vector<eastl::pair<void*,void*>> Data;
+};
+
 class ColumnHash
 {
 	public:
@@ -25,6 +37,17 @@ class ColumnHash
 		ColumnHashMap* _rows;
 		BTree* _values;
 };
+
+// HashSet type -- Can't be used as a keytype.
+Type GetHashSetType()
+{
+	Type type;
+	type.Compare = NULL;
+	type.Free = IndirectDelete;
+	type.Size = sizeof(ColumnHashSet*);
+	type.ToString = NULL;
+	return type;
+}
 
 inline ColumnHash::ColumnHash(const Type rowType, const Type valueType)
 {

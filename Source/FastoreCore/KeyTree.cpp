@@ -49,7 +49,7 @@ int KeyTree::getLeafCapacity()
 	return _LeafCapacity;
 }
 
-fstring KeyTree::ToString()
+fs::wstring KeyTree::ToString()
 {
 	return _root->ToString();
 }
@@ -185,7 +185,7 @@ int KeyBranch::IndexOf(void* key)
         return lo;
 }
 
-fstring KeyBranch::ToString()
+fs::wstring KeyBranch::ToString()
 {
 	wstringstream result;
 
@@ -300,7 +300,7 @@ int KeyLeaf::IndexOf(void* key)
         return lo;
 }
 
-fstring KeyLeaf::ToString()
+fs::wstring KeyLeaf::ToString()
 {
 	wstringstream result;
 	result << "\n{";

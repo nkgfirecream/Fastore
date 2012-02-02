@@ -58,7 +58,7 @@ void BTree::DoValuesMoved(Leaf& newLeaf)
 	}
 }
 
-fstring BTree::ToString()
+fs::wstring BTree::ToString()
 {
 	return _root->ToString();
 }
@@ -194,7 +194,7 @@ int Branch::IndexOf(void* key)
         return lo;
 }
 
-fstring Branch::ToString()
+fs::wstring Branch::ToString()
 {
 	wstringstream result;
 
@@ -324,7 +324,7 @@ int Leaf::IndexOf(void* key)
         return lo;
 }
 
-fstring Leaf::ToString()
+fs::wstring Leaf::ToString()
 {
 	wstringstream result;
 	result << "\n{";

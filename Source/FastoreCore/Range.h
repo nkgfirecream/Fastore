@@ -4,7 +4,7 @@
 
 struct RangeBound
 {
-	RangeBound(void* value, optional<void*> rowId, bool inclusive) :
+	RangeBound(void* value = NULL, optional<void*> rowId = NULL, bool inclusive = true) :
 		Value(value), RowId(rowId), Inclusive(inclusive) {}
 		
 	void* Value;
@@ -24,10 +24,4 @@ struct Range
 
 	optional<RangeBound> Start;
 	optional<RangeBound> End;
-};
-
-struct GetResult
-{
-	bool Limited;
-	eastl::vector<eastl::pair<void*,void*>> Data;
 };

@@ -24,7 +24,7 @@ class IKeyNode
 	public:
 		virtual ~IKeyNode() {}
 		virtual KeyInsertResult Insert(void* key, KeyLeaf** KeyLeaf) = 0;
-		virtual fstring ToString() = 0;
+		virtual fs::wstring ToString() = 0;
 };
 
 struct KeySplit
@@ -42,7 +42,7 @@ class KeyTree
 
 		bool Insert(void* key, KeyLeaf** leaf);
 
-		fstring ToString();
+		fs::wstring ToString();
 
 		void setCapacity(int BranchCapacity, int LeafCapacity);
 		int getBranchCapacity();
@@ -75,7 +75,7 @@ class KeyLeaf: public IKeyNode
 
 		KeyInsertResult Insert(void* key, KeyLeaf** leaf);	
 		void* GetKey(function<bool(void*)>);
-		fstring ToString();
+		fs::wstring ToString();
 };
 
 class KeyBranch : public IKeyNode
@@ -86,7 +86,7 @@ class KeyBranch : public IKeyNode
 		~KeyBranch();
 
 		KeyInsertResult Insert(void* key, KeyLeaf** leaf);
-		fstring ToString();		
+		fs::wstring ToString();		
 
 	private:
 		int _count;

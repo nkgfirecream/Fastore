@@ -23,7 +23,7 @@ class INode
 	public:
 		virtual ~INode() {}
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
-		virtual fstring ToString() = 0;
+		virtual fs::wstring ToString() = 0;
 };
 
 struct Split
@@ -41,7 +41,7 @@ class BTree
 		~BTree();
 
 		void* Insert(void* key, void* value, Leaf** leaf);
-		fstring ToString();
+		fs::wstring ToString();
 		void setCapacity(int branchCapacity, int leafCapacity);
 		int getBranchCapacity();
 		int getLeafCapacity();
@@ -81,7 +81,7 @@ class Leaf: public INode
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
 		void* GetKey(function<bool(void*)>);
-		fstring ToString();
+		fs::wstring ToString();
 
 		class iterator : public std::iterator<input_iterator_tag, void*>
 		{
@@ -126,7 +126,7 @@ class Branch : public INode
 		~Branch();
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
-		fstring ToString();		
+		fs::wstring ToString();		
 
 	private:
 		int _count;
