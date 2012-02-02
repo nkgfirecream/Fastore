@@ -32,7 +32,7 @@ struct Split
 	INode* right;
 };
 
-typedef void (*valuesMovedHandler)(void* value, Leaf& newLeaf);
+typedef function<void(void*,Leaf&)> valuesMovedHandler;
 
 class BTree
 {

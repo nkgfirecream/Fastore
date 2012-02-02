@@ -4,7 +4,7 @@
 #include "Schema\standardtypes.h"
 #include "BTree.h"
 #include "BTreeObserver.h"
-
+#include "Range.h"
 
 using namespace eastl;
 
@@ -17,9 +17,10 @@ class ColumnHash
 		void* Exclude(void* value, void* rowID);
 		// TODO: what should updatevalue return?  All the row IDs?
 		void UpdateValue(void* oldValue, void* newValue);
+		GetResult GetRows(Range);
 
 	private:
-		void ValuesMoved(void* value, Leaf** newLeaf);
+		void ValuesMoved(void*,Leaf&);
 		Type _rowType;
 		ColumnHashMap* _rows;
 		BTree* _values;
@@ -28,9 +29,13 @@ class ColumnHash
 inline ColumnHash::ColumnHash(const Type rowType, const Type valueType)
 {
 	_rowType = rowType;
-	_values = new BTree(valueType, GetHashSetType());
-
 	_rows = new ColumnHashMap();
+	_values = new BTree(valueType, GetHashSetType());
+	_values->setValuesMovedCallback(
+		[this](void* value, Leaf& newLeaf) -> void
+		{
+			this->ValuesMoved(value, newLeaf);
+		});
 }
 
 inline void* ColumnHash::GetValue(void* value)
@@ -40,8 +45,8 @@ inline void* ColumnHash::GetValue(void* value)
 	
 	if (iterator != _rows->end())
 	{
-		Leaf** leaf = iterator->second;
-		return (*leaf)->GetKey(
+		Leaf& leaf = iterator->second;
+		return leaf.GetKey(
 			[value](void* hash) -> bool
 			{
 				ColumnHashSet* newrows = (ColumnHashSet*)hash;
@@ -65,7 +70,7 @@ inline void* ColumnHash::Include(void* value, void* rowId)
 	//TODO: Correct Return types (undo information)
 	if (newrows->insert(rowId).second)
 	{
-		_rows->insert(ValueLeafPair (rowId, valueLeaf));
+		_rows->insert(ValueLeafPair (rowId, **valueLeaf));
 		return NULL;
 	}
 	else
@@ -89,15 +94,15 @@ inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
 	if (existing != NULL)
 	{
 		//merge old and new
-		ColumnHashSet* existingValues = (eastl::hash_set<void*>*)existing;
+		ColumnHashSet* existingValues = (ColumnHashSet*)existing;
 
 		ColumnHashSetConstIterator iterator;
 		iterator = valuesToMove->begin();
 
-		while (iterator !=  valuesToMove->end())
+		while (iterator != valuesToMove->end())
 		{
 			existingValues->insert(*iterator);
-			ValuesMoved(*iterator, valueLeaf);
+			ValuesMoved(*iterator, **valueLeaf);
 		}
 	}
 	else
@@ -105,14 +110,19 @@ inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
 		ColumnHashSetConstIterator iterator;
 		iterator = valuesToMove->begin();
 
-		while (iterator !=  valuesToMove->end())
+		while (iterator != valuesToMove->end())
 		{
-			ValuesMoved(*iterator, valueLeaf);
+			ValuesMoved(*iterator, **valueLeaf);
 		}
 	}
 }
 
-inline void ColumnHash::ValuesMoved(void* value, Leaf** leaf)
+inline void ColumnHash::ValuesMoved(void* value, Leaf& leaf)
 {
 	_rows->find(value)->second = leaf;
+}
+
+inline GetResult ColumnHash::GetRows(Range range)
+{
+
 }

@@ -207,6 +207,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="EAHashTest.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
+    <ClInclude Include="Range.h" />
     <ClInclude Include="Schema\standardtypes.h" />
     <ClInclude Include="Schema\type.h" />
     <ClInclude Include="Schema\typedefs.h" />
