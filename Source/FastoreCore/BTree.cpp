@@ -6,7 +6,7 @@ using namespace std;
 
 //Tree
 
-BTree::BTree(type keyType, type valueType, IObserver* observer) : 
+BTree::BTree(Type keyType, Type valueType, IObserver* observer) : 
 	_keyType(keyType), _valueType(valueType), 
 	_branchCapacity(DefaultBranchCapacity), 
 	_leafCapacity(DefaultLeafCapacity), 

@@ -24,9 +24,9 @@ fstring StringString(void* item)
 	return *(fstring*)item;
 }
 
-type GetStringType()
+Type GetStringType()
 {
-	type type;
+	Type type;
 	type.Compare = StringCompare;
 	type.Free = NULL;
 	type.Size = sizeof(std::wstring);
@@ -46,9 +46,9 @@ fstring PStringString(void* item)
 	return **(fstring**)item;
 }
 
-type GetPStringType()
+Type GetPStringType()
 {
-	type type;
+	Type type;
 	type.Compare = PStringCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(fstring*);
@@ -70,9 +70,9 @@ fstring LongString(void* item)
 	return result.str();
 }
 
-type GetLongType()
+Type GetLongType()
 {
-	type type;
+	Type type;
 	type.Compare = LongCompare;
 	type.Free = NULL;
 	type.Size = sizeof(long);
@@ -94,9 +94,9 @@ fstring IntString(void* item)
 	return result.str();
 }
 
-type GetIntType()
+Type GetIntType()
 {
-	type type;
+	Type type;
 	type.Compare = IntCompare;
 	type.Free = NULL;
 	type.Size = sizeof(int);
@@ -118,12 +118,23 @@ fstring PLongString(void* item)
 	return mystream.str();
 }
 
-type GetPLongType()
+Type GetPLongType()
 {
-	type type;
+	Type type;
 	type.Compare = PLongCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(long*);
 	type.ToString = PLongString;
+	return type;
+}
+
+// HashSet type -- Can't be used as a keytype.
+Type GetHashSetType()
+{
+	Type type;
+	type.Compare = NULL;
+	type.Free = IndirectDelete;
+	type.Size = sizeof(ColumnHashSet*);
+	type.ToString = NULL;
 	return type;
 }

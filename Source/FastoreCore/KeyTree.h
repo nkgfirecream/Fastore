@@ -37,7 +37,7 @@ struct KeySplit
 class KeyTree
 {
 	public:
-		KeyTree(type keyType);
+		KeyTree(Type keyType);
 		~KeyTree();
 
 		bool Insert(void* key, KeyLeaf** leaf);
@@ -54,7 +54,7 @@ class KeyTree
 		int _BranchCapacity;
 		int _LeafCapacity;
 
-		type _keyType;
+		Type _keyType;
 
 	friend class KeyLeaf;
 	friend class KeyBranch;

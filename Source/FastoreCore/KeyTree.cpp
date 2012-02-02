@@ -7,7 +7,7 @@ using namespace std;
 
 //Tree
 
-KeyTree::KeyTree(type keyType) : 
+KeyTree::KeyTree(Type keyType) : 
 	_keyType(keyType),
 	_BranchCapacity(DefaultKeyBranchCapacity), 
 	_LeafCapacity(DefaultKeyLeafCapacity)

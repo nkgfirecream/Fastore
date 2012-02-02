@@ -36,7 +36,7 @@ struct Split
 class BTree
 {
 	public:
-		BTree(type keyType, type valueType, IObserver* observer = NULL);
+		BTree(Type keyType, Type valueType, IObserver* observer = NULL);
 		~BTree();
 
 		void* Insert(void* key, void* value, Leaf** leaf);
@@ -51,8 +51,8 @@ class BTree
 
 		int _branchCapacity;
 		int _leafCapacity;
-		type _keyType;
-		type _valueType;
+		Type _keyType;
+		Type _valueType;
 		IObserver* _observer;
 
 	friend class Leaf;

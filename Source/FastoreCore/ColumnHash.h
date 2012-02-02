@@ -1,6 +1,7 @@
 #pragma once
 #include "Schema\type.h"
 #include "Schema\typedefs.h"
+#include "Schema\standardtypes.h"
 #include "BTree.h"
 #include "BTreeObserver.h"
 
@@ -10,7 +11,7 @@ using namespace eastl;
 class ColumnHash
 {
 	public:
-		ColumnHash(const type rowType, const type valueType);
+		ColumnHash(const Type rowType, const Type valueType);
 		void* GetValue(void* value);
 		void* Include(void* value, void* rowID);
 		void* Exclude(void* value, void* rowID);
@@ -19,19 +20,18 @@ class ColumnHash
 
 	private:
 		void ValuesMoved(void* value, Leaf** newLeaf);
+		Type _rowType;
 		ColumnHashMap* _rows;
 		BTree* _values;
 };
 
-
-inline ColumnHash::ColumnHash(const type rowType, const type valueType)
+inline ColumnHash::ColumnHash(const Type rowType, const Type valueType)
 {
-	//TODO: Hash of rowType
-	_values = new BTree(valueType, rowType);
+	_rowType = rowType;
+	_values = new BTree(valueType, GetHashSetType());
 
 	_rows = new ColumnHashMap();
 }
-
 
 inline void* ColumnHash::GetValue(void* value)
 {

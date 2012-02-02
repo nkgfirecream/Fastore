@@ -6,7 +6,7 @@
 using namespace eastl;
 
 // The physical representation of a scalar type
-struct type
+struct Type
 {
 	size_t Size;
 	int (*Compare)(void* left, void* right);
