@@ -5,6 +5,8 @@
 #include "BTree.h"
 #include "BTreeObserver.h"
 #include "Range.h"
+#include <EASTL\hash_set.h>
+#include <EASTL\hash_map.h>
 
 using namespace eastl;
 

@@ -36,6 +36,17 @@ struct KeySplit
 //TODO: Tree iterator for all keys in KeyTree
 class KeyTree
 {
+	private:
+		IKeyNode* _root;
+
+		int _BranchCapacity;
+		int _LeafCapacity;
+
+		Type _keyType;
+
+	friend class KeyLeaf;
+	friend class KeyBranch;
+
 	public:
 		KeyTree(Type keyType);
 		~KeyTree();
@@ -47,17 +58,6 @@ class KeyTree
 		void setCapacity(int BranchCapacity, int LeafCapacity);
 		int getBranchCapacity();
 		int getLeafCapacity();
-
-	private:
-		IKeyNode* _root;
-
-		int _BranchCapacity;
-		int _LeafCapacity;
-
-		Type _keyType;
-
-	friend class KeyLeaf;
-	friend class KeyBranch;
 };
 
 class KeyLeaf: public IKeyNode

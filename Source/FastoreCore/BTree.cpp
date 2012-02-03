@@ -1,5 +1,4 @@
 #include "BTree.h"
-#include "Schema\typedefs.h"
 #include <sstream>
 
 using namespace std;
@@ -65,9 +64,9 @@ fs::wstring BTree::ToString()
 
 //Branch
 
-Branch::Branch(BTree* tree)	: _tree(tree), _count(0)
+Branch::Branch(BTree* tree)	: Node(tree)
 {
-	_children = new INode*[_tree->_branchCapacity];
+	_children = new Node*[_tree->_branchCapacity];
 	try
 	{
 		_keys = new char[(_tree->_branchCapacity - 1) * _tree->_keyType.Size];
@@ -85,9 +84,9 @@ Branch::~Branch()
 	delete[] _keys;
 }
 
-Branch::Branch(BTree* tree, INode* left, INode* right, void* key) : _tree(tree), _count(1)
+Branch::Branch(BTree* tree, Node* left, Node* right, void* key) : Node(tree, 1)
 {
-	_children = new INode*[_tree->_branchCapacity];
+	_children = new Node*[_tree->_branchCapacity];
 	try
 	{
 		_children[0] = left;
@@ -124,7 +123,7 @@ InsertResult Branch::Insert(void* key, void* value, Leaf** leaf)
 	return result;
 }
 
-Split* Branch::InsertChild(int index, void* key, INode* child)
+Split* Branch::InsertChild(int index, void* key, Node* child)
 {
 	if (_count != _tree->_branchCapacity - 1)
 	{
@@ -137,7 +136,7 @@ Split* Branch::InsertChild(int index, void* key, INode* child)
 		Branch* node = new Branch(_tree);
 		node->_count = _count - mid;
 		memcpy(&node->_keys[0], &_keys[mid * _tree->_keyType.Size], node->_count * _tree->_keyType.Size);
-		memcpy(&node->_children[0], &_children[mid], (node->_count + 1) * sizeof(INode*));
+		memcpy(&node->_children[0], &_children[mid], (node->_count + 1) * sizeof(Node*));
 		
 		_count = mid - 1;
 
@@ -154,13 +153,13 @@ Split* Branch::InsertChild(int index, void* key, INode* child)
 	}
 }
 
-void Branch::InternalInsertChild(int index, void* key, INode* child)
+void Branch::InternalInsertChild(int index, void* key, Node* child)
 {
 	int size = _count - index;
 	if (_count != index)
 	{
 		memmove(&_keys[(index + 1) *_tree->_keyType.Size], &_keys[index * _tree->_keyType.Size],  size * _tree->_keyType.Size);
-		memmove(&_children[index + 2], &_children[index + 1],  size * sizeof(INode*));
+		memmove(&_children[index + 2], &_children[index + 1],  size * sizeof(Node*));
 	}
 
 	memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
@@ -216,7 +215,7 @@ fs::wstring Branch::ToString()
 
 //Leaf
 
-Leaf::Leaf(BTree* tree) : _tree(tree), _count(0)
+Leaf::Leaf(BTree* tree) : Node(tree)
 {
 	_keys = new char[tree->_leafCapacity * _tree->_keyType.Size];
 	try
@@ -355,3 +354,219 @@ void* Leaf::GetKey(function<bool(void*)> predicate)
 
 	return NULL;
 }
+
+
+void BTree::iterator::SeekToKey(void* value)
+{
+	_currentNode = _tree->_root;
+
+	Branch* _currentBranch;
+	Leaf* _currentLeaf;
+
+	_currentIndex = _currentNode->IndexOf(value);
+
+	_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+	while(_currentLeaf == NULL)
+	{
+		_currentBranch = dynamic_cast<Branch*>(_currentNode);
+
+		_path.push_back(PathNode(_currentNode, _currentIndex));
+
+		_currentNode = _currentBranch->_children[_currentIndex];
+		_currentIndex = _currentNode->IndexOf(value);
+		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+	}
+
+	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+}
+
+void BTree::iterator::SeekToBegin()
+{
+	_currentNode = _tree->_root;
+
+	Branch* _currentBranch;
+	Leaf* _currentLeaf;
+
+	_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+	while(_currentLeaf == NULL)
+	{
+		_currentBranch = dynamic_cast<Branch*>(_currentNode);
+
+		_path.push_back(PathNode(_currentNode, 0));			
+
+		_currentNode = _currentBranch->_children[_currentIndex];
+		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+	}
+
+	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+}
+
+void BTree::iterator::SeekToEnd()
+{
+	_currentNode = _tree->_root;
+
+	Branch* _currentBranch;
+	Leaf* _currentLeaf;
+			
+	_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+	while(_currentLeaf == NULL)
+	{				
+		_currentBranch = dynamic_cast<Branch*>(_currentNode);
+		_currentIndex = _currentBranch->_count;
+
+		_path.push_back(PathNode(_currentNode, _currentIndex));
+
+		_currentNode = _currentBranch->_children[_currentIndex];
+		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+	}
+
+	_currentIndex = _currentLeaf->_count - 1;
+	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+}
+
+void BTree::iterator::MoveNext()
+{
+	Leaf* _currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+	if(_currentIndex < _currentNode->_count - 1)
+	{
+		_currentIndex++;
+	}
+	else
+	{
+		//pop up until we are no longer at count
+		bool pop = true;
+		while(pop)
+		{
+			PathNode pathNode = _path[_path.size() - 1];
+			_path.pop_back();
+			_currentIndex = pathNode.second;
+			_currentNode = pathNode.first;
+
+			if(_currentIndex < _currentNode->_count)
+				pop = false;
+		}
+		//increment by one
+		_currentIndex++;
+
+		//go down to the left.
+		Branch* _currentBranch;
+
+		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+		while(_currentLeaf == NULL)
+		{	
+			_path.push_back(PathNode(_currentNode, _currentIndex));
+
+			_currentBranch = dynamic_cast<Branch*>(_currentNode);	
+
+			_currentNode = _currentBranch->_children[_currentIndex];
+			_currentIndex = 0;		
+			_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+		}		
+	}
+
+	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+}
+
+void BTree::iterator::MovePrevious()
+{
+	Leaf* _currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+	if(_currentIndex > 0)
+	{
+		_currentIndex--;
+	}
+	else
+	{
+		//pop up until we are no longer at 0
+		bool pop = true;
+		while(pop)
+		{
+			PathNode pathNode = _path[_path.size() - 1];
+			_path.pop_back();
+			_currentIndex = pathNode.second;
+			_currentNode = pathNode.first;
+
+			if(_currentIndex > 0)
+				pop = false;
+		}
+		//decrement by one
+		_currentIndex--;
+
+		//go down to the right.
+		Branch* _currentBranch;
+		Leaf* _currentLeaf;
+
+		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+
+		while(_currentLeaf == NULL)
+		{	
+			_path.push_back(PathNode(_currentNode, _currentIndex));
+			_currentBranch = dynamic_cast<Branch*>(_currentNode);
+			_currentNode = _currentBranch->_children[_currentIndex];
+					
+			_currentIndex = _currentNode->_count - 1;
+					
+			_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+		}		
+	}
+
+	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+}	
+
+
+BTree::iterator::iterator(BTree* tree, void* key)
+{
+	_tree = tree;
+	_currentIndex = 0;
+	SeekToKey(key);
+}
+
+BTree::iterator::iterator(BTree* tree, bool begin = true)
+{
+	_tree = tree;
+	_currentIndex = 0;
+
+	if(begin)
+		SeekToBegin();
+	else
+		SeekToEnd();
+}
+
+BTree::iterator::iterator(const iterator& iter) :
+	_tree(iter._tree), _currentValue(iter._currentValue), _currentIndex(iter._currentIndex), _path(iter._path), _currentNode(iter._currentNode) {}
+
+BTree::iterator& BTree::iterator::operator++() 
+{
+	MoveNext();
+	return *this;
+}
+
+BTree::iterator BTree::iterator::operator++(int)
+{
+	BTree::iterator tmp(*this); 
+	operator++(); 
+	return tmp;
+}
+
+BTree::iterator& BTree::iterator::operator--() 
+{
+	MovePrevious();
+	return *this;
+}
+
+BTree::iterator BTree::iterator::operator--(int)
+{
+	BTree::iterator tmp(*this); 
+	operator--(); 
+	return tmp;
+}
+
+bool BTree::iterator::operator==(const BTree::iterator& rhs) {return _currentValue==rhs._currentValue;}
+bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return _currentValue!=rhs._currentValue;}
+void* BTree::iterator::operator*() { return _currentValue;}
+

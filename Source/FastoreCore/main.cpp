@@ -276,10 +276,41 @@ void ArrayCopyTest()
 	cout << "Copies per second: " << numrows / secs << "\r\n";
 }
 
+void BTreeIteratorTest()
+{
+	BTree tree(GetLongType(),GetLongType());
+	long numrows = 1000000;
+	Leaf* dummy;
+	long i = 0;
+	for(i = 0; i < numrows; i++)
+	{
+		tree.Insert(&i,&i,&dummy);
+	}
+
+	BTree::iterator start = tree.begin();
+	BTree::iterator end = tree.end();
+
+	i = 0;
+	Stopwatch watch;
+	watch.GetFrequency();
+ 	while(start != end)
+	{
+		watch.StartTimer();
+		start++;
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	cout << "iterations per second: " << numrows / secs << "\r\n";
+
+}
+
 
 void main()
 {
-	HashTests();
+	BTreeIteratorTest();
+	//HashTests();
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
