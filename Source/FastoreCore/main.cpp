@@ -295,6 +295,9 @@ void BTreeIteratorTest()
 	watch.GetFrequency();
  	while(start != end)
 	{
+		//i++;
+		
+		//cout << *(long*)*start << "\n\r";
 		watch.StartTimer();
 		start++;
 		watch.StopTimer();

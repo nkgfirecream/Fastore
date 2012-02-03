@@ -46,12 +46,11 @@ class BTree
 
 		class iterator : public std::iterator<bidirectional_iterator_tag, void*>
 		{
-			typedef eastl::pair<Node*,int> PathNode;
+			typedef eastl::pair<Branch*,int> PathNode;
 			private:
 				BTree* _tree;
-				Node* _currentNode;
+				Leaf* _currentLeaf;
 				int	_currentIndex;
-				void* _currentValue;
 				eastl::vector<PathNode> _path;
 
 				void SeekToKey(void* value);

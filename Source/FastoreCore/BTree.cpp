@@ -1,4 +1,5 @@
 #include "BTree.h"
+#include "Schema\scalar.h"
 #include <sstream>
 
 using namespace std;
@@ -355,88 +356,80 @@ void* Leaf::GetKey(function<bool(void*)> predicate)
 	return NULL;
 }
 
-
 void BTree::iterator::SeekToKey(void* value)
 {
-	_currentNode = _tree->_root;
+	Node* currentNode = _tree->_root;
 
-	Branch* _currentBranch;
-	Leaf* _currentLeaf;
+	Branch* currentBranch;
 
-	_currentIndex = _currentNode->IndexOf(value);
+	_currentIndex = currentNode->IndexOf(value);
 
-	_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
 	while(_currentLeaf == NULL)
 	{
-		_currentBranch = dynamic_cast<Branch*>(_currentNode);
+		currentBranch = dynamic_cast<Branch*>(currentNode);
 
-		_path.push_back(PathNode(_currentNode, _currentIndex));
+		_path.push_back(PathNode(currentBranch, _currentIndex));
 
-		_currentNode = _currentBranch->_children[_currentIndex];
-		_currentIndex = _currentNode->IndexOf(value);
-		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+		currentNode = currentBranch->_children[_currentIndex];
+		_currentIndex = currentNode->IndexOf(value);
+		_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 	}
 
-	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+	
 }
 
 void BTree::iterator::SeekToBegin()
 {
-	_currentNode = _tree->_root;
+	Node* currentNode = _tree->_root;
 
-	Branch* _currentBranch;
-	Leaf* _currentLeaf;
+	Branch* currentBranch;
 
-	_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
 	while(_currentLeaf == NULL)
 	{
-		_currentBranch = dynamic_cast<Branch*>(_currentNode);
+		currentBranch = dynamic_cast<Branch*>(currentNode);
 
-		_path.push_back(PathNode(_currentNode, 0));			
+		_path.push_back(PathNode(currentBranch, 0));			
 
-		_currentNode = _currentBranch->_children[_currentIndex];
-		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
-	}
-
-	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+		currentNode = currentBranch->_children[_currentIndex];
+		_currentLeaf = dynamic_cast<Leaf*>(currentNode);
+	}	
 }
 
 void BTree::iterator::SeekToEnd()
 {
-	_currentNode = _tree->_root;
+	Node* currentNode = _tree->_root;
 
-	Branch* _currentBranch;
-	Leaf* _currentLeaf;
+	Branch* currentBranch;
 			
-	_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
 	while(_currentLeaf == NULL)
 	{				
-		_currentBranch = dynamic_cast<Branch*>(_currentNode);
-		_currentIndex = _currentBranch->_count;
+		currentBranch = dynamic_cast<Branch*>(currentNode);
+		_currentIndex = currentBranch->_count;
 
-		_path.push_back(PathNode(_currentNode, _currentIndex));
+		_path.push_back(PathNode(currentBranch, _currentIndex));
 
-		_currentNode = _currentBranch->_children[_currentIndex];
-		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+		currentNode = currentBranch->_children[_currentIndex];
+		_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 	}
 
-	_currentIndex = _currentLeaf->_count - 1;
-	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
+	_currentIndex = _currentLeaf->_count-1;
 }
 
 void BTree::iterator::MoveNext()
 {
-	Leaf* _currentLeaf = dynamic_cast<Leaf*>(_currentNode);
-
-	if(_currentIndex < _currentNode->_count - 1)
+	if(_currentIndex < _currentLeaf->_count - 1)
 	{
 		_currentIndex++;
 	}
 	else
 	{
+		Branch* currentBranch;
 		//pop up until we are no longer at count
 		bool pop = true;
 		while(pop)
@@ -444,44 +437,40 @@ void BTree::iterator::MoveNext()
 			PathNode pathNode = _path[_path.size() - 1];
 			_path.pop_back();
 			_currentIndex = pathNode.second;
-			_currentNode = pathNode.first;
+			currentBranch = pathNode.first;
 
-			if(_currentIndex < _currentNode->_count)
+			if(_currentIndex < currentBranch->_count)
 				pop = false;
 		}
 		//increment by one
 		_currentIndex++;
+		_currentLeaf = NULL;
 
 		//go down to the left.
-		Branch* _currentBranch;
-
-		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
-
 		while(_currentLeaf == NULL)
 		{	
-			_path.push_back(PathNode(_currentNode, _currentIndex));
+			_path.push_back(PathNode(currentBranch, _currentIndex));
+		
+			Node* currentNode = currentBranch->_children[_currentIndex];			
+			_currentIndex = 0;
+					
+			_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
-			_currentBranch = dynamic_cast<Branch*>(_currentNode);	
-
-			_currentNode = _currentBranch->_children[_currentIndex];
-			_currentIndex = 0;		
-			_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+			if(_currentLeaf == NULL)
+				currentBranch = dynamic_cast<Branch*>(currentNode);
 		}		
 	}
-
-	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
 }
 
 void BTree::iterator::MovePrevious()
 {
-	Leaf* _currentLeaf = dynamic_cast<Leaf*>(_currentNode);
-
 	if(_currentIndex > 0)
 	{
 		_currentIndex--;
 	}
 	else
 	{
+		Branch* currentBranch;
 		//pop up until we are no longer at 0
 		bool pop = true;
 		while(pop)
@@ -489,33 +478,30 @@ void BTree::iterator::MovePrevious()
 			PathNode pathNode = _path[_path.size() - 1];
 			_path.pop_back();
 			_currentIndex = pathNode.second;
-			_currentNode = pathNode.first;
+			currentBranch = pathNode.first;
 
 			if(_currentIndex > 0)
 				pop = false;
 		}
 		//decrement by one
 		_currentIndex--;
+		_currentLeaf = NULL;
 
 		//go down to the right.
-		Branch* _currentBranch;
-		Leaf* _currentLeaf;
-
-		_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
-
 		while(_currentLeaf == NULL)
 		{	
-			_path.push_back(PathNode(_currentNode, _currentIndex));
-			_currentBranch = dynamic_cast<Branch*>(_currentNode);
-			_currentNode = _currentBranch->_children[_currentIndex];
+			_path.push_back(PathNode(currentBranch, _currentIndex));
+
+			Node* currentNode = currentBranch->_children[_currentIndex];
 					
-			_currentIndex = _currentNode->_count - 1;
+			_currentIndex = currentNode->_count - 1;
 					
-			_currentLeaf = dynamic_cast<Leaf*>(_currentNode);
+			_currentLeaf = dynamic_cast<Leaf*>(currentNode);
+
+			if(_currentLeaf == NULL)
+				currentBranch = dynamic_cast<Branch*>(currentNode);
 		}		
 	}
-
-	_currentValue = &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];
 }	
 
 
@@ -538,7 +524,7 @@ BTree::iterator::iterator(BTree* tree, bool begin = true)
 }
 
 BTree::iterator::iterator(const iterator& iter) :
-	_tree(iter._tree), _currentValue(iter._currentValue), _currentIndex(iter._currentIndex), _path(iter._path), _currentNode(iter._currentNode) {}
+	_tree(iter._tree), _currentIndex(iter._currentIndex), _path(iter._path), _currentLeaf(iter._currentLeaf) {}
 
 BTree::iterator& BTree::iterator::operator++() 
 {
@@ -566,7 +552,7 @@ BTree::iterator BTree::iterator::operator--(int)
 	return tmp;
 }
 
-bool BTree::iterator::operator==(const BTree::iterator& rhs) {return _currentValue==rhs._currentValue;}
-bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return _currentValue!=rhs._currentValue;}
-void* BTree::iterator::operator*() { return _currentValue;}
+bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_currentIndex == rhs._currentIndex) && (_currentLeaf == rhs._currentLeaf);}
+bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return(_currentIndex != rhs._currentIndex) || (_currentLeaf != rhs._currentLeaf);}
+void* BTree::iterator::operator*() { return &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];}
 
