@@ -366,7 +366,7 @@ void BTree::iterator::SeekToKey(void* value)
 
 	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
-	while(_currentLeaf == NULL)
+	while (_currentLeaf == NULL)
 	{
 		currentBranch = dynamic_cast<Branch*>(currentNode);
 
@@ -388,7 +388,7 @@ void BTree::iterator::SeekToBegin()
 
 	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
-	while(_currentLeaf == NULL)
+	while (_currentLeaf == NULL)
 	{
 		currentBranch = dynamic_cast<Branch*>(currentNode);
 
@@ -407,7 +407,7 @@ void BTree::iterator::SeekToEnd()
 			
 	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
-	while(_currentLeaf == NULL)
+	while (_currentLeaf == NULL)
 	{				
 		currentBranch = dynamic_cast<Branch*>(currentNode);
 		_currentIndex = currentBranch->_count;
@@ -423,7 +423,7 @@ void BTree::iterator::SeekToEnd()
 
 void BTree::iterator::MoveNext()
 {
-	if(_currentIndex < _currentLeaf->_count - 1)
+	if (_currentIndex < _currentLeaf->_count - 1)
 	{
 		_currentIndex++;
 	}
@@ -431,23 +431,25 @@ void BTree::iterator::MoveNext()
 	{
 		Branch* currentBranch;
 		//pop up until we are no longer at count
-		bool pop = true;
-		while(pop)
+		while (currentBranch == NULL || _currentIndex < currentBranch->_count)
 		{
-			PathNode pathNode = _path[_path.size() - 1];
+			PathNode pathNode;
+			if(_path.size() > 0)
+				 pathNode = _path[_path.size() - 1];
+			else
+				return; //We got the end of the tree. Freeze where we are.
+
 			_path.pop_back();
 			_currentIndex = pathNode.second;
 			currentBranch = pathNode.first;
-
-			if(_currentIndex < currentBranch->_count)
-				pop = false;
 		}
+
 		//increment by one
 		_currentIndex++;
 		_currentLeaf = NULL;
 
 		//go down to the left.
-		while(_currentLeaf == NULL)
+		while (_currentLeaf == NULL)
 		{	
 			_path.push_back(PathNode(currentBranch, _currentIndex));
 		
@@ -471,24 +473,26 @@ void BTree::iterator::MovePrevious()
 	else
 	{
 		Branch* currentBranch;
-		//pop up until we are no longer at 0
-		bool pop = true;
-		while(pop)
+		//pop up until we are no longer at 0		
+		while(_currentIndex == 0)
 		{
-			PathNode pathNode = _path[_path.size() - 1];
+			PathNode pathNode;
+			if(_path.size() > 0)
+				 pathNode = _path[_path.size() - 1];
+			else
+				return; //We got the end of the tree. Freeze where we are.
+
 			_path.pop_back();
 			_currentIndex = pathNode.second;
 			currentBranch = pathNode.first;
-
-			if(_currentIndex > 0)
-				pop = false;
 		}
+
 		//decrement by one
 		_currentIndex--;
 		_currentLeaf = NULL;
 
 		//go down to the right.
-		while(_currentLeaf == NULL)
+		while (_currentLeaf == NULL)
 		{	
 			_path.push_back(PathNode(currentBranch, _currentIndex));
 
@@ -503,7 +507,6 @@ void BTree::iterator::MovePrevious()
 		}		
 	}
 }	
-
 
 BTree::iterator::iterator(BTree* tree, void* key)
 {
