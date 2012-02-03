@@ -5,7 +5,7 @@ using namespace std;
 
 //Tree
 
-BTree::BTree(Type keyType, Type valueType) : 
+BTree::BTree(ScalarType keyType, ScalarType valueType) : 
 	_keyType(keyType), _valueType(valueType), 
 	_branchCapacity(DefaultBranchCapacity), 
 	_leafCapacity(DefaultLeafCapacity)

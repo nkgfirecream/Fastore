@@ -2,7 +2,7 @@
 
 #include <sstream>
 #include <string.h>
-#include "Schema\type.h"
+#include "Schema\scalar.h"
 #include "Schema\typedefs.h"
 
 using namespace std;
@@ -24,9 +24,9 @@ fs::wstring StringString(void* item)
 	return *(fs::wstring*)item;
 }
 
-Type GetStringType()
+ScalarType GetStringType()
 {
-	Type type;
+	ScalarType type;
 	type.Compare = StringCompare;
 	type.Free = NULL;
 	type.Size = sizeof(std::wstring);
@@ -46,9 +46,9 @@ fs::wstring PStringString(void* item)
 	return **(fs::wstring**)item;
 }
 
-Type GetPStringType()
+ScalarType GetPStringType()
 {
-	Type type;
+	ScalarType type;
 	type.Compare = PStringCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(fs::wstring*);
@@ -56,7 +56,7 @@ Type GetPStringType()
 	return type;
 }
 
-// Long Type
+// Long ScalarType
 
 int LongCompare(void* left, void* right)
 {
@@ -70,9 +70,9 @@ fs::wstring LongString(void* item)
 	return result.str();
 }
 
-Type GetLongType()
+ScalarType GetLongType()
 {
-	Type type;
+	ScalarType type;
 	type.Compare = LongCompare;
 	type.Free = NULL;
 	type.Size = sizeof(long);
@@ -80,7 +80,7 @@ Type GetLongType()
 	return type;
 }
 
-// Int Type
+// Int ScalarType
 
 int IntCompare(void* left, void* right)
 {
@@ -94,9 +94,9 @@ fs::wstring IntString(void* item)
 	return result.str();
 }
 
-Type GetIntType()
+ScalarType GetIntType()
 {
-	Type type;
+	ScalarType type;
 	type.Compare = IntCompare;
 	type.Free = NULL;
 	type.Size = sizeof(int);
@@ -118,9 +118,9 @@ fs::wstring PLongString(void* item)
 	return mystream.str();
 }
 
-Type GetPLongType()
+ScalarType GetPLongType()
 {
-	Type type;
+	ScalarType type;
 	type.Compare = PLongCompare;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(long*);

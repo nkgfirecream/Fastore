@@ -3,7 +3,7 @@
 #include "Schema\typedefs.h"
 
 // The physical representation of a scalar type
-struct Type
+struct ScalarType
 {
 	size_t Size;
 	int (*Compare)(void* left, void* right);

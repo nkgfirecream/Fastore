@@ -1,5 +1,5 @@
 #pragma once
-#include "Schema\type.h"
+#include "Schema\scalar.h"
 #include "Schema\typedefs.h"
 #include <functional>
 #include <iterator>
@@ -42,13 +42,13 @@ class KeyTree
 		int _BranchCapacity;
 		int _LeafCapacity;
 
-		Type _keyType;
+		ScalarType _keyType;
 
 	friend class KeyLeaf;
 	friend class KeyBranch;
 
 	public:
-		KeyTree(Type keyType);
+		KeyTree(ScalarType keyType);
 		~KeyTree();
 
 		bool Insert(void* key, KeyLeaf** leaf);

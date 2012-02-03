@@ -1,5 +1,5 @@
 #pragma once
-#include "Schema\type.h"
+#include "Schema\scalar.h"
 #include "Schema\typedefs.h"
 #include "Schema\standardtypes.h"
 #include "BTree.h"
@@ -7,6 +7,7 @@
 #include "Range.h"
 #include <EASTL\hash_set.h>
 #include <EASTL\hash_map.h>
+#include "Column\columnbuffer.h"
 
 using namespace eastl;
 
@@ -16,16 +17,10 @@ typedef eastl::hash_map<void*, Leaf&> ColumnHashMap;
 typedef eastl::hash_map<void*, Leaf&>::iterator ColumnHashMapIterator;
 typedef eastl::pair <void*, Leaf&> ValueLeafPair;
 
-struct GetResult
-{
-	bool Limited;
-	eastl::vector<eastl::pair<void*,void*>> Data;
-};
-
-class ColumnHash
+class ColumnHash : ColumnBuffer
 {
 	public:
-		ColumnHash(const Type rowType, const Type valueType);
+		ColumnHash(const ScalarType rowType, const ScalarType valueType);
 		void* GetValue(void* value);
 		void* Include(void* value, void* rowID);
 		void* Exclude(void* value, void* rowID);
@@ -35,15 +30,15 @@ class ColumnHash
 
 	private:
 		void ValuesMoved(void*,Leaf&);
-		Type _rowType;
+		ScalarType _rowType;
 		ColumnHashMap* _rows;
 		BTree* _values;
 };
 
 // HashSet type -- Can't be used as a keytype.
-Type GetHashSetType()
+ScalarType GetHashSetType()
 {
-	Type type;
+	ScalarType type;
 	type.Compare = NULL;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(ColumnHashSet*);
@@ -51,7 +46,7 @@ Type GetHashSetType()
 	return type;
 }
 
-inline ColumnHash::ColumnHash(const Type rowType, const Type valueType)
+inline ColumnHash::ColumnHash(const ScalarType rowType, const ScalarType valueType)
 {
 	_rowType = rowType;
 	_rows = new ColumnHashMap();

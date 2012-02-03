@@ -204,16 +204,21 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="BTree.h" />
     <ClInclude Include="BTreeObserver.h" />
     <ClInclude Include="ColumnHash.h" />
+    <ClInclude Include="Column\columnbuffer.h" />
     <ClInclude Include="EAHashTest.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Range.h" />
+    <ClInclude Include="Schema\column.h" />
     <ClInclude Include="Schema\standardtypes.h" />
-    <ClInclude Include="Schema\type.h" />
+    <ClInclude Include="Table\dataset.h" />
+    <ClInclude Include="Schema\tuple.h" />
+    <ClInclude Include="Schema\scalar.h" />
     <ClInclude Include="Schema\typedefs.h" />
     <ClInclude Include="STDHashTest.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
+    <ClInclude Include="Table\table.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

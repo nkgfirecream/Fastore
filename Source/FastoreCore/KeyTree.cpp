@@ -1,5 +1,4 @@
 #include "KeyTree.h"
-#include "Schema\type.h"
 #include "Schema\typedefs.h"
 #include <sstream>
 
@@ -7,7 +6,7 @@ using namespace std;
 
 //Tree
 
-KeyTree::KeyTree(Type keyType) : 
+KeyTree::KeyTree(ScalarType keyType) : 
 	_keyType(keyType),
 	_BranchCapacity(DefaultKeyBranchCapacity), 
 	_LeafCapacity(DefaultKeyLeafCapacity)

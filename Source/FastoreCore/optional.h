@@ -1,21 +1,21 @@
 #pragma once
 
 template<typename T> 
-class optional
+class Optional
 {
 	public:	
-		optional()
+		Optional()
 		{
 			_hasValue = false;		
 		}
 
-		optional(const T t)
+		Optional(const T t)
 		{		
 			_hasValue = true;
 			_value = t;
 		}
 
-		optional(const optional<T>& other)
+		Optional(const Optional<T>& other)
 		{
 			_hasValue = other._hasValue;
 			if (_hasValue)

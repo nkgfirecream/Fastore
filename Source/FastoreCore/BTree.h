@@ -1,5 +1,5 @@
 #pragma once
-#include "Schema\type.h"
+#include "Schema\scalar.h"
 #include "Schema\typedefs.h"
 #include <functional>
 #include "optional.h"
@@ -32,7 +32,7 @@ typedef function<void(void*,Leaf&)> valuesMovedHandler;
 class BTree
 {
 	public:
-		BTree(Type keyType, Type valueType);
+		BTree(ScalarType keyType, ScalarType valueType);
 		~BTree();
 
 		void* Insert(void* key, void* value, Leaf** leaf);
@@ -93,8 +93,8 @@ class BTree
 		Node* _root;
 		int _branchCapacity;
 		int _leafCapacity;
-		Type _keyType;
-		Type _valueType;
+		ScalarType _keyType;
+		ScalarType _valueType;
 		
 		void DoValuesMoved(Leaf& newLeaf);
 		valuesMovedHandler _valuesMovedCallback;
@@ -140,8 +140,8 @@ class Leaf: public Node
 		class iterator : public std::iterator<input_iterator_tag, void*>
 		{
 				char* _item;
-				int _size;
-				iterator(char* item, int size) : _item(item), _size(size) {}
+				size_t _size;
+				iterator(char* item, size_t size) : _item(item), _size(size) {}
 			public:
 				iterator(const iterator& iter) : _item(iter._item) {}
 				iterator& operator++() 
