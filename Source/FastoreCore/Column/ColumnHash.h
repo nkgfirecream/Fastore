@@ -1,13 +1,14 @@
 #pragma once
-#include "Schema\scalar.h"
-#include "Schema\typedefs.h"
-#include "Schema\standardtypes.h"
-#include "BTree.h"
-#include "BTreeObserver.h"
-#include "Range.h"
+
 #include <EASTL\hash_set.h>
 #include <EASTL\hash_map.h>
-#include "Column\columnbuffer.h"
+#include "..\Schema\scalar.h"
+#include "..\Schema\typedefs.h"
+#include "..\Schema\standardtypes.h"
+#include "..\BTree.h"
+#include "..\BTreeObserver.h"
+#include "..\Range.h"
+#include "..\Column\columnbuffer.h"
 
 using namespace eastl;
 

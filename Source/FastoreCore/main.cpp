@@ -1,8 +1,8 @@
 #include <EASTL\string.h>
 #include <iostream>
 #include "BTree.h"
-#include "Stopwatch.h"
-#include "ColumnHash.h"
+#include "Util/Stopwatch.h"
+#include "Column/ColumnHash.h"
 #include "Schema/standardtypes.h"
 #include <conio.h>
 #include <tbb\queuing_mutex.h>

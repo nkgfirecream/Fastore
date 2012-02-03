@@ -1,7 +1,10 @@
+#pragma once
+
 #include <EASTL\hash_map.h>
 #include <EASTL\hash_set.h>
-#include "Stopwatch.h"
+#include "Util/Stopwatch.h"
 #include <iostream>
+
 using namespace eastl;
 
 class EAHashTest

@@ -1,7 +1,10 @@
+#pragma once
+
 #include <hash_map>
 #include <hash_set>
-#include "Stopwatch.h"
+#include "Util/Stopwatch.h"
 #include <iostream>
+
 using namespace std;
 
 class STDHashTest

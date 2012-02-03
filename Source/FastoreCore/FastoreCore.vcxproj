@@ -85,6 +85,7 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
     <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -197,13 +198,13 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClCompile Include="EASTL\useEASTL.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Stopwatch.cpp" />
+    <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
     <ClInclude Include="BTreeObserver.h" />
-    <ClInclude Include="ColumnHash.h" />
+    <ClInclude Include="Column\ColumnHash.h" />
     <ClInclude Include="Column\columnbuffer.h" />
     <ClInclude Include="EAHashTest.h" />
     <ClInclude Include="KeyTree.h" />
@@ -216,7 +217,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="Schema\scalar.h" />
     <ClInclude Include="Schema\typedefs.h" />
     <ClInclude Include="STDHashTest.h" />
-    <ClInclude Include="Stopwatch.h" />
+    <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
     <ClInclude Include="Table\table.h" />
   </ItemGroup>
