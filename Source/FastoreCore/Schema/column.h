@@ -1,7 +1,7 @@
 #pragma once
 
 #include "scalar.h"
-#include "typedefs.h"
+#include "..\typedefs.h"
 
 struct ColumnType
 {

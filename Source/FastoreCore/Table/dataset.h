@@ -1,6 +1,7 @@
 #pragma once
 
-#include "tuple.h"
+#include <iterator>
+#include "../Schema/tuple.h"
 
 class DataSet
 {
@@ -18,16 +19,16 @@ class DataSet
 			delete[] _buffer;
 		}
 
-		class iterator : public std::iterator<output_iterator_tag, void*>
+		class iterator : public eastl::iterator<std::forward_iterator_tag, void*>
 		{
 				char* _buffer;
 				size_t _rowsize;
 				iterator(char* buffer, size_t rowsize) : _buffer(buffer), _rowsize(rowsize) {}
 			public:
-				iterator(const iterator& iter) : _item(iter._item) {}
+				iterator(const iterator& iter) : _buffer(iter._buffer), _rowsize(iter._rowsize) {}
 				iterator& operator++() 
 				{
-					_item += _size; 
+					_buffer += _rowsize; 
 					return *this;
 				}
 				iterator operator++(int)
@@ -36,10 +37,9 @@ class DataSet
 					operator++(); 
 					return tmp;
 				}
-				bool operator==(const iterator& rhs) {return _item==rhs._item;}
-				bool operator!=(const iterator& rhs) {return _item!=rhs._item;}
-				void* operator*() { return _item;}
-			friend class Leaf;
+				bool operator==(const iterator& rhs) {return _buffer==rhs._buffer;}
+				bool operator!=(const iterator& rhs) {return _buffer!=rhs._buffer;}
+				char* operator*() { return _buffer;}
 		};
 
 		// TODO: mutable iterator by column

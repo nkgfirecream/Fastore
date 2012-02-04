@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Schema\typedefs.h"
+#include "..\typedefs.h"
 
 // The physical representation of a scalar type
 struct ScalarType

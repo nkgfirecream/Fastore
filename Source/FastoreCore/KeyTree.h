@@ -1,6 +1,6 @@
 #pragma once
 #include "Schema\scalar.h"
-#include "Schema\typedefs.h"
+#include "typedefs.h"
 #include <functional>
 #include <iterator>
 #include "optional.h"

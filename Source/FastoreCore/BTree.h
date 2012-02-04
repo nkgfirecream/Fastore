@@ -1,9 +1,10 @@
 #pragma once
 #include "Schema\scalar.h"
-#include "Schema\typedefs.h"
+#include "typedefs.h"
 #include <functional>
 #include "optional.h"
 #include <EASTL\vector.h>
+#include "Util\utilities.h"
 
 using namespace std;
 const int DefaultLeafCapacity = 128;
@@ -44,6 +45,21 @@ class BTree
 		void setValuesMovedCallback(valuesMovedHandler callback);
 		valuesMovedHandler getValuesMovedCallback();
 
+		struct PathNode
+		{
+			Branch& Node;
+			int Index;
+		};
+
+		struct Path
+		{
+			eastl::vector<PathNode> Branches;
+			Leaf& Leaf;
+			int LeafIndex;
+		};
+
+		Path SeekToKey(void* key, int direction);
+
 		class iterator : public std::iterator<bidirectional_iterator_tag, void*>
 		{
 			typedef eastl::pair<Branch*,int> PathNode;
@@ -51,7 +67,7 @@ class BTree
 				BTree* _tree;
 				Leaf* _currentLeaf;
 				int	_currentIndex;
-				eastl::vector<PathNode> _path;
+				Path _path;
 
 				void SeekToKey(void* value);
 				void SeekToBegin();
@@ -82,9 +98,11 @@ class BTree
 			return iterator(this, false);
 		}
 
-		iterator find(void* key)
+		iterator find(void* key, bool forward)
 		{
-			return iterator(this,key);
+			int direction = boolToNormalizedInt(forward);
+			Path p = SeekToKey(key, direction);
+			return iterator(p, direction);
 		}
 
 
@@ -108,9 +126,10 @@ class Node
 	public:
 		Node(BTree* tree, int count = 0) : _tree(tree), _count(count) {}
 		virtual ~Node() {}
+
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
-		virtual int IndexOf(void*) = 0;
+		virtual bool SeekToKey(void* key, BTree::Pointer& pointer, int level);
 
 	protected:	
 		int _count;
@@ -135,6 +154,12 @@ class Leaf: public Node
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
+		bool SeekToKey(void* key, BTree::Pointer& pointer, int level);
+
+		char* operator[](int index)
+		{
+			return _values + (_tree->_valueType.Size * index);
+		}
 
 		class iterator : public std::iterator<input_iterator_tag, void*>
 		{
@@ -167,7 +192,7 @@ class Leaf: public Node
 
 		iterator valueEnd()
 		{
-			return iterator(_values + _tree->_valueType.Size * _count, _tree->_valueType.Size);
+			return iterator(this[_count - 1], _tree->_valueType.Size);
 		}
 
 	friend class BTree::iterator;
@@ -181,7 +206,8 @@ class Branch : public Node
 		~Branch();
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
-		fs::wstring ToString();		
+		fs::wstring ToString();	
+		bool SeekToKey(void* key, BTree::Pointer& pointer, int level);	
 
 	private:
 		Node** _children;

@@ -215,11 +215,12 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="Table\dataset.h" />
     <ClInclude Include="Schema\tuple.h" />
     <ClInclude Include="Schema\scalar.h" />
-    <ClInclude Include="Schema\typedefs.h" />
+    <ClInclude Include="typedefs.h" />
     <ClInclude Include="STDHashTest.h" />
     <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
     <ClInclude Include="Table\table.h" />
+    <ClInclude Include="Util\utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

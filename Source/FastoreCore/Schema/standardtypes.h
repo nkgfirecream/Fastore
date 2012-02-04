@@ -2,8 +2,8 @@
 
 #include <sstream>
 #include <string.h>
-#include "Schema\scalar.h"
-#include "Schema\typedefs.h"
+#include "scalar.h"
+#include "..\typedefs.h"
 
 using namespace std;
 

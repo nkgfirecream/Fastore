@@ -168,7 +168,7 @@ void Branch::InternalInsertChild(int index, void* key, Node* child)
 	_count++;
 }
 
-int Branch::IndexOf(void* key)
+int Branch::IndexOf(void* key, int direction)
 {	
     int lo = 0;
 	int hi = _count - 1;
@@ -356,13 +356,45 @@ void* Leaf::GetKey(function<bool(void*)> predicate)
 	return NULL;
 }
 
-void BTree::iterator::SeekToKey(void* value)
+BTree::Path BTree::SeekToKey(void* key, int direction)
 {
-	Node* currentNode = _tree->_root;
+	Path result;
+	_root->SeekToKey(key, result, direction);
+	return result;
+}
+
+bool Branch::SeekToKey(void* key, BTree::Path& path, int direction)
+{
+	BTree::PathNode result;
+	result.Index = IndexOf(key, direction);
+	result.Node = &this;
+	if (result.Index >= 0 && result.Index <= _count && _children[result.Index]->SeekToKey(key, path, level + 1))
+	{
+		path[level] = result;
+		return true;
+	}
+	return false;
+}
+
+bool Leaf::SeekToKey(void* key, BTree::Path& path, int level)
+{
+	BTree::PathNode result;
+	result.Index = IndexOf(key);
+	if (result.Index >= 0 && result.Index < _count)
+	{
+		result.Node = this;
+		path.set_capacity(level + 1);
+		path[level] = result;
+		return true;
+	}
+	return false;
+}
+
+	_currentNode = _tree->_root;
 
 	Branch* currentBranch;
 
-	_currentIndex = currentNode->IndexOf(value);
+	_currentIndex = _currentNode->IndexOf(key);
 
 	_currentLeaf = dynamic_cast<Leaf*>(currentNode);
 
@@ -508,6 +540,8 @@ void BTree::iterator::MovePrevious()
 	}
 }	
 
+// BTree iterator
+
 BTree::iterator::iterator(BTree* tree, void* key)
 {
 	_tree = tree;
@@ -528,6 +562,9 @@ BTree::iterator::iterator(BTree* tree, bool begin = true)
 
 BTree::iterator::iterator(const iterator& iter) :
 	_tree(iter._tree), _currentIndex(iter._currentIndex), _path(iter._path), _currentLeaf(iter._currentLeaf) {}
+
+
+
 
 BTree::iterator& BTree::iterator::operator++() 
 {

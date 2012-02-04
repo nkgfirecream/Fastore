@@ -3,7 +3,8 @@
 #include <memory>
 #include "../Schema/tuple.h"
 #include "../Column/columnbuffer.h"
-#include "../ColumnHash.h"
+#include "../Column/ColumnHash.h"
+#include "../typedefs.h"
 
 class Table
 {

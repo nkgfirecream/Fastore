@@ -1,5 +1,5 @@
 #include "KeyTree.h"
-#include "Schema\typedefs.h"
+#include "typedefs.h"
 #include <sstream>
 
 using namespace std;
