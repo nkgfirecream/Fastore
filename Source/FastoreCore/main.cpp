@@ -1,5 +1,3 @@
-#pragma comment(linker, "/OPT:NOWIN98")
-
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
 

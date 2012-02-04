@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <EASTL\string.h>
+#include <string.h>
 
 using namespace std;
 

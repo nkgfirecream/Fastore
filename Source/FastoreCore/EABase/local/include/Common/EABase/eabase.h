@@ -752,8 +752,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         #endif
     #elif (EA_WCHAR_SIZE == 2)
         typedef char      char8_t;
-        typedef wchar_t   char16_t;
-        typedef uint32_t  char32_t;
+        //typedef wchar_t   char16_t;
+        //typedef uint32_t  char32_t;
     #else
         typedef char      char8_t;
         typedef uint16_t  char16_t;

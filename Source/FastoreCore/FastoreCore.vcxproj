@@ -144,7 +144,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -192,11 +191,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
     <ClCompile Include="EASTL\source\allocator.cpp" />
-    <ClCompile Include="EASTL\source\assert.cpp" />
-    <ClCompile Include="EASTL\source\fixed_pool.cpp" />
-    <ClCompile Include="EASTL\source\hashtable.cpp" />
-    <ClCompile Include="EASTL\source\red_black_tree.cpp" />
-    <ClCompile Include="EASTL\source\string.cpp" />
     <ClCompile Include="EASTL\useEASTL.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
