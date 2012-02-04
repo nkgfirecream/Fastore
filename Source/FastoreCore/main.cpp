@@ -1,15 +1,14 @@
+#include "typedefs.h"
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
+#include <iostream>
 
 #include "BTree.h"
 #include "Util/Stopwatch.h"
 #include "Column/ColumnHash.h"
 #include "Schema/standardtypes.h"
 #include "KeyTree.h"
-#include "typedefs.h"
 
-#include "EAHashTest.h"
-#include "STDHashTest.h"
 
 using namespace std;
 
@@ -146,16 +145,6 @@ void SequentialIntTest()
 	//wcout << tree->ToString();
 }
 
-void HashTests()
-{	
-	STDHashTest test2;
-	EAHashTest test1;
-
-	test2.RunTest();
-	test1.RunTest();
-
-}
-
 void GuidTest()
 {
 	//To be implemented
@@ -279,7 +268,7 @@ void ArrayCopyTest()
 void BTreeIteratorTest()
 {
 	BTree tree(GetLongType(),GetLongType());
-	long numrows = 1000000;
+	long numrows = 1000;
 	Leaf* dummy;
 	long i = 0;
 	for(i = 0; i < numrows; i++)
@@ -294,13 +283,19 @@ void BTreeIteratorTest()
 	Stopwatch watch;
 	watch.GetFrequency();
  	while(start != end)
-	{
-		//i++;
-		
-		//cout << *(long*)*start << "\n\r";
+	{		
+		cout << *(long*)*start << "\n\r";
 		watch.StartTimer();
 		start++;
 		watch.StopTimer();
+	}
+
+	start = tree.begin();
+	
+	while (start != end)
+	{
+		cout << *(long*)*end << "\n\r";
+		end--;
 	}
 
 	double secs = watch.TotalTime();
@@ -311,8 +306,7 @@ void BTreeIteratorTest()
 
 void main()
 {
-	//BTreeIteratorTest();
-	//HashTests();
+	BTreeIteratorTest();
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();

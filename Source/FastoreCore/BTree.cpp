@@ -213,7 +213,7 @@ int Branch::IndexOf(void* key, bool forward)
 			lo = localIndex + 1;
 	}
 
-    return lo + forward;
+    return lo;// + forward;
 }
 
 fs::wstring Branch::ToString()
@@ -263,6 +263,18 @@ bool Branch::MoveNext(BTree::Path& path)
 	{
 		++node.Index;
 		node.Node->_children[node.Index]->SeekToBegin(path);
+		return true;
+	}
+	return false;
+}
+
+bool Branch::MovePrior(BTree::Path& path)
+{
+	BTree::PathNode& node = path.Branches.back();
+	if (node.Index > 0)
+	{
+		--node.Index;
+		node.Node->_children[node.Index]->SeekToEnd(path);
 		return true;
 	}
 	return false;
@@ -371,7 +383,7 @@ int Leaf::IndexOf(void* key, bool forward)
 
 	while (lo <= hi)
 	{
-		localIndex = (lo + hi) / 2;
+		localIndex = (lo + hi) >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
         result = _tree->_keyType.Compare(key, &_keys[localIndex * _tree->_keyType.Size]);
 
 		if (result == 0)
@@ -382,7 +394,7 @@ int Leaf::IndexOf(void* key, bool forward)
 			lo = localIndex + 1;
 	}
 
-    return lo + forward;
+    return lo;// + forward;
 }
 
 fs::wstring Leaf::ToString()
@@ -474,7 +486,7 @@ bool Leaf::MovePrior(BTree::Path& path)
 		{
 			BTree::PathNode& node = path.Branches.back();
 
-			if (node.Node->MoveNext(path))
+			if (node.Node->MovePrior(path))
 				return true;
 			else
 				path.Branches.pop_back();
