@@ -97,6 +97,7 @@
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -116,8 +117,9 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalOptions>/MD /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,7 +144,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/MD /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -169,7 +171,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/MD /D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
