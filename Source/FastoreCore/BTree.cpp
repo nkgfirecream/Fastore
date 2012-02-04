@@ -81,6 +81,13 @@ BTree::Path BTree::SeekToBegin()
 	return result;
 }
 
+BTree::Path BTree::SeekToEnd()
+{
+	Path result;
+	_root->SeekToEnd(result);
+	return result;
+}
+
 //Branch
 
 Branch::Branch(BTree* tree)	: Node(tree)
@@ -237,6 +244,16 @@ void Branch::SeekToBegin(BTree::Path& path)
 	path.Branches.push_back(result);
 	if (result.Index < _count)
 		_children[result.Index]->SeekToBegin(path);
+}
+
+void Branch::SeekToEnd(BTree::Path& path)
+{
+	BTree::PathNode result;
+	result.Index = _count;
+	result.Node = this;
+	path.Branches.push_back(result);
+	if (result.Index <= _count)
+		_children[result.Index]->SeekToEnd(path);
 }
 
 bool Branch::MoveNext(BTree::Path& path)
@@ -412,6 +429,12 @@ void Leaf::SeekToBegin(BTree::Path& path)
 	path.LeafIndex = 0;
 }
 
+void Leaf::SeekToEnd(BTree::Path& path)
+{
+	path.Leaf = this;
+	path.LeafIndex = _count -1;
+}
+
 bool Leaf::MoveNext(BTree::Path& path)
 {
 	if (path.LeafIndex < _count - 1)
@@ -434,6 +457,12 @@ bool Leaf::MoveNext(BTree::Path& path)
 		}
 		return false;
 	}
+}
+
+//TODO: Complete this Code.
+bool Leaf::MovePrior(BTree::Path& path)
+{
+	return true;
 }
 
 // BTree iterator

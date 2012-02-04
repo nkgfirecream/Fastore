@@ -122,9 +122,9 @@ class Node
 
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
-		virtual void SeekToKey(void* key, BTree::Path& path, bool forward);
-		virtual void SeekToBegin(BTree::Path& path);
-		virtual void SeekToEnd(BTree::Path& path);
+		virtual void SeekToKey(void* key, BTree::Path& path, bool forward) = 0;
+		virtual void SeekToBegin(BTree::Path& path) = 0;
+		virtual void SeekToEnd(BTree::Path& path) = 0;
 
 	protected:	
 		int _count;

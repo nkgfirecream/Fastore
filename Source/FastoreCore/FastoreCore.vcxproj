@@ -191,6 +191,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
     <ClCompile Include="EASTL\source\allocator.cpp" />
+    <ClCompile Include="EASTL\source\hashtable.cpp" />
     <ClCompile Include="EASTL\useEASTL.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
