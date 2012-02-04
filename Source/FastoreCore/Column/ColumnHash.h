@@ -6,7 +6,6 @@
 #include "..\typedefs.h"
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
-#include "..\BTreeObserver.h"
 #include "..\Range.h"
 #include "..\Column\columnbuffer.h"
 

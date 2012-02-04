@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Windows.h>
-#include <string.h>
+#include "typedefs.h"
 
 using namespace std;
 

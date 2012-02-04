@@ -459,10 +459,28 @@ bool Leaf::MoveNext(BTree::Path& path)
 	}
 }
 
-//TODO: Complete this Code.
 bool Leaf::MovePrior(BTree::Path& path)
 {
-	return true;
+	if (path.LeafIndex > 0)
+	{
+		--path.LeafIndex;
+		return true;
+	}
+	else
+	{
+		int depth =  - 1;
+		// walk up until we are no longer at the beginning
+		while (path.Branches.size() > 0)
+		{
+			BTree::PathNode& node = path.Branches.back();
+
+			if (node.Node->MoveNext(path))
+				return true;
+			else
+				path.Branches.pop_back();
+		}
+		return false;
+	}
 }
 
 // BTree iterator

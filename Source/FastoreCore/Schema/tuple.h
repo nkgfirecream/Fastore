@@ -2,7 +2,7 @@
 
 #include <EASTL/vector.h>
 #include "column.h"
-#include <string.h>
+#include "typedefs.h"
 #include <sstream>
 
 using namespace std;

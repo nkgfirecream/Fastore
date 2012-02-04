@@ -145,6 +145,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -200,7 +201,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
-    <ClInclude Include="BTreeObserver.h" />
     <ClInclude Include="Column\ColumnHash.h" />
     <ClInclude Include="Column\columnbuffer.h" />
     <ClInclude Include="EAHashTest.h" />
