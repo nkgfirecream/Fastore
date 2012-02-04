@@ -155,10 +155,7 @@ class Leaf: public Node
 		bool MoveNext(BTree::Path& path);
 		bool MovePrior(BTree::Path& path);
 
-		char* operator[](int index)
-		{
-			return _values + (_tree->_valueType.Size * index);
-		}
+		char* operator[](int);
 
 		class iterator : public std::iterator<input_iterator_tag, void*>
 		{

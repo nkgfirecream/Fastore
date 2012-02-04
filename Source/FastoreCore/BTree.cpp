@@ -495,6 +495,11 @@ bool Leaf::MovePrior(BTree::Path& path)
 	}
 }
 
+char* Leaf::operator[](int index)
+{
+	return _values + (_tree->_valueType.Size * index);
+}
+
 // BTree iterator
 
 bool BTree::iterator::MoveNext()
@@ -535,5 +540,5 @@ BTree::iterator BTree::iterator::operator--(int)
 
 bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
 bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
-void* BTree::iterator::operator*() { return &_path.Leaf[_path.LeafIndex];}
+void* BTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}
 
