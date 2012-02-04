@@ -137,7 +137,7 @@ Branch::Branch(BTree* tree, Node* left, Node* right, void* key) : Node(tree, 1)
 
 InsertResult Branch::Insert(void* key, void* value, Leaf** leaf)
 {
-	int index = IndexOf(key, true);
+	int index = IndexOf(key, false);
 	InsertResult result = _children[index]->Insert(key, value, leaf);
 
 	if (result.split != NULL)
@@ -213,7 +213,7 @@ int Branch::IndexOf(void* key, bool forward)
 			lo = localIndex + 1;
 	}
 
-    return lo;// + forward;
+    return lo + forward;
 }
 
 fs::wstring Branch::ToString()
@@ -314,7 +314,7 @@ Leaf::~Leaf()
 
 InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 {
-	int index = IndexOf(key, true);
+	int index = IndexOf(key, false);
 	InsertResult result;
 	if (_count != _tree->_leafCapacity)
 	{
@@ -394,7 +394,7 @@ int Leaf::IndexOf(void* key, bool forward)
 			lo = localIndex + 1;
 	}
 
-    return lo;// + forward;
+    return lo + forward;
 }
 
 fs::wstring Leaf::ToString()
@@ -433,6 +433,8 @@ void Leaf::SeekToKey(void* key, BTree::Path& path, bool forward)
 {
 	path.Leaf = this;
 	path.LeafIndex = IndexOf(key, forward);
+	if (path.LeafIndex >= _count)
+		MoveNext(path);
 }
 
 void Leaf::SeekToBegin(BTree::Path& path)
@@ -449,11 +451,9 @@ void Leaf::SeekToEnd(BTree::Path& path)
 
 bool Leaf::MoveNext(BTree::Path& path)
 {
-	if (path.LeafIndex < _count - 1)
-	{
-		++path.LeafIndex;
+	++path.LeafIndex;
+	if (path.LeafIndex < _count)
 		return true;
-	}
 	else
 	{
 		int depth =  - 1;
@@ -473,11 +473,9 @@ bool Leaf::MoveNext(BTree::Path& path)
 
 bool Leaf::MovePrior(BTree::Path& path)
 {
-	if (path.LeafIndex > 0)
-	{
-		--path.LeafIndex;
+	--path.LeafIndex;
+	if (path.LeafIndex >= 0)
 		return true;
-	}
 	else
 	{
 		int depth =  - 1;
