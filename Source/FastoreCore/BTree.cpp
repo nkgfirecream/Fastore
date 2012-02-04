@@ -245,7 +245,7 @@ bool Branch::MoveNext(BTree::Path& path)
 	if (node.Index < _count)
 	{
 		++node.Index;
-		node.Node->_children[node.Index].SeekToBegin(path);
+		node.Node->_children[node.Index]->SeekToBegin(path);
 		return true;
 	}
 	return false;
@@ -474,7 +474,7 @@ BTree::iterator BTree::iterator::operator--(int)
 	return tmp;
 }
 
-bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_currentIndex == rhs._currentIndex) && (_currentLeaf == rhs._currentLeaf);}
-bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return(_currentIndex != rhs._currentIndex) || (_currentLeaf != rhs._currentLeaf);}
-void* BTree::iterator::operator*() { return &_currentLeaf->_values[_currentIndex * _tree->_valueType.Size];}
+bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
+bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
+void* BTree::iterator::operator*() { return &_path.Leaf[_path.LeafIndex];}
 

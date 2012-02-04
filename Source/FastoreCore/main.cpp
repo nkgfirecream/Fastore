@@ -1,19 +1,21 @@
-#include <EASTL\string.h>
-#include <iostream>
+#pragma comment(linker, "/OPT:NOWIN98")
+
+#include <conio.h>
+#include <tbb\queuing_mutex.h>
+
 #include "BTree.h"
 #include "Util/Stopwatch.h"
 #include "Column/ColumnHash.h"
 #include "Schema/standardtypes.h"
-#include <conio.h>
-#include <tbb\queuing_mutex.h>
 #include "KeyTree.h"
+#include "typedefs.h"
 
 #include "EAHashTest.h"
 #include "STDHashTest.h"
 
 using namespace std;
 
-std::wstring RandomString(int length)
+fs::wstring RandomString(int length)
 {
 	const wchar_t* _chars = L"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -44,12 +46,12 @@ void StringTest()
 	Leaf* dummy2;
 	for(int i = 0; i < numrows; i++)
 	{
-		std::wstring insert = RandomString(rand() % 8 + 1);	
+		fs::wstring insert = RandomString(rand() % 8 + 1);	
 		watch->StartTimer();
 		tree.Insert(&insert, &insert, &dummy);	
 		watch->StopTimer();
 
-		std::wstring* insert2 = new std::wstring(insert);
+		fs::wstring* insert2 = new fs::wstring(insert);
 		watch2->StartTimer();
 		tree2.Insert(&insert2, &insert2, &dummy2);
 		watch2->StopTimer();
@@ -309,10 +311,9 @@ void BTreeIteratorTest()
 
 }
 
-
 void main()
 {
-	BTreeIteratorTest();
+	//BTreeIteratorTest();
 	//HashTests();
 	//QueueingMutexTest();
 	//StringTest();

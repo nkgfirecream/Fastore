@@ -64,8 +64,8 @@ class BTree
 
 		class iterator : public std::iterator<bidirectional_iterator_tag, void*>
 		{
-				BTree::Path& _path;
-				iterator(BTree::Path& path) : _path(path) {}
+				BTree::Path _path;
+				iterator(const BTree::Path& path) : _path(path) {}
 			public:
 				iterator(const iterator& iter) : _path(iter._path) {}
 
@@ -191,7 +191,7 @@ class Leaf: public Node
 
 		iterator valueEnd()
 		{
-			return iterator(this[_count - 1], _tree->_valueType.Size);
+			return iterator(operator[](_count - 1), _tree->_valueType.Size);
 		}
 };
 
