@@ -47,38 +47,31 @@ class BTree
 
 		struct PathNode
 		{
-			Branch& Node;
+			Branch* Node;
 			int Index;
 		};
 
 		struct Path
 		{
 			eastl::vector<PathNode> Branches;
-			Leaf& Leaf;
+			Leaf* Leaf;
 			int LeafIndex;
 		};
 
-		Path SeekToKey(void* key, int direction);
+		Path SeekToKey(void* key, bool forward);
+		Path SeekToBegin();
+		Path SeekToEnd();
 
 		class iterator : public std::iterator<bidirectional_iterator_tag, void*>
 		{
-			typedef eastl::pair<Branch*,int> PathNode;
-			private:
-				BTree* _tree;
-				Leaf* _currentLeaf;
-				int	_currentIndex;
-				Path _path;
-
-				void SeekToKey(void* value);
-				void SeekToBegin();
-				void SeekToEnd();
-				void MoveNext();
-				void MovePrevious();
-			
+				BTree::Path& _path;
+				iterator(BTree::Path& path) : _path(path) {}
 			public:
-				iterator(BTree*, bool);
-				iterator(BTree*, void*);
-				iterator(const iterator& iter);
+				iterator(const iterator& iter) : _path(iter._path) {}
+
+				bool MoveNext();
+				bool MovePrior();
+			
 				iterator& operator++();
 				iterator operator++(int);
 				iterator& operator--();
@@ -86,23 +79,23 @@ class BTree
 				bool operator==(const iterator& rhs);
 				bool operator!=(const iterator& rhs);
 				void* operator*();
+
+			friend class BTree;
 		};
 
 		iterator begin()
 		{
-			return iterator(this, true);
+			return iterator(SeekToBegin());
 		}
 
 		iterator end()
 		{
-			return iterator(this, false);
+			return iterator(SeekToEnd());
 		}
 
 		iterator find(void* key, bool forward)
 		{
-			int direction = boolToNormalizedInt(forward);
-			Path p = SeekToKey(key, direction);
-			return iterator(p, direction);
+			return iterator(SeekToKey(key, forward));
 		}
 
 
@@ -129,7 +122,9 @@ class Node
 
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
-		virtual bool SeekToKey(void* key, BTree::Pointer& pointer, int level);
+		virtual void SeekToKey(void* key, BTree::Path& path, bool forward);
+		virtual void SeekToBegin(BTree::Path& path);
+		virtual void SeekToEnd(BTree::Path& path);
 
 	protected:	
 		int _count;
@@ -144,7 +139,7 @@ class Leaf: public Node
 {	
 	private:		
 		char* _values;
-		int IndexOf(void* key);
+		int IndexOf(void* key, bool forward);
 		void* InternalInsert(int index, void* key, void* value, Leaf** leaf);
 
 	public:
@@ -154,7 +149,11 @@ class Leaf: public Node
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
-		bool SeekToKey(void* key, BTree::Pointer& pointer, int level);
+		void SeekToKey(void* key, BTree::Path& path, bool forward);
+		void SeekToBegin(BTree::Path& path);
+		void SeekToEnd(BTree::Path& path);
+		bool MoveNext(BTree::Path& path);
+		bool MovePrior(BTree::Path& path);
 
 		char* operator[](int index)
 		{
@@ -194,8 +193,6 @@ class Leaf: public Node
 		{
 			return iterator(this[_count - 1], _tree->_valueType.Size);
 		}
-
-	friend class BTree::iterator;
 };
 
 class Branch : public Node
@@ -207,16 +204,18 @@ class Branch : public Node
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
 		fs::wstring ToString();	
-		bool SeekToKey(void* key, BTree::Pointer& pointer, int level);	
+		void SeekToKey(void* key, BTree::Path& path, bool forward);
+		void SeekToBegin(BTree::Path& path);
+		void SeekToEnd(BTree::Path& path);
+		bool MoveNext(BTree::Path& path);
+		bool MovePrior(BTree::Path& path);
 
 	private:
 		Node** _children;
 
-		int IndexOf(void* key);
+		int IndexOf(void* key, bool forward);
 		Split* InsertChild(int index, void* key, Node* child);
 		void InternalInsertChild(int index, void* key, Node* child);
-
-	friend class BTree::iterator;
 };
 
 
