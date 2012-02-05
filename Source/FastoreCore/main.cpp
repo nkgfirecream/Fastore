@@ -277,12 +277,11 @@ void BTreeIteratorTest()
 	}
 
 	BTree::iterator start = tree.begin();
-	BTree::iterator end = tree.end();
 
 	i = 0;
 	Stopwatch watch;
 	watch.GetFrequency();
- 	while(start != end)
+ 	while(!start.End())
 	{		
 		cout << *(long*)*start << "\n\r";
 		watch.StartTimer();
@@ -290,13 +289,13 @@ void BTreeIteratorTest()
 		watch.StopTimer();
 	}
 
-	start = tree.begin();
+	/*start = tree.begin();
 	
 	while (start != end)
 	{
 		cout << *(long*)*end << "\n\r";
 		end--;
-	}
+	}*/
 
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";

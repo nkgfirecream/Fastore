@@ -493,6 +493,16 @@ bool Leaf::MovePrior(BTree::Path& path)
 	}
 }
 
+bool Leaf::EndOfTree(BTree::Path& path)
+{
+	return path.LeafIndex == path.Leaf->_count && path.Branches.size() == 0;
+}
+
+bool Leaf::BeginOfTree(BTree::Path& path)
+{
+	return path.LeafIndex < 0 && path.Branches.size() == 0;
+}
+
 char* Leaf::operator[](int index)
 {
 	return _values + (_tree->_valueType.Size * index);
@@ -534,6 +544,16 @@ BTree::iterator BTree::iterator::operator--(int)
 	BTree::iterator tmp(*this); 
 	operator--(); 
 	return tmp;
+}
+
+bool BTree::iterator::End()
+{
+	return _path.Leaf->EndOfTree(_path);
+}
+
+bool  BTree::iterator::Begin()
+{
+	return _path.Leaf->BeginOfTree(_path);
 }
 
 bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}

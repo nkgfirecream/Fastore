@@ -79,14 +79,8 @@ class BTree
 				bool operator==(const iterator& rhs);
 				bool operator!=(const iterator& rhs);
 				void* operator*();
-				bool EOF()
-				{
-					return _path.Branches.size() == 0 && _path.LeafIndex >= _path.Leaf->_count;
-				};
-				bool BOF()
-				{
-					return _path.Branches.size() == 0 && _path.LeafIndex < 0;
-				};
+				bool End();
+				bool Begin();
 
 			friend class BTree;
 		};
@@ -162,6 +156,8 @@ class Leaf: public Node
 		void SeekToEnd(BTree::Path& path);
 		bool MoveNext(BTree::Path& path);
 		bool MovePrior(BTree::Path& path);
+		bool EndOfTree(BTree::Path& path);
+		bool BeginOfTree(BTree::Path& path);
 
 		char* operator[](int);
 
