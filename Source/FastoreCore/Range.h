@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Optional.h"
+#include "optional.h"
 #include <EASTL\vector.h>
 
 
@@ -18,7 +18,7 @@ struct Range
 {
 	const static int MaxLimit = 50;
 
-	Range(int limit, Optional<RangeBound> start, Optional<RangeBound> end, bool ascending = true):
+	Range(int limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>(), bool ascending = true):
 		Limit(limit), Start(start), End(end), Ascending(ascending) {}	
 
 	int Limit;

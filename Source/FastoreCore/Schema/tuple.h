@@ -2,8 +2,9 @@
 
 #include <EASTL/vector.h>
 #include "column.h"
-#include "typedefs.h"
+#include "../typedefs.h"
 #include <sstream>
+#include <exception>
 
 using namespace std;
 
@@ -32,10 +33,10 @@ class TupleType
 
 		const ColumnType& operator[] (fs::wstring name)
 		{
-			for (const ColumnTypeVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
+			for (ColumnTypeVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
 				if ((*it).Name.compare(name) == 0)
 					return *it;
-			stringstream error;
+			wstringstream error;
 			error << "Column name '" << name << "' not found.";
 			throw std::exception(error.str());
 		}
@@ -56,4 +57,4 @@ class TupleType
 		{
 			return _columns.size();
 		}
-}
+};

@@ -8,10 +8,11 @@ class DataSet
 	char* _buffer;
 	public:
 		const TupleType Type;
+		const int RowCount;
 
-		DataSet(const TupleType tupleType) : Type(tupleType) 
+		DataSet(const TupleType tupleType, int rowCount) : Type(tupleType), RowCount(rowCount) 
 		{
-			_buffer = new char[tupleType.BufferSize];
+			_buffer = new char[tupleType.BufferSize * RowCount];
 		}
 
 		~DataSet()
@@ -45,4 +46,4 @@ class DataSet
 		// TODO: mutable iterator by column
 
 		// TODO: mutable iterator by row
-}
+};

@@ -36,7 +36,7 @@ class Optional
 		{
 			if (p != NULL)
 				throw new InvalidOperationException ("Optional value must be given null pointer.");
-			_hasValue = true;		
+			_hasValue = false;		
 		}
 
 		const T operator =(const T& t)

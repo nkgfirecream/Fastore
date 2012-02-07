@@ -17,7 +17,7 @@ typedef eastl::hash_map<void*, Leaf&> ColumnHashMap;
 typedef eastl::hash_map<void*, Leaf&>::iterator ColumnHashMapIterator;
 typedef eastl::pair <void*, Leaf&> ValueLeafPair;
 
-class ColumnHash : ColumnBuffer
+class ColumnHash : public ColumnBuffer
 {
 	public:
 		ColumnHash(const ScalarType rowType, const ScalarType valueType);

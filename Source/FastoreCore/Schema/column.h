@@ -5,9 +5,9 @@
 
 struct ColumnType
 {
-	const fs::wstring Name;
-	const ScalarType Type;
-
-	ColumnType(const ScalarType type, const fs::wstring name) : Type(type), Name(name) {};
-}
+	fs::wstring Name;
+	ScalarType Type;
+	bool IsUnique;
+	bool IsRequired;
+};
 

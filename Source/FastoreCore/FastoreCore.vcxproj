@@ -197,6 +197,10 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClCompile Include="EASTL\useEASTL.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Table\dataset.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
+    <ClCompile Include="Table\table.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
@@ -212,6 +216,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="Table\dataset.h" />
     <ClInclude Include="Schema\tuple.h" />
     <ClInclude Include="Schema\scalar.h" />
+    <ClInclude Include="Table\ranges.h" />
     <ClInclude Include="typedefs.h" />
     <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
