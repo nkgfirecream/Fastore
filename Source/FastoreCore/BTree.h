@@ -58,7 +58,7 @@ class BTree
 			int LeafIndex;
 		};
 
-		Path SeekToKey(void* key, bool forward);
+		Path SeekToKey(void* key, bool& forward);
 		Path SeekToBegin();
 		Path SeekToEnd();
 
@@ -95,9 +95,9 @@ class BTree
 			return iterator(SeekToEnd());
 		}
 
-		iterator find(void* key, bool forward)
+		iterator find(void* key, bool& match)
 		{
-			return iterator(SeekToKey(key, forward));
+			return iterator(SeekToKey(key, match));
 		}
 
 
@@ -124,7 +124,7 @@ class Node
 
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
-		virtual void SeekToKey(void* key, BTree::Path& path, bool forward) = 0;
+		virtual void SeekToKey(void* key, BTree::Path& path, bool& match) = 0;
 		virtual void SeekToBegin(BTree::Path& path) = 0;
 		virtual void SeekToEnd(BTree::Path& path) = 0;
 
@@ -141,8 +141,8 @@ class Leaf: public Node
 {	
 	private:		
 		char* _values;
-		int IndexOf(void* key, bool forward);
-		void* InternalInsert(int index, void* key, void* value, Leaf** leaf);
+		int IndexOf(void* key, bool& match);
+		void* InternalInsert(int index, void* key, void* value, bool match, Leaf** leaf);
 
 	public:
 		Leaf(BTree* tree);
@@ -151,7 +151,7 @@ class Leaf: public Node
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
-		void SeekToKey(void* key, BTree::Path& path, bool forward);
+		void SeekToKey(void* key, BTree::Path& path, bool& forward);
 		void SeekToBegin(BTree::Path& path);
 		void SeekToEnd(BTree::Path& path);
 		bool MoveNext(BTree::Path& path);
@@ -205,7 +205,7 @@ class Branch : public Node
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
 		fs::wstring ToString();	
-		void SeekToKey(void* key, BTree::Path& path, bool forward);
+		void SeekToKey(void* key, BTree::Path& path, bool& match);
 		void SeekToBegin(BTree::Path& path);
 		void SeekToEnd(BTree::Path& path);
 		bool MoveNext(BTree::Path& path);
@@ -214,7 +214,7 @@ class Branch : public Node
 	private:
 		Node** _children;
 
-		int IndexOf(void* key, bool forward);
+		int IndexOf(void* key);
 		Split* InsertChild(int index, void* key, Node* child);
 		void InternalInsertChild(int index, void* key, Node* child);
 };

@@ -265,25 +265,66 @@ void BTreeIteratorTest()
 
 }
 
+void OutputResult(GetResult result)
+{
+	for (int i = 0; i < result.Data.size(); i++)
+	{
+		cout << *(long*)result.Data[i].first << " : " << *(long*)result.Data[i].second <<"\n\r";
+	}
+}
+
 void ColumnHashTest()
 {
 	cout << "Testing ColumnHash...";
 
 	ColumnHash* hash = new ColumnHash(GetLongType(), GetLongType());
 
-	long numrows = 100;
-	long numIds = 10;
+	long numvalues = 100;
+	long rowspervalue = 10;
 	
-	for (long i = 0; i < numrows; i++)
+	long rowId = 0;
+	//Leave gaps so we can test match/no match
+	for (long i = 0; i < numvalues * 2; i = i + 2)
 	{
-		for (long j = 0; j < numIds; j++)
+		for (long j = 0; j < rowspervalue; j++)
 		{
-			hash->Include(&i,&j);
+			hash->Include(&i, &rowId);
+			rowId++;
 		}
 	}
 
+	rowId = 0;
+	for (long i = 0; i < numvalues; i++)
+	{
+		for (long j = 0; j < rowspervalue; j++)
+		{
+			cout << *(long*)hash->GetValue(&rowId) << "\r\n";
+			rowId++;
+		}
+	}
+
+	//Ascending, inclusive, first 10 rows;
+	Range range;
+	range.Ascending = true;
+	range.Limit = 30;
+
+	
+	RangeBound start;
+	start.Inclusive = true;
+	long i = 1;
+	start.Value = &i;
+
+	range.Start = start;
+
+	auto result = hash->GetRows(range);
+
+	OutputResult(result);
+
+
 	cout << "Rows inserted";
 }
+
+
 
 void TestEAHashSet()
 {
@@ -307,8 +348,8 @@ void main()
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
-	//ColumnHashTest();
-	TestEAHashSet();
+	ColumnHashTest();
+	//TestEAHashSet();
 	getch();
 }
 

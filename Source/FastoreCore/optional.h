@@ -42,7 +42,7 @@ class Optional
 		const T operator =(const T& t)
 		{
 			_hasValue = true;
-			_value = t
+			_value = t;
 			return _value;
 		}	
 
@@ -60,6 +60,11 @@ class Optional
 		{
 			return !operator ==(p);
 		}	
+
+		bool HasValue()
+		{
+			return _hasValue;
+		}
 
 	private:
 		bool _hasValue;

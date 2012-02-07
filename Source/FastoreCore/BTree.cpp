@@ -72,10 +72,10 @@ fs::wstring BTree::ToString()
 	return _root->ToString();
 }
 
-BTree::Path BTree::SeekToKey(void* key, bool forward)
+BTree::Path BTree::SeekToKey(void* key, bool& match)
 {
 	Path result;
-	_root->SeekToKey(key, result, forward);
+	_root->SeekToKey(key, result, match);
 	return result;
 }
 
@@ -142,7 +142,7 @@ Branch::Branch(BTree* tree, Node* left, Node* right, void* key) : Node(tree, 1)
 
 InsertResult Branch::Insert(void* key, void* value, Leaf** leaf)
 {
-	int index = IndexOf(key, false);
+	int index = IndexOf(key);
 	InsertResult result = _children[index]->Insert(key, value, leaf);
 
 	if (result.split != NULL)
@@ -198,7 +198,7 @@ void Branch::InternalInsertChild(int index, void* key, Node* child)
 	_count++;
 }
 
-int Branch::IndexOf(void* key, bool forward)
+int Branch::IndexOf(void* key)
 {	
     int lo = 0;
 	int hi = _count - 1;
@@ -211,14 +211,16 @@ int Branch::IndexOf(void* key, bool forward)
         result = _tree->_keyType.Compare(key, &_keys[localIndex * _tree->_keyType.Size]);
 
 		if (result == 0)
+		{
 			return localIndex;
+		}
 		else if (result < 0)
 			hi = localIndex - 1;
 		else
 			lo = localIndex + 1;
 	}
 
-    return lo + forward;
+    return lo;
 }
 
 fs::wstring Branch::ToString()
@@ -285,14 +287,14 @@ bool Branch::MovePrior(BTree::Path& path)
 	return false;
 }
 
-void Branch::SeekToKey(void* key, BTree::Path& path, bool forward)
+void Branch::SeekToKey(void* key, BTree::Path& path, bool& match)
 {
 	BTree::PathNode result;
-	result.Index = IndexOf(key, forward);
+	result.Index = IndexOf(key);
 	result.Node = this;
 	path.Branches.push_back(result);
 	if (result.Index < _count)
-		_children[result.Index]->SeekToKey(key, path, forward);
+		_children[result.Index]->SeekToKey(key, path, match);
 }
 
 //Leaf
@@ -319,11 +321,12 @@ Leaf::~Leaf()
 
 InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 {
-	int index = IndexOf(key, false);
+	bool match;
+	int index = IndexOf(key, match);
 	InsertResult result;
 	if (_count != _tree->_leafCapacity)
 	{
-		result.found = InternalInsert(index, key, value, leaf);
+		result.found = InternalInsert(index, key, value, match, leaf);
 		result.split = NULL;
 	}
 	else
@@ -339,9 +342,9 @@ InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 		}
 
 		if (index < _count)
-			result.found = InternalInsert(index, key, value, leaf);
+			result.found = InternalInsert(index, key, value, match, leaf);
 		else
-			result.found = node->InternalInsert(index - _count, key, value, leaf);
+			result.found = node->InternalInsert(index - _count, key, value, match, leaf);
 
 		_tree->DoValuesMoved(node);
 
@@ -357,10 +360,10 @@ InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 	return result;
 }
 
-void* Leaf::InternalInsert(int index, void* key, void* value, Leaf** leaf)
+void* Leaf::InternalInsert(int index, void* key, void* value, bool match, Leaf** leaf)
 {
 	*leaf = this;
-	if (index >= _count || _tree->_keyType.Compare(&_keys[index * _tree->_keyType.Size], key) != 0)
+	if (index >= _count || !match)
 	{
 		if (_count != index)
 		{
@@ -376,10 +379,10 @@ void* Leaf::InternalInsert(int index, void* key, void* value, Leaf** leaf)
 		return NULL;
 	}
 	else
-		return &_values[index * _tree->_keyType.Size];
+		return operator[](index).second;
 }
 
-int Leaf::IndexOf(void* key, bool forward)
+int Leaf::IndexOf(void* key, bool& match)
 {
 	int lo = 0;
 	int hi = _count - 1;
@@ -392,14 +395,18 @@ int Leaf::IndexOf(void* key, bool forward)
         result = _tree->_keyType.Compare(key, &_keys[localIndex * _tree->_keyType.Size]);
 
 		if (result == 0)
+		{
+			match = true;
 			return localIndex;
+		}
 		else if (result < 0)
 			hi = localIndex - 1;
 		else
 			lo = localIndex + 1;
 	}
 
-    return lo + forward;
+	match = false;
+    return lo;
 }
 
 fs::wstring Leaf::ToString()
@@ -427,17 +434,17 @@ void* Leaf::GetKey(function<bool(void*)> predicate)
 {
 	for (int i = 0; i < _count; i++)
 	{
-		if (predicate(&_values[i * _tree->_valueType.Size]))
-			return &_keys[i * _tree->_keyType.Size];
+		if (predicate(operator[](i).second))
+			return operator[](i).first;
 	}
 
 	return NULL;
 }
 
-void Leaf::SeekToKey(void* key, BTree::Path& path, bool forward)
+void Leaf::SeekToKey(void* key, BTree::Path& path, bool& match)
 {
 	path.Leaf = this;
-	path.LeafIndex = IndexOf(key, forward);
+	path.LeafIndex = IndexOf(key, match);
 	if (path.LeafIndex >= _count)
 		MoveNext(path);
 }
@@ -510,7 +517,7 @@ bool Leaf::BeginOfTree(BTree::Path& path)
 
 eastl::pair<void*,void*> Leaf::operator[](int index)
 {
-	return eastl::pair<void*,void*>(_keys + (_tree->_keyType.Size * index),_values + (_tree->_valueType.Size * index));
+	return eastl::pair<void*,void*>(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
 }
 
 // BTree iterator

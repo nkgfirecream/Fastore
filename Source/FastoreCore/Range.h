@@ -6,7 +6,9 @@
 
 struct RangeBound
 {
-	RangeBound(void* value = NULL, Optional<void*> rowId = NULL, bool inclusive = true) :
+	RangeBound() : Value(NULL), Inclusive(true) {}
+
+	RangeBound(void* value, Optional<void*> rowId = NULL, bool inclusive = true) :
 		Value(value), RowId(rowId), Inclusive(inclusive) {}
 		
 	void* Value;

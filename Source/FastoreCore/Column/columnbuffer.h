@@ -4,6 +4,7 @@
 
 struct GetResult
 {
+	GetResult() : Limited(false) {}
 	bool Limited;
 	eastl::vector<eastl::pair<void*,void*>> Data;
 };
@@ -11,7 +12,7 @@ struct GetResult
 class ColumnBuffer
 {
 	public:
-		virtual void* GetValue(void* value) = 0;
+		virtual void* GetValue(void* rowId) = 0;
 		virtual void* Include(void* value, void* rowID) = 0;
 		virtual void* Exclude(void* value, void* rowID) = 0;
 		// TODO: what should updatevalue return?  All the row IDs?
