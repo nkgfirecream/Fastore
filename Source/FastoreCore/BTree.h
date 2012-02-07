@@ -28,7 +28,7 @@ struct Split
 	Node* right;
 };
 
-typedef function<void(void*,Leaf&)> valuesMovedHandler;
+typedef function<void(void*,Leaf*)> valuesMovedHandler;
 
 class BTree
 {
@@ -78,7 +78,7 @@ class BTree
 				iterator operator--(int);
 				bool operator==(const iterator& rhs);
 				bool operator!=(const iterator& rhs);
-				void* operator*();
+				eastl::pair<void*,void*> operator*();
 				bool End();
 				bool Begin();
 
@@ -108,7 +108,7 @@ class BTree
 		ScalarType _keyType;
 		ScalarType _valueType;
 		
-		void DoValuesMoved(Leaf& newLeaf);
+		void DoValuesMoved(Leaf* newLeaf);
 		valuesMovedHandler _valuesMovedCallback;
 
 	friend class Leaf;
@@ -159,7 +159,7 @@ class Leaf: public Node
 		bool EndOfTree(BTree::Path& path);
 		bool BeginOfTree(BTree::Path& path);
 
-		char* operator[](int);
+		eastl::pair<void*,void*> operator[](int);
 
 		class iterator : public std::iterator<input_iterator_tag, void*>
 		{
@@ -192,7 +192,7 @@ class Leaf: public Node
 
 		iterator valueEnd()
 		{
-			return iterator(operator[](_count - 1), _tree->_valueType.Size);
+			return iterator(&_values[_count * _tree->_valueType.Size], _tree->_valueType.Size);
 		}
 };
 

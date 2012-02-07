@@ -52,14 +52,19 @@ int BTree::getLeafCapacity()
 	return _leafCapacity;
 }
 
-void BTree::DoValuesMoved(Leaf& newLeaf)
+void BTree::DoValuesMoved(Leaf* newLeaf)
 {
 	if (_valuesMovedCallback != NULL)
 	{
-		Leaf::iterator end = newLeaf.valueEnd();
-		for (Leaf::iterator i = newLeaf.valueBegin(); i != end; i++)
+		Leaf::iterator end = newLeaf->valueEnd();
+		for (Leaf::iterator i = newLeaf->valueBegin(); i != end; i++)
 			_valuesMovedCallback(*i, newLeaf);
 	}
+}
+
+void BTree::setValuesMovedCallback(valuesMovedHandler callback)
+{
+	_valuesMovedCallback = callback;
 }
 
 fs::wstring BTree::ToString()
@@ -338,7 +343,7 @@ InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 		else
 			result.found = node->InternalInsert(index - _count, key, value, leaf);
 
-		_tree->DoValuesMoved(*node);
+		_tree->DoValuesMoved(node);
 
 		Split* split = new Split();
 		split->key = &node->_keys[0];
@@ -503,9 +508,9 @@ bool Leaf::BeginOfTree(BTree::Path& path)
 	return path.LeafIndex < 0 && path.Branches.size() == 0;
 }
 
-char* Leaf::operator[](int index)
+eastl::pair<void*,void*> Leaf::operator[](int index)
 {
-	return _values + (_tree->_valueType.Size * index);
+	return eastl::pair<void*,void*>(_keys + (_tree->_keyType.Size * index),_values + (_tree->_valueType.Size * index));
 }
 
 // BTree iterator
@@ -558,5 +563,5 @@ bool  BTree::iterator::Begin()
 
 bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
 bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
-void* BTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}
+eastl::pair<void*,void*> BTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}
 

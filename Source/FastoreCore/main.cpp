@@ -150,44 +150,6 @@ void GuidTest()
 	//To be implemented
 }
 
-//void ColumnHashTest()
-//{
-//		cout << "Testing ColumnHash...";
-//
-//	ColumnHash<long,long>* hash = new ColumnHash<long,long>(LongCompare,LongString,LongString);
-//
-//	long numrows = 100000;
-//	Stopwatch* watch = new Stopwatch();
-//	cout << " freq: " << watch->GetFrequency() << "\r\n";	
-//	for(long i = 0; i < numrows; i++)
-//	{
-//		wchar_t* insert = RandomString(rand() % 8 + 1);	
-//		watch->StartTimer();
-//		hash->Insert(i,i);
-//		watch->StopTimer();
-//	}
-//
-//	double secs = watch->TotalTime();
-//	cout << " secs: " << secs << "\r\n";
-//
-//	cout << "Entries per second: " << numrows / secs << "\r\n";
-//
-//	watch->Reset();
-//	
-//	for(long i = 0; i < 300; i++)
-//	{
-//		watch->StartTimer();
-//		hash->GetValue(i);
-//		watch->StopTimer();
-//	}
-//
-//	secs = watch->TotalTime();
-//	cout << " secs: " << secs << "\r\n";
-//	cout << "Extractions per second: " << 300 / secs << "\r\n";
-//	
-//
-//}
-
 void QueueingMutexTest()
 {
 	tbb::queuing_mutex qm;
@@ -283,7 +245,7 @@ void BTreeIteratorTest()
 	watch.GetFrequency();
  	while(!start.End())
 	{		
-		cout << *(long*)*start << "\n\r";
+		cout << *(long*)(*start).first << "\n\r";
 		watch.StartTimer();
 		start++;
 		watch.StopTimer();
@@ -303,9 +265,40 @@ void BTreeIteratorTest()
 
 }
 
+void ColumnHashTest()
+{
+	cout << "Testing ColumnHash...";
+
+	ColumnHash* hash = new ColumnHash(GetLongType(), GetLongType());
+
+	long numrows = 100;
+	long numIds = 10;
+	
+	for (long i = 0; i < numrows; i++)
+	{
+		for (long j = 0; j < numIds; j++)
+		{
+			hash->Include(&i,&j);
+		}
+	}
+
+	cout << "Rows inserted";
+}
+
+void TestEAHashSet()
+{
+	eastl::hash_set<void*> set;
+	
+	long numrows = 10000;
+	for (long i = 0; i < numrows; i++)
+	{
+		set.insert(&i);
+	}
+}
+
 void main()
 {
-	BTreeIteratorTest();
+	//BTreeIteratorTest();
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
@@ -315,6 +308,7 @@ void main()
 	//ArrayCopyTest();
 	//GuidTest();
 	//ColumnHashTest();
+	TestEAHashSet();
 	getch();
 }
 
