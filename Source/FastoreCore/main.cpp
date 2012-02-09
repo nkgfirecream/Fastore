@@ -324,16 +324,23 @@ void ColumnHashTest()
 	cout << "Rows inserted";
 }
 
-
-
 void TestEAHashSet()
 {
-	eastl::hash_set<void*> set;
+	Type<long> currentType;
+	eastl::hash_set<void*, Type<long>> set;
 	
 	long numrows = 10000;
 	for (long i = 0; i < numrows; i++)
 	{
-		set.insert(&i);
+		set.insert((void*)i);
+	}
+	
+	auto start = set.begin();
+	auto end = set.end();
+	while(start != end)
+	{
+		wcout << currentType.ToString(*start) << "\n\r";
+		start++;
 	}
 }
 
@@ -348,8 +355,8 @@ void main()
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
-	ColumnHashTest();
-	//TestEAHashSet();
+	//ColumnHashTest();
+	TestEAHashSet();
 	getch();
 }
 

@@ -166,9 +166,9 @@ inline GetResult ColumnHash::GetRows(Range range)
 	if ((!end.Inclusive && lastMatch) || !lastMatch)
 		last--;
 
-	void* startID = range.Start.HasValue() && start.RowId.HasValue() ? *start.RowId : 0;
-	void* endID = range.End.HasValue() && end.RowId.HasValue() ? *end.RowId : 0;
-	bool hasPreviousID = (range.End.HasValue() && end.RowId.HasValue()) || (range.Start.HasValue() && start.RowId.HasValue());
+	void* startID = start.RowId.HasValue() ? *start.RowId : 0;
+	void* endID = end.RowId.HasValue() ? *end.RowId : 0;
+	bool hasPreviousID = end.RowId.HasValue() || start.RowId.HasValue();
 
 	result.Data = BuildData(first, last, startID, endID, hasPreviousID, range.Ascending, range.Limit > range.MaxLimit? range.MaxLimit : range.Limit, result.Limited);
 

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <sstream>
-#include <string.h>
+
+
 #include "scalar.h"
 #include "..\typedefs.h"
+#include <sstream>
 
 using namespace std;
 
