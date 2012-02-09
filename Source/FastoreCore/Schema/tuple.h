@@ -36,9 +36,9 @@ class TupleType
 			for (ColumnTypeVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
 				if ((*it).Name.compare(name) == 0)
 					return *it;
-			wstringstream error;
-			error << "Column name '" << name << "' not found.";
-			throw std::exception(error.str());
+			stringstream error;
+			error << "Column name '" << string(name.begin(), name.end()) << "' not found.";
+			throw std::exception(error.str().c_str());
 		}
 
 		typedef ColumnTypeVector::const_iterator iterator;

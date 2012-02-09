@@ -6,13 +6,13 @@
 class DataSet
 {
 	char* _buffer;
+	TupleType Type;
+	int RowCount;
 	public:
-		const TupleType Type;
-		const int RowCount;
 
 		DataSet(const TupleType tupleType, int rowCount) : Type(tupleType), RowCount(rowCount) 
 		{
-			_buffer = new char[tupleType.BufferSize * RowCount];
+			_buffer = new char[Type.BufferSize * RowCount];
 		}
 
 		~DataSet()
@@ -20,30 +20,95 @@ class DataSet
 			delete[] _buffer;
 		}
 
-		class iterator : public eastl::iterator<std::forward_iterator_tag, void*>
+		void* operator[](int row)
+		{
+			return _buffer + (row * Type.BufferSize);
+		}
+		
+		int ColumnOffset(int column)
+		{
+			int result = 0;
+			for (int i = 0; i < column; i++)
+				result += Type[i].Type.Size;
+			return result;
+		}
+
+		void* Cell(int row, int column)
+		{
+			return (char*)operator[](row) + ColumnOffset(column);
+		}
+
+		class byColumn : public eastl::iterator<std::forward_iterator_tag, void*>
 		{
 				char* _buffer;
 				size_t _rowsize;
-				iterator(char* buffer, size_t rowsize) : _buffer(buffer), _rowsize(rowsize) {}
+				byColumn(char* buffer, size_t rowsize) : _buffer(buffer), _rowsize(rowsize) {}
 			public:
-				iterator(const iterator& iter) : _buffer(iter._buffer), _rowsize(iter._rowsize) {}
-				iterator& operator++() 
+				byColumn(const byColumn& iter) : _buffer(iter._buffer), _rowsize(iter._rowsize) {}
+				byColumn& operator++() 
 				{
 					_buffer += _rowsize; 
 					return *this;
 				}
-				iterator operator++(int)
+				byColumn operator++(int)
 				{
-					iterator tmp(*this); 
+					byColumn tmp(*this); 
 					operator++(); 
 					return tmp;
 				}
-				bool operator==(const iterator& rhs) {return _buffer==rhs._buffer;}
-				bool operator!=(const iterator& rhs) {return _buffer!=rhs._buffer;}
-				char* operator*() { return _buffer;}
+				bool operator==(const byColumn& rhs) {return _buffer==rhs._buffer;}
+				bool operator!=(const byColumn& rhs) {return _buffer!=rhs._buffer;}
+				void* operator*() { return _buffer;}
+			
+			friend class DataSet;
 		};
 
-		// TODO: mutable iterator by column
+		byColumn beginColumn(int column)
+		{
+			return byColumn(_buffer + ColumnOffset(column), Type.BufferSize);
+		}
 
-		// TODO: mutable iterator by row
+		byColumn endColumn(int column)
+		{
+			return byColumn((char*)Cell(RowCount, column), Type.BufferSize);
+		}
+
+		class byRow : public eastl::iterator<std::forward_iterator_tag, void*>
+		{
+				char* _buffer;
+				DataSet& _set;
+				byRow(char* buffer, DataSet& set) : _buffer(buffer), _set(set) {}
+			public:
+				byRow(const byRow& iter) : _buffer(iter._buffer), _set(iter._set) {}
+				byRow& operator++() 
+				{
+					_buffer += _set.Type.BufferSize; 
+					return *this;
+				}
+				byRow operator++(int)
+				{
+					byRow tmp(*this); 
+					operator++(); 
+					return tmp;
+				}
+				bool operator==(const byRow& rhs) {return _buffer==rhs._buffer;}
+				bool operator!=(const byRow& rhs) {return _buffer!=rhs._buffer;}
+				void* operator*() { return _buffer;}
+				void* Cell(int column)
+				{
+					return _buffer + _set.ColumnOffset(column);
+				};
+			
+			friend class DataSet;
+		};
+
+		byRow beginRow()
+		{
+			return byRow(_buffer, this);
+		}
+
+		byRow endRow()
+		{
+			return byRow(_buffer, this);
+		}
 };
