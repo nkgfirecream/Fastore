@@ -11,11 +11,20 @@ using namespace eastl;
 struct ScalarType
 {
 	size_t Size;
-	int (*Compare)(void* left, void* right);
-	fs::wstring (*ToString)(void* item);
+	size_t (*Hash)(const void* item);
+	size_t operator ()(const void* item) const
+	{
+		return Hash(item);
+	}
+	
+	fs::wstring (*ToString)(const void* item);
 	void (*Free)(void*);
-	std::function<size_t(void*)> Hash;
-	std::function<bool(void*,void*)> HashCompare;
+
+	int (*Compare)(const void* left, const void* right);
+	bool operator ()(const void* left, const void* right) const
+	{
+		return Compare(left,right) < 0;
+	}	
 };
 
 

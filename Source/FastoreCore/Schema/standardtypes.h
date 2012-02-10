@@ -16,14 +16,20 @@ void IndirectDelete(void* item)
 
 // String type
 
-int StringCompare(void* left, void* right)
+int StringCompare(const void* left, const void* right)
 {
 	return ((fs::wstring*)left)->compare(*(fs::wstring*)right);
 }
 
-fs::wstring StringString(void* item)
+fs::wstring StringString(const void* item)
 {
 	return *(fs::wstring*)item;
+}
+
+size_t  StringHash(const void* item)
+{
+	static eastl::string_hash<fs::wstring> hash;
+	return hash(*(fs::wstring*)item);
 }
 
 ScalarType GetStringType()
@@ -31,19 +37,20 @@ ScalarType GetStringType()
 	ScalarType type;
 	type.Compare = StringCompare;
 	type.Free = NULL;
-	type.Size = sizeof(std::wstring);
+	type.Size = sizeof(fs::wstring*);
 	type.ToString = StringString;
+	type.Hash = StringHash;
 	return type;
 }
 
 // PString type
 
-int PStringCompare(void* left, void* right)
+int PStringCompare(const void* left, const void* right)
 {
 	return (*(fs::wstring**)left)->compare(**(fs::wstring**)right);
 }
 
-fs::wstring PStringString(void* item)
+fs::wstring PStringString(const void* item)
 {
 	return **(fs::wstring**)item;
 }
@@ -60,16 +67,22 @@ ScalarType GetPStringType()
 
 // Long ScalarType
 
-int LongCompare(void* left, void* right)
+int LongCompare(const void* left, const void* right)
 {
 	return (long)left - (long)right;
 }
 
-fs::wstring LongString(void* item)
+fs::wstring LongString(const void* item)
 {
 	wstringstream result;
 	result << (long)item;
 	return result.str();
+}
+
+size_t LongHash(const void* item)
+{
+	static eastl::hash<long> hash;
+	return hash((long)item);
 }
 
 ScalarType GetLongType()
@@ -79,29 +92,18 @@ ScalarType GetLongType()
 	type.Free = NULL;
 	type.Size = sizeof(long);
 	type.ToString = LongString;
-
-	type.HashCompare = [type](void* left, void* right)->bool
-	{
-		return type.Compare(left,right) < 0;
-	};
-
-	eastl::hash<long> hash;
-
-	type.Hash = [hash](void* item)->size_t
-	{
-		return hash((long)item);
-	};
+	type.Hash = LongHash;
 	return type;
 }
 
 // Int ScalarType
 
-int IntCompare(void* left, void* right)
+int IntCompare(const void* left, const void* right)
 {
 	return *(int*)left - *(int*)right;
 }
 
-fs::wstring IntString(void* item)
+fs::wstring IntString(const void* item)
 {
 	wstringstream result;
 	result << *(int*)item;
@@ -120,16 +122,22 @@ ScalarType GetIntType()
 
 // PLong type
 
-int PLongCompare(void* left, void* right)
+int PLongCompare(const void* left, const void* right)
 {
 	return *(long*)left - *(long*)right;
 }
 
-fs::wstring PLongString(void* item)
+fs::wstring PLongString(const void* item)
 {
 	wstringstream mystream;
-    mystream << **(long**)item;
+    mystream << *(long*)item;
 	return mystream.str();
+}
+
+size_t PLongHash(const void* item)
+{
+	static eastl::hash<long> hash;
+	return hash(*(long*)item);
 }
 
 ScalarType GetPLongType()
@@ -139,6 +147,7 @@ ScalarType GetPLongType()
 	type.Free = IndirectDelete;
 	type.Size = sizeof(long*);
 	type.ToString = PLongString;
+	type.Hash = PLongHash;
 	return type;
 }
 

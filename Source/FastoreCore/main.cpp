@@ -8,7 +8,8 @@
 #include "Column/ColumnHash.h"
 #include "Schema/standardtypes.h"
 #include "KeyTree.h"
-#include "fshash_set.h"
+//#include "fshash_set.h"
+#include <EASTL\hash_set.h>
 
 
 using namespace std;
@@ -325,17 +326,20 @@ void ColumnHashTest()
 	cout << "Rows inserted";
 }
 
-void TestFSHashSet()
+void TestEAHashSet()
 {
-	ScalarType type = GetLongType();
-	fshash_set<void*> set(type.Hash, type.HashCompare);
+	ScalarType type = GetPLongType();
+	//fshash_set<void*> set(type.Hash, type.HashCompare);
+
+	eastl::hash_set<void*, ScalarType, ScalarType> set(32, type, type);
 	
-	long numrows = 10000;
+	long numrows = 200;
 	for (long i = 0; i < numrows; i++)
 	{
-		set.insert((void*)i);
+		long* s = new long(i);
+		set.insert(s);
 	}
-	
+
 	auto start = set.begin();
 	auto end = set.end();
 	while(start != end)
@@ -343,6 +347,25 @@ void TestFSHashSet()
 		wcout << type.ToString(*start) << "\n\r";
 		start++;
 	}
+
+	ScalarType type2 = GetStringType();
+
+	eastl::hash_set<void*, ScalarType, ScalarType> set2(32, type2, type2);
+	
+	for (long i = 0; i < numrows; i++)
+	{
+		auto s = new fs::wstring(RandomString(8));
+		set2.insert(s);
+	}
+
+	start = set2.begin();
+	end = set2.end();
+	while(start != end)
+	{
+		wcout << type2.ToString(*start) << "\n\r";
+		start++;
+	}
+	
 }
 
 void main()
@@ -357,7 +380,7 @@ void main()
 	//ArrayCopyTest();
 	//GuidTest();
 	//ColumnHashTest();
-	TestFSHashSet();
+	TestEAHashSet();
 	getch();
 }
 
