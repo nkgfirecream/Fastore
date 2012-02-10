@@ -5,6 +5,7 @@
 #include "scalar.h"
 #include "..\typedefs.h"
 #include <sstream>
+#include "EASTL\functional.h"
 
 using namespace std;
 
@@ -61,13 +62,13 @@ ScalarType GetPStringType()
 
 int LongCompare(void* left, void* right)
 {
-	return *(long*)left - *(long*)right;
+	return (long)left - (long)right;
 }
 
 fs::wstring LongString(void* item)
 {
 	wstringstream result;
-	result << *(long*)item;
+	result << (long)item;
 	return result.str();
 }
 
@@ -78,6 +79,18 @@ ScalarType GetLongType()
 	type.Free = NULL;
 	type.Size = sizeof(long);
 	type.ToString = LongString;
+
+	type.HashCompare = [type](void* left, void* right)->bool
+	{
+		return type.Compare(left,right) < 0;
+	};
+
+	eastl::hash<long> hash;
+
+	type.Hash = [hash](void* item)->size_t
+	{
+		return hash((long)item);
+	};
 	return type;
 }
 

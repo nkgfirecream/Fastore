@@ -8,6 +8,7 @@
 #include "Column/ColumnHash.h"
 #include "Schema/standardtypes.h"
 #include "KeyTree.h"
+#include "fshash_set.h"
 
 
 using namespace std;
@@ -324,10 +325,10 @@ void ColumnHashTest()
 	cout << "Rows inserted";
 }
 
-void TestEAHashSet()
+void TestFSHashSet()
 {
-	Type<long> currentType;
-	eastl::hash_set<void*, Type<long>> set;
+	ScalarType type = GetLongType();
+	fshash_set<void*> set(type.Hash, type.HashCompare);
 	
 	long numrows = 10000;
 	for (long i = 0; i < numrows; i++)
@@ -339,7 +340,7 @@ void TestEAHashSet()
 	auto end = set.end();
 	while(start != end)
 	{
-		wcout << currentType.ToString(*start) << "\n\r";
+		wcout << type.ToString(*start) << "\n\r";
 		start++;
 	}
 }
@@ -356,7 +357,7 @@ void main()
 	//ArrayCopyTest();
 	//GuidTest();
 	//ColumnHashTest();
-	TestEAHashSet();
+	TestFSHashSet();
 	getch();
 }
 
