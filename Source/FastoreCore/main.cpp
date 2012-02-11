@@ -292,51 +292,55 @@ void ColumnHashTest()
 	
 	long rowId = 0;
 	//Leave gaps so we can test match/no match
-	for (long i = 0; i < numvalues * 2; i = i + 2)
-	{
-		for (long j = 0; j < rowspervalue; j++)
-		{
-			long* v = new long(i);
-			long* r = new long(rowId);
-			hash->Include(v, r);
-			rowId++;
-		}
-	}
+	//for (long i = 0; i < numvalues * 2; i = i + 2)
+	//{
+	//	for (long j = 0; j < rowspervalue; j++)
+	//	{
+	//		long* v = new long(i);
+	//		long* r = new long(rowId);
+	//		hash->Include(v, r);
+	//		rowId++;
+	//	}
+	//}
 
-	rowId = 0;
-	for (long i = 0; i < 1; i++)
-	{
-		for (long j = 0; j < rowspervalue; j++)
-		{
-			long* r = new long(rowId);
-			wcout << *(long*)hash->GetValue(r) << "\r\n";
-			rowId++;
-		}
-	}
+	//rowId = 0;
+	///*for (long i = 0; i < 1; i++)
+	//{
+	//	for (long j = 0; j < rowspervalue; j++)
+	//	{
+	//		long* r = new long(rowId);
+	//		wcout << *(long*)hash->GetValue(r) << "\r\n";
+	//		rowId++;
+	//	}
+	//}*/
 
-	//Ascending, inclusive, first 30 rows;
-	Range range;
-	range.Ascending = true;
-	range.Limit = 200;
+	////Ascending, inclusive, first 30 rows;
+	//Range range;
+	//range.Ascending = true;
+	//range.Limit = 400;
 
-	
-	RangeBound start;
-	start.Inclusive = true;
-	long i = 1;
-	start.Value = &i;
+	//
+	//RangeBound start;
+	//start.Inclusive = false;
+	//long i = 2;
+	//start.Value = &i;
 
-	range.Start = start;
+	//range.Start = start;
 
-	auto result = hash->GetRows(range);
+	//RangeBound end;
+	//end.Inclusive = true;	
+	//long j = 46;
+	//end.Value = &j; 
 
-	OutputResult(result, longType, longType);
+	//range.End = end;
 
+	//auto result = hash->GetRows(range);
 
+	//OutputResult(result, longType, longType);
 
 	ColumnHash* hash2 = new ColumnHash(longType, stringType);
 	
 	rowId = 0;
-	//Leave gaps so we can test match/no match
 	for (long i = 0; i < numvalues * 2; i = i + 2)
 	{
 		for (long j = 0; j < rowspervalue; j++)
@@ -348,7 +352,7 @@ void ColumnHashTest()
 		}
 	}
 
-	rowId = 0;
+	/*rowId = 0;
 	for (long i = 0; i < numvalues / 10; i++)
 	{
 		for (long j = 0; j < rowspervalue; j++)
@@ -356,18 +360,28 @@ void ColumnHashTest()
 			wcout << *(fs::wstring*)hash2->GetValue(&rowId) << "\r\n";
 			rowId++;
 		}
-	}
+	}*/
 
 	//Ascending, inclusive, first 30 rows;
+	Range range;
 	range.Ascending = true;
-	range.Limit = 30;
+	range.Limit = 400;
 
-	start.Inclusive = true;
+	RangeBound start;
+	start.Inclusive = false;
 	wstringstream stream;
-	stream << "A";
+	stream << "B";
 	start.Value = new fs::wstring(stream.str());
 
 	range.Start = start;
+
+	RangeBound end;
+	end.Inclusive = true;
+	wstringstream stream2;
+	stream2 << "ET";
+	end.Value = new fs::wstring(stream2.str());
+
+	range.End = end;
 
 	auto result2 = hash2->GetRows(range);
 

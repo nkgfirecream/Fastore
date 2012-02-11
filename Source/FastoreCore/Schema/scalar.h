@@ -24,7 +24,7 @@ struct ScalarType
 	bool operator ()(const void* left, const void* right) const
 	{
 		return Compare(left,right) <= 0;
-	}	
+	}
 };
 
 

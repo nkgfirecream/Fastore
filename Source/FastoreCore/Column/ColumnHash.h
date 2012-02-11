@@ -175,7 +175,7 @@ inline GetResult ColumnHash::GetRows(Range range)
 	if ((!start.Inclusive && firstMatch))
 		first++;
 
-	if ((!end.Inclusive && lastMatch) || !lastMatch)
+	if ((!end.Inclusive && lastMatch))
 		last--;
 
 	void* startID = start.RowId.HasValue() ? *start.RowId : NULL;
@@ -200,8 +200,8 @@ inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iter
 		BTree::iterator temp = first;
 		first = last;
 		last = temp;
-	}
-
+	}		
+	
 	while (first != last && !limited)
 	{
 		auto rowIds = (ColumnHashSet*)*(void**)((*first).second);
