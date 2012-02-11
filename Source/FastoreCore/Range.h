@@ -18,7 +18,7 @@ struct RangeBound
 
 struct Range
 {
-	const static int MaxLimit = 50;
+	const static int MaxLimit = 500;
 
 	Range(int limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>(), bool ascending = true):
 		Limit(limit), Start(start), End(end), Ascending(ascending) {}	

@@ -11,10 +11,10 @@
 
 using namespace eastl;
 
-typedef eastl::hash_set<void*> ColumnHashSet;
-typedef eastl::hash_set<void*>::const_iterator ColumnHashSetConstIterator;
-typedef eastl::hash_map<void*, Leaf*> ColumnHashMap;
-typedef eastl::hash_map<void*, Leaf*>::iterator ColumnHashMapIterator;
+typedef eastl::hash_set<void*, ScalarType, ScalarType> ColumnHashSet;
+typedef eastl::hash_set<void*, ScalarType, ScalarType>::const_iterator ColumnHashSetConstIterator;
+typedef eastl::hash_map<void*, Leaf*, ScalarType, ScalarType> ColumnHashMap;
+typedef eastl::hash_map<void*, Leaf*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
 typedef eastl::pair <void*, Leaf*> RowLeafPair;
 
 class ColumnHash : public ColumnBuffer
@@ -30,8 +30,9 @@ class ColumnHash : public ColumnBuffer
 
 	private:
 		void ValuesMoved(void* ,Leaf*);
-		eastl::vector<eastl::pair<void*,void*>> BuildData(BTree::iterator, BTree::iterator, void*, void*, bool, bool, int, bool&);
+		eastl::vector<eastl::pair<void*,void*>> BuildData(BTree::iterator, BTree::iterator, void*, bool, int, bool&);
 		ScalarType _rowType;
+		ScalarType _valueType;
 		ColumnHashMap* _rows;
 		BTree* _values;
 };
@@ -50,8 +51,9 @@ ScalarType GetHashSetType()
 inline ColumnHash::ColumnHash(const ScalarType rowType, const ScalarType valueType)
 {
 	_rowType = rowType;
-	_rows = new ColumnHashMap();
-	_values = new BTree(valueType, GetHashSetType());
+	_valueType = valueType;
+	_rows = new ColumnHashMap(32, _rowType, _rowType);
+	_values = new BTree(_valueType, GetHashSetType());
 	_values->setValuesMovedCallback(
 		[this](void* value, Leaf* newLeaf) -> void
 		{
@@ -83,7 +85,7 @@ inline void* ColumnHash::GetValue(void* rowId)
 inline void* ColumnHash::Include(void* value, void* rowId)
 {
 	Leaf* valueLeaf;
-	ColumnHashSet* newrows = new ColumnHashSet(); //Path provides an enhancement here as well.. Insert can return the path to the correct element, and then we can decide whether to construct the hash set.
+	ColumnHashSet* newrows = new ColumnHashSet(32, _rowType, _rowType); //Path provides an enhancement here as well.. Insert can return the path to the correct element, and then we can decide whether to construct the hash set.
 	void* existing = _values->Insert(value, &newrows, &valueLeaf);
 	if (existing != NULL)
 	{
@@ -92,9 +94,10 @@ inline void* ColumnHash::Include(void* value, void* rowId)
 	}
 
 	//TODO: Correct Return types (undo information)
+	//return true if it's a new element.
 	if (newrows->insert(rowId).second)
 	{
-		_rows->insert(RowLeafPair (rowId, valueLeaf));
+		_rows->insert(RowLeafPair(rowId, valueLeaf));
 		return NULL;
 	}
 	else
@@ -118,7 +121,7 @@ inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
 	if (existing != NULL)
 	{
 		//merge old and new
-		ColumnHashSet* existingValues = (ColumnHashSet*)existing;
+		ColumnHashSet* existingValues = (ColumnHashSet*)(*(void**)existing);
 
 		ColumnHashSetConstIterator iterator;
 		iterator = valuesToMove->begin();
@@ -143,7 +146,16 @@ inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
 
 inline void ColumnHash::ValuesMoved(void* value, Leaf* leaf)
 {
-	_rows->find(value)->second = leaf;
+	ColumnHashSet* existingValues = (ColumnHashSet*)(*(void**)value);
+
+	auto start = existingValues->begin();
+	auto end = existingValues->end();
+
+	while(start != end)
+	{
+		_rows->find(*start)->second = leaf;
+		start++;
+	}	
 }
 
 inline GetResult ColumnHash::GetRows(Range range)
@@ -166,29 +178,33 @@ inline GetResult ColumnHash::GetRows(Range range)
 	if ((!end.Inclusive && lastMatch) || !lastMatch)
 		last--;
 
-	void* startID = start.RowId.HasValue() ? *start.RowId : 0;
-	void* endID = end.RowId.HasValue() ? *end.RowId : 0;
-	bool hasPreviousID = end.RowId.HasValue() || start.RowId.HasValue();
+	void* startID = start.RowId.HasValue() ? *start.RowId : NULL;
+	void* endID = end.RowId.HasValue() ? *end.RowId : NULL;
 
-	result.Data = BuildData(first, last, startID, endID, hasPreviousID, range.Ascending, range.Limit > range.MaxLimit? range.MaxLimit : range.Limit, result.Limited);
+	result.Data = BuildData(first, last, startID != NULL ? startID : endID, range.Ascending, range.Limit > range.MaxLimit? range.MaxLimit : range.Limit, result.Limited);
 
 	return result;
 }
 
-inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iterator first, BTree::iterator last, void* startRowId, void* endRowId, bool previousID, bool ascending, int limit, bool &limited)
+inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iterator first, BTree::iterator last, void* startId, bool ascending, int limit, bool &limited)
 {
 	//Assumption -- Repeated calls will come in in the same direction, therefore we don't need to check both start and end
-	void* startId = ascending? startRowId : endRowId;
+	
 	int num = 0;
-	bool foundCurrentId = !previousID;
-	bool limitedData = false;
-	 eastl::vector<eastl::pair<void*,void*>> rows;
+	bool foundCurrentId = startId == NULL;
+    limited = false;
+	eastl::vector<eastl::pair<void*,void*>> rows;
+
+	if (!ascending)
+	{
+		BTree::iterator temp = first;
+		first = last;
+		last = temp;
+	}
 
 	while (first != last && !limited)
 	{
-		eastl::pair<void*,void*> current = ascending ? *first : *last;
-
-		auto rowIds = (ColumnHashSet*)*(void**)(current.second);
+		auto rowIds = (ColumnHashSet*)*(void**)((*first).second);
 		
 		auto idStart = rowIds->begin();
 		auto idEnd = rowIds->end();
@@ -203,9 +219,9 @@ inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iter
 			idStart++;				
 		}
 
-		while(idStart != idEnd)
+		while (idStart != idEnd)
 		{
-			rows.push_back(eastl::pair<void*,void*>(*idStart,current.first));
+			rows.push_back(eastl::pair<void*,void*>(*idStart,(*first).first));
 			idStart++;
 			num++;
 			if(num == limit)
@@ -217,10 +233,8 @@ inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iter
 		if (ascending)
 			first++;
 		else
-			last--;
+			first--;
 	}
-
-	limited = limitedData;
 
 	return rows;
 }

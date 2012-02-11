@@ -267,20 +267,26 @@ void BTreeIteratorTest()
 
 }
 
-void OutputResult(GetResult result)
+void OutputResult(GetResult result, ScalarType keyType, ScalarType valueType)
 {
 	for (int i = 0; i < result.Data.size(); i++)
 	{
-		cout << *(long*)result.Data[i].first << " : " << *(long*)result.Data[i].second <<"\n\r";
+		wcout << keyType.ToString(result.Data[i].first) << " : " << valueType.ToString(result.Data[i].second) <<"\n\r";
 	}
 }
 
 void ColumnHashTest()
 {
-	cout << "Testing ColumnHash...";
+	ScalarType longType = GetLongType();
+	ScalarType stringType = GetStringType();
+	cout << "Testing ColumnHash...\n\r";
 
-	ColumnHash* hash = new ColumnHash(GetLongType(), GetLongType());
+	ColumnHash* hash = new ColumnHash(longType, longType);
 
+	/*long* i = new long(0);
+	hash->Include(i,i);
+	auto result = hash->GetValue(i);
+	wcout << *(long*)result;*/
 	long numvalues = 100;
 	long rowspervalue = 10;
 	
@@ -290,25 +296,28 @@ void ColumnHashTest()
 	{
 		for (long j = 0; j < rowspervalue; j++)
 		{
-			hash->Include(&i, &rowId);
+			long* v = new long(i);
+			long* r = new long(rowId);
+			hash->Include(v, r);
 			rowId++;
 		}
 	}
 
 	rowId = 0;
-	for (long i = 0; i < numvalues; i++)
+	for (long i = 0; i < 1; i++)
 	{
 		for (long j = 0; j < rowspervalue; j++)
 		{
-			cout << *(long*)hash->GetValue(&rowId) << "\r\n";
+			long* r = new long(rowId);
+			wcout << *(long*)hash->GetValue(r) << "\r\n";
 			rowId++;
 		}
 	}
 
-	//Ascending, inclusive, first 10 rows;
+	//Ascending, inclusive, first 30 rows;
 	Range range;
 	range.Ascending = true;
-	range.Limit = 30;
+	range.Limit = 200;
 
 	
 	RangeBound start;
@@ -320,9 +329,51 @@ void ColumnHashTest()
 
 	auto result = hash->GetRows(range);
 
-	OutputResult(result);
+	OutputResult(result, longType, longType);
 
 
+
+	ColumnHash* hash2 = new ColumnHash(longType, stringType);
+	
+	rowId = 0;
+	//Leave gaps so we can test match/no match
+	for (long i = 0; i < numvalues * 2; i = i + 2)
+	{
+		for (long j = 0; j < rowspervalue; j++)
+		{
+			fs::wstring* s = new fs::wstring(RandomString(8));
+			long* r = new long(rowId);
+			hash2->Include(s, r);
+			rowId++;
+		}
+	}
+
+	rowId = 0;
+	for (long i = 0; i < numvalues / 10; i++)
+	{
+		for (long j = 0; j < rowspervalue; j++)
+		{
+			wcout << *(fs::wstring*)hash2->GetValue(&rowId) << "\r\n";
+			rowId++;
+		}
+	}
+
+	//Ascending, inclusive, first 30 rows;
+	range.Ascending = true;
+	range.Limit = 30;
+
+	start.Inclusive = true;
+	wstringstream stream;
+	stream << "A";
+	start.Value = new fs::wstring(stream.str());
+
+	range.Start = start;
+
+	auto result2 = hash2->GetRows(range);
+
+	OutputResult(result2, longType, stringType);
+
+	
 	cout << "Rows inserted";
 }
 
@@ -379,8 +430,8 @@ void main()
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
-	//ColumnHashTest();
-	TestEAHashSet();
+	ColumnHashTest();
+//	TestEAHashSet();
 	getch();
 }
 

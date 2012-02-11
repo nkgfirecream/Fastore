@@ -37,11 +37,43 @@ ScalarType GetStringType()
 	ScalarType type;
 	type.Compare = StringCompare;
 	type.Free = NULL;
-	type.Size = sizeof(fs::wstring*);
+	type.Size = sizeof(fs::wstring);
 	type.ToString = StringString;
 	type.Hash = StringHash;
 	return type;
 }
+
+// Long ScalarType
+
+int LongCompare(const void* left, const void* right)
+{
+	return *(long*)left - *(long*)right;
+}
+
+fs::wstring LongString(const void* item)
+{
+	wstringstream result;
+	result << *(long*)item;
+	return result.str();
+}
+
+size_t LongHash(const void* item)
+{
+	static eastl::hash<long> hash;
+	return hash(*(long*)item);
+}
+
+ScalarType GetLongType()
+{
+	ScalarType type;
+	type.Compare = LongCompare;
+	type.Free = NULL;
+	type.Size = sizeof(long);
+	type.ToString = LongString;
+	type.Hash = LongHash;
+	return type;
+}
+
 
 // PString type
 
@@ -65,36 +97,7 @@ ScalarType GetPStringType()
 	return type;
 }
 
-// Long ScalarType
 
-int LongCompare(const void* left, const void* right)
-{
-	return (long)left - (long)right;
-}
-
-fs::wstring LongString(const void* item)
-{
-	wstringstream result;
-	result << (long)item;
-	return result.str();
-}
-
-size_t LongHash(const void* item)
-{
-	static eastl::hash<long> hash;
-	return hash((long)item);
-}
-
-ScalarType GetLongType()
-{
-	ScalarType type;
-	type.Compare = LongCompare;
-	type.Free = NULL;
-	type.Size = sizeof(long);
-	type.ToString = LongString;
-	type.Hash = LongHash;
-	return type;
-}
 
 // Int ScalarType
 
