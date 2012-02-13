@@ -171,36 +171,71 @@ inline GetResult ColumnHash::GetRows(Range range)
 	BTree::iterator first = range.Start.HasValue() ? _values->find(start.Value, firstMatch) : _values->begin();
 	BTree::iterator last =  range.End.HasValue() ? _values->find(end.Value, lastMatch) : _values->end();
 
-	//If there was a match, we're exclusive we need to move one forward. If there was not a match, we are already pointing at the next highest value.
-	if ((!start.Inclusive && firstMatch))
-		first++;
+	if(range.Start.HasValue() && range.End.HasValue())
+	{
+		//Bounds checking
+		if(last == first && (!end.Inclusive || !start.Inclusive))
+		{
+			//We have only one result, and it is excluded
+			return result; //Empty result.
+		}
 
-	if ((!end.Inclusive && lastMatch))
-		last--;
+		if(_valueType.Compare(start.Value, end.Value) > 0)
+		{
+			//Start is after end. Invalid input.
+			throw;
+		}
+	}
 
-	void* startID = start.RowId.HasValue() ? *start.RowId : NULL;
-	void* endID = end.RowId.HasValue() ? *end.RowId : NULL;
+	//Swap iterators if descending
+	if (range.Ascending)
+	{
+		//Adjust iteratos
+		//Last needs to point to the element AFTER the last one we want to get
+		if (lastMatch && end.Inclusive)
+		{
+			last++;
+		}
 
-	result.Data = BuildData(first, last, startID != NULL ? startID : endID, range.Ascending, range.Limit > range.MaxLimit? range.MaxLimit : range.Limit, result.Limited);
+		//First needs to point to the first element we DO want to pick up
+		if (firstMatch && !start.Inclusive)
+		{
+			first++;
+		}	
+	}		
+	else
+	{
+		//If we are descending, lasts needs to point at the first element we want to pick up
+		if (!lastMatch || (lastMatch && !end.Inclusive))
+		{
+			//If we are pointing at an excluded element, move back
+			last--;
+		} 
+
+		//If we are descending, first need to point at the element BEFORE the last one we want to pick up
+		if(!firstMatch || (firstMatch && start.Inclusive))
+		{
+			first--;
+		}
+
+		//Swap iterators so 
+		BTree::iterator temp = first;
+		first = last;
+		last = temp;
+	}
+
+	//Assumption -- Repeated calls will come in in the same direction, therefore we don't need to check both start and end
+	result.Data = BuildData(first, last, start.RowId.HasValue() ? *start.RowId :  end.RowId.HasValue() ? *end.RowId : NULL, range.Ascending, range.Limit > range.MaxLimit? range.MaxLimit : range.Limit, result.Limited);
 
 	return result;
 }
 
 inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iterator first, BTree::iterator last, void* startId, bool ascending, int limit, bool &limited)
-{
-	//Assumption -- Repeated calls will come in in the same direction, therefore we don't need to check both start and end
-	
+{	
 	int num = 0;
 	bool foundCurrentId = startId == NULL;
     limited = false;
-	eastl::vector<eastl::pair<void*,void*>> rows;
-
-	if (!ascending)
-	{
-		BTree::iterator temp = first;
-		first = last;
-		last = temp;
-	}		
+	eastl::vector<eastl::pair<void*,void*>> rows;	
 	
 	while (first != last && !limited)
 	{

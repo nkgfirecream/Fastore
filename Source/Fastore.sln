@@ -1,12 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F4F1D136-6B78-4F0C-B051-4E13AB0E1BA1}"
-	ProjectSection(SolutionItems) = preProject
-		Fastore.vsmdi = Fastore.vsmdi
-		Local.testsettings = Local.testsettings
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core", "Fastore.Core\Fastore.Core.csproj", "{AAF3B01E-3982-4130-9269-A21366981891}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Test", "Fastore.Core.Test\Fastore.Core.Test.csproj", "{CFABCFE0-7D86-4427-AE81-52E8B2269341}"

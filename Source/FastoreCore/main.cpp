@@ -368,9 +368,9 @@ void ColumnHashTest()
 	range.Limit = 400;
 
 	RangeBound start;
-	start.Inclusive = false;
+	start.Inclusive = true;
 	wstringstream stream;
-	stream << "B";
+	stream << "DAFBGARC";
 	start.Value = new fs::wstring(stream.str());
 
 	range.Start = start;
@@ -378,7 +378,7 @@ void ColumnHashTest()
 	RangeBound end;
 	end.Inclusive = true;
 	wstringstream stream2;
-	stream2 << "ET";
+	stream2 << "BAFBGARC";
 	end.Value = new fs::wstring(stream2.str());
 
 	range.End = end;
