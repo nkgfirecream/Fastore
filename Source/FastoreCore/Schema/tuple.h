@@ -8,11 +8,11 @@
 
 using namespace std;
 
-typedef eastl::vector<const ColumnType> ColumnTypeVector;
+typedef eastl::vector<ColumnType> ColumnTypeVector;
 
 class TupleType
 {
-		const ColumnTypeVector _columns;
+		ColumnTypeVector _columns;
 
 		size_t bufferSize()
 		{

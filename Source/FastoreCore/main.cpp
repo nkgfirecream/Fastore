@@ -160,7 +160,6 @@ void QueueingMutexTest()
 	Stopwatch watch;
 	long numrows = 100000000;
 	
-	unsigned int val = 0;
 	for(int i = 0; i < numrows; i++)
 	{
 		watch.StartTimer();
@@ -267,9 +266,9 @@ void BTreeIteratorTest()
 
 }
 
-void OutputResult(GetResult result, ScalarType keyType, ScalarType valueType)
+void OutputResult(const GetResult& result, const ScalarType& keyType, const ScalarType& valueType)
 {
-	for (int i = 0; i < result.Data.size(); i++)
+	for (unsigned int i = 0; i < result.Data.size(); i++)
 	{
 		wcout << keyType.ToString(result.Data[i].first) << " : " << valueType.ToString(result.Data[i].second) <<"\n\r";
 	}
@@ -453,7 +452,7 @@ void main()
 	//ColumnHashTest();
     //TestEAHashSet();
 	TableTest();
-	getch();
+	_getch();
 }
 
 
