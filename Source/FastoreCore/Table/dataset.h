@@ -104,11 +104,11 @@ class DataSet
 
 		byRow beginRow()
 		{
-			return byRow(_buffer, this);
+			return byRow(_buffer, *this);
 		}
 
 		byRow endRow()
 		{
-			return byRow(_buffer, this);
+			return byRow(_buffer, *this);
 		}
 };

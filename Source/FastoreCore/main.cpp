@@ -8,8 +8,8 @@
 #include "Column/ColumnHash.h"
 #include "Schema/standardtypes.h"
 #include "KeyTree.h"
-//#include "fshash_set.h"
 #include <EASTL\hash_set.h>
+#include "Table\table.h"
 
 
 using namespace std;
@@ -433,6 +433,12 @@ void TestEAHashSet()
 	
 }
 
+void TableTest()
+{
+
+
+}
+
 void main()
 {
 	//BTreeIteratorTest();
@@ -444,8 +450,9 @@ void main()
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
-	ColumnHashTest();
-//	TestEAHashSet();
+	//ColumnHashTest();
+    //TestEAHashSet();
+	TableTest();
 	getch();
 }
 
