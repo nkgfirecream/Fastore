@@ -434,7 +434,31 @@ void TestEAHashSet()
 
 void TableTest()
 {
+	ColumnType ct1;
+	ColumnType ct2;
 
+	ct1.IsRequired = true;
+	ct2.IsRequired = true;
+
+	ct1.Name = L"ID";
+	ct2.Name = L"Text";
+
+	ct1.IsUnique = true;
+	ct2.IsUnique = false;
+
+	ct1.Type = GetLongType();
+	ct2.Type = GetStringType();
+
+	eastl::vector<ColumnType> columns;
+
+	columns.push_back(ct1);
+	columns.push_back(ct2);
+
+	TupleType tt(columns);
+
+	Table* t = new Table(tt);
+
+	
 
 }
 
