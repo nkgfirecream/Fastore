@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Range.h"
+
 struct ColumnRange
 {
 	int ColumnNumber;

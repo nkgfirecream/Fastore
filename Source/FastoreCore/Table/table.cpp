@@ -1,19 +1,18 @@
 #include "table.h"
-#include "../Column/columnbuffer.h"
-#include "../range.h"
+#include "../Column/ColumnHash.h"
 
 Table::Table(const TupleType& type) : _type(type), _rowType(GetLongType()) 
 {
 	for (TupleType::iterator it = _type.begin(); it != _type.end(); ++it)
 	{
-		_buffers.push_back(std::unique_ptr<ColumnBuffer>(new ColumnHash(_rowType, (*it).Type))); 
+		_buffers.push_back(new ColumnHash(_rowType, (*it).Type));
 	}
 }
 
-DataSet Table::GetRow(void* rowID, const Selection selection)
-{
-	
-}
+//DataSet Table::GetRow(void* rowID, const Selection selection)
+//{
+//	//
+//}
 
 TupleType Table::SelectionTupleType(Selection selection)
 {
@@ -64,12 +63,12 @@ DataSet Table::GetRows(const Ranges& ranges, const Selection selection)
 	return results;
 }
 
-DataSet Table::Include(const Ranges& ranges, const DataSet newData, const Selection selection)
-{
-	//
-}
-
-DataSet Table::Exclude(const Ranges& ranges)
-{
-	//
-}
+//DataSet Table::Include(const Ranges& ranges, const DataSet newData, const Selection selection)
+//{
+//	//
+//}
+//
+//DataSet Table::Exclude(const Ranges& ranges)
+//{
+//	//
+//}

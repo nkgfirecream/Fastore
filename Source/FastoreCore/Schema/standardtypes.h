@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 #include "scalar.h"
 #include "..\typedefs.h"
 #include <sstream>

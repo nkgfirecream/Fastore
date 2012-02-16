@@ -208,7 +208,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="BTree.h" />
     <ClInclude Include="Column\ColumnHash.h" />
     <ClInclude Include="Column\columnbuffer.h" />
-    <ClInclude Include="fshash_set.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Range.h" />

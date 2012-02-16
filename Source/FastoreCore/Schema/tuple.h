@@ -19,6 +19,8 @@ class TupleType
 			size_t result = 0;
 			for (ColumnTypeVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
 				result += (*it).Type.Size;
+
+			return result;
 		}
 
 	public:

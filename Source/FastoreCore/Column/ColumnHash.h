@@ -2,11 +2,8 @@
 
 #include <EASTL\hash_set.h>
 #include <EASTL\hash_map.h>
-#include "..\Schema\scalar.h"
-#include "..\typedefs.h"
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
-#include "..\Range.h"
 #include "..\Column\columnbuffer.h"
 
 using namespace eastl;
