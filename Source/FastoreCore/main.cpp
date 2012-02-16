@@ -434,7 +434,7 @@ void TestEAHashSet()
 
 void TableTest()
 {
-	ColumnType ct1;
+	/*ColumnType ct1;
 	ColumnType ct2;
 
 	ct1.IsRequired = true;
@@ -456,7 +456,9 @@ void TableTest()
 
 	TupleType tt(columns);
 
-	Table* t = new Table(tt);
+	Table t(tt);
+
+	t.Include(*/
 
 	
 

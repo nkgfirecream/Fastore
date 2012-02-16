@@ -7,6 +7,7 @@
 #include "../typedefs.h"
 #include "ranges.h"
 #include "dataset.h"
+#include <vector>
 
 class Table
 {
