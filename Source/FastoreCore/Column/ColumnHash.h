@@ -34,23 +34,12 @@ class ColumnHash : public ColumnBuffer
 		BTree* _values;
 };
 
-// HashSet type -- Can't be used as a keytype.
-ScalarType GetHashSetType()
-{
-	ScalarType type;
-	type.Compare = NULL;
-	type.Free = IndirectDelete;
-	type.Size = sizeof(ColumnHashSet*);
-	type.ToString = NULL;
-	return type;
-}
-
 inline ColumnHash::ColumnHash(const ScalarType rowType, const ScalarType valueType)
 {
 	_rowType = rowType;
 	_valueType = valueType;
 	_rows = new ColumnHashMap(32, _rowType, _rowType);
-	_values = new BTree(_valueType, GetHashSetType());
+	_values = new BTree(_valueType, standardtypes::GetHashSetType());
 	_values->setValuesMovedCallback(
 		[this](void* value, Leaf* newLeaf) -> void
 		{

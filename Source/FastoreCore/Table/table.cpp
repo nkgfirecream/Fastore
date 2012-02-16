@@ -1,7 +1,7 @@
 #include "table.h"
 #include "../Column/ColumnHash.h"
 
-Table::Table(const TupleType& type) : _type(type), _rowType(GetLongType()) 
+Table::Table(const TupleType& type) : _type(type), _rowType(standardtypes::GetLongType()) 
 {
 	for (TupleType::iterator it = _type.begin(); it != _type.end(); ++it)
 	{
