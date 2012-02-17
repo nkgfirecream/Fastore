@@ -459,14 +459,45 @@ void TableTest()
 	Table t(tt);
 
 	//t.Include(
+}
 
-	
+void BTreeDeleteTest()
+{
+	int numrows = 100;
+	ScalarType t = GetIntType();
+	BTree tree(t,t);	
+
+	Leaf* dummy;
+	for(int i = 0; i < numrows; i++)
+	{
+		tree.Insert(&i, &i, &dummy);	
+	}
+
+	auto it = tree.begin();
+	while(!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+
+	for(int i = 0; i < numrows; i++)
+	{
+		tree.Delete(&i);	
+	}
+
+	it = tree.begin();
+	while(!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
 
 }
 
 void main()
 {
 	//BTreeIteratorTest();
+	BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
@@ -477,7 +508,7 @@ void main()
 	//GuidTest();
 	//ColumnHashTest();
     //TestEAHashSet();
-	TableTest();
+	//TableTest();
 	_getch();
 }
 

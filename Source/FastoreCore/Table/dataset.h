@@ -33,9 +33,14 @@ class DataSet
 			return result;
 		}
 
-		void* Cell(int row, int column)
+		void* const Cell(int row, int column)
 		{
 			return (char*)operator[](row) + ColumnOffset(column);
+		}
+
+		void SetCell(int row, int column, void* value)
+		{	
+			memcpy((char*)operator[](row) + ColumnOffset(column), value, Type[column].Type.Size);
 		}
 
 		class byColumn : public eastl::iterator<std::forward_iterator_tag, void*>

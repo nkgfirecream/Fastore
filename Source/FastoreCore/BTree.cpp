@@ -35,6 +35,20 @@ void* BTree::Insert(void* key, void* value, Leaf** leaf)
 	return result.found;
 }
 
+bool BTree::Delete(void* key)
+{
+	DeleteResult result = _root->Delete(key);
+	if (result.found && result.empty)
+	{
+		//This just assumes our tree is empty once the first child is empty.
+		//This won't collapse ideally in the case of having a branch with only one child.
+		//In theory a long chain of children could exist.
+		delete _root;
+		_root = new Leaf(this);
+	}
+	return result.found;
+}
+
 // Set the branch and leaf capacities; only affects nodes that are created after this is set
 void BTree::setCapacity(int branchCapacity, int leafCapacity)
 {
@@ -297,6 +311,31 @@ void Branch::SeekToKey(void* key, BTree::Path& path, bool& match)
 		_children[result.Index]->SeekToKey(key, path, match);
 }
 
+DeleteResult Branch::Delete(void* key)
+{
+	int index = IndexOf(key);
+	DeleteResult result = _children[index]->Delete(key);
+
+	if(result.found && result.empty)
+	{
+		RemoveChild(index);
+	}
+
+	result.empty = _count == 0;
+	return result;
+}
+
+void Branch::RemoveChild(int index)
+{
+	delete _children[index];
+	int size = _count - index;
+	//Assumption -- Count > 0 (otherwise the key would not have been found)
+	memmove(&_keys[(index) * _tree->_keyType.Size], &_keys[(index + 1) * _tree->_keyType.Size], size * _tree->_keyType.Size);
+	memmove(&_children[index], &_children[index + 1], size * sizeof(Node*));
+
+	_count--;
+}
+
 //Leaf
 
 Leaf::Leaf(BTree* tree) : Node(tree)
@@ -380,6 +419,31 @@ void* Leaf::InternalInsert(int index, void* key, void* value, bool match, Leaf**
 	}
 	else
 		return operator[](index).second;
+}
+
+
+DeleteResult Leaf::Delete(void* key)
+{
+	DeleteResult result;
+	int index = IndexOf(key, result.found);
+	if(result.found)
+	{
+		InternalDelete(index);
+	}
+
+	result.empty = _count == 0;
+	return result;
+}
+
+void Leaf::InternalDelete(int index)
+{
+	//Who should be responsible for cleanup?
+	//Probably the columnbuffer for the values...
+	//Assumption -- Count > 0 (otherwise the key would not have been found)
+	memmove(&_keys[(index) * _tree->_keyType.Size], &_keys[index + 1 * _tree->_keyType.Size], (_count - index) * _tree->_keyType.Size);
+	memmove(&_values[(index) * _tree->_valueType.Size], &_values[index + 1 * _tree->_valueType.Size], (_count - index) * _tree->_valueType.Size);
+
+	_count--;
 }
 
 int Leaf::IndexOf(void* key, bool& match)

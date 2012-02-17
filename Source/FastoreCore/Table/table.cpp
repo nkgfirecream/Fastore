@@ -9,20 +9,38 @@ Table::Table(const TupleType& type) : _type(type), _rowType(standardtypes::GetLo
 	}
 }
 
-//DataSet Table::GetRow(void* rowID, const Selection selection)
-//{
-//	//
-//}
+DataSet Table::GetRow(void* rowID, const ColumnNumbers outputColumns)
+{
+	ColumnTypeVector selectedColumns;
 
-TupleType Table::SelectionTupleType(Selection selection)
+	for (int i = 0; i < outputColumns.size(); i++)
+	{
+		selectedColumns.push_back(_type[outputColumns[i]]);
+	}
+
+	TupleType rowType = TupleType(selectedColumns);
+
+	//TODO: Look up required column to determine existence
+	//TODO: What if the row doesn't exist?
+	DataSet results = DataSet(rowType, 1);
+
+	for(int i = 0; i < selectedColumns.size(); i++)
+	{
+		results.SetCell(0, i, _buffers[outputColumns[i]]->GetValue(rowID));
+	}
+
+	return results;
+}
+
+TupleType Table::ColumnsTupleType(ColumnNumbers columnNumbers)
 {
 	ColumnTypeVector result = ColumnTypeVector();
-	for (int i = 0; i < selection.size(); i++)
-		result.push_back(_type[selection[i]]);
+	for (int i = 0; i < columnNumbers.size(); i++)
+		result.push_back(_type[columnNumbers[i]]);
 	return TupleType(result);
 }
 
-DataSet Table::GetRows(const Ranges& ranges, const Selection selection)
+DataSet Table::GetRows(const Ranges& ranges, const ColumnNumbers outputColumns)
 {
 	Range range;
 	int rangeColumn;
@@ -55,20 +73,76 @@ DataSet Table::GetRows(const Ranges& ranges, const Selection selection)
 
 	GetResult result = (*_buffers[rangeColumn]).GetRows(range);
 
-	TupleType resultType = SelectionTupleType(selection);
+	TupleType resultType = ColumnsTupleType(outputColumns);
 	DataSet results = DataSet(resultType, result.Data.size());
 
-	// ...
+	//TODO: Consider other methods of insertion
+	for(int c = 0; c < outputColumns.size(); c++)
+	{
+		if(outputColumns[c] == rangeColumn)
+		{
+			//Copy data we pulled from our range request
+			//TODO: Handle nulls values (rows where column = null will return no entries if column = rangecolumn)
+			//So does that mean we need a special value for null in our ranges?
+			for(int r = 0; r < result.Data.size(); r++)
+			{
+				results.SetCell(r, c, result.Data[r].second);
+			}
+		}
+		else
+		{
+			for(int r = 0; r < result.Data.size(); r++)
+			{
+				results.SetCell(r, c, _buffers[outputColumns[c]]->GetValue(result.Data[r].first));
+			}
+		}
+	}
 
 	return results;
 }
 
-//DataSet Table::Include(const Ranges& ranges, const DataSet newData, const Selection selection)
-//{
-//	//
-//}
-//
-//DataSet Table::Exclude(const Ranges& ranges)
-//{
-//	//
-//}
+//TODO: Restore const, propagate it through the columnhash and BTrees
+DataSet Table::Include(const Ranges& ranges, DataSet newData, const ColumnNumbers inputColumns)
+{
+	//TODO: result will eventually be undo information
+	DataSet result(_type, 0);
+
+	Range range;
+	int rangeColumn;
+	if (ranges.size() == 0)
+	{
+		//Empty Range = all new rows??
+		//Key column needs row ids..
+		//Key Only Btree?
+	}
+	else
+	{
+		// TODO: Multi-column ranges - for now just taking the first
+		range = ranges[0].Range;
+		rangeColumn = ranges[0].ColumnNumber;
+	}
+
+	GetResult rangeResult = (*_buffers[rangeColumn]).GetRows(range);
+	
+	for(int c = 0; c < inputColumns.size(); c++)
+	{			
+		for(int r = 0; r < rangeResult.Data.size(); r++)
+		{
+			//Remove old value
+			_buffers[inputColumns[c]]->Exclude(rangeResult.Data[r].second, rangeResult.Data[r].first);
+			//Insert new value
+			_buffers[inputColumns[c]]->Include(newData.Cell(r,c), rangeResult.Data[r].first);
+		}
+	}
+
+	return result;
+}
+
+DataSet Table::Exclude(const Ranges& ranges)
+{
+	//TODO: result will eventually be undo information
+	DataSet result(_type, 0);
+
+
+	return result;
+}

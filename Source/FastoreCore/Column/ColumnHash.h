@@ -94,6 +94,8 @@ inline void* ColumnHash::Include(void* value, void* rowId)
 inline void* ColumnHash::Exclude(void* value, void* rowId)
 {
 	//TODO: BTree needs delete for this.
+	//Also, column hash needs to be smart enough to handle hashsets
+	//Can't just delete a value, can only delete it when its hash set is empty
 	return NULL;
 }
 
@@ -204,7 +206,8 @@ inline GetResult ColumnHash::GetRows(Range range)
 			first--;
 		}
 
-		//Swap iterators so 
+		//Swap iterators
+		//TODO: Non-Copy iterator swapping
 		BTree::iterator temp = first;
 		first = last;
 		last = temp;

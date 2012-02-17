@@ -22,6 +22,12 @@ struct InsertResult
 	Split* split;
 };
 
+struct DeleteResult
+{
+	bool found;
+	bool empty;
+};
+
 struct Split
 {
 	void* key;
@@ -37,6 +43,7 @@ class BTree
 		~BTree();
 
 		void* Insert(void* key, void* value, Leaf** leaf);
+		bool Delete(void* key); 
 		fs::wstring ToString();
 		void setCapacity(int branchCapacity, int leafCapacity);
 		int getBranchCapacity();
@@ -123,6 +130,7 @@ class Node
 		virtual ~Node() {}
 
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
+		virtual DeleteResult Delete(void* key) = 0;
 		virtual fs::wstring ToString() = 0;
 		virtual void SeekToKey(void* key, BTree::Path& path, bool& match) = 0;
 		virtual void SeekToBegin(BTree::Path& path) = 0;
@@ -143,12 +151,14 @@ class Leaf: public Node
 		char* _values;
 		int IndexOf(void* key, bool& match);
 		void* InternalInsert(int index, void* key, void* value, bool match, Leaf** leaf);
+		void InternalDelete(int index);
 
 	public:
 		Leaf(BTree* tree);
 		~Leaf();
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
+		DeleteResult Delete(void* key);
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
 		void SeekToKey(void* key, BTree::Path& path, bool& forward);
@@ -204,6 +214,7 @@ class Branch : public Node
 		~Branch();
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
+		DeleteResult Delete(void* key);
 		fs::wstring ToString();	
 		void SeekToKey(void* key, BTree::Path& path, bool& match);
 		void SeekToBegin(BTree::Path& path);
@@ -217,6 +228,7 @@ class Branch : public Node
 		int IndexOf(void* key);
 		Split* InsertChild(int index, void* key, Node* child);
 		void InternalInsertChild(int index, void* key, Node* child);
+		void RemoveChild(int index);
 };
 
 
