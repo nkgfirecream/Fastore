@@ -463,29 +463,60 @@ void TableTest()
 
 void BTreeDeleteTest()
 {
-	int numrows = 100;
+	int numrows = 1000;
 	ScalarType t = GetIntType();
 	BTree tree(t,t);	
-
+	wcout << L"Inserting:\n\r";
 	Leaf* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		tree.Insert(&i, &i, &dummy);	
 	}
-
+	wcout << L"Result of insert:\n\r";
 	auto it = tree.begin();
 	while(!it.End())
 	{		
 		wcout << t.ToString((*it).second) << "\n\r";
 		it++;
 	}
-
-	for(int i = 0; i < numrows; i++)
+	wcout << L"deleting all from high:\n\r";
+	for(int i = numrows; i > 0; i--)
 	{
+
 		tree.Delete(&i);	
 	}
 
 	it = tree.begin();
+	wcout << L"Result of deleting all from top:\n\r";
+	while(!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+	_getch();
+
+	wcout << L"Inserting:\n\r";
+	for(int i = 0; i < numrows; i++)
+	{
+		tree.Insert(&i, &i, &dummy);	
+	}
+	wcout << L"Result of insert:\n\r";
+	it = tree.begin();
+	while(!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+
+	wcout << L"deleting all from 0:\n\r";
+	for(int i = 0; i < numrows; i++)
+	{
+
+		tree.Delete(&i);	
+	}
+
+	it = tree.begin();
+	wcout << L"Result of deleting all from 0:\n\r";
 	while(!it.End())
 	{		
 		wcout << t.ToString((*it).second) << "\n\r";

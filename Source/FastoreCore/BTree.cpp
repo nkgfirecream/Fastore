@@ -226,7 +226,7 @@ int Branch::IndexOf(void* key)
 
 		if (result == 0)
 		{
-			return localIndex;
+			return localIndex + 1; //Plus one because the keys are offset from the children
 		}
 		else if (result < 0)
 			hi = localIndex - 1;
