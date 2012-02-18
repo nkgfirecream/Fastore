@@ -124,14 +124,24 @@ DataSet Table::Include(const Ranges& ranges, DataSet newData, const ColumnNumber
 
 	GetResult rangeResult = (*_buffers[rangeColumn]).GetRows(range);
 	
-	for(int c = 0; c < inputColumns.size(); c++)
+	for (int c = 0; c < inputColumns.size(); c++)
 	{			
-		for(int r = 0; r < rangeResult.Data.size(); r++)
+		for (int r = 0; r < rangeResult.Data.size(); r++)
 		{
 			//Remove old value
-			_buffers[inputColumns[c]]->Exclude(rangeResult.Data[r].second, rangeResult.Data[r].first);
-			//Insert new value
-			_buffers[inputColumns[c]]->Include(newData.Cell(r,c), rangeResult.Data[r].first);
+			_buffers[inputColumns[c]]->Exclude(rangeResult.Data[r].second, rangeResult.Data[r].first);			
+		}
+	}
+
+
+	for (int c = 0; c < inputColumns.size(); c++)
+	{
+		for (int r = 0; r < newData.Size(); r++)
+		{
+			//TODO: Column zero is id column for now...
+			//Since our key-only tree is in flux,
+			//the id columns stores duplicate entries.
+			_buffers[inputColumns[c]]->Include(newData.Cell(r, c), newData.Cell(r, 0)); 
 		}
 	}
 

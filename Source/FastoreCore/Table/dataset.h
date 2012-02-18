@@ -17,7 +17,7 @@ class DataSet
 
 		~DataSet()
 		{
-			delete[] _buffer;
+			delete _buffer;
 		}
 
 		void* operator[](int row)
@@ -31,6 +31,11 @@ class DataSet
 			for (int i = 0; i < column; i++)
 				result += Type[i].Type.Size;
 			return result;
+		}
+
+		int Size()
+		{
+			return RowCount;
 		}
 
 		void* const Cell(int row, int column)

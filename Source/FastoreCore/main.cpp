@@ -432,35 +432,6 @@ void TestEAHashSet()
 	
 }
 
-void TableTest()
-{
-	ColumnType ct1;
-	ColumnType ct2;
-
-	ct1.IsRequired = true;
-	ct2.IsRequired = true;
-
-	ct1.Name = L"ID";
-	ct2.Name = L"Text";
-
-	ct1.IsUnique = true;
-	ct2.IsUnique = false;
-
-	//ct1.Type = GetLongType();
-	//ct2.Type = GetStringType();
-
-	eastl::vector<ColumnType> columns;
-
-	columns.push_back(ct1);
-	columns.push_back(ct2);
-
-	TupleType tt(columns);
-
-	Table t(tt);
-
-	//t.Include(
-}
-
 void BTreeDeleteTest()
 {
 	int numrows = 1000;
@@ -522,13 +493,69 @@ void BTreeDeleteTest()
 		wcout << t.ToString((*it).second) << "\n\r";
 		it++;
 	}
+}
 
+
+DataSet CreateRandomDataSet(TupleType tt)
+{
+	static long rowID = 0;
+	rowID++;
+	DataSet ds(tt,1);
+
+	ds.SetCell(0, 0, &rowID);
+
+	auto string = new fs::wstring(RandomString(8));
+	ds.SetCell(0, 1, string);
+
+	return ds;
+}
+
+void TableTest()
+{
+	ColumnType ct1;
+	ColumnType ct2;
+
+	ct1.IsRequired = true;
+	ct2.IsRequired = true;
+
+	ct1.Name = L"ID";
+	ct2.Name = L"Text";
+
+	ct1.IsUnique = true;
+	ct2.IsUnique = false;
+
+	ct1.Type = GetLongType();
+	ct2.Type = GetStringType();
+
+	eastl::vector<ColumnType> columns;
+
+	columns.push_back(ct1);
+	columns.push_back(ct2);
+
+	TupleType tt(columns);
+
+	Table t(tt);
+
+	eastl::vector<int> nums;
+	nums.push_back(0);
+	nums.push_back(1);
+
+	Ranges ranges;
+	ColumnRange range;
+	range.ColumnNumber = 0;
+	ranges.push_back(range);
+
+	for(int i = 0; i < 100; i++)
+	{
+		DataSet ds = CreateRandomDataSet(tt);
+		t.Include(ranges, ds, nums);
+	}
 }
 
 void main()
 {
 	//BTreeIteratorTest();
-	BTreeDeleteTest();
+	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
@@ -539,7 +566,7 @@ void main()
 	//GuidTest();
 	//ColumnHashTest();
     //TestEAHashSet();
-	//TableTest();
+	TableTest();
 	_getch();
 }
 
