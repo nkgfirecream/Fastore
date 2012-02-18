@@ -49,6 +49,11 @@ bool BTree::Delete(void* key)
 	return result.found;
 }
 
+void* BTree::GetValue(void* key, Leaf** leaf)
+{
+	return _root->GetValue(key, leaf);
+}
+
 // Set the branch and leaf capacities; only affects nodes that are created after this is set
 void BTree::setCapacity(int branchCapacity, int leafCapacity)
 {
@@ -235,6 +240,12 @@ int Branch::IndexOf(void* key)
 	}
 
     return lo;
+}
+
+void* Branch::GetValue(void* key, Leaf** leaf)
+{
+	int index = IndexOf(key);
+	return _children[index]->GetValue(key, leaf);
 }
 
 fs::wstring Branch::ToString()
@@ -471,6 +482,21 @@ int Leaf::IndexOf(void* key, bool& match)
 
 	match = false;
     return lo;
+}
+
+void* Leaf::GetValue(void* key, Leaf** leaf)
+{
+	bool match;
+	int index = IndexOf(key, match);
+	if (match)
+	{
+		*leaf = this;
+		return operator[](index).second;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 fs::wstring Leaf::ToString()

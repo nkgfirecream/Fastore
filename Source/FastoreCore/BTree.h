@@ -44,6 +44,7 @@ class BTree
 
 		void* Insert(void* key, void* value, Leaf** leaf);
 		bool Delete(void* key); 
+		void* GetValue(void* key, Leaf** leaf);
 		fs::wstring ToString();
 		void setCapacity(int branchCapacity, int leafCapacity);
 		int getBranchCapacity();
@@ -131,6 +132,7 @@ class Node
 
 		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
 		virtual DeleteResult Delete(void* key) = 0;
+		virtual void* GetValue(void* key, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
 		virtual void SeekToKey(void* key, BTree::Path& path, bool& match) = 0;
 		virtual void SeekToBegin(BTree::Path& path) = 0;
@@ -159,6 +161,7 @@ class Leaf: public Node
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);	
 		DeleteResult Delete(void* key);
+		void* GetValue(void* key, Leaf** leaf);
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
 		void SeekToKey(void* key, BTree::Path& path, bool& forward);
@@ -215,6 +218,7 @@ class Branch : public Node
 
 		InsertResult Insert(void* key, void* value, Leaf** leaf);
 		DeleteResult Delete(void* key);
+		void* GetValue(void* key, Leaf** leaf);
 		fs::wstring ToString();	
 		void SeekToKey(void* key, BTree::Path& path, bool& match);
 		void SeekToBegin(BTree::Path& path);

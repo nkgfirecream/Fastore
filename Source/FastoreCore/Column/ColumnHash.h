@@ -58,8 +58,7 @@ inline void* ColumnHash::GetValue(void* rowId)
 		return leaf->GetKey(
 			[rowId](void* hash) -> bool
 			{
-				ColumnHashSet* newrows = (ColumnHashSet*)(*(void**)hash);
-				return newrows->find(rowId) != newrows->end();
+				return (*(ColumnHashSet**)hash)->find(rowId) != (*(ColumnHashSet**)hash)->end();
 			});
 	}
 	else
@@ -70,71 +69,82 @@ inline void* ColumnHash::GetValue(void* rowId)
 
 inline void* ColumnHash::Include(void* value, void* rowId)
 {
+	//TODO: Use of Path to avoid two trips down tree
+	//TODO: Return Undo Information
 	Leaf* valueLeaf;
-	ColumnHashSet* newrows = new ColumnHashSet(32, _rowType, _rowType); //Path provides an enhancement here as well.. Insert can return the path to the correct element, and then we can decide whether to construct the hash set.
-	void* existing = _values->Insert(value, &newrows, &valueLeaf);
+	ColumnHashSet* existing = *(ColumnHashSet**)_values->GetValue(value, &valueLeaf);
 	if (existing != NULL)
 	{
-		delete newrows;
-		newrows = (ColumnHashSet*)(*(void**)existing);
-	}
+		if(existing->insert(rowId).second)
+		{
+			_rows->insert(RowLeafPair(rowId, valueLeaf));
+		}
 
-	//TODO: Correct Return types (undo information)
-	//return true if it's a new element.
-	if (newrows->insert(rowId).second)
-	{
-		_rows->insert(RowLeafPair(rowId, valueLeaf));
 		return NULL;
 	}
 	else
-		return NULL;
+	{
+		ColumnHashSet* newRows = new ColumnHashSet(32, _rowType, _rowType);
+		newRows->insert(rowId);
+		_values->Insert(value, newRows, &valueLeaf);
+		_rows->insert(RowLeafPair(rowId, valueLeaf));
 
+		return NULL;
+	}
 }
 
 inline void* ColumnHash::Exclude(void* value, void* rowId)
 {
-	//TODO: BTree needs delete for this.
-	//Also, column hash needs to be smart enough to handle hashsets
-	//Can't just delete a value, can only delete it when its hash set is empty
+	Leaf* valueLeaf;
+	ColumnHashSet* existing = *(ColumnHashSet**)_values->GetValue(value, &valueLeaf);
+	//If existing is NULL, that row id did not exist under that value
+	if (existing != NULL)
+	{
+		existing->erase(rowId);
+		if(existing->size() == 0)
+		{
+			_values->Delete(value);
+			delete(existing);
+		}
+		_rows->erase(rowId);
+	}
+	
 	return NULL;
 }
 
 inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
 {
-	//TODO: Add remove to BTree
-	ColumnHashSet* valuesToMove; // == (eastl::hash_set<void*>*)_values->Remove(oldValue);
 	Leaf* valueLeaf;
-	void* existing = _values->Insert(newValue, valuesToMove, &valueLeaf);
+	ColumnHashSet* valuesToMove = *(ColumnHashSet**)_values->GetValue(oldValue, &valueLeaf);
+
+	_values->Delete(oldValue);
+
+	ColumnHashSet* existing = *(ColumnHashSet**)_values->Insert(newValue, valuesToMove, &valueLeaf);
 
 	if (existing != NULL)
 	{
 		//merge old and new
-		ColumnHashSet* existingValues = (ColumnHashSet*)(*(void**)existing);
-
 		ColumnHashSetConstIterator iterator;
 		iterator = valuesToMove->begin();
 
 		while (iterator != valuesToMove->end())
 		{
-			existingValues->insert(*iterator);
-			ValuesMoved(*iterator, valueLeaf);
+			existing->insert(*iterator);			
 		}
+
+		ValuesMoved(existing, valueLeaf);
+
+		delete(valuesToMove);
 	}
 	else
 	{
-		ColumnHashSetConstIterator iterator;
-		iterator = valuesToMove->begin();
-
-		while (iterator != valuesToMove->end())
-		{
-			ValuesMoved(*iterator, valueLeaf);
-		}
+		ValuesMoved(valuesToMove, valueLeaf);
 	}
 }
 
 inline void ColumnHash::ValuesMoved(void* value, Leaf* leaf)
 {
-	ColumnHashSet* existingValues = (ColumnHashSet*)(*(void**)value);
+	ColumnHashSet* existingValues = *(ColumnHashSet**)(value);
 
 	auto start = existingValues->begin();
 	auto end = existingValues->end();
