@@ -103,6 +103,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>tbb\lib\ia32\vc10\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
       <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
@@ -125,6 +126,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>hoard\winhoard.lib;tbb\lib\intel64\vc10\tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
       <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)
@@ -146,6 +148,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -153,6 +156,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>tbb\lib\ia32\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
       <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
@@ -180,6 +184,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configur
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>hoard\winhoard.lib;tbb\lib\intel64\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
       <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)

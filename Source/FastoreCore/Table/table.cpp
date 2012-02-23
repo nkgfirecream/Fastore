@@ -104,6 +104,36 @@ DataSet Table::GetRows(const Ranges& ranges, const ColumnNumbers outputColumns)
 //TODO: Restore const, propagate it through the columnhash and BTrees
 DataSet Table::Include(const Ranges& ranges, DataSet newData, const ColumnNumbers inputColumns)
 {
+	//Ranges identify which rows we want to affect. Ranges will eventually be able to be chained
+	//to allow us to narrow the the selection.
+	
+	//newData is the data we want to insert, which looks like 
+	//row { column, column, column }
+	//row { column, column, column }
+	//etc...
+
+	//input columns are which columns in the table the DataSet columns represent.
+
+	//When inserting new rows, the newData must include an ID column so all the column buffers can have the correct ID
+	//inserted into the values.
+	//So, conceptually a new row might look like
+	// row { ID, String, NULL }
+	//and the corresponding DataSet would be
+	// row { ID, String } -- columns {0, 1}
+	//(What's the range for a new insert? Empty? What happens if we get a range AND rowIds in a DataSet?
+	//Do we only update the intersection between the two?) 
+
+
+	//When updating old rows, that isn't necessary because we are simply shifting data around.
+	// EX update where column = "foo" set column = "bar"
+	// The range will be -- range { column start "foo" end "foo" } which will give us back all the rows the have that value 
+	// that column and then we simply need to insert "bar" into column for each row
+
+	//(So, how do we map multiple entries in newData to insertion? Should there not be only one value? what does it mean to 
+	//insert "bar" and "bubba" into the range "foo"?)
+	//(Also, how do we determine if we should optimize and use updateValues? The only case that would work is one range, start = end, and one row in the dataset)
+
+
 	//TODO: result will eventually be undo information
 	DataSet result(_type, 0);
 
@@ -132,7 +162,8 @@ DataSet Table::Include(const Ranges& ranges, DataSet newData, const ColumnNumber
 			_buffers[inputColumns[c]]->Exclude(rangeResult.Data[r].second, rangeResult.Data[r].first);			
 		}
 	}
-
+	
+	//TODO: For overlapping values use UpdateValues.
 
 	for (int c = 0; c < inputColumns.size(); c++)
 	{

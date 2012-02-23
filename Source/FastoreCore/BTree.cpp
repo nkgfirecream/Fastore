@@ -23,35 +23,11 @@ BTree::~BTree()
 	delete _root;
 }
 
-void* BTree::Insert(void* key, void* value, Leaf** leaf)
+BTree::Path BTree::GetPath(void* key)
 {
-	InsertResult result = _root->Insert(key, value, leaf);
-	if (result.split != NULL)
-	{
-		_root = new Branch(this, _root, result.split->right, result.split->key);
-		delete result.split;
-	}
-
-	return result.found;
-}
-
-bool BTree::Delete(void* key)
-{
-	DeleteResult result = _root->Delete(key);
-	if (result.found && result.empty)
-	{
-		//This just assumes our tree is empty once the first child is empty.
-		//This won't collapse ideally in the case of having a branch with only one child.
-		//In theory a long chain of children could exist.
-		delete _root;
-		_root = new Leaf(this);
-	}
-	return result.found;
-}
-
-void* BTree::GetValue(void* key, Leaf** leaf)
-{
-	return _root->GetValue(key, leaf);
+	Path result;
+	_root->GetPath(key, result);
+	return result;
 }
 
 // Set the branch and leaf capacities; only affects nodes that are created after this is set
@@ -91,11 +67,40 @@ fs::wstring BTree::ToString()
 	return _root->ToString();
 }
 
-BTree::Path BTree::SeekToKey(void* key, bool& match)
+void BTree::Delete(Path path)
 {
-	Path result;
-	_root->SeekToKey(key, result, match);
-	return result;
+	bool result = path.Leaf->Delete(path.LeafIndex);
+	while (result && path.Branches.size() > 0)
+	{
+		auto pathNode = path.Branches[path.Branches.size() - 1];
+		path.Branches.pop_back();
+		result = pathNode.Node->Delete(pathNode.Index);
+	}
+
+	//We got to the root and removed everything
+	if (result)
+		_root = new Leaf(this);
+}
+
+void BTree::Insert(Path path, void* key, void* value)
+{
+	Split* result = path.Leaf->Insert(path.LeafIndex, key, value);
+	while (result != NULL && path.Branches.size() > 0)
+	{
+		auto pathNode = path.Branches[path.Branches.size() - 1];
+		path.Branches.pop_back();
+		void* key = result->key;
+		Node* node = result->right;
+		delete result;
+
+		result = pathNode.Node->Insert(pathNode.Index, key, node);
+	}
+
+	if(result != NULL)
+	{
+		_root = new Branch(this, _root, result->right, result->key);
+		delete result;
+	}
 }
 
 BTree::Path BTree::SeekToBegin()
@@ -159,21 +164,7 @@ Branch::Branch(BTree* tree, Node* left, Node* right, void* key) : Node(tree, 1)
 	}
 }
 
-InsertResult Branch::Insert(void* key, void* value, Leaf** leaf)
-{
-	int index = IndexOf(key);
-	InsertResult result = _children[index]->Insert(key, value, leaf);
-
-	if (result.split != NULL)
-	{
-		Split* temp = result.split;
-		result.split = InsertChild(index, result.split->key, result.split->right);
-		delete temp;
-	}
-	return result;
-}
-
-Split* Branch::InsertChild(int index, void* key, Node* child)
+Split* Branch::Insert(int index, void* key, Node* child)
 {
 	if (_count != _tree->_branchCapacity - 1)
 	{
@@ -226,13 +217,11 @@ int Branch::IndexOf(void* key)
 
 	while (lo <= hi)
 	{
-		localIndex = (lo + hi) >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
+		localIndex = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
         result = _tree->_keyType.Compare(key, &_keys[localIndex * _tree->_keyType.Size]);
 
 		if (result == 0)
-		{
 			return localIndex + 1; //Plus one because the keys are offset from the children
-		}
 		else if (result < 0)
 			hi = localIndex - 1;
 		else
@@ -274,8 +263,7 @@ void Branch::SeekToBegin(BTree::Path& path)
 	result.Index = 0;
 	result.Node = this;
 	path.Branches.push_back(result);
-	if (result.Index < _count)
-		_children[result.Index]->SeekToBegin(path);
+	_children[result.Index]->SeekToBegin(path);
 }
 
 void Branch::SeekToEnd(BTree::Path& path)
@@ -284,8 +272,7 @@ void Branch::SeekToEnd(BTree::Path& path)
 	result.Index = _count;
 	result.Node = this;
 	path.Branches.push_back(result);
-	if (result.Index <= _count)
-		_children[result.Index]->SeekToEnd(path);
+	_children[result.Index]->SeekToEnd(path);
 }
 
 bool Branch::MoveNext(BTree::Path& path)
@@ -312,31 +299,16 @@ bool Branch::MovePrior(BTree::Path& path)
 	return false;
 }
 
-void Branch::SeekToKey(void* key, BTree::Path& path, bool& match)
+void Branch::GetPath(void* key, BTree::Path& path)
 {
 	BTree::PathNode result;
 	result.Index = IndexOf(key);
 	result.Node = this;
 	path.Branches.push_back(result);
-	if (result.Index < _count)
-		_children[result.Index]->SeekToKey(key, path, match);
+	_children[result.Index]->GetPath(key, path);
 }
 
-DeleteResult Branch::Delete(void* key)
-{
-	int index = IndexOf(key);
-	DeleteResult result = _children[index]->Delete(key);
-
-	if(result.found && result.empty)
-	{
-		RemoveChild(index);
-	}
-
-	result.empty = _count == 0;
-	return result;
-}
-
-void Branch::RemoveChild(int index)
+bool Branch::Delete(int index)
 {
 	delete _children[index];
 	int size = _count - index;
@@ -345,10 +317,11 @@ void Branch::RemoveChild(int index)
 	memmove(&_children[index], &_children[index + 1], size * sizeof(Node*));
 
 	_count--;
+
+	return _count < 0;
 }
 
 //Leaf
-
 Leaf::Leaf(BTree* tree) : Node(tree)
 {
 	_keys = new char[tree->_leafCapacity * _tree->_keyType.Size];
@@ -369,15 +342,18 @@ Leaf::~Leaf()
 	delete[] _values;
 }
 
-InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
+bool Leaf::Delete(int index)
 {
-	bool match;
-	int index = IndexOf(key, match);
-	InsertResult result;
+	InternalDelete(index);
+	return _count == 0;
+}
+
+Split* Leaf::Insert(int index, void* key, void* value)
+{
 	if (_count != _tree->_leafCapacity)
 	{
-		result.found = InternalInsert(index, key, value, match, leaf);
-		result.split = NULL;
+		InternalInsertIndex(index, key, value);
+		return NULL;
 	}
 	else
 	{
@@ -392,9 +368,9 @@ InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 		}
 
 		if (index < _count)
-			result.found = InternalInsert(index, key, value, match, leaf);
+			InternalInsertIndex(index, key, value);
 		else
-			result.found = node->InternalInsert(index - _count, key, value, match, leaf);
+			node->InternalInsertIndex(index - _count, key, value);
 
 		_tree->DoValuesMoved(node);
 
@@ -402,48 +378,22 @@ InsertResult Leaf::Insert(void* key, void* value, Leaf** leaf)
 		split->key = &node->_keys[0];
 		split->right = node;
 
-		result.split = split;
-
-		return result;
+		return split;
 	}
-
-	return result;
 }
 
-void* Leaf::InternalInsert(int index, void* key, void* value, bool match, Leaf** leaf)
+void Leaf::InternalInsertIndex(int index, void* key, void* value)
 {
-	*leaf = this;
-	if (index >= _count || !match)
+	if (_count != index)
 	{
-		if (_count != index)
-		{
-			memmove(&_keys[(index + 1) * _tree->_keyType.Size], &_keys[index  * _tree->_keyType.Size], (_count - index) * _tree->_keyType.Size);
-			memmove(&_values[(index + 1) * _tree->_valueType.Size], &_values[index * _tree->_valueType.Size], (_count - index) * _tree->_valueType.Size);
-		}
-
-		memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
-		memcpy(&_values[index * _tree->_valueType.Size], value, _tree->_valueType.Size);
-
-		_count++;	
-
-		return NULL;
-	}
-	else
-		return operator[](index).second;
-}
-
-
-DeleteResult Leaf::Delete(void* key)
-{
-	DeleteResult result;
-	int index = IndexOf(key, result.found);
-	if(result.found)
-	{
-		InternalDelete(index);
+		memmove(&_keys[(index + 1) * _tree->_keyType.Size], &_keys[index  * _tree->_keyType.Size], (_count - index) * _tree->_keyType.Size);
+		memmove(&_values[(index + 1) * _tree->_valueType.Size], &_values[index * _tree->_valueType.Size], (_count - index) * _tree->_valueType.Size);
 	}
 
-	result.empty = _count == 0;
-	return result;
+	memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
+	memcpy(&_values[index * _tree->_valueType.Size], value, _tree->_valueType.Size);
+
+	_count++;
 }
 
 void Leaf::InternalDelete(int index)
@@ -531,12 +481,10 @@ void* Leaf::GetKey(function<bool(void*)> predicate)
 	return NULL;
 }
 
-void Leaf::SeekToKey(void* key, BTree::Path& path, bool& match)
+void Leaf::GetPath(void* key, BTree::Path& path)
 {
 	path.Leaf = this;
-	path.LeafIndex = IndexOf(key, match);
-	if (path.LeafIndex >= _count)
-		MoveNext(path);
+	path.LeafIndex = IndexOf(key, path.Match);
 }
 
 void Leaf::SeekToBegin(BTree::Path& path)

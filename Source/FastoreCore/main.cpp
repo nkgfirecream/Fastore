@@ -29,77 +29,77 @@ fs::wstring RandomString(int length)
 	return result.str();
 }
 
-void StringTest()
-{
-	cout << "Testing Random Strings...";
-	
-	long numrows = 1000000;
+//void StringTest()
+//{
+//	cout << "Testing Random Strings...";
+//	
+//	long numrows = 1000000;
+//
+//	BTree tree(GetStringType(), GetStringType());	
+//	BTree tree2(GetPStringType(), GetPStringType());
+//
+//	Stopwatch* watch = new Stopwatch();
+//	Stopwatch* watch2 = new Stopwatch();
+//
+//	Leaf* dummy;
+//	Leaf* dummy2;
+//	for(int i = 0; i < numrows; i++)
+//	{
+//		fs::wstring insert = RandomString(rand() % 8 + 1);	
+//		watch->StartTimer();
+//		tree.Insert(&insert, &insert, &dummy);	
+//		watch->StopTimer();
+//
+//		fs::wstring* insert2 = new fs::wstring(insert);
+//		watch2->StartTimer();
+//		tree2.Insert(&insert2, &insert2, &dummy2);
+//		watch2->StopTimer();
+//	}
+//
+//	double secs = watch->TotalTime();
+//	cout << " secs: " << secs << "\r\n";	
+//	cout << "Rows per second WString: " << numrows / secs << "\r\n";
+//
+//	double secs2 = watch2->TotalTime();
+//	cout << " secs: " << secs2 << "\r\n";	
+//	cout << "Rows per second WString*: " << numrows / secs2 << "\r\n";
+//}
 
-	BTree tree(GetStringType(), GetStringType());	
-	BTree tree2(GetPStringType(), GetPStringType());
-
-	Stopwatch* watch = new Stopwatch();
-	Stopwatch* watch2 = new Stopwatch();
-
-	Leaf* dummy;
-	Leaf* dummy2;
-	for(int i = 0; i < numrows; i++)
-	{
-		fs::wstring insert = RandomString(rand() % 8 + 1);	
-		watch->StartTimer();
-		tree.Insert(&insert, &insert, &dummy);	
-		watch->StopTimer();
-
-		fs::wstring* insert2 = new fs::wstring(insert);
-		watch2->StartTimer();
-		tree2.Insert(&insert2, &insert2, &dummy2);
-		watch2->StopTimer();
-	}
-
-	double secs = watch->TotalTime();
-	cout << " secs: " << secs << "\r\n";	
-	cout << "Rows per second WString: " << numrows / secs << "\r\n";
-
-	double secs2 = watch2->TotalTime();
-	cout << " secs: " << secs2 << "\r\n";	
-	cout << "Rows per second WString*: " << numrows / secs2 << "\r\n";
-}
-
-void SequentialPLongTest()
-{
-	cout << "Testing Sequential PLongs...";
-	
-	long numrows = 10000000;
-
-	BTree tree(GetPLongType(), GetPLongType());	
-
-	Stopwatch watch;
-
-	Leaf* dummy;
-	for(int i = 0; i < numrows; i++)
-	{
-		long* item = new long;
-
-		*item = i;
-
-		watch.StartTimer();
-		tree.Insert(&item, &item, &dummy);	
-		watch.StopTimer();
-	}
-
-	double secs = watch.TotalTime();
-	cout << " secs: " << secs << "\r\n";
-	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
-
-	//wcout << tree->ToString();
-}
+//void SequentialPLongTest()
+//{
+//	cout << "Testing Sequential PLongs...";
+//	
+//	long numrows = 10000000;
+//
+//	BTree tree(GetPLongType(), GetPLongType());	
+//
+//	Stopwatch watch;
+//
+//	Leaf* dummy;
+//	for(int i = 0; i < numrows; i++)
+//	{
+//		long* item = new long;
+//
+//		*item = i;
+//
+//		watch.StartTimer();
+//		tree.Insert(&item, &item, &dummy);	
+//		watch.StopTimer();
+//	}
+//
+//	double secs = watch.TotalTime();
+//	cout << " secs: " << secs << "\r\n";
+//	
+//	cout << "Rows per second: " << numrows / secs << "\r\n";
+//
+//	//wcout << tree->ToString();
+//}
 
 void SequentialLongTest()
 {
 	cout << "Testing Sequential Longs...";
 	
-	long numrows = 10000000;
+	long numrows = 1000000;
 
 	BTree tree(GetLongType(), GetLongType());	
 
@@ -109,7 +109,8 @@ void SequentialLongTest()
 	for(long i = 0; i < numrows; i++)
 	{
 		watch.StartTimer();
-		tree.Insert(&i, &i, &dummy);	
+		BTree::Path path = tree.GetPath(&i);
+		tree.Insert(path, &i, &i);	
 		watch.StopTimer();
 	}
 
@@ -117,35 +118,34 @@ void SequentialLongTest()
 	cout << " secs: " << secs << "\r\n";
 	
 	cout << "Rows per second: " << numrows / secs << "\r\n";
-
 	//wcout << tree->ToString();
 }
 
-void SequentialIntTest()
-{
-	cout << "Testing Sequential Ints...";
-	
-	long numrows = 1000000;
-
-	BTree tree(GetIntType(), GetIntType());	
-
-	Stopwatch watch;
-
-	Leaf* dummy;
-	for(int i = 0; i < numrows; i++)
-	{
-		watch.StartTimer();
-		tree.Insert(&i, &i, &dummy);	
-		watch.StopTimer();
-	}
-
-	double secs = watch.TotalTime();
-	cout << " secs: " << secs << "\r\n";
-	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
-
-	//wcout << tree->ToString();
-}
+//void SequentialIntTest()
+//{
+//	cout << "Testing Sequential Ints...";
+//	
+//	long numrows = 1000000;
+//
+//	BTree tree(GetIntType(), GetIntType());	
+//
+//	Stopwatch watch;
+//
+//	Leaf* dummy;
+//	for(int i = 0; i < numrows; i++)
+//	{
+//		watch.StartTimer();
+//		tree.Insert(&i, &i, &dummy);	
+//		watch.StopTimer();
+//	}
+//
+//	double secs = watch.TotalTime();
+//	cout << " secs: " << secs << "\r\n";
+//	
+//	cout << "Rows per second: " << numrows / secs << "\r\n";
+//
+//	//wcout << tree->ToString();
+//}
 
 void GuidTest()
 {
@@ -228,43 +228,43 @@ void ArrayCopyTest()
 	cout << "Copies per second: " << numrows / secs << "\r\n";
 }
 
-void BTreeIteratorTest()
-{
-	BTree tree(GetLongType(),GetLongType());
-	long numrows = 1000;
-	Leaf* dummy;
-	long i = 0;
-	for(i = 0; i < numrows; i++)
-	{
-		tree.Insert(&i,&i,&dummy);
-	}
-
-	BTree::iterator start = tree.begin();
-
-	i = 0;
-	Stopwatch watch;
-	watch.GetFrequency();
- 	while(!start.End())
-	{		
-		cout << *(long*)(*start).first << "\n\r";
-		watch.StartTimer();
-		start++;
-		watch.StopTimer();
-	}
-
-	/*start = tree.begin();
-	
-	while (start != end)
-	{
-		cout << *(long*)*end << "\n\r";
-		end--;
-	}*/
-
-	double secs = watch.TotalTime();
-	cout << " secs: " << secs << "\r\n";
-	cout << "iterations per second: " << numrows / secs << "\r\n";
-
-}
+//void BTreeIteratorTest()
+//{
+//	BTree tree(GetLongType(),GetLongType());
+//	long numrows = 1000;
+//	Leaf* dummy;
+//	long i = 0;
+//	for(i = 0; i < numrows; i++)
+//	{
+//		tree.Insert(&i,&i,&dummy);
+//	}
+//
+//	BTree::iterator start = tree.begin();
+//
+//	i = 0;
+//	Stopwatch watch;
+//	watch.GetFrequency();
+// 	while(!start.End())
+//	{		
+//		cout << *(long*)(*start).first << "\n\r";
+//		watch.StartTimer();
+//		start++;
+//		watch.StopTimer();
+//	}
+//
+//	/*start = tree.begin();
+//	
+//	while (start != end)
+//	{
+//		cout << *(long*)*end << "\n\r";
+//		end--;
+//	}*/
+//
+//	double secs = watch.TotalTime();
+//	cout << " secs: " << secs << "\r\n";
+//	cout << "iterations per second: " << numrows / secs << "\r\n";
+//
+//}
 
 void OutputResult(const GetResult& result, const ScalarType& keyType, const ScalarType& valueType)
 {
@@ -369,7 +369,7 @@ void ColumnHashTest()
 	RangeBound start;
 	start.Inclusive = true;
 	wstringstream stream;
-	stream << "DAFBGARC";
+	stream << "AAFBGARC";
 	start.Value = new fs::wstring(stream.str());
 
 	range.Start = start;
@@ -432,68 +432,68 @@ void TestEAHashSet()
 	
 }
 
-void BTreeDeleteTest()
-{
-	int numrows = 1000;
-	ScalarType t = GetIntType();
-	BTree tree(t,t);	
-	wcout << L"Inserting:\n\r";
-	Leaf* dummy;
-	for(int i = 0; i < numrows; i++)
-	{
-		tree.Insert(&i, &i, &dummy);	
-	}
-	wcout << L"Result of insert:\n\r";
-	auto it = tree.begin();
-	while(!it.End())
-	{		
-		wcout << t.ToString((*it).second) << "\n\r";
-		it++;
-	}
-	wcout << L"deleting all from high:\n\r";
-	for(int i = numrows; i > 0; i--)
-	{
-
-		tree.Delete(&i);	
-	}
-
-	it = tree.begin();
-	wcout << L"Result of deleting all from top:\n\r";
-	while(!it.End())
-	{		
-		wcout << t.ToString((*it).second) << "\n\r";
-		it++;
-	}
-	_getch();
-
-	wcout << L"Inserting:\n\r";
-	for(int i = 0; i < numrows; i++)
-	{
-		tree.Insert(&i, &i, &dummy);	
-	}
-	wcout << L"Result of insert:\n\r";
-	it = tree.begin();
-	while(!it.End())
-	{		
-		wcout << t.ToString((*it).second) << "\n\r";
-		it++;
-	}
-
-	wcout << L"deleting all from 0:\n\r";
-	for(int i = 0; i < numrows; i++)
-	{
-
-		tree.Delete(&i);	
-	}
-
-	it = tree.begin();
-	wcout << L"Result of deleting all from 0:\n\r";
-	while(!it.End())
-	{		
-		wcout << t.ToString((*it).second) << "\n\r";
-		it++;
-	}
-}
+//void BTreeDeleteTest()
+//{
+//	int numrows = 1000;
+//	ScalarType t = GetIntType();
+//	BTree tree(t,t);	
+//	wcout << L"Inserting:\n\r";
+//	Leaf* dummy;
+//	for(int i = 0; i < numrows; i++)
+//	{
+//		tree.Insert(&i, &i, &dummy);	
+//	}
+//	wcout << L"Result of insert:\n\r";
+//	auto it = tree.begin();
+//	while(!it.End())
+//	{		
+//		wcout << t.ToString((*it).second) << "\n\r";
+//		it++;
+//	}
+//	wcout << L"deleting all from high:\n\r";
+//	for(int i = numrows; i > 0; i--)
+//	{
+//
+//		tree.Delete(&i);	
+//	}
+//
+//	it = tree.begin();
+//	wcout << L"Result of deleting all from top:\n\r";
+//	while(!it.End())
+//	{		
+//		wcout << t.ToString((*it).second) << "\n\r";
+//		it++;
+//	}
+//	_getch();
+//
+//	wcout << L"Inserting:\n\r";
+//	for(int i = 0; i < numrows; i++)
+//	{
+//		tree.Insert(&i, &i, &dummy);	
+//	}
+//	wcout << L"Result of insert:\n\r";
+//	it = tree.begin();
+//	while(!it.End())
+//	{		
+//		wcout << t.ToString((*it).second) << "\n\r";
+//		it++;
+//	}
+//
+//	wcout << L"deleting all from 0:\n\r";
+//	for(int i = 0; i < numrows; i++)
+//	{
+//
+//		tree.Delete(&i);	
+//	}
+//
+//	it = tree.begin();
+//	wcout << L"Result of deleting all from 0:\n\r";
+//	while(!it.End())
+//	{		
+//		wcout << t.ToString((*it).second) << "\n\r";
+//		it++;
+//	}
+//}
 
 
 DataSet CreateRandomDataSet(TupleType tt)
@@ -552,13 +552,84 @@ void TableTest()
 	}
 }
 
+void BTreePathTest()
+{
+	int numrows = 1000;
+	ScalarType t = GetIntType();
+	BTree tree(t,t);	
+	wcout << L"Inserting:\n\r";
+	Leaf* dummy;
+	for (int i = 0; i < numrows; i++)
+	{
+		auto path = tree.GetPath(&i);
+		tree.Insert(path, &i, &i);
+	}
+	wcout << L"Result of insert:\n\r";
+	auto it = tree.begin();
+	while (!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+
+	wcout << L"deleting all from high:\n\r";
+	for (int i = numrows - 1; i >= 0; i--)
+	{
+		auto path = tree.GetPath(&i);
+		if(!path.Match)
+			throw;
+		tree.Delete(path);	
+	}
+
+	it = tree.begin();
+	wcout << L"Result of deleting all from top:\n\r";
+	while (!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+	_getch();
+
+	wcout << L"Inserting:\n\r";
+	for (int i = 0; i < numrows; i++)
+	{
+		auto path = tree.GetPath(&i);
+		tree.Insert(path, &i, &i);
+	}
+
+	wcout << L"Result of insert:\n\r";
+	it = tree.begin();
+	while(!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+
+	wcout << L"deleting all from 0:\n\r";
+	for(int i = 0; i < numrows; i++)
+	{
+		auto path = tree.GetPath(&i);
+		if(!path.Match)
+			throw;
+		tree.Delete(path);	
+	}
+
+	it = tree.begin();
+	wcout << L"Result of deleting all from 0:\n\r";
+	while(!it.End())
+	{		
+		wcout << t.ToString((*it).second) << "\n\r";
+		it++;
+	}
+}
+
 void main()
 {
 	//BTreeIteratorTest();
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
-	//SequentialLongTest();
+	SequentialLongTest();
 	//SequentialIntTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
@@ -566,7 +637,8 @@ void main()
 	//GuidTest();
 	//ColumnHashTest();
     //TestEAHashSet();
-	TableTest();
+	//TableTest();
+	//BTreePathTest();
 	_getch();
 }
 

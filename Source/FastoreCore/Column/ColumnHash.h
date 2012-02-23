@@ -21,8 +21,6 @@ class ColumnHash : public ColumnBuffer
 		void* GetValue(void* rowId);
 		void* Include(void* value, void* rowId);
 		void* Exclude(void* value, void* rowId);
-		// TODO: what should updatevalue return?  All the row IDs?
-		void UpdateValue(void* oldValue, void* newValue);
 		GetResult GetRows(Range);
 
 	private:
@@ -69,15 +67,14 @@ inline void* ColumnHash::GetValue(void* rowId)
 
 inline void* ColumnHash::Include(void* value, void* rowId)
 {
-	//TODO: Use of Path to avoid two trips down tree
 	//TODO: Return Undo Information
-	Leaf* valueLeaf;
-	ColumnHashSet* existing = *(ColumnHashSet**)_values->GetValue(value, &valueLeaf);
-	if (existing != NULL)
+	BTree::Path  path = _values->GetPath(value);
+	if (path.Match)
 	{
-		if(existing->insert(rowId).second)
+		ColumnHashSet* existing = *(ColumnHashSet**)(*path.Leaf)[path.LeafIndex].second;
+		if (existing->insert(rowId).second)
 		{
-			_rows->insert(RowLeafPair(rowId, valueLeaf));
+			_rows->insert(RowLeafPair(rowId, path.Leaf));
 		}
 
 		return NULL;
@@ -86,8 +83,11 @@ inline void* ColumnHash::Include(void* value, void* rowId)
 	{
 		ColumnHashSet* newRows = new ColumnHashSet(32, _rowType, _rowType);
 		newRows->insert(rowId);
-		_values->Insert(value, newRows, &valueLeaf);
-		_rows->insert(RowLeafPair(rowId, valueLeaf));
+		_rows->insert(RowLeafPair(rowId, path.Leaf));
+		//Insert may generate a different leaf that the value gets inserted into,
+		//so the above may be incorrect momentarily. If the value gets inserted
+		//on a new split, the callback will be run and change the entry.
+		_values->Insert(path, value, &newRows);
 
 		return NULL;
 	}
@@ -95,51 +95,21 @@ inline void* ColumnHash::Include(void* value, void* rowId)
 
 inline void* ColumnHash::Exclude(void* value, void* rowId)
 {
-	Leaf* valueLeaf;
-	ColumnHashSet* existing = *(ColumnHashSet**)_values->GetValue(value, &valueLeaf);
+	BTree::Path  path = _values->GetPath(value);
 	//If existing is NULL, that row id did not exist under that value
-	if (existing != NULL)
+	if (path.Match)
 	{
+		ColumnHashSet* existing = *(ColumnHashSet**)(*path.Leaf)[path.LeafIndex].second;
 		existing->erase(rowId);
 		if(existing->size() == 0)
 		{
-			_values->Delete(value);
+			_values->Delete(path);
 			delete(existing);
 		}
 		_rows->erase(rowId);
 	}
 	
 	return NULL;
-}
-
-inline void ColumnHash::UpdateValue(void* oldValue, void* newValue)
-{
-	Leaf* valueLeaf;
-	ColumnHashSet* valuesToMove = *(ColumnHashSet**)_values->GetValue(oldValue, &valueLeaf);
-
-	_values->Delete(oldValue);
-
-	ColumnHashSet* existing = *(ColumnHashSet**)_values->Insert(newValue, valuesToMove, &valueLeaf);
-
-	if (existing != NULL)
-	{
-		//merge old and new
-		ColumnHashSetConstIterator iterator;
-		iterator = valuesToMove->begin();
-
-		while (iterator != valuesToMove->end())
-		{
-			existing->insert(*iterator);			
-		}
-
-		ValuesMoved(existing, valueLeaf);
-
-		delete(valuesToMove);
-	}
-	else
-	{
-		ValuesMoved(valuesToMove, valueLeaf);
-	}
 }
 
 inline void ColumnHash::ValuesMoved(void* value, Leaf* leaf)
@@ -163,7 +133,6 @@ inline GetResult ColumnHash::GetRows(Range range)
 	RangeBound start = *(range.Start);
 	RangeBound end = *(range.End);
 
-	//Figure out forward. 
 	bool firstMatch = true; //Seeking to beginning or end
 	bool lastMatch = true;
 	BTree::iterator first = range.Start.HasValue() ? _values->find(start.Value, firstMatch) : _values->begin();
@@ -172,6 +141,7 @@ inline GetResult ColumnHash::GetRows(Range range)
 	if(range.Start.HasValue() && range.End.HasValue())
 	{
 		//Bounds checking
+		//TODO: Is this needed? Could the BuildData logic handle this correctly?
 		if(last == first && (!end.Inclusive || !start.Inclusive))
 		{
 			//We have only one result, and it is excluded

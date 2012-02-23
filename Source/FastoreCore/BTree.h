@@ -42,9 +42,6 @@ class BTree
 		BTree(ScalarType keyType, ScalarType valueType);
 		~BTree();
 
-		void* Insert(void* key, void* value, Leaf** leaf);
-		bool Delete(void* key); 
-		void* GetValue(void* key, Leaf** leaf);
 		fs::wstring ToString();
 		void setCapacity(int branchCapacity, int leafCapacity);
 		int getBranchCapacity();
@@ -64,9 +61,12 @@ class BTree
 			eastl::vector<PathNode> Branches;
 			Leaf* Leaf;
 			int LeafIndex;
+			bool Match;
 		};
 
-		Path SeekToKey(void* key, bool& forward);
+		Path GetPath(void* key);
+		void Delete(Path path);
+		void Insert(Path path, void* key, void* value);
 		Path SeekToBegin();
 		Path SeekToEnd();
 
@@ -105,7 +105,9 @@ class BTree
 
 		iterator find(void* key, bool& match)
 		{
-			return iterator(SeekToKey(key, match));
+			Path p = GetPath(key);
+			match = p.Match;
+			return iterator(p);
 		}
 
 
@@ -130,11 +132,9 @@ class Node
 		Node(BTree* tree, int count = 0) : _tree(tree), _count(count) {}
 		virtual ~Node() {}
 
-		virtual InsertResult Insert(void* key, void* value, Leaf** leaf) = 0;
-		virtual DeleteResult Delete(void* key) = 0;
 		virtual void* GetValue(void* key, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
-		virtual void SeekToKey(void* key, BTree::Path& path, bool& match) = 0;
+		virtual void GetPath(void* key, BTree::Path& path) = 0;
 		virtual void SeekToBegin(BTree::Path& path) = 0;
 		virtual void SeekToEnd(BTree::Path& path) = 0;
 
@@ -152,25 +152,31 @@ class Leaf: public Node
 	private:		
 		char* _values;
 		int IndexOf(void* key, bool& match);
-		void* InternalInsert(int index, void* key, void* value, bool match, Leaf** leaf);
+		
 		void InternalDelete(int index);
+
+		//Index operations (for path)
+		void InternalInsertIndex(int index, void* key, void* value);
 
 	public:
 		Leaf(BTree* tree);
 		~Leaf();
 
-		InsertResult Insert(void* key, void* value, Leaf** leaf);	
-		DeleteResult Delete(void* key);
 		void* GetValue(void* key, Leaf** leaf);
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
-		void SeekToKey(void* key, BTree::Path& path, bool& forward);
+		void GetPath(void* key, BTree::Path& path);
 		void SeekToBegin(BTree::Path& path);
 		void SeekToEnd(BTree::Path& path);
 		bool MoveNext(BTree::Path& path);
 		bool MovePrior(BTree::Path& path);
 		bool EndOfTree(BTree::Path& path);
 		bool BeginOfTree(BTree::Path& path);
+
+		//Index operations (for path -- behavior undefined for invalid paths)
+		bool Delete(int index);
+		Split* Insert(int index, void* key, void* value);
+		
 
 		eastl::pair<void*,void*> operator[](int);
 
@@ -216,23 +222,23 @@ class Branch : public Node
 		Branch(BTree* tree, Node* left, Node* right, void* key);
 		~Branch();
 
-		InsertResult Insert(void* key, void* value, Leaf** leaf);
-		DeleteResult Delete(void* key);
 		void* GetValue(void* key, Leaf** leaf);
 		fs::wstring ToString();	
-		void SeekToKey(void* key, BTree::Path& path, bool& match);
+		void GetPath(void* key, BTree::Path& path);
 		void SeekToBegin(BTree::Path& path);
 		void SeekToEnd(BTree::Path& path);
 		bool MoveNext(BTree::Path& path);
 		bool MovePrior(BTree::Path& path);
 
+		//Index Operations (for path -- behavior not defined for invalid paths)
+		bool Delete(int index);
+		Split* Insert(int index, void* key, Node* child);
+
 	private:
 		Node** _children;
-
-		int IndexOf(void* key);
-		Split* InsertChild(int index, void* key, Node* child);
+		int IndexOf(void* key);		
 		void InternalInsertChild(int index, void* key, Node* child);
-		void RemoveChild(int index);
+
 };
 
 
