@@ -1,31 +1,36 @@
 #pragma once
 
+#include "..\typedefs.h"
 #include <EASTL\hash_set.h>
 #include <EASTL\hash_map.h>
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
 #include "..\Column\columnbuffer.h"
+#include <EASTL\sort.h>
 
 using namespace eastl;
 
-typedef eastl::hash_set<void*, ScalarType, ScalarType> ColumnHashSet;
-typedef eastl::hash_set<void*, ScalarType, ScalarType>::const_iterator ColumnHashSetConstIterator;
-typedef eastl::hash_map<void*, Leaf*, ScalarType, ScalarType> ColumnHashMap;
-typedef eastl::hash_map<void*, Leaf*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
-typedef eastl::pair <void*, Leaf*> RowLeafPair;
+typedef eastl::hash_set<Key, ScalarType, ScalarType> ColumnHashSet;
+typedef eastl::hash_set<Key, ScalarType, ScalarType>::const_iterator ColumnHashSetConstIterator;
+typedef eastl::hash_map<Key, Leaf*, ScalarType, ScalarType> ColumnHashMap;
+typedef eastl::hash_map<Key, Leaf*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
+typedef eastl::pair <Key, Leaf*> RowLeafPair;
+typedef eastl::hash_map<Value, KeyVector, ScalarType, ScalarType> ValueKeysHashMap;
 
 class ColumnHash : public ColumnBuffer
 {
 	public:
 		ColumnHash(const ScalarType rowType, const ScalarType valueType);
-		void* GetValue(void* rowId);
-		void* Include(void* value, void* rowId);
-		void* Exclude(void* value, void* rowId);
+		ValueVector GetValues(KeyVector rowId);
+		Value Include(Value value, Key rowId);
+		Value Exclude(Value value, Key rowId);
 		GetResult GetRows(Range);
+		ValueKeysVectorVector GetSorted(KeyVectorVector input);
 
 	private:
-		void ValuesMoved(void* ,Leaf*);
-		eastl::vector<eastl::pair<void*,void*>> BuildData(BTree::iterator, BTree::iterator, void*, bool, int, bool&);
+		void ValuesMoved(void*, Leaf*);
+		Value GetValue(Key rowId);
+		ValueKeysVector BuildData(BTree::iterator, BTree::iterator, void*, bool, int, bool&);
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ColumnHashMap* _rows;
@@ -45,7 +50,18 @@ inline ColumnHash::ColumnHash(const ScalarType rowType, const ScalarType valueTy
 		});
 }
 
-inline void* ColumnHash::GetValue(void* rowId)
+inline ValueVector ColumnHash::GetValues(KeyVector rowIds)
+{
+	ValueVector values(rowIds.size());
+	for (int i = 0; i < rowIds.size(); i++)
+	{
+		values[i] = GetValue(rowIds[i]);
+	}
+
+	return values;
+}
+
+inline Value ColumnHash::GetValue(Key rowId)
 {
 	ColumnHashMapIterator iterator;
 	iterator = _rows->find(rowId);
@@ -65,7 +81,56 @@ inline void* ColumnHash::GetValue(void* rowId)
 	}
 }
 
-inline void* ColumnHash::Include(void* value, void* rowId)
+inline ValueKeysVectorVector ColumnHash::GetSorted(KeyVectorVector input)
+{
+	ValueKeysVectorVector result;
+	for(int i = 0; i < input.size(); i++)
+	{
+		//Create temporary hash for values and keys...
+		ValueKeysHashMap hash(32, _valueType, _valueType);
+
+		//insert each key into the hash for its correct value;
+		KeyVector keys = input[0];
+		for(int j = 0; j < keys.size(); j++)
+		{
+			Key key = keys[i];
+			Value val = GetValue(keys[i]);
+			ValueKeysHashMap::iterator iter = hash.find(val);
+			if (iter != hash.end())
+			{
+				iter->second.push_back(key);
+			}
+			else
+			{
+				KeyVector kv;
+				kv.push_back(key);
+				hash.insert(ValueKeys(val, kv));
+			}
+		}
+
+		//TODO: Modify the above code to allow direct insertion into a sorted vector to remove the need to copy again.
+		//Grab values from hash and put them into a list (sorted by hash key)
+		ValueKeysVector sorted;
+		
+		auto start = hash.begin();
+		auto end = hash.end();
+
+		while(start != end)
+		{
+			sorted.push_back((*start));
+			++start;
+		}
+
+		sort(sorted.begin(), sorted.end(), [this](ValueKeys left, ValueKeys right) -> bool { return this->_valueType.Compare(left.first, right.first) < 0; });
+
+		//Stick that list into the result
+		result.push_back(sorted);
+	}
+
+	return result;
+}
+
+inline Value ColumnHash::Include(Value value, Key rowId)
 {
 	//TODO: Return Undo Information
 	BTree::Path  path = _values->GetPath(value);
@@ -93,7 +158,7 @@ inline void* ColumnHash::Include(void* value, void* rowId)
 	}
 }
 
-inline void* ColumnHash::Exclude(void* value, void* rowId)
+inline Value ColumnHash::Exclude(Value value, Key rowId)
 {
 	BTree::Path  path = _values->GetPath(value);
 	//If existing is NULL, that row id did not exist under that value
@@ -199,12 +264,12 @@ inline GetResult ColumnHash::GetRows(Range range)
 	return result;
 }
 
-inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iterator first, BTree::iterator last, void* startId, bool ascending, int limit, bool &limited)
+inline ValueKeysVector ColumnHash::BuildData(BTree::iterator first, BTree::iterator last, Key startId, bool ascending, int limit, bool &limited)
 {	
 	int num = 0;
 	bool foundCurrentId = startId == NULL;
     limited = false;
-	eastl::vector<eastl::pair<void*,void*>> rows;	
+	ValueKeysVector rows;	
 	
 	while (first != last && !limited)
 	{
@@ -223,9 +288,10 @@ inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iter
 			idStart++;				
 		}
 
+		KeyVector keys;
 		while (idStart != idEnd)
 		{
-			rows.push_back(eastl::pair<void*,void*>(*idStart,(*first).first));
+			keys.push_back(*idStart);
 			idStart++;
 			num++;
 			if(num == limit)
@@ -233,6 +299,11 @@ inline eastl::vector<eastl::pair<void*,void*>> ColumnHash::BuildData(BTree::iter
 				limited = true; break;
 			}
 		}
+
+		if(keys.size() > 0)
+		{
+			rows.push_back(ValueKeys((*first).first, keys));
+		}		
 
 		if (ascending)
 			first++;

@@ -1,19 +1,24 @@
 #pragma once
 
+#include "../typedefs.h"
 #include "../Range.h"
+
+using namespace fs;
 
 struct GetResult
 {
 	GetResult() : Limited(false) {}
 	bool Limited;
-	eastl::vector<eastl::pair<void*,void*>> Data;
+	ValueKeysVector Data;
 };
+
 
 class ColumnBuffer
 {
 	public:
-		virtual void* GetValue(void* rowId) = 0;
-		virtual void* Include(void* value, void* rowID) = 0;
-		virtual void* Exclude(void* value, void* rowID) = 0;
+		virtual ValueVector GetValues(KeyVector rowIds) = 0;
+		virtual Value Include(Value value, Key rowID) = 0;
+		virtual Value Exclude(Value value, Key rowID) = 0;
+		virtual ValueKeysVectorVector GetSorted(KeyVectorVector keyvalues) = 0; 
 		virtual GetResult GetRows(Range) = 0;
 };

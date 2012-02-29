@@ -270,7 +270,12 @@ void OutputResult(const GetResult& result, const ScalarType& keyType, const Scal
 {
 	for (unsigned int i = 0; i < result.Data.size(); i++)
 	{
-		wcout << keyType.ToString(result.Data[i].first) << " : " << valueType.ToString(result.Data[i].second) <<"\n\r";
+		wcout << keyType.ToString(result.Data[i].first) <<"\n\r";
+		auto keys = result.Data[i].second;
+		for (int j = 0; j < keys.size(); j++)
+		{
+			wcout << "\t" << valueType.ToString(keys[j]) <<"\n\r";		
+		}
 	}
 }
 
@@ -510,47 +515,47 @@ DataSet CreateRandomDataSet(TupleType tt)
 	return ds;
 }
 
-void TableTest()
-{
-	ColumnType ct1;
-	ColumnType ct2;
-
-	ct1.IsRequired = true;
-	ct2.IsRequired = true;
-
-	ct1.Name = L"ID";
-	ct2.Name = L"Text";
-
-	ct1.IsUnique = true;
-	ct2.IsUnique = false;
-
-	ct1.Type = GetLongType();
-	ct2.Type = GetStringType();
-
-	eastl::vector<ColumnType> columns;
-
-	columns.push_back(ct1);
-	columns.push_back(ct2);
-
-	TupleType tt(columns);
-
-	Table t(tt);
-
-	eastl::vector<int> nums;
-	nums.push_back(0);
-	nums.push_back(1);
-
-	Ranges ranges;
-	ColumnRange range;
-	range.ColumnNumber = 0;
-	ranges.push_back(range);
-
-	for(int i = 0; i < 100; i++)
-	{
-		DataSet ds = CreateRandomDataSet(tt);
-		t.Include(ranges, ds, nums);
-	}
-}
+//void TableTest()
+//{
+//	ColumnType ct1;
+//	ColumnType ct2;
+//
+//	ct1.IsRequired = true;
+//	ct2.IsRequired = true;
+//
+//	ct1.Name = L"ID";
+//	ct2.Name = L"Text";
+//
+//	ct1.IsUnique = true;
+//	ct2.IsUnique = false;
+//
+//	ct1.Type = GetLongType();
+//	ct2.Type = GetStringType();
+//
+//	eastl::vector<ColumnType> columns;
+//
+//	columns.push_back(ct1);
+//	columns.push_back(ct2);
+//
+//	TupleType tt(columns);
+//
+//	Table t(tt);
+//
+//	eastl::vector<int> nums;
+//	nums.push_back(0);
+//	nums.push_back(1);
+//
+//	Ranges ranges;
+//	ColumnRange range;
+//	range.ColumnNumber = 0;
+//	ranges.push_back(range);
+//
+//	for(int i = 0; i < 100; i++)
+//	{
+//		DataSet ds = CreateRandomDataSet(tt);
+//		t.Include(ranges, ds, nums);
+//	}
+//}
 
 void BTreePathTest()
 {

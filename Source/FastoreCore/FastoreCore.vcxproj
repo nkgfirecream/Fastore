@@ -212,6 +212,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
+    <ClInclude Include="ColumnManager.h" />
     <ClInclude Include="Column\ColumnHash.h" />
     <ClInclude Include="Column\columnbuffer.h" />
     <ClInclude Include="KeyTree.h" />
