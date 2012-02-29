@@ -224,6 +224,8 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="Schema\tuple.h" />
     <ClInclude Include="Schema\scalar.h" />
     <ClInclude Include="Table\ranges.h" />
+    <ClInclude Include="TransactionID.h" />
+    <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="typedefs.h" />
     <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
