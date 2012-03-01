@@ -41,4 +41,7 @@ namespace standardtypes
 
 	//HashSetType
 	ScalarType GetHashSetType();
+
+	//KeyVectorType
+	ScalarType GetKeyVectorType();
 }

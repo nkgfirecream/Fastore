@@ -9,6 +9,7 @@
 #include <sstream>
 #include <bitset>
 #include "TransactionID.h"
+#include "Change.h"
 
 
 
@@ -636,6 +637,7 @@ void TestTransactionID()
 	trans.SetRevision(100);
 	trans.SetTransaction(5);
 
+
 	cout << "Revision: " << trans.GetRevision() << "\n\r";
 	cout << "Transaction: " << trans.GetTransaction() << "\n\r";
 
@@ -646,6 +648,22 @@ void TestTransactionID()
 	trans.SetTransaction(446);
 	cout << "Revision: " << trans.GetRevision() << "\n\r";
 	cout << "Transaction: " << trans.GetTransaction() << "\n\r";
+}
+
+void TestChange()
+{
+	Change change;
+	change.RowID = new long(1);
+	change.Value = new long(1);
+	change.Operation = change.Include;
+
+	ChangeSet set;
+	set.push_back(change);
+
+	//TODO: actually test changes...
+	cout << "Change created and added to set";
+
+
 }
 
 void main()
@@ -665,7 +683,8 @@ void main()
     //TestEAHashSet();
 	//TableTest();
 	//BTreePathTest();
-	TestTransactionID();
+	//TestTransactionID();
+	TestChange();
 	_getch();
 }
 

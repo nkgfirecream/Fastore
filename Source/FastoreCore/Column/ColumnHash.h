@@ -89,39 +89,39 @@ inline ValueKeysVectorVector ColumnHash::GetSorted(KeyVectorVector input)
 		//Create temporary hash for values and keys...
 		ValueKeysHashMap hash(32, _valueType, _valueType);
 
+		BTree valueKeyTree(_valueType, standardtypes::GetKeyVectorType());
+		
+		KeyVector keys;
 		//insert each key into the hash for its correct value;
-		KeyVector keys = input[0];
 		for(int j = 0; j < keys.size(); j++)
 		{
 			Key key = keys[i];
-			Value val = GetValue(keys[i]);
-			ValueKeysHashMap::iterator iter = hash.find(val);
-			if (iter != hash.end())
+			Value val = GetValue(key);
+						
+			BTree::Path path = valueKeyTree.GetPath(val);
+			if(path.Match)
 			{
-				iter->second.push_back(key);
+				KeyVector* existing = *(KeyVector**)(*path.Leaf)[path.LeafIndex].second;
+				existing->push_back(key);
 			}
 			else
 			{
-				KeyVector kv;
-				kv.push_back(key);
-				hash.insert(ValueKeys(val, kv));
+				KeyVector* vector = new KeyVector();
+				vector->push_back(key);
+				valueKeyTree.Insert(path, val, vector);
 			}
 		}
 
-		//TODO: Modify the above code to allow direct insertion into a sorted vector to remove the need to copy again.
-		//Grab values from hash and put them into a list (sorted by hash key)
 		ValueKeysVector sorted;
-		
-		auto start = hash.begin();
-		auto end = hash.end();
+
+		auto start = valueKeyTree.begin();
+		auto end = valueKeyTree.end();
 
 		while(start != end)
 		{
-			sorted.push_back((*start));
+			sorted.push_back(ValueKeys((*start).first, **((KeyVector**)(*start).second)));
 			++start;
 		}
-
-		sort(sorted.begin(), sorted.end(), [this](ValueKeys left, ValueKeys right) -> bool { return this->_valueType.Compare(left.first, right.first) < 0; });
 
 		//Stick that list into the result
 		result.push_back(sorted);

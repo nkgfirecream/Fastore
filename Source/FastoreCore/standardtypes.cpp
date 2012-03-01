@@ -1,3 +1,4 @@
+#include "typedefs.h"
 #include "Schema\standardtypes.h"
 #include <sstream>
 #include "EASTL\functional.h"
@@ -149,6 +150,16 @@ ScalarType standardtypes::GetHashSetType()
 	type.Compare = NULL;
 	type.Free = IndirectDelete;
 	type.Size = sizeof(eastl::hash_set<void*, ScalarType, ScalarType>*);
+	type.ToString = NULL;
+	return type;
+}
+
+ScalarType standardtypes::GetKeyVectorType()
+{
+	ScalarType type;
+	type.Compare = NULL;
+	type.Free = IndirectDelete;
+	type.Size = sizeof(fs::KeyVector*);
 	type.ToString = NULL;
 	return type;
 }

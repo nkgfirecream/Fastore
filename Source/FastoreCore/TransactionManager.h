@@ -1,9 +1,11 @@
-#include "..\typedefs.h"
+#include "typedefs.h"
+#include "Change.h"
+#include "TransactionID.h"
 
 class TransactionManager
 {
 	public:
-		virtual void /*TID*/ Start() = 0;
-		virtual void /*REV*/ Prepare(/* ChangeSet */) = 0;
-		virtual void Commit(/* TID*/) = 0;
+		virtual TransactionID Start() = 0;
+		virtual short Prepare(ChangeSet) = 0;
+		virtual void Commit(TransactionID) = 0;
 };
