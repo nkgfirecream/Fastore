@@ -7,7 +7,8 @@
 #include <iostream>
 #include "Util/Stopwatch.h"
 #include <sstream>
-
+#include <bitset>
+#include "TransactionID.h"
 
 
 
@@ -628,13 +629,33 @@ void BTreePathTest()
 	}
 }
 
+void TestTransactionID()
+{
+	TransactionID trans;
+
+	trans.SetRevision(100);
+	trans.SetTransaction(5);
+
+	cout << "Revision: " << trans.GetRevision() << "\n\r";
+	cout << "Transaction: " << trans.GetTransaction() << "\n\r";
+
+	trans.SetRevision(126);
+	cout << "Revision: " << trans.GetRevision() << "\n\r";
+	cout << "Transaction: " << trans.GetTransaction() << "\n\r";
+
+	trans.SetTransaction(446);
+	cout << "Revision: " << trans.GetRevision() << "\n\r";
+	cout << "Transaction: " << trans.GetTransaction() << "\n\r";
+}
+
 void main()
 {
+	
 	//BTreeIteratorTest();
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
-	SequentialLongTest();
+	//SequentialLongTest();
 	//SequentialIntTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
@@ -644,6 +665,7 @@ void main()
     //TestEAHashSet();
 	//TableTest();
 	//BTreePathTest();
+	TestTransactionID();
 	_getch();
 }
 
