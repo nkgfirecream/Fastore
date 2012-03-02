@@ -1,12 +1,14 @@
 #include "typedefs.h"
 
-
-struct Change
+namespace fs
 {
-	Key RowID;
-	Value Value;
-	enum OperationType {Include = 0, Exclude = 1};	
-	OperationType Operation;
-};
+	struct Change
+	{
+		Key RowID;
+		Value Value;
+		enum OperationType {Include = 0, Exclude = 1};	
+		OperationType Operation;
+	};
 
-typedef eastl::vector<Change> ChangeSet;
+	typedef eastl::vector<Change> ChangeSet;
+}
