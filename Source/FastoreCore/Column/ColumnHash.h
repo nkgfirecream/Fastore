@@ -17,6 +17,8 @@ typedef eastl::hash_map<Key, Leaf*, ScalarType, ScalarType>::iterator ColumnHash
 typedef eastl::pair <Key, Leaf*> RowLeafPair;
 typedef eastl::hash_map<Value, KeyVector, ScalarType, ScalarType> ValueKeysHashMap;
 
+//Stuff to force commit
+
 class ColumnHash : public ColumnBuffer
 {
 	public:
