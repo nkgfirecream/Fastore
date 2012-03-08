@@ -87,6 +87,7 @@ ScalarType standardtypes::GetPStringType()
 	type.Free = IndirectDelete;
 	type.Size = sizeof(fs::wstring*);
 	type.ToString = PStringString;
+	type.IndexOf = IndexOf<long long>;
 	return type;
 }
 
@@ -103,7 +104,8 @@ fs::wstring standardtypes::IntString(const void* item)
 	return result.str();
 }
 
-int standardtypes::IntIndexOf(const char* items, const int count, void *key)
+template <typename T>
+int standardtypes::IndexOf(const char* items, const int count, void *key)
 {
 	int lo = 0;
 	int hi = count - 1;
@@ -113,7 +115,7 @@ int standardtypes::IntIndexOf(const char* items, const int count, void *key)
 	while (lo <= hi)
 	{
 		mid = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-		result = *(int*)key - ((int*)items)[mid];
+		result = *(T*)key - ((T*)items)[mid];
 
 		if (result == 0)
 			return mid;
@@ -133,7 +135,7 @@ ScalarType standardtypes::GetIntType()
 	type.Free = NULL;
 	type.Size = sizeof(int);
 	type.ToString = IntString;
-	type.IndexOf = IntIndexOf;
+	type.IndexOf = IndexOf<int>;
 	return type;
 }
 

@@ -107,7 +107,6 @@ void SequentialLongTest()
 
 	Stopwatch watch;
 
-	Leaf* dummy;
 	for(long i = 0; i < numrows; i++)
 	{
 		watch.StartTimer();
@@ -133,7 +132,6 @@ void SequentialIntTest()
 
 	Stopwatch watch;
 
-	Leaf* dummy;
 	for(int i = 0; i < numrows; i++)
 	{
 		watch.StartTimer();
@@ -566,7 +564,6 @@ void BTreePathTest()
 	ScalarType t = GetIntType();
 	BTree tree(t,t);	
 	wcout << L"Inserting:\n\r";
-	Leaf* dummy;
 	for (int i = 0; i < numrows; i++)
 	{
 		auto path = tree.GetPath(&i);
