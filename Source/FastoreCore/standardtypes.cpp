@@ -42,20 +42,20 @@ ScalarType standardtypes::GetStringType()
 // Long ScalarType
 int standardtypes::LongCompare(const void* left, const void* right)
 {
-	return *(long*)left - *(long*)right;
+	return (int)(*(long long*)left - *(long long*)right);
 }
 
 fs::wstring standardtypes::LongString(const void* item)
 {
 	wstringstream result;
-	result << *(long*)item;
+	result << *(long long*)item;
 	return result.str();
 }
 
 size_t standardtypes::LongHash(const void* item)
 {
-	static eastl::hash<long> hash;
-	return hash(*(long*)item);
+	static eastl::hash<long long> hash;
+	return hash(*(long long*)item);
 }
 
 ScalarType standardtypes::GetLongType()
@@ -63,7 +63,7 @@ ScalarType standardtypes::GetLongType()
 	ScalarType type;
 	type.Compare = LongCompare;
 	type.Free = NULL;
-	type.Size = sizeof(long);
+	type.Size = sizeof(long long);
 	type.ToString = LongString;
 	type.Hash = LongHash;
 	return type;

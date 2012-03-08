@@ -65,8 +65,8 @@ class BTree
 		};
 
 		Path GetPath(void* key);
-		void Delete(Path path);
-		void Insert(Path path, void* key, void* value);
+		void Delete(Path& path);
+		void Insert(Path& path, void* key, void* value);
 		Path SeekToBegin();
 		Path SeekToEnd();
 

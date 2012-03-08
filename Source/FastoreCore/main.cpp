@@ -123,31 +123,32 @@ void SequentialLongTest()
 	//wcout << tree->ToString();
 }
 
-//void SequentialIntTest()
-//{
-//	cout << "Testing Sequential Ints...";
-//	
-//	long numrows = 1000000;
-//
-//	BTree tree(GetIntType(), GetIntType());	
-//
-//	Stopwatch watch;
-//
-//	Leaf* dummy;
-//	for(int i = 0; i < numrows; i++)
-//	{
-//		watch.StartTimer();
-//		tree.Insert(&i, &i, &dummy);	
-//		watch.StopTimer();
-//	}
-//
-//	double secs = watch.TotalTime();
-//	cout << " secs: " << secs << "\r\n";
-//	
-//	cout << "Rows per second: " << numrows / secs << "\r\n";
-//
-//	//wcout << tree->ToString();
-//}
+void SequentialIntTest()
+{
+	cout << "Testing Sequential Ints...";
+	
+	long numrows = 1000000;
+
+	BTree tree(GetIntType(), GetIntType());	
+
+	Stopwatch watch;
+
+	Leaf* dummy;
+	for(int i = 0; i < numrows; i++)
+	{
+		watch.StartTimer();
+		BTree::Path path = tree.GetPath(&i);
+		tree.Insert(path, &i, &i);	
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree->ToString();
+}
 
 void GuidTest()
 {
@@ -673,8 +674,8 @@ void main()
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
-	//SequentialLongTest();
-	//SequentialIntTest();
+	SequentialLongTest();
+	SequentialIntTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
 	//ArrayCopyTest();
@@ -684,7 +685,7 @@ void main()
 	//TableTest();
 	//BTreePathTest();
 	//TestTransactionID();
-	TestChange();
+	//TestChange();
 	_getch();
 }
 
