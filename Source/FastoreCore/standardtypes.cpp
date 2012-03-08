@@ -103,6 +103,29 @@ fs::wstring standardtypes::IntString(const void* item)
 	return result.str();
 }
 
+int standardtypes::IntIndexOf(const char* items, const int count, void *key)
+{
+	int lo = 0;
+	int hi = count - 1;
+	int mid = 0;
+	int result = -1;
+
+	while (lo <= hi)
+	{
+		mid = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
+		result = *(int*)key - ((int*)items)[mid];
+
+		if (result == 0)
+			return mid;
+		else if (result < 0)
+			hi = mid - 1;
+		else
+			lo = mid + 1;
+	}
+
+	return ~lo;
+}
+
 ScalarType standardtypes::GetIntType()
 {
 	ScalarType type;
@@ -110,6 +133,7 @@ ScalarType standardtypes::GetIntType()
 	type.Free = NULL;
 	type.Size = sizeof(int);
 	type.ToString = IntString;
+	type.IndexOf = IntIndexOf;
 	return type;
 }
 

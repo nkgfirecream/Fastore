@@ -31,6 +31,7 @@ namespace standardtypes
 	int IntCompare(const void*, const void*);
 	fs::wstring IntString(const void*);
 	ScalarType GetIntType();
+	int IntIndexOf(const char* items, const int count, void *key);
 
 	// PLong type
 	int PLongCompare(const void*, const void*);

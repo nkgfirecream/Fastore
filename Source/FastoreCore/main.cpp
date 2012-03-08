@@ -674,7 +674,7 @@ void main()
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
-	SequentialLongTest();
+	//SequentialLongTest();
 	SequentialIntTest();
 	//SequentialPLongTest();
 	//InterlockedTest();

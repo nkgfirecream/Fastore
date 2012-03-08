@@ -18,6 +18,7 @@ struct ScalarType
 	int (*Compare)(const void* left, const void* right);
 	bool operator ()(const void* left, const void* right) const
 	{
-		return Compare(left,right) <= 0;
+		return Compare(left, right) <= 0;
 	}
+	int (*IndexOf)(const char* items, const int count, void *key);
 };

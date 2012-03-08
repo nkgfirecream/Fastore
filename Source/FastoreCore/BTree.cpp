@@ -210,38 +210,30 @@ void Branch::InternalInsertChild(int index, void* key, Node* child)
 
 int Branch::IndexOf(void* key)
 {	
-	auto compare = _tree->_keyType.Compare;
-	auto keySize = _tree->_keyType.Size;
-	if (_count <= 64)
-	{
-		int result = -1;
-		int i;
-		for (i = _count - 1; i >= 0 && result < 0; i--)
-			result = compare(key, &_keys[i * keySize]);
-		return result == 0 ? i + 1 : 0;
-	}
-	else
-	{
-		int lo = 0;
-		int hi = _count - 1;
-		int mid = 0;
-		int result = -1;
+	auto result = _tree->_keyType.IndexOf(_keys, _count, key);
+	return result >= 0 ? result + 1 : ~result;
 
-		while (lo <= hi)
-		{
-			mid = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-			result = compare(key, &_keys[mid * keySize]);
+	//auto compare = _tree->_keyType.Compare;
+	//auto keySize = _tree->_keyType.Size;
+	//int lo = 0;
+	//int hi = _count - 1;
+	//int mid = 0;
+	//int result = -1;
 
-			if (result == 0)
-				return mid + 1; //Plus one because the keys are offset from the children
-			else if (result < 0)
-				hi = mid - 1;
-			else
-				lo = mid + 1;
-		}
+	//while (lo <= hi)
+	//{
+	//	mid = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
+	//	result = compare(key, &_keys[mid * keySize]);
 
-		return lo;
-	}
+	//	if (result == 0)
+	//		return mid + 1; //Plus one because the keys are offset from the children
+	//	else if (result < 0)
+	//		hi = mid - 1;
+	//	else
+	//		lo = mid + 1;
+	//}
+
+	//return lo;
 }
 
 void* Branch::GetValue(void* key, Leaf** leaf)
@@ -422,43 +414,35 @@ void Leaf::InternalDelete(int index)
 
 int Leaf::IndexOf(void* key, bool& match)
 {
-	auto compare = _tree->_keyType.Compare;
-	auto keySize = _tree->_keyType.Size;
-	if (_count <= 64)
-	{
-		int result = -1;
-		int i;
-		for (i = _count - 1; i >= 0 && result < 0; i--)
-			result = compare(key, &_keys[i * keySize]);
-		match = result == 0;
-		return match ? i : 0;
-	}
-	else
-	{
-		int lo = 0;
-		int hi = _count - 1;
-		int mid = 0;
-		int result = -1;
+	auto result = _tree->_keyType.IndexOf(_keys, _count, key);
+	match = result >= 0;
+	return match ? result : ~result;
 
-		while (lo <= hi)
-		{
-			mid = (lo + hi) >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-			result = compare(key, &_keys[mid * keySize]);
+	//auto compare = _tree->_keyType.Compare;
+	//auto keySize = _tree->_keyType.Size;
+	//int lo = 0;
+	//int hi = _count - 1;
+	//int mid = 0;
+	//int result = -1;
 
-			if (result == 0)
-			{
-				match = true;
-				return mid;
-			}
-			else if (result < 0)
-				hi = mid - 1;
-			else
-				lo = mid + 1;
-		}
+	//while (lo <= hi)
+	//{
+	//	mid = (lo + hi) >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
+	//	result = compare(key, &_keys[mid * keySize]);
 
-		match = false;
-		return lo;
-	}
+	//	if (result == 0)
+	//	{
+	//		match = true;
+	//		return mid;
+	//	}
+	//	else if (result < 0)
+	//		hi = mid - 1;
+	//	else
+	//		lo = mid + 1;
+	//}
+
+	//match = false;
+	//return lo;
 }
 
 void* Leaf::GetValue(void* key, Leaf** leaf)
