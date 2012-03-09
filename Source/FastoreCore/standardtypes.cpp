@@ -24,19 +24,20 @@ int standardtypes::ScaledIndexOf(const char* items, const int count, void *key)
 
 	while (lo <= hi)
 	{
-		//split = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
 		loVal = ((T*)items)[lo];
 		hiVal = ((T*)items)[hi];
 		val = *(T*)key;
+
+		// Test for value on or over range bounds
 		if (val <= loVal)
 			return val == loVal ? lo : ~lo;
 		if (val >= hiVal)
 			return val == hiVal ? hi : ~(hi + 1);
-		split = lo + (int)((val - (float)loVal) / (hiVal - (float)loVal) * (hi - lo));
-			//((val >> 1) - (loVal >> 1)) 
-			//	* (hi - lo) 
-			//	/ ((hiVal >> 1) - (loVal >> 1)) 
-			//	+ lo;
+
+		// Split proportionately to the value scaling
+		split = lo + (int)((val - (double)loVal) / (hiVal - (double)loVal) * (hi - lo));
+			//(val - loVal) * (hi - lo) / (hiVal - loVal) + lo;		integer version suffers from overflow problems with subtraction and multiplication
+
 		result = val - ((T*)items)[split];
 
 		if (result == 0)
@@ -54,6 +55,63 @@ int standardtypes::ScaledIndexOf(const char* items, const int count, void *key)
 	}
 
 	return ~lo;
+}
+
+inline int SignNum(int value)
+{
+	return (value > 0) - (value < 0);
+}
+
+template <typename T>
+int standardtypes::TargetedIndexOf(const char* items, const int count, void *key)
+{
+	if (count == 0)
+		return ~0;
+
+	int hi = count - 1;
+
+	T loVal = ((T*)items)[0];
+	T hiVal = ((T*)items)[hi];
+	T val = *(T*)key;
+
+	// Test for value on or over range bounds
+	if (val <= loVal)
+		return val == loVal ? 0 : ~0;
+	if (val >= hiVal)
+		return val == hiVal ? hi : ~count;
+
+	// Split proportionately to the value scaling
+	int pos = (int)((val - (double)loVal) / (hiVal - (double)loVal) * hi);
+
+	int diff = val - ((T*)items)[pos];
+
+	if (diff == 0)
+		return pos;
+
+	//normalize direction
+	int direction = SignNum(diff);
+
+	if (direction > 0)
+	{
+		while (diff > 0)
+		{
+			++pos;
+			if (pos > hi)
+				return ~count;
+			diff = val - ((T*)items)[pos];
+		}
+	}
+	else
+	{
+		while (diff < 0)
+		{
+			--pos;
+			if (pos < 0)
+				return ~0;
+			diff = val - ((T*)items)[pos];
+		}
+	}
+	return diff == 0 ? pos : ~pos;
 }
 
 template <typename T>
@@ -160,7 +218,7 @@ ScalarType standardtypes::GetLongType()
 	type.Size = sizeof(long long);
 	type.ToString = LongString;
 	type.Hash = LongHash;
-	type.IndexOf = ScaledIndexOf<long long>;
+	type.IndexOf = TargetedIndexOf<long long>;
 	return type;
 }
 
@@ -206,7 +264,7 @@ ScalarType standardtypes::GetIntType()
 	type.Free = NULL;
 	type.Size = sizeof(int);
 	type.ToString = IntString;
-	type.IndexOf = ScaledIndexOf<int>;
+	type.IndexOf = TargetedIndexOf<int>;
 	return type;
 }
 

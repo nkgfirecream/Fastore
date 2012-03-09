@@ -176,15 +176,16 @@ void ReverseSequentialIntTest()
 
 void RandomIntTest()
 {
-	cout << "Testing Random Ints...";
+	cout << "Testing Random Ints...\r\n";
 	
 	long numrows = 1000000;
 
 	auto intType = GetIntType();
 	BTree tree(intType, intType);	
-	int count = 0;
 
 	Stopwatch watch;
+
+	cout << "	Inserts...";
 
 	for (int i = 0; i < numrows; i++)
 	{
@@ -192,21 +193,32 @@ void RandomIntTest()
 		watch.StartTimer();
 		BTree::Path path = tree.GetPath(&x);
 		if (!path.Match)
-		{
 			tree.Insert(path, &x, &x);	
-			++count;
-		}
 		watch.StopTimer();
 	}
-
-	cout << "\r\n total inserted: " << count << "\r\n";
 
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+	cout << "		Rows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
+
+	watch.Reset();
+	cout << "	Finds...";
+
+	for (int i = 0; i < numrows; i++)
+	{
+		int x = (rand() << 16) | rand();
+		watch.StartTimer();
+		BTree::Path path = tree.GetPath(&x);
+		watch.StopTimer();
+	}
+
+	secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "		Rows per second: " << numrows / secs << "\r\n";
 }
 
 void RandomLongTest()
@@ -761,9 +773,9 @@ void main()
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
-	SequentialLongTest();
-	SequentialIntTest();
-	ReverseSequentialIntTest();
+	//SequentialLongTest();
+	//SequentialIntTest();
+	//ReverseSequentialIntTest();
 	RandomIntTest();
 	//RandomLongTest();
 	//SequentialPLongTest();
