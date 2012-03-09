@@ -774,7 +774,7 @@ void main()
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
-	//SequentialIntTest();
+	SequentialIntTest();
 	//ReverseSequentialIntTest();
 	RandomIntTest();
 	//RandomLongTest();

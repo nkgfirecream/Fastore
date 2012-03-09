@@ -4,12 +4,13 @@
 #include <functional>
 #include "optional.h"
 #include <EASTL\vector.h>
-#include <EASTL\list.h>
+#include <EASTL\fixed_list.h>
 #include "Util\utilities.h"
 
 using namespace std;
 const int DefaultLeafCapacity = 300;
 const int DefaultBranchCapacity = 300;
+const int DefaultBranchListSize = 8;
 
 struct Split;
 class Node;
@@ -61,7 +62,7 @@ class BTree
 
 		struct Path
 		{
-			eastl::list<PathNode> Branches;
+			eastl::fixed_list<PathNode, DefaultBranchListSize> Branches;
 			Leaf* Leaf;
 			int LeafIndex;
 			bool Match;
