@@ -10,6 +10,14 @@ namespace standardtypes
 	//Delete Functions
 	void IndirectDelete(void* item);
 
+	//IndexOf Functions
+	template <typename T>
+	int NumericIndexOf(const char* items, const int count, void *key);
+	template <typename T>
+	int ScaledIndexOf(const char* items, const int count, void *key);
+	template <typename T, typename COMP>
+	int CompareIndexOf(const char* items, const int count, void *key);
+
 	// String type
 	int StringCompare(const void*, const void*);
 	fs::wstring StringString(const void*);
@@ -31,8 +39,6 @@ namespace standardtypes
 	int IntCompare(const void*, const void*);
 	fs::wstring IntString(const void*);
 	ScalarType GetIntType();
-	template <typename T>
-	int IndexOf(const char* items, const int count, void *key);
 
 	// PLong type
 	int PLongCompare(const void*, const void*);

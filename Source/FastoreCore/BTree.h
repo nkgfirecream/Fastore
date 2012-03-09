@@ -7,8 +7,8 @@
 #include "Util\utilities.h"
 
 using namespace std;
-const int DefaultLeafCapacity = 128;
-const int DefaultBranchCapacity = 128;
+const int DefaultLeafCapacity = 300;
+const int DefaultBranchCapacity = 300;
 
 struct Split;
 class Node;

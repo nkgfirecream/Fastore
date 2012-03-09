@@ -107,7 +107,7 @@ void SequentialLongTest()
 
 	Stopwatch watch;
 
-	for(long i = 0; i < numrows; i++)
+	for (long i = 0; i < numrows; i++)
 	{
 		watch.StartTimer();
 		BTree::Path path = tree.GetPath(&i);
@@ -132,11 +132,101 @@ void SequentialIntTest()
 
 	Stopwatch watch;
 
-	for(int i = 0; i < numrows; i++)
+	for (int i = 0; i < numrows; i++)
 	{
 		watch.StartTimer();
 		BTree::Path path = tree.GetPath(&i);
 		tree.Insert(path, &i, &i);	
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree->ToString();
+}
+
+void ReverseSequentialIntTest()
+{
+	cout << "Testing Reverse Sequential Ints...";
+	
+	long numrows = 1000000;
+
+	BTree tree(GetIntType(), GetIntType());	
+
+	Stopwatch watch;
+
+	for (int i = numrows; i >= 0; --i)
+	{
+		watch.StartTimer();
+		BTree::Path path = tree.GetPath(&i);
+		tree.Insert(path, &i, &i);	
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree->ToString();
+}
+
+void RandomIntTest()
+{
+	cout << "Testing Random Ints...";
+	
+	long numrows = 1000000;
+
+	auto intType = GetIntType();
+	BTree tree(intType, intType);	
+	int count = 0;
+
+	Stopwatch watch;
+
+	for (int i = 0; i < numrows; i++)
+	{
+		int x = (rand() << 16) | rand();
+		watch.StartTimer();
+		BTree::Path path = tree.GetPath(&x);
+		if (!path.Match)
+		{
+			tree.Insert(path, &x, &x);	
+			++count;
+		}
+		watch.StopTimer();
+	}
+
+	cout << "\r\n total inserted: " << count << "\r\n";
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree->ToString();
+}
+
+void RandomLongTest()
+{
+	cout << "Testing Random Longs...";
+	
+	long numrows = 1000000;
+
+	auto longType = GetLongType();
+	BTree tree(longType, longType);	
+
+	Stopwatch watch;
+
+	for (int i = 0; i < numrows; i++)
+	{
+		long long x = (long long)rand() << 16 | rand();
+		watch.StartTimer();
+		BTree::Path path = tree.GetPath(&x);
+		if (!path.Match)
+			tree.Insert(path, &x, &x);	
 		watch.StopTimer();
 	}
 
@@ -671,8 +761,11 @@ void main()
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
 	//StringTest();
-	//SequentialLongTest();
+	SequentialLongTest();
 	SequentialIntTest();
+	ReverseSequentialIntTest();
+	RandomIntTest();
+	//RandomLongTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
 	//ArrayCopyTest();
