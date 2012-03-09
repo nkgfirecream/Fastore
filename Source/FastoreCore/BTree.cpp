@@ -72,7 +72,7 @@ void BTree::Delete(Path& path)
 	bool result = path.Leaf->Delete(path.LeafIndex);
 	while (result && path.Branches.size() > 0)
 	{
-		auto pathNode = path.Branches[path.Branches.size() - 1];
+		auto pathNode = path.Branches.back();
 		path.Branches.pop_back();
 		result = pathNode.Node->Delete(pathNode.Index);
 	}
@@ -87,7 +87,7 @@ void BTree::Insert(Path& path, void* key, void* value)
 	Split* result = path.Leaf->Insert(path.LeafIndex, key, value);
 	while (result != NULL && path.Branches.size() > 0)
 	{
-		auto pathNode = path.Branches[path.Branches.size() - 1];
+		auto pathNode = path.Branches.back();
 		path.Branches.pop_back();
 		void* key = result->key;
 		Node* node = result->right;
@@ -212,28 +212,6 @@ int Branch::IndexOf(void* key)
 {	
 	auto result = _tree->_keyType.IndexOf(_keys, _count, key);
 	return result >= 0 ? result + 1 : ~result;
-
-	//auto compare = _tree->_keyType.Compare;
-	//auto keySize = _tree->_keyType.Size;
-	//int lo = 0;
-	//int hi = _count - 1;
-	//int mid = 0;
-	//int result = -1;
-
-	//while (lo <= hi)
-	//{
-	//	mid = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-	//	result = compare(key, &_keys[mid * keySize]);
-
-	//	if (result == 0)
-	//		return mid + 1; //Plus one because the keys are offset from the children
-	//	else if (result < 0)
-	//		hi = mid - 1;
-	//	else
-	//		lo = mid + 1;
-	//}
-
-	//return lo;
 }
 
 void* Branch::GetValue(void* key, Leaf** leaf)
@@ -264,20 +242,14 @@ fs::wstring Branch::ToString()
 
 void Branch::SeekToBegin(BTree::Path& path)
 {
-	BTree::PathNode result;
-	result.Index = 0;
-	result.Node = this;
-	path.Branches.push_back(result);
-	_children[result.Index]->SeekToBegin(path);
+	path.Branches.push_back(BTree::PathNode(this, 0));
+	_children[0]->SeekToBegin(path);
 }
 
 void Branch::SeekToEnd(BTree::Path& path)
 {
-	BTree::PathNode result;
-	result.Index = _count;
-	result.Node = this;
-	path.Branches.push_back(result);
-	_children[result.Index]->SeekToEnd(path);
+	path.Branches.push_back(BTree::PathNode(this, _count));
+	_children[_count]->SeekToEnd(path);
 }
 
 bool Branch::MoveNext(BTree::Path& path)
@@ -306,11 +278,9 @@ bool Branch::MovePrior(BTree::Path& path)
 
 void Branch::GetPath(void* key, BTree::Path& path)
 {
-	BTree::PathNode result;
-	result.Index = IndexOf(key);
-	result.Node = this;
-	path.Branches.push_back(result);
-	_children[result.Index]->GetPath(key, path);
+	auto index = IndexOf(key);
+	path.Branches.push_back(BTree::PathNode(this, index));
+	_children[index]->GetPath(key, path);
 }
 
 bool Branch::Delete(int index)
@@ -417,32 +387,6 @@ int Leaf::IndexOf(void* key, bool& match)
 	auto result = _tree->_keyType.IndexOf(_keys, _count, key);
 	match = result >= 0;
 	return match ? result : ~result;
-
-	//auto compare = _tree->_keyType.Compare;
-	//auto keySize = _tree->_keyType.Size;
-	//int lo = 0;
-	//int hi = _count - 1;
-	//int mid = 0;
-	//int result = -1;
-
-	//while (lo <= hi)
-	//{
-	//	mid = (lo + hi) >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-	//	result = compare(key, &_keys[mid * keySize]);
-
-	//	if (result == 0)
-	//	{
-	//		match = true;
-	//		return mid;
-	//	}
-	//	else if (result < 0)
-	//		hi = mid - 1;
-	//	else
-	//		lo = mid + 1;
-	//}
-
-	//match = false;
-	//return lo;
 }
 
 void* Leaf::GetValue(void* key, Leaf** leaf)

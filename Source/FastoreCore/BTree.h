@@ -4,6 +4,7 @@
 #include <functional>
 #include "optional.h"
 #include <EASTL\vector.h>
+#include <EASTL\list.h>
 #include "Util\utilities.h"
 
 using namespace std;
@@ -52,13 +53,15 @@ class BTree
 
 		struct PathNode
 		{
+			PathNode(Branch* node, const int index) : Node(node), Index(index) {}
+			PathNode(const PathNode& other) : Node(other.Node), Index(other.Index) {}
 			Branch* Node;
 			int Index;
 		};
 
 		struct Path
 		{
-			eastl::vector<PathNode> Branches;
+			eastl::list<PathNode> Branches;
 			Leaf* Leaf;
 			int LeafIndex;
 			bool Match;
