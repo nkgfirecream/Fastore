@@ -136,7 +136,6 @@ class Node
 		Node(BTree* tree, int count = 0) : _tree(tree), _count(count) {}
 		virtual ~Node() {}
 
-		virtual void* GetValue(void* key, Leaf** leaf) = 0;
 		virtual fs::wstring ToString() = 0;
 		virtual void GetPath(void* key, BTree::Path& path) = 0;
 		virtual void SeekToBegin(BTree::Path& path) = 0;
@@ -166,7 +165,6 @@ class Leaf: public Node
 		Leaf(BTree* tree);
 		~Leaf();
 
-		void* GetValue(void* key, Leaf** leaf);
 		void* GetKey(function<bool(void*)>);
 		fs::wstring ToString();
 		void GetPath(void* key, BTree::Path& path);
@@ -226,7 +224,6 @@ class Branch : public Node
 		Branch(BTree* tree, Node* left, Node* right, void* key);
 		~Branch();
 
-		void* GetValue(void* key, Leaf** leaf);
 		fs::wstring ToString();	
 		void GetPath(void* key, BTree::Path& path);
 		void SeekToBegin(BTree::Path& path);

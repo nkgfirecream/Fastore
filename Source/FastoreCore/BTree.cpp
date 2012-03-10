@@ -214,12 +214,6 @@ int Branch::IndexOf(void* key)
 	return result >= 0 ? result + 1 : ~result;
 }
 
-void* Branch::GetValue(void* key, Leaf** leaf)
-{
-	int index = IndexOf(key);
-	return _children[index]->GetValue(key, leaf);
-}
-
 fs::wstring Branch::ToString()
 {
 	wstringstream result;
@@ -387,21 +381,6 @@ int Leaf::IndexOf(void* key, bool& match)
 	auto result = _tree->_keyType.IndexOf(_keys, _count, key);
 	match = result >= 0;
 	return match ? result : ~result;
-}
-
-void* Leaf::GetValue(void* key, Leaf** leaf)
-{
-	bool match;
-	int index = IndexOf(key, match);
-	if (match)
-	{
-		*leaf = this;
-		return operator[](index).second;
-	}
-	else
-	{
-		return NULL;
-	}
 }
 
 fs::wstring Leaf::ToString()

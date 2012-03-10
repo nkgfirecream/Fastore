@@ -776,7 +776,7 @@ void main()
 	//SequentialLongTest();
 	SequentialIntTest();
 	//ReverseSequentialIntTest();
-	RandomIntTest();
+	//RandomIntTest();
 	//RandomLongTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
