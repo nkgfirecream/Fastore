@@ -12,9 +12,9 @@ using namespace eastl;
 
 typedef eastl::hash_set<Key, ScalarType, ScalarType> ColumnHashSet;
 typedef eastl::hash_set<Key, ScalarType, ScalarType>::const_iterator ColumnHashSetConstIterator;
-typedef eastl::hash_map<Key, Leaf*, ScalarType, ScalarType> ColumnHashMap;
-typedef eastl::hash_map<Key, Leaf*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
-typedef eastl::pair <Key, Leaf*> RowLeafPair;
+typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType> ColumnHashMap;
+typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
+typedef eastl::pair <Key, Node*> RowLeafPair;
 typedef eastl::hash_map<Value, KeyVector, ScalarType, ScalarType> ValueKeysHashMap;
 
 //Stuff to force commit
@@ -30,7 +30,7 @@ class ColumnHash : public ColumnBuffer
 		ValueKeysVectorVector GetSorted(KeyVectorVector input);
 
 	private:
-		void ValuesMoved(void*, Leaf*);
+		void ValuesMoved(void*, Node*);
 		Value GetValue(Key rowId);
 		ValueKeysVector BuildData(BTree::iterator, BTree::iterator, void*, bool, int, bool&);
 		ScalarType _rowType;
@@ -46,7 +46,7 @@ inline ColumnHash::ColumnHash(const ScalarType rowType, const ScalarType valueTy
 	_rows = new ColumnHashMap(32, _rowType, _rowType);
 	_values = new BTree(_valueType, standardtypes::GetHashSetType());
 	_values->setValuesMovedCallback(
-		[this](void* value, Leaf* newLeaf) -> void
+		[this](void* value, Node* newLeaf) -> void
 		{
 			this->ValuesMoved(value, newLeaf);
 		});
@@ -70,7 +70,7 @@ inline Value ColumnHash::GetValue(Key rowId)
 	
 	if (iterator != _rows->end())
 	{
-		Leaf* leaf = iterator->second;
+		Node* leaf = iterator->second;
 		return leaf->GetKey(
 			[rowId](void* hash) -> bool
 			{
@@ -179,7 +179,7 @@ inline Value ColumnHash::Exclude(Value value, Key rowId)
 	return NULL;
 }
 
-inline void ColumnHash::ValuesMoved(void* value, Leaf* leaf)
+inline void ColumnHash::ValuesMoved(void* value, Node* leaf)
 {
 	ColumnHashSet* existingValues = *(ColumnHashSet**)(value);
 

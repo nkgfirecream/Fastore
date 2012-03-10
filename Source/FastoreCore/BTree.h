@@ -3,20 +3,17 @@
 #include "typedefs.h"
 #include <functional>
 #include "optional.h"
-#include <EASTL\vector.h>
 #include <EASTL\fixed_list.h>
-#include "Util\utilities.h"
+#include <sstream>
 
 using namespace std;
-const int DefaultLeafCapacity = 300;
-const int DefaultBranchCapacity = 300;
+const int DefaultLeafCapacity = 256;
+const int DefaultBranchCapacity = 256;
 const int DefaultBranchListSize = 8;
 
 struct Split;
 class Node;
-class Leaf;
 class BTree;
-class Branch;
 
 struct InsertResult
 {
@@ -36,7 +33,7 @@ struct Split
 	Node* right;
 };
 
-typedef function<void(void*,Leaf*)> valuesMovedHandler;
+typedef function<void(void*,Node*)> valuesMovedHandler;
 
 class BTree
 {
@@ -54,16 +51,16 @@ class BTree
 
 		struct PathNode
 		{
-			PathNode(Branch* node, const int index) : Node(node), Index(index) {}
+			PathNode(Node* node, const int index) : Node(node), Index(index) {}
 			PathNode(const PathNode& other) : Node(other.Node), Index(other.Index) {}
-			Branch* Node;
+			Node* Node;
 			int Index;
 		};
 
 		struct Path
 		{
 			eastl::fixed_list<PathNode, DefaultBranchListSize> Branches;
-			Leaf* Leaf;
+			Node* Leaf;
 			int LeafIndex;
 			bool Match;
 		};
@@ -114,7 +111,6 @@ class BTree
 			return iterator(p);
 		}
 
-
 	private:
 		Node* _root;
 		int _branchCapacity;
@@ -122,65 +118,331 @@ class BTree
 		ScalarType _keyType;
 		ScalarType _valueType;
 		
-		void DoValuesMoved(Leaf* newLeaf);
+		void DoValuesMoved(Node* newLeaf);
 		valuesMovedHandler _valuesMovedCallback;
 
-	friend class Leaf;
-	friend class Branch;
+	friend class Node;
 	friend class BTree::iterator;
 };
 
+//Type 0 = Leaf;
+//Type 1 = Branch;
+//Todo: Enum
 class Node
 {
 	public:
-		Node(BTree* tree, int count = 0) : _tree(tree), _count(count) {}
-		virtual ~Node() {}
+		Node(BTree* tree, int type = 0, int count = 0,  Node* left = NULL, Node* right = NULL, void* key = NULL) : _tree(tree), _count(count), _type(type)
+		{
+			try
+			{
+				if (_type == 1)
+				{
+					_keys = new char[(_tree->_branchCapacity - 1) * _tree->_keyType.Size];
+					_values = new char[(_tree->_branchCapacity) * sizeof(Node*)];				
 
-		virtual fs::wstring ToString() = 0;
-		virtual void GetPath(void* key, BTree::Path& path) = 0;
-		virtual void SeekToBegin(BTree::Path& path) = 0;
-		virtual void SeekToEnd(BTree::Path& path) = 0;
+					if(left != NULL)
+					{
+						memcpy(&_values[0], &left, sizeof(Node*));
+						memcpy(&_values[1 * sizeof(Node*)], &right, sizeof(Node*));
+						memcpy(&_keys[0], key, _tree->_keyType.Size);
+					}
+				}
+				else
+				{
+					_keys = new char[(_tree->_leafCapacity) * _tree->_keyType.Size];
+					_values = new char[(_tree->_leafCapacity) *  _tree->_valueType.Size];
+				}
+			}
+			catch(...)
+			{
+				delete[] _keys;
+				delete[] _values;
+			}
+		}
 
-	protected:	
-		int _count;
-		char* _keys;
-		BTree* _tree;
+		~Node() 
+		{
+			delete[] _keys;
+			delete[] _values;
+		}
 
-	friend class BTree::iterator;
-};
+		int IndexOf(void* key, bool& match)
+		{
+ 			auto result = _tree->_keyType.IndexOf(_keys, _count, key);
+			match = result >= 0;
+			return match ? result : ~result;
+		}
 
+		void* GetKey(function<bool(void*)> predicate)
+		{
+			for (int i = 0; i < _count; i++)
+			{
+				if (predicate(operator[](i).second))
+					return operator[](i).first;
+			}
 
-class Leaf: public Node
-{	
-	private:		
-		char* _values;
-		int IndexOf(void* key, bool& match);
-		
-		void InternalDelete(int index);
+			return NULL;
+		}
 
-		//Index operations (for path)
-		void InternalInsertIndex(int index, void* key, void* value);
+		fs::wstring ToString()
+		{
+			if (_type == 1)
+			{
+				wstringstream result;
 
-	public:
-		Leaf(BTree* tree);
-		~Leaf();
+				result << "\n[";
+				bool first = true;
+				for (int i = 0; i <= _count; i++)
+				{
+					if (!first)
+						result << ",";
+					else
+						first = false;
 
-		void* GetKey(function<bool(void*)>);
-		fs::wstring ToString();
-		void GetPath(void* key, BTree::Path& path);
-		void SeekToBegin(BTree::Path& path);
-		void SeekToEnd(BTree::Path& path);
-		bool MoveNext(BTree::Path& path);
-		bool MovePrior(BTree::Path& path);
-		bool EndOfTree(BTree::Path& path);
-		bool BeginOfTree(BTree::Path& path);
+					result << i << ": " << (*(Node**)&_values[sizeof(Node*) * i])->ToString();
+				}
+				result << "]";
+
+				return result.str();
+			}
+			else
+			{
+				wstringstream result;
+				result << "\n{";
+				bool first = true;
+				for(int i = 0; i < _count; i++)
+				{
+					if(!first)
+						result << ",";
+					else
+						first = false;
+
+					result << _tree->_keyType.ToString(&_keys[i * _tree->_keyType.Size]);
+					result << ":";
+					result << _tree->_valueType.ToString(&_values[i * _tree->_valueType.Size]);
+				}
+				result << "}";
+
+				return result.str();
+			}
+		}
+
+		void GetPath(void* key, BTree::Path& path)
+		{
+			if (_type == 1)
+			{
+				auto index = IndexOf(key);
+				path.Branches.push_back(BTree::PathNode(this, index));
+				(*(Node**)&_values[index * sizeof(Node*)])->GetPath(key, path);
+			}
+			else
+			{
+				path.Leaf = this;
+				path.LeafIndex = IndexOf(key, path.Match);
+			}
+		}
+
+		void SeekToBegin(BTree::Path& path)
+		{			
+			if (_type == 1)
+			{
+				path.Branches.push_back(BTree::PathNode(this, 0));
+				(*(Node**)&_values[0])->SeekToBegin(path);
+			}
+			else
+			{
+				path.Leaf = this;
+				path.LeafIndex = 0;
+			}
+		}
+
+		void SeekToEnd(BTree::Path& path)
+		{
+			if (_type == 1)
+			{
+				path.Branches.push_back(BTree::PathNode(this, _count));
+				(*(Node**)&_values[_count * sizeof(Node*)])->SeekToEnd(path);
+			}
+			else
+			{
+				path.Leaf = this;
+				path.LeafIndex = _count -1;
+			}
+		}
+
+		bool MoveNext(BTree::Path& path)
+		{
+			if (_type == 1)
+			{
+				BTree::PathNode& node = path.Branches.back();
+				if (node.Index < _count)
+				{
+					++node.Index;
+					(*(Node**)(&node.Node->_values[node.Index * sizeof(Node*)]))->SeekToBegin(path);
+					return true;
+				}
+				return false;
+			}
+			else
+			{
+				++path.LeafIndex;
+				if (path.LeafIndex < _count)
+					return true;
+				else
+				{
+					int depth =  - 1;
+					// walk up until we are no longer at the end
+					while (path.Branches.size() > 0)
+					{
+						BTree::PathNode& node = path.Branches.back();
+
+						if (node.Node->MoveNext(path))
+							return true;
+						else
+							path.Branches.pop_back();
+					}
+					return false;
+				}
+			}
+		}
+
+		bool MovePrior(BTree::Path& path)
+		{
+			if (_type == 1)
+			{
+				BTree::PathNode& node = path.Branches.back();
+				if (node.Index > 0)
+				{
+					--node.Index;
+					(*(Node**)(&node.Node->_values[node.Index * sizeof(Node*)]))->SeekToEnd(path);
+					return true;
+				}
+				return false;
+			}
+			else
+			{
+				--path.LeafIndex;
+				if (path.LeafIndex >= 0)
+					return true;
+				else
+				{
+					int depth =  - 1;
+					// walk up until we are no longer at the beginning
+					while (path.Branches.size() > 0)
+					{
+						BTree::PathNode& node = path.Branches.back();
+
+						if (node.Node->MovePrior(path))
+							return true;
+						else
+							path.Branches.pop_back();
+					}
+					return false;
+				}
+			}
+		}
+
+		bool EndOfTree(BTree::Path& path)
+		{
+			return path.LeafIndex == path.Leaf->_count && path.Branches.size() == 0;
+		}
+
+		bool BeginOfTree(BTree::Path& path)
+		{
+			return path.LeafIndex < 0 && path.Branches.size() == 0;
+		}
 
 		//Index operations (for path -- behavior undefined for invalid paths)
-		bool Delete(int index);
-		Split* Insert(int index, void* key, void* value);
-		
+		bool Delete(int index)
+		{
+			if (_type == 1)
+			{
+				delete *(Node**)_values[index * sizeof(Node*)];
+				int size = _count - index;
+				//Assumption -- Count > 0 (otherwise the key would not have been found)
+				memmove(&_keys[(index) * _tree->_keyType.Size], &_keys[(index + 1) * _tree->_keyType.Size], size * _tree->_keyType.Size);
+				memmove(&_values[index *sizeof(Node*)], &_values[(index + 1) *sizeof(Node*)], size * sizeof(Node*));
 
-		eastl::pair<void*,void*> operator[](int);
+				_count--;
+
+				return _count < 0;
+			}
+			else
+			{
+				InternalDelete(index);
+				return _count == 0;
+			}
+		}
+
+		Split* Insert(int index, void* key, void* value)
+		{
+			if (_count != _tree->_leafCapacity)
+			{
+				InternalInsertIndex(index, key, value);
+				return NULL;
+			}
+			else
+			{
+				Node* node = new Node(_tree);
+				if (index != _count)
+				{
+					node->_count = (_tree->_leafCapacity + 1) / 2;
+					_count = _count - node->_count;
+
+					memcpy(&node->_keys[0], &_keys[node->_count * _tree->_keyType.Size],  node->_count * _tree->_keyType.Size);
+					memcpy(&node->_values[0], &_values[node->_count * _tree->_valueType.Size], node->_count * _tree->_valueType.Size);
+				}
+
+				if (index < _count)
+					InternalInsertIndex(index, key, value);
+				else
+					node->InternalInsertIndex(index - _count, key, value);
+
+				_tree->DoValuesMoved(node);
+
+				Split* split = new Split();
+				split->key = &node->_keys[0];
+				split->right = node;
+
+				return split;
+			}
+		}
+
+		Split* Insert(int index, void* key, Node* child)
+		{
+			if (_count != _tree->_branchCapacity - 1)
+			{
+				InternalInsertChild(index, key, child);
+				return NULL;
+			}
+			else
+			{
+				int mid = (_count + 1) / 2;
+				Node* node = new Node(_tree, 1);
+				node->_count = _count - mid;
+				memcpy(&node->_keys[0], &_keys[mid * _tree->_keyType.Size], node->_count * _tree->_keyType.Size);
+				memcpy(&node->_values[0], &_values[mid * sizeof(Node*)], (node->_count + 1) * sizeof(Node*));
+		
+				_count = mid - 1;
+
+				Split* split = new Split();
+				split->key = &_keys[(mid - 1) * _tree->_keyType.Size];
+				split->right = node;
+
+				if (index <= _count)
+					InternalInsertChild(index, key, child);
+				else
+					node->InternalInsertChild(index - (_count + 1), key, child);
+
+				return split;
+			}
+		}
+
+
+		eastl::pair<void*,void*> operator[](int index)
+		{
+			return eastl::pair<void*,void*>(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
+		}
 
 		class iterator : public std::iterator<input_iterator_tag, void*>
 		{
@@ -203,7 +465,7 @@ class Leaf: public Node
 				bool operator==(const iterator& rhs) {return _item==rhs._item;}
 				bool operator!=(const iterator& rhs) {return _item!=rhs._item;}
 				void* operator*() { return _item;}
-			friend class Leaf;
+			friend class Node;
 		};
 
 		iterator valueBegin()
@@ -214,32 +476,58 @@ class Leaf: public Node
 		iterator valueEnd()
 		{
 			return iterator(&_values[_count * _tree->_valueType.Size], _tree->_valueType.Size);
-		}
-};
-
-class Branch : public Node
-{
-	public:
-		Branch(BTree* tree);
-		Branch(BTree* tree, Node* left, Node* right, void* key);
-		~Branch();
-
-		fs::wstring ToString();	
-		void GetPath(void* key, BTree::Path& path);
-		void SeekToBegin(BTree::Path& path);
-		void SeekToEnd(BTree::Path& path);
-		bool MoveNext(BTree::Path& path);
-		bool MovePrior(BTree::Path& path);
-
-		//Index Operations (for path -- behavior not defined for invalid paths)
-		bool Delete(int index);
-		Split* Insert(int index, void* key, Node* child);
+		}	
 
 	private:
-		Node** _children;
-		int IndexOf(void* key);		
-		void InternalInsertChild(int index, void* key, Node* child);
+		int _type;
+		int _count;
+		char* _keys;
+		char* _values;
+		BTree* _tree;
 
+		int IndexOf(void* key)
+		{
+			auto result = _tree->_keyType.IndexOf(_keys, _count, key);
+			return result >= 0 ? result + 1 : ~result;
+		}
+
+		void InternalInsertChild(int index, void* key, Node* child)
+		{
+			int size = _count - index;
+			if (_count != index)
+			{
+				memmove(&_keys[(index + 1) *_tree->_keyType.Size], &_keys[index * _tree->_keyType.Size],  size * _tree->_keyType.Size);
+				memmove(&_values[(index + 2) * sizeof(Node*)], &_values[(index + 1) * sizeof(Node*)],  size * sizeof(Node*));
+			}
+
+			memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
+			memcpy(&_values[(index + 1) * sizeof(Node*)], &child, sizeof(Node*));
+			_count++;
+		}
+
+		void InternalDelete(int index)
+		{
+			memmove(&_keys[(index) * _tree->_keyType.Size], &_keys[index + 1 * _tree->_keyType.Size], (_count - index) * _tree->_keyType.Size);
+			memmove(&_values[(index) * _tree->_valueType.Size], &_values[index + 1 * _tree->_valueType.Size], (_count - index) * _tree->_valueType.Size);
+
+			_count--;
+		}
+
+		void InternalInsertIndex(int index, void* key, void* value)
+		{
+			if (_count != index)
+			{
+				memmove(&_keys[(index + 1) * _tree->_keyType.Size], &_keys[index  * _tree->_keyType.Size], (_count - index) * _tree->_keyType.Size);
+				memmove(&_values[(index + 1) * _tree->_valueType.Size], &_values[index *_tree->_valueType.Size], (_count - index) * _tree->_valueType.Size);
+			}
+
+			memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
+			memcpy(&_values[index * _tree->_valueType.Size], value, _tree->_valueType.Size);
+
+			_count++;
+		}
+
+	friend class BTree::iterator;
 };
 
 
