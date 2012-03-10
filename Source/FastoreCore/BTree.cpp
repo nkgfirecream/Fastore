@@ -12,8 +12,7 @@ using namespace std;
 
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
 	_keyType(keyType), _valueType(valueType), 
-	_branchCapacity(DefaultBranchCapacity), 
-	_leafCapacity(DefaultLeafCapacity)
+	_listCapacity(DefaultListCapacity)
 {
 	_root = new Node(this);
 }
@@ -28,24 +27,6 @@ BTree::Path BTree::GetPath(void* key)
 	Path result;
 	_root->GetPath(key, result);
 	return result;
-}
-
-
-// Set the branch and leaf capacities; only affects nodes that are created after this is set
-void BTree::setCapacity(int branchCapacity, int leafCapacity)
-{
-	_branchCapacity = branchCapacity;
-	_leafCapacity = leafCapacity;
-}
-
-int BTree::getBranchCapacity()
-{
-	return _branchCapacity;
-}
-
-int BTree::getLeafCapacity()
-{
-	return _leafCapacity;
 }
 
 void BTree::DoValuesMoved(Node* newLeaf)
