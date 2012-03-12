@@ -7,7 +7,7 @@
 #include <sstream>
 
 using namespace std;
-const int DefaultListCapacity = 512;
+const int DefaultListCapacity = 256;
 const int DefaultBranchListSize = 8;
 
 struct Split;
