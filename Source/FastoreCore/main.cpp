@@ -148,6 +148,32 @@ void SequentialIntTest()
 	//wcout << tree->ToString();
 }
 
+void SequentialIntArrayTest()
+{
+	cout << "Testing Sequential Array Ints...";
+	
+	long numrows = 1000000;
+
+	eastl::vector<int> a;
+	//a.set_capacity(numrows);	// preallocation
+
+	Stopwatch watch;
+
+	for (int i = 0; i < numrows; i++)
+	{
+		watch.StartTimer();
+		a.push_back(i);	
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree->ToString();
+}
+
 void ReverseSequentialIntTest()
 {
 	cout << "Testing Reverse Sequential Ints...";
@@ -774,6 +800,7 @@ void main()
 	//QueueingMutexTest();
 	//StringTest();
 	//SequentialLongTest();
+	//SequentialIntArrayTest();
 	SequentialIntTest();
 	ReverseSequentialIntTest();
 	RandomIntTest();
