@@ -346,7 +346,7 @@ class Node
 		{
 			if (_type == 1)
 			{
-				delete *(Node**)_values[index * sizeof(Node*)];
+				delete *(Node**)&_values[index * sizeof(Node*)];
 			}
 
 			int size = _count - index;
