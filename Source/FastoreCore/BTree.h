@@ -134,9 +134,11 @@ class BTree
 	friend class BTree::iterator;
 };
 
+// WARNING: these type values must remain as optimizations use the numeric value
 //Type 0 = Leaf;
 //Type 1 = Branch;
 //Todo: Enum
+
 class Node
 {
 	public:

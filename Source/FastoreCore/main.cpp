@@ -1,6 +1,7 @@
 #include "Schema\standardtypes.h"
 #include "Table\table.h"
 #include "Column\HashBuffer.h"
+#include "Column\UniqueBuffer.h"
 
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
@@ -408,7 +409,7 @@ void OutputResult(const GetResult& result, const ScalarType& keyType, const Scal
 	}
 }
 
-void ColumnHashTest()
+void HashBufferTest()
 {
 	ScalarType longType = GetLongType();
 	ScalarType stringType = GetStringType();
@@ -517,6 +518,122 @@ void ColumnHashTest()
 	range.End = end;
 
 	auto result2 = hash2->GetRows(range);
+
+	OutputResult(result2, longType, stringType);
+
+	
+	cout << "Rows inserted";
+}
+
+void UniqueBufferTest()
+{
+	ScalarType longType = GetLongType();
+	ScalarType stringType = GetStringType();
+	cout << "Testing UniqueBuffer...\n\r";
+
+	UniqueBuffer* unique = new UniqueBuffer(longType, longType);
+
+	/*long* i = new long(0);
+	unique->Include(i,i);
+	auto result = unique->GetValue(i);
+	wcout << *(long*)result;*/
+	long numvalues = 100;
+	long rowspervalue = 10;
+	
+	long rowId = 0;
+	//Leave gaps so we can test match/no match
+	//for (long i = 0; i < numvalues * 2; i = i + 2)
+	//{
+	//	for (long j = 0; j < rowspervalue; j++)
+	//	{
+	//		long* v = new long(i);
+	//		long* r = new long(rowId);
+	//		unique->Include(v, r);
+	//		rowId++;
+	//	}
+	//}
+
+	//rowId = 0;
+	///*for (long i = 0; i < 1; i++)
+	//{
+	//	for (long j = 0; j < rowspervalue; j++)
+	//	{
+	//		long* r = new long(rowId);
+	//		wcout << *(long*)unique->GetValue(r) << "\r\n";
+	//		rowId++;
+	//	}
+	//}*/
+
+	////Ascending, inclusive, first 30 rows;
+	//Range range;
+	//range.Ascending = true;
+	//range.Limit = 400;
+
+	//
+	//RangeBound start;
+	//start.Inclusive = false;
+	//long i = 2;
+	//start.Value = &i;
+
+	//range.Start = start;
+
+	//RangeBound end;
+	//end.Inclusive = true;	
+	//long j = 46;
+	//end.Value = &j; 
+
+	//range.End = end;
+
+	//auto result = unique->GetRows(range);
+
+	//OutputResult(result, longType, longType);
+
+	UniqueBuffer* unique2 = new UniqueBuffer(longType, stringType);
+	
+	rowId = 0;
+	for (long i = 0; i < numvalues * 2; i = i + 2)
+	{
+		for (long j = 0; j < rowspervalue; j++)
+		{
+			fs::wstring* s = new fs::wstring(RandomString(8));
+			long* r = new long(rowId);
+			unique2->Include(s, r);
+			rowId++;
+		}
+	}
+
+	/*rowId = 0;
+	for (long i = 0; i < numvalues / 10; i++)
+	{
+		for (long j = 0; j < rowspervalue; j++)
+		{
+			wcout << *(fs::wstring*)unique2->GetValue(&rowId) << "\r\n";
+			rowId++;
+		}
+	}*/
+
+	//Ascending, inclusive, first 30 rows;
+	Range range;
+	range.Ascending = true;
+	range.Limit = 400;
+
+	RangeBound start;
+	start.Inclusive = true;
+	wstringstream stream;
+	stream << "AAFBGARC";
+	start.Value = new fs::wstring(stream.str());
+
+	range.Start = start;
+
+	RangeBound end;
+	end.Inclusive = true;
+	wstringstream stream2;
+	stream2 << "BAFBGARC";
+	end.Value = new fs::wstring(stream2.str());
+
+	range.End = end;
+
+	auto result2 = unique2->GetRows(range);
 
 	OutputResult(result2, longType, stringType);
 
@@ -801,15 +918,16 @@ void main()
 	//StringTest();
 	//SequentialLongTest();
 	//SequentialIntArrayTest();
-	SequentialIntTest();
-	ReverseSequentialIntTest();
-	RandomIntTest();
+	//SequentialIntTest();
+	//ReverseSequentialIntTest();
+	//RandomIntTest();
 	//RandomLongTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
-	//ColumnHashTest();
+	HashBufferTest();
+	UniqueBufferTest();
     //TestEAHashSet();
 	//TableTest();
 	//BTreePathTest();

@@ -10,7 +10,7 @@
 
 using namespace eastl;
 
-//Stuff to force commit
+const int UniqueBufferRowMapInitialSize = 32;
 
 class UniqueBuffer : public IColumnBuffer
 {
@@ -26,8 +26,6 @@ class UniqueBuffer : public IColumnBuffer
 		typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType> ColumnHashMap;
 		typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
 		typedef eastl::pair <Key, Node*> RowLeafPair;
-
-		const int UniqueBufferRowMapInitialSize = 32;
 
 		void ValuesMoved(void*, Node*);
 		Value GetValue(Key rowId);
