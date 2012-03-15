@@ -1,6 +1,6 @@
 #include "Schema\standardtypes.h"
 #include "Table\table.h"
-#include "Column\ColumnHash.h"
+#include "Column\HashBuffer.h"
 
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
@@ -412,9 +412,9 @@ void ColumnHashTest()
 {
 	ScalarType longType = GetLongType();
 	ScalarType stringType = GetStringType();
-	cout << "Testing ColumnHash...\n\r";
+	cout << "Testing HashBuffer...\n\r";
 
-	ColumnHash* hash = new ColumnHash(longType, longType);
+	HashBuffer* hash = new HashBuffer(longType, longType);
 
 	/*long* i = new long(0);
 	hash->Include(i,i);
@@ -471,7 +471,7 @@ void ColumnHashTest()
 
 	//OutputResult(result, longType, longType);
 
-	ColumnHash* hash2 = new ColumnHash(longType, stringType);
+	HashBuffer* hash2 = new HashBuffer(longType, stringType);
 	
 	rowId = 0;
 	for (long i = 0; i < numvalues * 2; i = i + 2)
@@ -701,7 +701,7 @@ void BTreePathTest()
 	auto it = tree.begin();
 	while (!it.End())
 	{		
-		wcout << t.ToString((*it).second) << "\n\r";
+		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
 	}
 
@@ -718,7 +718,7 @@ void BTreePathTest()
 	wcout << L"Result of deleting all from top:\n\r";
 	while (!it.End())
 	{		
-		wcout << t.ToString((*it).second) << "\n\r";
+		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
 	}
 	_getch();
@@ -734,7 +734,7 @@ void BTreePathTest()
 	it = tree.begin();
 	while(!it.End())
 	{		
-		wcout << t.ToString((*it).second) << "\n\r";
+		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
 	}
 
@@ -751,7 +751,7 @@ void BTreePathTest()
 	wcout << L"Result of deleting all from 0:\n\r";
 	while(!it.End())
 	{		
-		wcout << t.ToString((*it).second) << "\n\r";
+		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
 	}
 }

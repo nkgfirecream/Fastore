@@ -218,9 +218,10 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="BTree.h" />
     <ClInclude Include="Change.h" />
     <ClInclude Include="ColumnTransactor.h" />
-    <ClInclude Include="Column\ColumnHash.h" />
-    <ClInclude Include="Column\columnbuffer.h" />
-    <ClInclude Include="FastoreAPI.h" />
+    <ClInclude Include="Column\HashBuffer.h" />
+    <ClInclude Include="Column\IColumnBuffer.h" />
+    <ClInclude Include="Column\ColumnManager.h" />
+    <ClInclude Include="Column\UniqueBuffer.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Range.h" />

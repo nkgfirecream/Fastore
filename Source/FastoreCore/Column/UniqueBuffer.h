@@ -5,31 +5,30 @@
 #include <EASTL\hash_map.h>
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
-#include "..\Column\columnbuffer.h"
+#include "..\Column\IColumnBuffer.h"
 #include <EASTL\sort.h>
 
 using namespace eastl;
 
-typedef eastl::hash_set<Key, ScalarType, ScalarType> ColumnHashSet;
-typedef eastl::hash_set<Key, ScalarType, ScalarType>::const_iterator ColumnHashSetConstIterator;
-typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType> ColumnHashMap;
-typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
-typedef eastl::pair <Key, Node*> RowLeafPair;
-typedef eastl::hash_map<Value, KeyVector, ScalarType, ScalarType> ValueKeysHashMap;
-
 //Stuff to force commit
 
-class ColumnHash : public ColumnBuffer
+class UniqueBuffer : public IColumnBuffer
 {
 	public:
-		ColumnHash(const ScalarType rowType, const ScalarType valueType);
+		UniqueBuffer(const ScalarType rowType, const ScalarType valueType);
 		ValueVector GetValues(KeyVector rowId);
-		Value Include(Value value, Key rowId);
-		Value Exclude(Value value, Key rowId);
+		bool Include(Value value, Key rowId);
+		bool Exclude(Value value, Key rowId);
 		GetResult GetRows(Range);
 		ValueKeysVectorVector GetSorted(KeyVectorVector input);
 
 	private:
+		typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType> ColumnHashMap;
+		typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType>::iterator ColumnHashMapIterator;
+		typedef eastl::pair <Key, Node*> RowLeafPair;
+
+		const int UniqueBufferRowMapInitialSize = 32;
+
 		void ValuesMoved(void*, Node*);
 		Value GetValue(Key rowId);
 		ValueKeysVector BuildData(BTree::iterator, BTree::iterator, void*, bool, int, bool&);
@@ -39,20 +38,22 @@ class ColumnHash : public ColumnBuffer
 		BTree* _values;
 };
 
-inline ColumnHash::ColumnHash(const ScalarType rowType, const ScalarType valueType)
+inline UniqueBuffer::UniqueBuffer(const ScalarType rowType, const ScalarType valueType)
 {
 	_rowType = rowType;
 	_valueType = valueType;
-	_rows = new ColumnHashMap(32, _rowType, _rowType);
+	_rows = new ColumnHashMap(UniqueBufferRowMapInitialSize, _rowType, _rowType);
 	_values = new BTree(_valueType, standardtypes::GetHashSetType());
-	_values->setValuesMovedCallback(
+	_values->setValuesMovedCallback
+	(
 		[this](void* value, Node* newLeaf) -> void
 		{
 			this->ValuesMoved(value, newLeaf);
-		});
+		}
+	);
 }
 
-inline ValueVector ColumnHash::GetValues(KeyVector rowIds)
+inline ValueVector UniqueBuffer::GetValues(KeyVector rowIds)
 {
 	ValueVector values(rowIds.size());
 	for (int i = 0; i < rowIds.size(); i++)
@@ -63,7 +64,7 @@ inline ValueVector ColumnHash::GetValues(KeyVector rowIds)
 	return values;
 }
 
-inline Value ColumnHash::GetValue(Key rowId)
+inline Value UniqueBuffer::GetValue(Key rowId)
 {
 	ColumnHashMapIterator iterator;
 	iterator = _rows->find(rowId);
@@ -71,11 +72,15 @@ inline Value ColumnHash::GetValue(Key rowId)
 	if (iterator != _rows->end())
 	{
 		Node* leaf = iterator->second;
-		return leaf->GetKey(
-			[rowId](void* hash) -> bool
+		auto locRowType = _rowType;
+		return leaf->GetKey
+		(
+			// TODO: would it help perf to put this callback into the type?
+			[rowId, locRowType](void* foundId) -> bool
 			{
-				return (*(ColumnHashSet**)hash)->find(rowId) != (*(ColumnHashSet**)hash)->end();
-			});
+				return locRowType.Compare(foundId, rowId) == 0;
+			}
+		);
 	}
 	else
 	{
@@ -83,27 +88,24 @@ inline Value ColumnHash::GetValue(Key rowId)
 	}
 }
 
-inline ValueKeysVectorVector ColumnHash::GetSorted(KeyVectorVector input)
+inline ValueKeysVectorVector UniqueBuffer::GetSorted(KeyVectorVector input)
 {
 	ValueKeysVectorVector result;
-	for(int i = 0; i < input.size(); i++)
+	for (int i = 0; i < input.size(); i++)
 	{
-		//Create temporary hash for values and keys...
-		ValueKeysHashMap hash(32, _valueType, _valueType);
-
 		BTree valueKeyTree(_valueType, standardtypes::GetKeyVectorType());
 		
 		KeyVector keys;
 		//insert each key into the hash for its correct value;
-		for(int j = 0; j < keys.size(); j++)
+		for (int j = 0; j < keys.size(); j++)
 		{
 			Key key = keys[i];
 			Value val = GetValue(key);
 						
 			BTree::Path path = valueKeyTree.GetPath(val);
-			if(path.Match)
+			if (path.Match)
 			{
-				KeyVector* existing = *(KeyVector**)(*path.Leaf)[path.LeafIndex].second;
+				KeyVector* existing = *(KeyVector**)(*path.Leaf)[path.LeafIndex].value;
 				existing->push_back(key);
 			}
 			else
@@ -119,9 +121,9 @@ inline ValueKeysVectorVector ColumnHash::GetSorted(KeyVectorVector input)
 		auto start = valueKeyTree.begin();
 		auto end = valueKeyTree.end();
 
-		while(start != end)
+		while (start != end)
 		{
-			sorted.push_back(ValueKeys((*start).first, **((KeyVector**)(*start).second)));
+			sorted.push_back(ValueKeys((*start).key, **((KeyVector**)(*start).value)));
 			++start;
 		}
 
@@ -132,68 +134,48 @@ inline ValueKeysVectorVector ColumnHash::GetSorted(KeyVectorVector input)
 	return result;
 }
 
-inline Value ColumnHash::Include(Value value, Key rowId)
+inline bool UniqueBuffer::Include(Value value, Key rowId)
 {
 	//TODO: Return Undo Information
-	BTree::Path  path = _values->GetPath(value);
+	BTree::Path path = _values->GetPath(value);
 	if (path.Match)
-	{
-		ColumnHashSet* existing = *(ColumnHashSet**)(*path.Leaf)[path.LeafIndex].second;
-		if (existing->insert(rowId).second)
-		{
-			_rows->insert(RowLeafPair(rowId, path.Leaf));
-		}
-
-		return NULL;
-	}
+		return false;
 	else
 	{
-		ColumnHashSet* newRows = new ColumnHashSet(32, _rowType, _rowType);
-		newRows->insert(rowId);
 		_rows->insert(RowLeafPair(rowId, path.Leaf));
 		//Insert may generate a different leaf that the value gets inserted into,
 		//so the above may be incorrect momentarily. If the value gets inserted
 		//on a new split, the callback will be run and change the entry.
-		_values->Insert(path, value, &newRows);
+		_values->Insert(path, value, rowId);
 
-		return NULL;
+		return true;
 	}
 }
 
-inline Value ColumnHash::Exclude(Value value, Key rowId)
+inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 {
 	BTree::Path  path = _values->GetPath(value);
 	//If existing is NULL, that row id did not exist under that value
 	if (path.Match)
 	{
-		ColumnHashSet* existing = *(ColumnHashSet**)(*path.Leaf)[path.LeafIndex].second;
-		existing->erase(rowId);
-		if(existing->size() == 0)
+		Key existing = (Key)(*path.Leaf)[path.LeafIndex].value;
+		if (_rowType.Compare(existing, rowId) == 0)
 		{
 			_values->Delete(path);
-			delete(existing);
+			_rows->erase(rowId);
+			return true;
 		}
-		_rows->erase(rowId);
 	}
 	
-	return NULL;
+	return false;
 }
 
-inline void ColumnHash::ValuesMoved(void* value, Node* leaf)
+inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 {
-	ColumnHashSet* existingValues = *(ColumnHashSet**)(value);
-
-	auto start = existingValues->begin();
-	auto end = existingValues->end();
-
-	while(start != end)
-	{
-		_rows->find(*start)->second = leaf;
-		start++;
-	}	
+	_rows->find(value)->second = leaf;
 }
 
-inline GetResult ColumnHash::GetRows(Range range)
+inline GetResult UniqueBuffer::GetRows(Range range)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
@@ -205,17 +187,17 @@ inline GetResult ColumnHash::GetRows(Range range)
 	BTree::iterator first = range.Start.HasValue() ? _values->find(start.Value, firstMatch) : _values->begin();
 	BTree::iterator last =  range.End.HasValue() ? _values->find(end.Value, lastMatch) : _values->end();
 
-	if(range.Start.HasValue() && range.End.HasValue())
+	if (range.Start.HasValue() && range.End.HasValue())
 	{
 		//Bounds checking
 		//TODO: Is this needed? Could the BuildData logic handle this correctly?
-		if(last == first && (!end.Inclusive || !start.Inclusive))
+		if (last == first && (!end.Inclusive || !start.Inclusive))
 		{
 			//We have only one result, and it is excluded
 			return result; //Empty result.
 		}
 
-		if(_valueType.Compare(start.Value, end.Value) > 0)
+		if (_valueType.Compare(start.Value, end.Value) > 0)
 		{
 			//Start is after end. Invalid input.
 			throw;
@@ -225,7 +207,7 @@ inline GetResult ColumnHash::GetRows(Range range)
 	//Swap iterators if descending
 	if (range.Ascending)
 	{
-		//Adjust iteratos
+		//Adjust iterators
 		//Last needs to point to the element AFTER the last one we want to get
 		if (lastMatch && end.Inclusive)
 		{
@@ -248,7 +230,7 @@ inline GetResult ColumnHash::GetRows(Range range)
 		} 
 
 		//If we are descending, first need to point at the element BEFORE the last one we want to pick up
-		if(!firstMatch || (firstMatch && start.Inclusive))
+		if (!firstMatch || (firstMatch && start.Inclusive))
 		{
 			first--;
 		}
@@ -266,7 +248,7 @@ inline GetResult ColumnHash::GetRows(Range range)
 	return result;
 }
 
-inline ValueKeysVector ColumnHash::BuildData(BTree::iterator first, BTree::iterator last, Key startId, bool ascending, int limit, bool &limited)
+inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator first, BTree::iterator last, Key startId, bool ascending, int limit, bool &limited)
 {	
 	int num = 0;
 	bool foundCurrentId = startId == NULL;
@@ -275,36 +257,19 @@ inline ValueKeysVector ColumnHash::BuildData(BTree::iterator first, BTree::itera
 	
 	while (first != last && !limited)
 	{
-		auto rowIds = (ColumnHashSet*)*(void**)((*first).second);
+		auto rowId = (Key)*(void**)((*first).value);
 		
-		auto idStart = rowIds->begin();
-		auto idEnd = rowIds->end();
-
-		//Assumption.. The Id will exist in the first value we pull
-		//Otherwise either our tree has changed (we are on the wrong revision) or we have an invalid start id, and this loop will never terminate. Ever. Until the end of time.
-		while (!foundCurrentId)
-		{
-			if (*idStart == startId)
-				foundCurrentId = true;
-
-			idStart++;				
-		}
-
 		KeyVector keys;
-		while (idStart != idEnd)
+		keys.push_back(rowId);
+		num++;
+		if (num == limit)
 		{
-			keys.push_back(*idStart);
-			idStart++;
-			num++;
-			if(num == limit)
-			{
-				limited = true; break;
-			}
+			limited = true; break;
 		}
 
-		if(keys.size() > 0)
+		if (keys.size() > 0)
 		{
-			rows.push_back(ValueKeys((*first).first, keys));
+			rows.push_back(ValueKeys((*first).key, keys));
 		}		
 
 		if (ascending)

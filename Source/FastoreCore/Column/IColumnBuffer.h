@@ -13,12 +13,12 @@ struct GetResult
 };
 
 
-class ColumnBuffer
+class IColumnBuffer
 {
 	public:
 		virtual ValueVector GetValues(KeyVector rowIds) = 0;
-		virtual Value Include(Value value, Key rowID) = 0;
-		virtual Value Exclude(Value value, Key rowID) = 0;
+		virtual bool Include(Value value, Key rowID) = 0;
+		virtual bool Exclude(Value value, Key rowID) = 0;
 		virtual ValueKeysVectorVector GetSorted(KeyVectorVector keyvalues) = 0; 
 		virtual GetResult GetRows(Range) = 0;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Column/columnbuffer.h"
+#include "../Column/IColumnBuffer.h"
 #include "../Schema/tuple.h"
 #include "ranges.h"
 #include "dataset.h"
@@ -11,7 +11,7 @@ class Table
 
 		TupleType _type; 
 		ScalarType _rowType;
-		eastl::vector<ColumnBuffer*> _buffers;	
+		eastl::vector<IColumnBuffer*> _buffers;	
 
 		TupleType ColumnsTupleType(ColumnNumbers selection);
 	public:		

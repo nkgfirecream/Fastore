@@ -7,7 +7,7 @@ class IDataAccess
 	public:
 		DataSet GetRange(/*Columns, [range], [sorting]*/);
 		DataSet GetRows(/* RowIds[], Columns, Sorting*/);
-		void* Include(/* row, columns, isPicky*/);
+		void* Include(/* rowid[], columns, isPicky*/);
 		void Exclude (/* rowid[], columns, ispicky */);
 		//void Exclude(range, columns, isPicky);
 };

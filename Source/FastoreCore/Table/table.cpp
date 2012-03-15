@@ -1,11 +1,11 @@
 //#include "table.h"
-//#include "../Column/ColumnHash.h"
+//#include "../Column/HashBuffer.h"
 //
 //Table::Table(const TupleType& type) : _type(type), _rowType(standardtypes::GetLongType()) 
 //{
 //	for (TupleType::iterator it = _type.begin(); it != _type.end(); ++it)
 //	{
-//		_buffers.push_back(new ColumnHash(_rowType, (*it).Type));
+//		_buffers.push_back(new HashBuffer(_rowType, (*it).Type));
 //	}
 //}
 //
@@ -101,7 +101,7 @@
 //	return results;
 //}
 //
-////TODO: Restore const, propagate it through the columnhash and BTrees
+////TODO: Restore const, propagate it through the HashBuffer and BTrees
 //DataSet Table::Include(const Ranges& ranges, DataSet newData, const ColumnNumbers inputColumns)
 //{
 //	//Ranges identify which rows we want to affect. Ranges will eventually be able to be chained

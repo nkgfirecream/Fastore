@@ -149,7 +149,7 @@ bool  BTree::iterator::Begin()
 
 bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
 bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
-eastl::pair<void*,void*> BTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}
+TreeEntry BTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}
 
 
 

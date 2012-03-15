@@ -7,6 +7,7 @@
 #include <sstream>
 
 using namespace std;
+
 const int DefaultListCapacity = 256;
 const int DefaultBranchListSize = 8;
 
@@ -30,6 +31,18 @@ struct Split
 {
 	void* key;
 	Node* right;
+};
+
+struct TreeEntry
+{
+    fs::Key key;
+    fs::Value value;
+
+    TreeEntry();
+    TreeEntry(const fs::Key& k) : key(k) {};
+    TreeEntry(const fs::Key& k, const fs::Value& v) : key(k), value(v) {};
+
+    TreeEntry(const TreeEntry& entry) : key(entry.key), value(entry.value) {};
 };
 
 typedef function<void(void*,Node*)> valuesMovedHandler;
@@ -84,7 +97,7 @@ class BTree
 				iterator operator--(int);
 				bool operator==(const iterator& rhs);
 				bool operator!=(const iterator& rhs);
-				eastl::pair<void*,void*> operator*();
+				TreeEntry operator*();
 				bool End();
 				bool Begin();
 
@@ -166,8 +179,8 @@ class Node
 		{
 			for (int i = 0; i < _count; i++)
 			{
-				if (predicate(operator[](i).second))
-					return operator[](i).first;
+				if (predicate(operator[](i).value))
+					return operator[](i).key;
 			}
 
 			return NULL;
@@ -424,9 +437,9 @@ class Node
 		}
 
 
-		eastl::pair<void*,void*> operator[](int index)
+		TreeEntry operator[](int index)
 		{
-			return eastl::pair<void*,void*>(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
+			return TreeEntry(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
 		}
 
 		class iterator : public std::iterator<input_iterator_tag, void*>
