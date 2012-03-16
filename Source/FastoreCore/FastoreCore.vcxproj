@@ -206,7 +206,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClCompile Include="EASTL\useEASTL.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="standardtypes.cpp" />
+    <ClCompile Include="Schema\standardtypes.cpp" />
     <ClCompile Include="Table\dataset.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>

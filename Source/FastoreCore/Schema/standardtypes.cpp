@@ -1,5 +1,5 @@
-#include "typedefs.h"
-#include "Schema\standardtypes.h"
+#include "..\typedefs.h"
+#include "standardtypes.h"
 #include <sstream>
 #include "EASTL\functional.h"
 #include "EASTL\hash_set.h"
@@ -138,7 +138,7 @@ int standardtypes::NumericIndexOf(const char* items, const int count, void *key)
 	return ~lo;
 }
 
-template <typename T, typename COMP>
+template <typename T, ScalarType::CompareFunc Comparer>
 int standardtypes::CompareIndexOf(const char* items, const int count, void *key)
 {
 	int lo = 0;
@@ -149,7 +149,7 @@ int standardtypes::CompareIndexOf(const char* items, const int count, void *key)
 	while (lo <= hi)
 	{
 		split = (lo + hi)  >> 1;   // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-		result = COMP(*(T*)key, &((T*)items)[split]);
+		result = Comparer((T*)key, &((T*)items)[split]);
 
 		if (result == 0)
 			return split;
@@ -187,7 +187,7 @@ ScalarType standardtypes::GetStringType()
 	type.Size = sizeof(fs::wstring);
 	type.ToString = StringString;
 	type.Hash = StringHash;
-	//type.IndexOf = CompareIndexOf<fs::wstring, StringCompare>;
+	type.IndexOf = CompareIndexOf<fs::wstring, StringCompare>;
 	return type;
 }
 
@@ -240,7 +240,7 @@ ScalarType standardtypes::GetPStringType()
 	type.Free = IndirectDelete;
 	type.Size = sizeof(fs::wstring*);
 	type.ToString = PStringString;
-	//type.IndexOf = CompareIndexOf<fs::wstring*, PStringCompare>;
+	type.IndexOf = CompareIndexOf<fs::wstring*, PStringCompare>;
 	return type;
 }
 
@@ -295,7 +295,7 @@ ScalarType standardtypes::GetPLongType()
 	type.Size = sizeof(long*);
 	type.ToString = PLongString;
 	type.Hash = PLongHash;
-	//type.IndexOf = CompareIndexOf<long*, PLongCompare>;
+	type.IndexOf = CompareIndexOf<long*, PLongCompare>;
 	return type;
 }
 

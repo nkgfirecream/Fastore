@@ -32,41 +32,43 @@ fs::wstring RandomString(int length)
 	return result.str();
 }
 
-//void StringTest()
-//{
-//	cout << "Testing Random Strings...";
-//	
-//	long numrows = 1000000;
-//
-//	BTree tree(GetStringType(), GetStringType());	
-//	BTree tree2(GetPStringType(), GetPStringType());
-//
-//	Stopwatch* watch = new Stopwatch();
-//	Stopwatch* watch2 = new Stopwatch();
-//
-//	Leaf* dummy;
-//	Leaf* dummy2;
-//	for(int i = 0; i < numrows; i++)
-//	{
-//		fs::wstring insert = RandomString(rand() % 8 + 1);	
-//		watch->StartTimer();
-//		tree.Insert(&insert, &insert, &dummy);	
-//		watch->StopTimer();
-//
-//		fs::wstring* insert2 = new fs::wstring(insert);
-//		watch2->StartTimer();
-//		tree2.Insert(&insert2, &insert2, &dummy2);
-//		watch2->StopTimer();
-//	}
-//
-//	double secs = watch->TotalTime();
-//	cout << " secs: " << secs << "\r\n";	
-//	cout << "Rows per second WString: " << numrows / secs << "\r\n";
-//
-//	double secs2 = watch2->TotalTime();
-//	cout << " secs: " << secs2 << "\r\n";	
-//	cout << "Rows per second WString*: " << numrows / secs2 << "\r\n";
-//}
+void StringTest()
+{
+	cout << "Testing Random Strings...";
+	
+	long numrows = 1000000;
+
+	BTree tree(GetStringType(), GetStringType());	
+	BTree tree2(GetPStringType(), GetPStringType());
+
+	Stopwatch* watch = new Stopwatch();
+	Stopwatch* watch2 = new Stopwatch();
+
+	Node* dummy;
+	Node* dummy2;
+	for(int i = 0; i < numrows; i++)
+	{
+		fs::wstring insert = RandomString(rand() % 8 + 1);	
+		watch->StartTimer();
+		BTree::Path path = tree.GetPath(&insert);
+		tree.Insert(path, &insert, &insert);	
+		watch->StopTimer();
+
+		fs::wstring* insert2 = new fs::wstring(insert);
+		watch2->StartTimer();
+		BTree::Path path2 = tree.GetPath(&insert2);
+		tree2.Insert(path2, &insert2, &insert2);
+		watch2->StopTimer();
+	}
+
+	double secs = watch->TotalTime();
+	cout << " secs: " << secs << "\r\n";	
+	cout << "Rows per second WString: " << numrows / secs << "\r\n";
+
+	double secs2 = watch2->TotalTime();
+	cout << " secs: " << secs2 << "\r\n";	
+	cout << "Rows per second WString*: " << numrows / secs2 << "\r\n";
+}
 
 //void SequentialPLongTest()
 //{
@@ -480,8 +482,7 @@ void HashBufferTest()
 		for (long j = 0; j < rowspervalue; j++)
 		{
 			fs::wstring* s = new fs::wstring(RandomString(8));
-			long* r = new long(rowId);
-			hash2->Include(s, r);
+			hash2->Include(s, &rowId);
 			rowId++;
 		}
 	}
@@ -915,7 +916,7 @@ void main()
 	//BTreeIteratorTest();
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
-	//StringTest();
+	StringTest();
 	//SequentialLongTest();
 	//SequentialIntArrayTest();
 	//SequentialIntTest();

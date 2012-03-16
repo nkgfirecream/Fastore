@@ -15,7 +15,7 @@ namespace standardtypes
 	int NumericIndexOf(const char* items, const int count, void *key);
 	template <typename T>
 	int ScaledIndexOf(const char* items, const int count, void *key);
-	template <typename T, typename COMP>
+	template <typename T, ScalarType::CompareFunc Comparer>
 	int CompareIndexOf(const char* items, const int count, void *key);
 	template <typename T>
 	int TargetedIndexOf(const char* items, const int count, void *key);
