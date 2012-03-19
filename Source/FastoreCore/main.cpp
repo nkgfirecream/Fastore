@@ -479,10 +479,10 @@ void HashBufferTest()
 	rowId = 0;
 	for (long i = 0; i < numvalues * 2; i = i + 2)
 	{
+		fs::wstring s = RandomString(8);
 		for (long j = 0; j < rowspervalue; j++)
 		{
-			fs::wstring* s = new fs::wstring(RandomString(8));
-			hash2->Include(s, &rowId);
+			hash2->Include(&s, &rowId);
 			rowId++;
 		}
 	}
@@ -916,7 +916,7 @@ void main()
 	//BTreeIteratorTest();
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
-	StringTest();
+	//StringTest();
 	//SequentialLongTest();
 	//SequentialIntArrayTest();
 	//SequentialIntTest();
@@ -928,7 +928,7 @@ void main()
 	//ArrayCopyTest();
 	//GuidTest();
 	HashBufferTest();
-	UniqueBufferTest();
+	//UniqueBufferTest();
     //TestEAHashSet();
 	//TableTest();
 	//BTreePathTest();
