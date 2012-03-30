@@ -27,11 +27,48 @@ namespace WrapperTest
             }
 
             var time = (watch.ElapsedMilliseconds / 1000.0);
+            Console.WriteLine("BTree Test");
             Console.WriteLine("Total Seconds: " + time);
             Console.WriteLine("Total  Rows: " + numrows );
             Console.WriteLine("Rows per second: " + (numrows / time));
 
+            Dictionary<int, int> test = new Dictionary<int, int>();
+
+            watch.Reset();
+            watch.Start();
+            for (int i = 0; i < numrows; i++)
+            {
+                test.Add(i, i);
+            }
+            watch.Stop();
+
+            Console.WriteLine("Dictionary Test");
+            time = (watch.ElapsedMilliseconds / 1000.0);
+            Console.WriteLine("Total Seconds: " + time);
+            Console.WriteLine("Total  Rows: " + numrows);
+            Console.WriteLine("Rows per second: " + (numrows / time));
+
+            SortedList<int, int> list = new SortedList<int, int>();
+
+            watch.Reset();
+            watch.Start();
+            for (int i = 0; i < numrows; i++)
+            {
+                list.Add(i, i);
+            }
+            watch.Stop();
+
+            Console.WriteLine("Sorted List Test");
+            time = (watch.ElapsedMilliseconds / 1000.0);
+            Console.WriteLine("Total Seconds: " + time);
+            Console.WriteLine("Total  Rows: " + numrows);
+            Console.WriteLine("Rows per second: " + (numrows / time));
+
+
+
             Console.ReadLine();
+
+
         }
     }
 }
