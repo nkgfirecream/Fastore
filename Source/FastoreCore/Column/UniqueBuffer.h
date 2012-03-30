@@ -15,12 +15,12 @@ const int UniqueBufferRowMapInitialSize = 32;
 class UniqueBuffer : public IColumnBuffer
 {
 	public:
-		UniqueBuffer(const ScalarType rowType, const ScalarType valueType);
-		ValueVector GetValues(KeyVector rowId);
+		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType);
+		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
-		GetResult GetRows(Range);
-		ValueKeysVectorVector GetSorted(KeyVectorVector input);
+		GetResult GetRows(Range& range);
+		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 
 	private:
 		typedef eastl::hash_map<Key, Node*, ScalarType, ScalarType> ColumnHashMap;
@@ -29,14 +29,14 @@ class UniqueBuffer : public IColumnBuffer
 
 		void ValuesMoved(void*, Node*);
 		Value GetValue(Key rowId);
-		ValueKeysVector BuildData(BTree::iterator, BTree::iterator, void*, bool, int, bool&);
+		ValueKeysVector BuildData(BTree::iterator&, BTree::iterator&, void*, bool, int, bool&);
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ColumnHashMap* _rows;
 		BTree* _values;
 };
 
-inline UniqueBuffer::UniqueBuffer(const ScalarType rowType, const ScalarType valueType)
+inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType)
 {
 	_rowType = rowType;
 	_valueType = valueType;
@@ -51,7 +51,7 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType rowType, const ScalarType val
 	);
 }
 
-inline ValueVector UniqueBuffer::GetValues(KeyVector rowIds)
+inline ValueVector UniqueBuffer::GetValues(const KeyVector& rowIds)
 {
 	ValueVector values(rowIds.size());
 	for (int i = 0; i < rowIds.size(); i++)
@@ -86,7 +86,7 @@ inline Value UniqueBuffer::GetValue(Key rowId)
 	}
 }
 
-inline ValueKeysVectorVector UniqueBuffer::GetSorted(KeyVectorVector input)
+inline ValueKeysVectorVector UniqueBuffer::GetSorted(const KeyVectorVector& input)
 {
 	ValueKeysVectorVector result;
 	for (int i = 0; i < input.size(); i++)
@@ -173,20 +173,21 @@ inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 	_rows->find(value)->second = leaf;
 }
 
-inline GetResult UniqueBuffer::GetRows(Range range)
+inline GetResult UniqueBuffer::GetRows(Range& range)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
-	RangeBound start = *(range.Start);
-	RangeBound end = *(range.End);
 
 	bool firstMatch = true; //Seeking to beginning or end
 	bool lastMatch = true;
-	BTree::iterator first = range.Start.HasValue() ? _values->find(start.Value, firstMatch) : _values->begin();
-	BTree::iterator last =  range.End.HasValue() ? _values->find(end.Value, lastMatch) : _values->end();
+	BTree::iterator first = range.Start.HasValue() ? _values->find((*range.Start).Value, firstMatch) : _values->begin();
+	BTree::iterator last =  range.End.HasValue() ? _values->find((*range.End).Value, lastMatch) : _values->end();
 
 	if (range.Start.HasValue() && range.End.HasValue())
 	{
+		RangeBound& start = *range.Start;
+		RangeBound& end = *range.End;
+
 		//Bounds checking
 		//TODO: Is this needed? Could the BuildData logic handle this correctly?
 		if (last == first && (!end.Inclusive || !start.Inclusive))
@@ -197,7 +198,7 @@ inline GetResult UniqueBuffer::GetRows(Range range)
 
 		if (_valueType.Compare(start.Value, end.Value) > 0)
 		{
-			//Start is after end. Invalid input.
+			//Start is after end-> Invalid input.
 			throw;
 		}
 	}
@@ -207,13 +208,13 @@ inline GetResult UniqueBuffer::GetRows(Range range)
 	{
 		//Adjust iterators
 		//Last needs to point to the element AFTER the last one we want to get
-		if (lastMatch && end.Inclusive)
+		if (lastMatch && range.End.HasValue() && (*range.End).Inclusive)
 		{
 			last++;
 		}
 
 		//First needs to point to the first element we DO want to pick up
-		if (firstMatch && !start.Inclusive)
+		if (firstMatch && !(range.Start.HasValue() && (*range.Start).Inclusive))
 		{
 			first++;
 		}	
@@ -221,14 +222,14 @@ inline GetResult UniqueBuffer::GetRows(Range range)
 	else
 	{
 		//If we are descending, lasts needs to point at the first element we want to pick up
-		if (!lastMatch || (lastMatch && !end.Inclusive))
+		if (!lastMatch || (lastMatch && range.End.HasValue() && !(*range.End).Inclusive))
 		{
 			//If we are pointing at an excluded element, move back
 			last--;
 		} 
 
 		//If we are descending, first need to point at the element BEFORE the last one we want to pick up
-		if (!firstMatch || (firstMatch && start.Inclusive))
+		if (!firstMatch || (firstMatch && range.Start.HasValue() && (*range.Start).Inclusive))
 		{
 			first--;
 		}
@@ -241,12 +242,27 @@ inline GetResult UniqueBuffer::GetRows(Range range)
 	}
 
 	//Assumption -- Repeated calls will come in in the same direction, therefore we don't need to check both start and end
-	result.Data = BuildData(first, last, start.RowId.HasValue() ? *start.RowId :  end.RowId.HasValue() ? *end.RowId : NULL, range.Ascending, range.Limit > range.MaxLimit? range.MaxLimit : range.Limit, result.Limited);
+	result.Data = 
+		BuildData
+		(
+			first, 
+			last, 
+			range.Start.HasValue() && (*range.Start).RowId.HasValue() 
+				? *(*range.Start).RowId 
+				: range.End.HasValue() && (*range.End).RowId.HasValue() 
+					? *(*range.End).RowId
+					: NULL, 
+			range.Ascending, 
+			range.Limit > range.MaxLimit
+				? range.MaxLimit 
+				: range.Limit, 
+			result.Limited
+		);
 
 	return result;
 }
 
-inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator first, BTree::iterator last, Key startId, bool ascending, int limit, bool &limited)
+inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, Key startId, bool ascending, int limit, bool &limited)
 {	
 	int num = 0;
 	bool foundCurrentId = startId == NULL;

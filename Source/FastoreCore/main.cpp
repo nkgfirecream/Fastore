@@ -63,11 +63,11 @@ void StringTest()
 
 	double secs = watch->TotalTime();
 	cout << " secs: " << secs << "\r\n";	
-	cout << "Rows per second WString: " << numrows / secs << "\r\n";
+	cout << "\tRows per second WString: " << numrows / secs << "\r\n";
 
 	double secs2 = watch2->TotalTime();
 	cout << " secs: " << secs2 << "\r\n";	
-	cout << "Rows per second WString*: " << numrows / secs2 << "\r\n";
+	cout << "\tRows per second WString*: " << numrows / secs2 << "\r\n";
 }
 
 //void SequentialPLongTest()
@@ -95,7 +95,7 @@ void StringTest()
 //	double secs = watch.TotalTime();
 //	cout << " secs: " << secs << "\r\n";
 //	
-//	cout << "Rows per second: " << numrows / secs << "\r\n";
+//	cout << "\tRows per second: " << numrows / secs << "\r\n";
 //
 //	//wcout << tree->ToString();
 //}
@@ -121,7 +121,7 @@ void SequentialLongTest()
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
 	//wcout << tree->ToString();
 }
 
@@ -146,7 +146,7 @@ void SequentialIntTest()
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
 }
@@ -172,7 +172,7 @@ void SequentialIntArrayTest()
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
 }
@@ -198,7 +198,7 @@ void ReverseSequentialIntTest()
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
 }
@@ -248,6 +248,8 @@ void RandomIntTest()
 	cout << " secs: " << secs << "\r\n";
 	
 	cout << "		Rows per second: " << numrows / secs << "\r\n";
+
+	//wcout << tree.ToString();
 }
 
 void RandomLongTest()
@@ -274,9 +276,38 @@ void RandomLongTest()
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";
 	
-	cout << "Rows per second: " << numrows / secs << "\r\n";
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
 
 	//wcout << tree->ToString();
+}
+
+void RandomStringTest()
+{
+	cout << "Testing Random Strings...";
+	
+	long numrows = 100;
+
+	auto stringType = GetStringType();
+	BTree tree(stringType, stringType);	
+
+	Stopwatch watch;
+
+	for (int i = 0; i < numrows; i++)
+	{
+		fs::wstring x = RandomString(8);
+		watch.StartTimer();
+		BTree::Path path = tree.GetPath(&x);
+		if (!path.Match)
+			tree.Insert(path, &x, &x);	
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";
+	
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
+
+	wcout << tree.ToString();
 }
 
 void GuidTest()
@@ -923,11 +954,12 @@ void main()
 	//ReverseSequentialIntTest();
 	//RandomIntTest();
 	//RandomLongTest();
+	RandomStringTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
 	//ArrayCopyTest();
 	//GuidTest();
-	HashBufferTest();
+	//HashBufferTest();
 	//UniqueBufferTest();
     //TestEAHashSet();
 	//TableTest();
