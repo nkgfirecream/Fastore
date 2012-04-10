@@ -198,41 +198,54 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
-    <ClCompile Include="ClientAPI.cpp" />
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="ColumnTransactor.cpp" />
+    <ClCompile Include="Database.cpp" />
     <ClCompile Include="EASTL\source\allocator.cpp" />
     <ClCompile Include="EASTL\source\assert.cpp" />
     <ClCompile Include="EASTL\source\fixed_pool.cpp" />
     <ClCompile Include="EASTL\source\hashtable.cpp" />
     <ClCompile Include="EASTL\useEASTL.cpp" />
+    <ClCompile Include="HostFactory.cpp" />
+    <ClCompile Include="IDataAccess.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
+    <ClCompile Include="Session.cpp" />
     <ClCompile Include="Table\dataset.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
     <ClCompile Include="Table\table.cpp" />
+    <ClCompile Include="Transaction.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
     <ClInclude Include="Change.h" />
+    <ClInclude Include="Client.h" />
     <ClInclude Include="ColumnTransactor.h" />
     <ClInclude Include="Column\HashBuffer.h" />
     <ClInclude Include="Column\IColumnBuffer.h" />
     <ClInclude Include="Column\ColumnManager.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
-    <ClInclude Include="ClientAPI.h" />
+    <ClInclude Include="Database.h" />
+    <ClInclude Include="Host.h" />
+    <ClInclude Include="HostFactory.h" />
+    <ClInclude Include="IDataAccess.h" />
+    <ClInclude Include="ILock.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Range.h" />
     <ClInclude Include="Schema\column.h" />
     <ClInclude Include="Schema\standardtypes.h" />
+    <ClInclude Include="Session.h" />
     <ClInclude Include="Table\dataset.h" />
     <ClInclude Include="Schema\tuple.h" />
     <ClInclude Include="Schema\scalar.h" />
     <ClInclude Include="Table\ranges.h" />
+    <ClInclude Include="Topology.h" />
+    <ClInclude Include="Transaction.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="typedefs.h" />

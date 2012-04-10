@@ -87,18 +87,32 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ManagedBTree.h" />
+    <ClInclude Include="ManagedClient.h" />
+    <ClInclude Include="ManagedDatabase.h" />
+    <ClInclude Include="ManagedDataSet.h" />
+    <ClInclude Include="ManagedHost.h" />
+    <ClInclude Include="ManagedHostFactory.h" />
+    <ClInclude Include="ManagedRange.h" />
+    <ClInclude Include="ManagedSession.h" />
+    <ClInclude Include="ManagedTopology.h" />
+    <ClInclude Include="ManagedTransaction.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="ClientAPIWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="ClientAPIWrapper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ManagedBTree.cpp" />
+    <ClCompile Include="ManagedClient.cpp" />
+    <ClCompile Include="ManagedDatabase.cpp" />
+    <ClCompile Include="ManagedDataSet.cpp" />
+    <ClCompile Include="ManagedHost.cpp" />
+    <ClCompile Include="ManagedHostFactory.cpp" />
+    <ClCompile Include="ManagedSession.cpp" />
+    <ClCompile Include="ManagedTransaction.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
