@@ -1,6 +1,9 @@
 #pragma once
 #include "stdafx.h"
+
+#pragma managed(push, off)
 #include "../FastoreCore/Table/dataset.h"
+#pragma managed(pop)
 
 using namespace System;
 

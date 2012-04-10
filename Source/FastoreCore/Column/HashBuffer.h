@@ -56,7 +56,7 @@ inline HashBuffer::HashBuffer(const ScalarType& rowType, const ScalarType& value
 inline ValueVector HashBuffer::GetValues(const KeyVector& rowIds)
 {
 	ValueVector values(rowIds.size());
-	for (int i = 0; i < rowIds.size(); i++)
+	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
 		values[i] = GetValue(rowIds[i]);
 	}
@@ -89,13 +89,13 @@ inline Value HashBuffer::GetValue(Key rowId)
 inline ValueKeysVectorVector HashBuffer::GetSorted(const KeyVectorVector& input)
 {
 	ValueKeysVectorVector result;
-	for (int i = 0; i < input.size(); i++)
+	for (unsigned int i = 0; i < input.size(); i++)
 	{
 		BTree valueKeyTree(_valueType, standardtypes::GetKeyVectorType());
 		
 		KeyVector keys;
 		//insert each key into the hash for its correct value;
-		for (int j = 0; j < keys.size(); j++)
+		for (unsigned int j = 0; j < keys.size(); j++)
 		{
 			Key key = keys[i];
 			Value val = GetValue(key);

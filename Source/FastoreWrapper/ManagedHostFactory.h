@@ -1,6 +1,10 @@
 #pragma once
 #include "stdafx.h"
+
+#pragma managed(push, off)
 #include "../FastoreCore/HostFactory.h"
+#pragma managed(pop)
+
 #include "ManagedTopology.h"
 #include "ManagedHost.h"
 

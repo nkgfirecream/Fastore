@@ -44,8 +44,6 @@ void StringTest()
 	Stopwatch* watch = new Stopwatch();
 	Stopwatch* watch2 = new Stopwatch();
 
-	Node* dummy;
-	Node* dummy2;
 	for(int i = 0; i < numrows; i++)
 	{
 		fs::wstring insert = RandomString(rand() % 8 + 1);	
@@ -435,7 +433,7 @@ void OutputResult(const GetResult& result, const ScalarType& keyType, const Scal
 	{
 		wcout << keyType.ToString(result.Data[i].first) <<"\n\r";
 		auto keys = result.Data[i].second;
-		for (int j = 0; j < keys.size(); j++)
+		for (unsigned int j = 0; j < keys.size(); j++)
 		{
 			wcout << "\t" << valueType.ToString(keys[j]) <<"\n\r";		
 		}

@@ -63,12 +63,8 @@ namespace WrapperTest
             Console.WriteLine("Total Seconds: " + time);
             Console.WriteLine("Total  Rows: " + numrows);
             Console.WriteLine("Rows per second: " + (numrows / time));
-
-
-
+            
             Console.ReadLine();
-
-
         }
     }
 }

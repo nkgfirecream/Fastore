@@ -4,6 +4,16 @@
 
 using namespace Wrapper;
 
+Session* Wrapper::ManagedSession::GetNativePointer()
+{
+	return _nativeSession;
+}
+
+Wrapper::ManagedSession::~ManagedSession()
+{
+	_nativeSession->Dispose();
+}
+
 void Wrapper::ManagedSession::Exclude(array<Object^>^ rowIds, array<System::Int32>^ columns, System::Boolean isPicky)
 {
 	int size = rowIds->Length;

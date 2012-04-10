@@ -5,4 +5,7 @@
 
 #pragma once
 
-// TODO: reference additional headers your program requires here
+//This is needed to define char16t and char32t...
+#pragma managed(push, off)
+#include "../FastoreCore/EASTL/include/EASTL/string.h"
+#pragma managed(pop)

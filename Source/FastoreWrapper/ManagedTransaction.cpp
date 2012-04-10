@@ -4,6 +4,16 @@
 
 using namespace Wrapper;
 
+Transaction* Wrapper::ManagedTransaction::GetNativePointer()
+{
+	return _nativeTransaction;
+}
+
+Wrapper::ManagedTransaction::~ManagedTransaction()
+{
+	_nativeTransaction->Dispose();
+}
+
 void Wrapper::ManagedTransaction::Commit()
 {
 	_nativeTransaction->Commit();
@@ -12,8 +22,8 @@ void Wrapper::ManagedTransaction::Commit()
 void Wrapper::ManagedTransaction::Exclude(array<Object^>^ rowIds, array<System::Int32>^ columns, System::Boolean isPicky)
 {
 	int size = rowIds->Length;
-	//Can't put dynamically sized arrays on the stack, so allocate them on the heap
 
+	//Can't put dynamically sized arrays on the stack, so allocate them on the heap
 	void** ids = new void*[size];
 	for (int i = 0; i < size; i++)
 	{

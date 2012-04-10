@@ -1,6 +1,10 @@
 #pragma once
 #include "stdafx.h"
+
+#pragma managed(push, off)
 #include "../FastoreCore/Database.h"
+#pragma managed(pop)
+
 #include "ManagedSession.h"
 
 using namespace System;

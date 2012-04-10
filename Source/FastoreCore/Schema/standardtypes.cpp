@@ -83,7 +83,7 @@ int standardtypes::TargetedIndexOf(const char* items, const int count, void *key
 	// Split proportionately to the value scaling
 	int pos = (int)((val - (double)loVal) / (hiVal - (double)loVal) * hi);
 
-	int diff = val - ((T*)items)[pos];
+	int diff = (int)(val - ((T*)items)[pos]);
 
 	if (diff == 0)
 		return pos;
@@ -98,7 +98,7 @@ int standardtypes::TargetedIndexOf(const char* items, const int count, void *key
 			++pos;
 			if (pos > hi)
 				return ~count;
-			diff = val - ((T*)items)[pos];
+			diff = (int)(val - ((T*)items)[pos]);
 		}
 	}
 	else
@@ -108,7 +108,7 @@ int standardtypes::TargetedIndexOf(const char* items, const int count, void *key
 			--pos;
 			if (pos < 0)
 				return ~0;
-			diff = val - ((T*)items)[pos];
+			diff = (int)(val - ((T*)items)[pos]);
 		}
 	}
 	return diff == 0 ? pos : ~pos;

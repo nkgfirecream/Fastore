@@ -1,6 +1,10 @@
 #pragma once
 #include "stdafx.h"
+
+#pragma managed(push, off)
 #include "../FastoreCore/Transaction.h"
+#pragma managed(pop)
+
 #include "ManagedDataSet.h"
 #include "ManagedRange.h"
 
@@ -17,8 +21,10 @@ namespace Wrapper
 		public:
 			Transaction* GetNativePointer();
 
+			~ManagedTransaction();
+			//!ManagedTransaction();
 			ManagedTransaction(Transaction* nativeTrans) : _nativeTransaction(nativeTrans) {};
-			//void Dispose();
+
 			void Commit();
 			ManagedDataSet^ GetRange(array<System::Int32>^ columns, ManagedRange^ range/* [sorting]*/);
 			ManagedDataSet^ GetRows(array<Object^>^ rowIds, array<System::Int32>^ columns/* Sorting*/);

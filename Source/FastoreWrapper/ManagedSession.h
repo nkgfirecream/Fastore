@@ -1,6 +1,10 @@
 #pragma once
 #include "stdafx.h"
+
+#pragma managed(push, off)
 #include "../FastoreCore/Session.h"
+#pragma managed(pop)
+
 #include "ManagedDataSet.h"
 #include "ManagedTransaction.h"
 
@@ -16,8 +20,11 @@ namespace Wrapper
 		public:
 			Session* GetNativePointer();
 
+			~ManagedSession(); // This is how IDisposable is implemented
+			//!ManagedSession(); //This is how a finalizer is implemented
 			ManagedSession(Session* nativeSession) : _nativeSession(nativeSession) {};
-			//void Dispose();
+
+
 			ManagedTransaction^ Begin(System::Boolean readIsolation, System::Boolean writeIsolation);
 			ManagedDataSet^ GetRange(array<System::Int32>^ columns, ManagedRange^ range/* [sorting]*/);
 			ManagedDataSet^ GetRows(array<Object^>^ rowIds, array<System::Int32>^ columns/* Sorting*/);

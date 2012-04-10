@@ -1,7 +1,10 @@
 #pragma once
 #include "stdafx.h"
+
+#pragma managed(push, off)
 #include "../FastoreCore/BTree.h"
 #include "..\FastoreCore\Schema\standardtypes.h"
+#pragma managed(pop)
 
 namespace Wrapper
 {
