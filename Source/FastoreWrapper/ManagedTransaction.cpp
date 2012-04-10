@@ -39,11 +39,8 @@ void Wrapper::ManagedTransaction::Exclude(array<Object^>^ rowIds, array<System::
 		cols[i] = columns[i];
 	}
 
-	//Just pin the bool
-	pin_ptr<bool> pinnedPicky = &isPicky;
-
 	//Run operation in native code.
-	_nativeTransaction->Exclude(ids, cols, *pinnedPicky);
+	_nativeTransaction->Exclude(ids, cols, isPicky);
 
 	//TODO: Do we new to convert back to the correctly typed pointer before deleteing?
 	delete[] ids;
@@ -72,11 +69,8 @@ System::Object^  Wrapper::ManagedTransaction::Include(array<Object^>^ row, array
 		cols[i] = columns[i];
 	}
 
-	//Just pin the bool
-	pin_ptr<bool> pinnedPicky = &isPicky;
-
 	//TODO: fix return type
-	auto result = _nativeTransaction->Include(nativeRow, cols, *pinnedPicky);
+	auto result = _nativeTransaction->Include(nativeRow, cols, isPicky);
 
 	//Result will  be void*, which we then need to cast to some object. This means a topo lookup to determine what type of object it is... Or have rowId type predetermined somewhere;
 	return gcnew System::Int32;

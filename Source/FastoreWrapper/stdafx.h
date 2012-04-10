@@ -8,4 +8,5 @@
 //This is needed to define char16t and char32t...
 #pragma managed(push, off)
 #include "../FastoreCore/EASTL/include/EASTL/string.h"
+#include "../FastoreCore/typedefs.h"
 #pragma managed(pop)

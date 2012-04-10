@@ -34,11 +34,8 @@ void Wrapper::ManagedSession::Exclude(array<Object^>^ rowIds, array<System::Int3
 		cols[i] = columns[i];
 	}
 
-	//Just pin the bool
-	pin_ptr<bool> pinnedPicky = &isPicky;
-
 	//Run operation in native code.
-	_nativeSession->Exclude(ids, cols, *pinnedPicky);
+	_nativeSession->Exclude(ids, cols, isPicky);
 
 	//TODO: Do we new to convert back to the correctly typed pointer before deleteing?
 	delete[] ids;
@@ -67,11 +64,8 @@ System::Object^  Wrapper::ManagedSession::Include(array<Object^>^ row, array<Sys
 		cols[i] = columns[i];
 	}
 
-	//Just pin the bool
-	pin_ptr<bool> pinnedPicky = &isPicky;
-
 	//TODO: fix return type
-	auto result = _nativeSession->Include(nativeRow, cols, *pinnedPicky);
+	auto result = _nativeSession->Include(nativeRow, cols, isPicky);
 
 	//Result will  be void*, which we then need to cast to some object. This means a topo lookup to determine what type of object it is... Or have rowId type predetermined somewhere;
 	return gcnew System::Int32;
