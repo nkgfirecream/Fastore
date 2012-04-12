@@ -1,5 +1,6 @@
 #pragma once
 #include "Schema\scalar.h"
+#include "Schema\standardtypes.h"
 #include "typedefs.h"
 #include <functional>
 #include "optional.h"
@@ -7,6 +8,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace standardtypes;
 
 const int DefaultListCapacity = 128;
 const int DefaultBranchListSize = 8;
@@ -126,6 +128,7 @@ class BTree
 		int _listCapacity;
 		ScalarType _keyType;
 		ScalarType _valueType;
+		ScalarType _nodeType;
 		
 		void DoValuesMoved(Node* newLeaf);
 		valuesMovedHandler _valuesMovedCallback;
@@ -146,15 +149,16 @@ class Node
 		{
 			try
 			{
-				_valueSize = type == 1 ? sizeof(Node*) : _tree->_valueType.Size;
-				_keys = new char[(_tree->_listCapacity - type) * _tree->_keyType.Size];
-				_values = new char[(_tree->_listCapacity) *  _valueSize];				
+				_valueType = type == 1 ? _tree->_nodeType : _tree->_valueType;
+				_keyType = _tree->_keyType;
+				_keys = new char[(_tree->_listCapacity - type) * _keyType.Size];
+				_values = new char[(_tree->_listCapacity) *  _valueType.Size];				
 
 				if(left != NULL)
 				{
-					memcpy(&_values[0], &left, _valueSize);
-					memcpy(&_values[_valueSize], &right, _valueSize);
-					memcpy(&_keys[0], key, _tree->_keyType.Size);
+					memcpy(&_values[0], &left, _valueType.Size);
+					memcpy(&_values[_valueType.Size], &right, _valueType.Size);
+					memcpy(&_keys[0], key,_keyType.Size);
 				}
 			}
 			catch(...)
@@ -172,7 +176,7 @@ class Node
 
 		int IndexOf(void* key, bool& match)
 		{
- 			auto result = _tree->_keyType.IndexOf(_keys, _count, key);
+ 			auto result =_keyType.IndexOf(_keys, _count, key);
 			match = result >= 0;
 			return match ? result : ~result;
 		}
@@ -203,7 +207,7 @@ class Node
 					else
 						first = false;
 
-					result << i << ": " << (*(Node**)&_values[_valueSize * i])->ToString();
+					result << i << ": " << (*(Node**)&_values[_valueType.Size * i])->ToString();
 				}
 				result << "]";
 
@@ -221,9 +225,9 @@ class Node
 					else
 						first = false;
 
-					result << _tree->_keyType.ToString(&_keys[i * _tree->_keyType.Size]);
+					result <<_keyType.ToString(&_keys[i *_keyType.Size]);
 					result << ":";
-					result << _tree->_valueType.ToString(&_values[i * _valueSize]);
+					result << _tree->_valueType.ToString(&_values[i * _valueType.Size]);
 				}
 				result << "}";
 
@@ -237,7 +241,7 @@ class Node
 			{
 				auto index = IndexOf(key);
 				path.Branches.push_back(BTree::PathNode(this, index));
-				(*(Node**)&_values[index * _valueSize])->GetPath(key, path);
+				(*(Node**)&_values[index * _valueType.Size])->GetPath(key, path);
 			}
 			else
 			{
@@ -265,7 +269,7 @@ class Node
 			if (_type == 1)
 			{
 				path.Branches.push_back(BTree::PathNode(this, _count));
-				(*(Node**)&_values[_count * _valueSize])->SeekToEnd(path);
+				(*(Node**)&_values[_count * _valueType.Size])->SeekToEnd(path);
 			}
 			else
 			{
@@ -282,7 +286,7 @@ class Node
 				if (node.Index < _count)
 				{
 					++node.Index;
-					(*(Node**)(&node.Node->_values[node.Index * _valueSize]))->SeekToBegin(path);
+					(*(Node**)(&node.Node->_values[node.Index * _valueType.Size]))->SeekToBegin(path);
 					return true;
 				}
 				return false;
@@ -318,7 +322,7 @@ class Node
 				if (node.Index > 0)
 				{
 					--node.Index;
-					(*(Node**)(&node.Node->_values[node.Index * _valueSize]))->SeekToEnd(path);
+					(*(Node**)(&node.Node->_values[node.Index * _valueType.Size]))->SeekToEnd(path);
 					return true;
 				}
 				return false;
@@ -366,8 +370,8 @@ class Node
 
 			int size = _count - index;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
-			memmove(&_keys[(index) * _tree->_keyType.Size], &_keys[(index + 1) * _tree->_keyType.Size], size * _tree->_keyType.Size);
-			memmove(&_values[index *_valueSize], &_values[(index + 1) *_valueSize], size * _valueSize);
+			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
+			memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
 
 			_count--;
 
@@ -389,8 +393,8 @@ class Node
 					node->_count = (_tree->_listCapacity + 1) / 2;
 					_count = _count - node->_count;
 
-					memcpy(&node->_keys[0], &_keys[node->_count * _tree->_keyType.Size],  node->_count * _tree->_keyType.Size);
-					memcpy(&node->_values[0], &_values[node->_count *_valueSize], node->_count * _valueSize);
+					memcpy(&node->_keys[0], &_keys[node->_count *_keyType.Size],  node->_count *_keyType.Size);
+					memcpy(&node->_values[0], &_values[node->_count *_valueType.Size], node->_count * _valueType.Size);
 				}
 
 				if (index < _count)
@@ -420,13 +424,13 @@ class Node
 				int mid = (_count + 1) / 2;
 				Node* node = new Node(_tree, 1);
 				node->_count = _count - mid;
-				memcpy(&node->_keys[0], &_keys[mid * _tree->_keyType.Size], node->_count * _tree->_keyType.Size);
-				memcpy(&node->_values[0], &_values[mid *_valueSize], (node->_count + 1) * _valueSize);
+				memcpy(&node->_keys[0], &_keys[mid *_keyType.Size], node->_count *_keyType.Size);
+				memcpy(&node->_values[0], &_values[mid *_valueType.Size], (node->_count + 1) * _valueType.Size);
 		
 				_count = mid - 1;
 
 				Split* split = new Split();
-				split->key = &_keys[(mid - 1) * _tree->_keyType.Size];
+				split->key = &_keys[(mid - 1) *_keyType.Size];
 				split->right = node;
 
 				if (index <= _count)
@@ -470,25 +474,27 @@ class Node
 
 		iterator valueBegin()
 		{
-			return iterator(_values, _tree->_valueType.Size);
+			return iterator(_values,_valueType.Size);
 		}
 
 		iterator valueEnd()
 		{
-			return iterator(&_values[_count * _tree->_valueType.Size], _tree->_valueType.Size);
+			return iterator(&_values[_count *_valueType.Size],_valueType.Size);
 		}	
 
 	private:
 		int _type;
 		int _count;
-		int _valueSize;
 		char* _keys;
 		char* _values;
 		BTree* _tree;
 
+		ScalarType _keyType;
+		ScalarType _valueType;
+
 		int IndexOf(void* key)
 		{
-			auto result = _tree->_keyType.IndexOf(_keys, _count, key);
+			auto result =_keyType.IndexOf(_keys, _count, key);
 			return result >= 0 ? result + 1 : ~result;
 		}
 
@@ -497,19 +503,13 @@ class Node
 			int size = _count - index;
 			if (_count != index)
 			{
-				memmove(&_keys[(index + 1) * _tree->_keyType.Size], &_keys[index  * _tree->_keyType.Size], size * _tree->_keyType.Size);
-				memmove(&_values[(index + 1 + _type) * _valueSize], &_values[(index + _type) *_valueSize], size *_valueSize);
+				memmove(&_keys[(index + 1) * _keyType.Size], &_keys[index  * _keyType.Size], size * _keyType.Size);
+				memmove(&_values[(index + 1 + _type) * _valueType.Size], &_values[(index + _type) *_valueType.Size], size *_valueType.Size);
 			}
 
-			_tree->_keyType.CopyIn(key, &_keys[index * _tree->_keyType.Size]);
-			if (_type == 0)
-			{
-				_tree->_valueType.CopyIn(value, &_values[(index + _type) * _valueSize]);
-			}
-			else
-			{
-				memcpy(&_values[(index + _type) * _valueSize], value, _valueSize);
-			}
+			_keyType.CopyIn(key, &_keys[index *_keyType.Size]);
+			_valueType.CopyIn(value, &_values[(index + _type) * _valueType.Size]);
+
 			_count++;
 		}
 

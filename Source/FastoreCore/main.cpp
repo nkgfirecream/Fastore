@@ -205,7 +205,7 @@ void RandomIntTest()
 {
 	cout << "Testing Random Ints...\r\n";
 	
-	long numrows = 1000000;
+	long numrows = 10000000;
 
 	auto intType = GetIntType();
 	BTree tree(intType, intType);	
