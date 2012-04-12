@@ -59,9 +59,10 @@ namespace Fastore.Core
 				}
 		}
 
-		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward, Optional<T> start, Optional<T> end)
+		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward, Optional<T> start, Optional<T> end, int? limit)
 		{
-			foreach (var valueEntry in _values.Get(isForward, start, end))
+			var items = _values.Get(isForward, start, end);
+			foreach (var valueEntry in limit.HasValue ? items.Take(limit.Value) : items)
 				if (isForward)
 				{
 					foreach (var rowEntry in valueEntry.Value)

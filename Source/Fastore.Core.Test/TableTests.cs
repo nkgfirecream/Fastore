@@ -42,7 +42,7 @@ namespace Fastore.Core.Test
 				Trace.WriteLine("Reconstructing Rows...");
 
 				watch.Reset();
-				var selection = table.Select(0, null, null, true, null);
+				var selection = table.Select(0, null, null, null, true, null);
 				int i = 0;
 				watch.Start();
 				foreach (var item in selection)

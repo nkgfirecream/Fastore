@@ -22,6 +22,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreWrapper", "FastoreWr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrapperTest", "WrapperTest\WrapperTest.csproj", "{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo", "Fastore.Core.Demo\Fastore.Core.Demo.csproj", "{5FF0C992-F981-4940-AD28-1EE27153597D}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Fastore.vsmdi
@@ -115,6 +117,19 @@ Global
 		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|x64.ActiveCfg = Release|x86
 		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|x86.ActiveCfg = Release|x86
 		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|x86.Build.0 = Release|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|Win32.ActiveCfg = Debug|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|x64.Build.0 = Debug|Any CPU
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|x86.ActiveCfg = Debug|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|x86.Build.0 = Debug|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Release|Mixed Platforms.Build.0 = Release|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Release|Win32.ActiveCfg = Release|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Release|x64.ActiveCfg = Release|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Release|x86.ActiveCfg = Release|x86
+		{5FF0C992-F981-4940-AD28-1EE27153597D}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

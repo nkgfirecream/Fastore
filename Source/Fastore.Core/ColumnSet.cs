@@ -40,9 +40,10 @@ namespace Fastore.Core
 				yield return new KeyValuePair<long, T>(valueEntry.Value, valueEntry.Key);
 		}
 
-		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward, Optional<T> start, Optional<T> end)
+		public IEnumerable<KeyValuePair<long, T>> GetRows(bool isForward, Optional<T> start, Optional<T> end, int? limit)
 		{
-			foreach (var valueEntry in _values.Get(isForward, start, end))
+			var items = _values.Get(isForward, start, end);
+			foreach (var valueEntry in limit.HasValue ? items.Take(limit.Value) : items)
 				yield return new KeyValuePair<long, T>(valueEntry.Value, valueEntry.Key);
 		}
 

@@ -21,6 +21,8 @@ namespace Fastore.Core
 		private List<object> _stores = new List<object>();
 		private long _nextID;
 
+		public int ColumnCount { get { return _defs.Count; } }
+
 		public void AddColumn(int index, ColumnDef def)
 		{
 			InternalAddColumn(index, def);
@@ -210,11 +212,11 @@ namespace Fastore.Core
 			return values;
         }
 
-		public IEnumerable<KeyValuePair<long, object[]>> Select(int column, object start, object end, bool isForward, int[] projection)
+		public IEnumerable<KeyValuePair<long, object[]>> Select(int column, object start, object end, int? limit, bool isForward, int[] projection)
 		{
 			projection = EnsureProjection(projection);
 
-			foreach (var entry in GetRows(column, start, end, isForward))
+			foreach (var entry in GetRows(column, start, end, limit, isForward))
 			{
 				long id = entry.Key;
 				var values = new object[projection.Length];
@@ -230,7 +232,7 @@ namespace Fastore.Core
 			}
 		}
 
-		private dynamic GetRows(int column, object start, object end, bool isForward)
+		private dynamic GetRows(int column, object start, object end, int? limit, bool isForward)
 		{
 			var store = _stores[column];
 			var storeType = store.GetType();
@@ -239,7 +241,7 @@ namespace Fastore.Core
 			var nullOptional = optionalType.GetField("Null", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).GetValue(null);
 			var optionalStart = start == null ? nullOptional : Activator.CreateInstance(optionalType, start);
 			var optionalEnd = end == null ? nullOptional : Activator.CreateInstance(optionalType, end);
-			return storeType.GetMethod("GetRows", new Type[] { typeof(bool), optionalType, optionalType }).Invoke(store, new object[] { isForward, optionalStart, optionalEnd });
+			return storeType.GetMethod("GetRows", new Type[] { typeof(bool), optionalType, optionalType, typeof(int?) }).Invoke(store, new object[] { isForward, optionalStart, optionalEnd, limit });
 		}
 
 		private int[] EnsureProjection(int[] projection)
