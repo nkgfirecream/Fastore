@@ -1,6 +1,7 @@
 #include "BTree.h"
 #include "Schema\scalar.h"
 #include <sstream>
+#include "typedefs.h"
 
 using namespace std;
 

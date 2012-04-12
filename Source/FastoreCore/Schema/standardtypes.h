@@ -19,6 +19,8 @@ namespace standardtypes
 	int CompareIndexOf(const char* items, const int count, void *key);
 	template <typename T>
 	int TargetedIndexOf(const char* items, const int count, void *key);
+	template <typename T>
+	void CopyToArray(const void* item, void* arrpointer);
 	
 	// String type
 	int StringCompare(const void*, const void*);

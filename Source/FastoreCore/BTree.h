@@ -8,7 +8,7 @@
 
 using namespace std;
 
-const int DefaultListCapacity = 256;
+const int DefaultListCapacity = 128;
 const int DefaultBranchListSize = 8;
 
 struct Split;
@@ -501,9 +501,15 @@ class Node
 				memmove(&_values[(index + 1 + _type) * _valueSize], &_values[(index + _type) *_valueSize], size *_valueSize);
 			}
 
-			memcpy(&_keys[index * _tree->_keyType.Size], key, _tree->_keyType.Size);
-			memcpy(&_values[(index + _type) * _valueSize], value, _valueSize);
-
+			_tree->_keyType.CopyIn(key, &_keys[index * _tree->_keyType.Size]);
+			if (_type == 0)
+			{
+				_tree->_valueType.CopyIn(value, &_values[(index + _type) * _valueSize]);
+			}
+			else
+			{
+				memcpy(&_values[(index + _type) * _valueSize], value, _valueSize);
+			}
 			_count++;
 		}
 

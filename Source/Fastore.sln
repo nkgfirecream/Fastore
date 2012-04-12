@@ -14,6 +14,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCore", "FastoreCore\FastoreCore.vcxproj", "{15EB3934-3C4F-450A-B1A4-88E8216A396B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{75A6BE6A-214E-432C-89BE-0E075369A1DE}"
+	ProjectSection(SolutionItems) = preProject
+		Performance2.psess = Performance2.psess
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreWrapper", "FastoreWrapper\FastoreWrapper.vcxproj", "{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}"
 	ProjectSection(ProjectDependencies) = postProject

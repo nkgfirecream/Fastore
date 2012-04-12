@@ -162,6 +162,12 @@ int standardtypes::CompareIndexOf(const char* items, const int count, void *key)
 	return ~lo;
 }
 
+template <typename T>
+void standardtypes::CopyToArray(const void* item, void* arrpointer)
+{
+	new (arrpointer) T(*(T*)item);
+}
+
 // String type
 int standardtypes::StringCompare(const void* left, const void* right)
 {
@@ -188,6 +194,7 @@ ScalarType standardtypes::GetStringType()
 	type.ToString = StringString;
 	type.Hash = StringHash;
 	type.IndexOf = CompareIndexOf<fs::wstring, StringCompare>;
+	type.CopyIn = CopyToArray<fs::wstring>;
 	return type;
 }
 
@@ -219,6 +226,7 @@ ScalarType standardtypes::GetLongType()
 	type.ToString = LongString;
 	type.Hash = LongHash;
 	type.IndexOf = TargetedIndexOf<long long>;
+	type.CopyIn = CopyToArray<long long>;
 	return type;
 }
 
@@ -241,6 +249,7 @@ ScalarType standardtypes::GetPStringType()
 	type.Size = sizeof(fs::wstring*);
 	type.ToString = PStringString;
 	type.IndexOf = CompareIndexOf<fs::wstring*, PStringCompare>;
+	type.CopyIn = CopyToArray<fs::string*>;
 	return type;
 }
 
@@ -265,6 +274,7 @@ ScalarType standardtypes::GetIntType()
 	type.Size = sizeof(int);
 	type.ToString = IntString;
 	type.IndexOf = TargetedIndexOf<int>;
+	type.CopyIn = CopyToArray<int>;
 	return type;
 }
 
@@ -296,6 +306,7 @@ ScalarType standardtypes::GetPLongType()
 	type.ToString = PLongString;
 	type.Hash = PLongHash;
 	type.IndexOf = CompareIndexOf<long*, PLongCompare>;
+	type.CopyIn = CopyToArray<long*>;
 	return type;
 }
 
@@ -307,6 +318,7 @@ ScalarType standardtypes::GetHashSetType()
 	type.Free = IndirectDelete;
 	type.Size = sizeof(eastl::hash_set<void*, ScalarType, ScalarType>*);
 	type.ToString = NULL;
+	type.CopyIn = CopyToArray<eastl::hash_set<void*, ScalarType, ScalarType>*>;
 	return type;
 }
 
@@ -317,6 +329,7 @@ ScalarType standardtypes::GetKeyVectorType()
 	type.Free = IndirectDelete;
 	type.Size = sizeof(fs::KeyVector*);
 	type.ToString = NULL;
+	type.CopyIn = CopyToArray<fs::KeyVector*>;
 	return type;
 }
 

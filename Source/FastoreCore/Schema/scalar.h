@@ -9,6 +9,7 @@ struct ScalarType
 	typedef int (*IndexOfFunc)(const char* items, const int count, void *key);
 	typedef void (*FreeFunc)(void*);
 	typedef fs::wstring (*ToStringFunc)(const void* item);
+	typedef void (*CopyInFunc)(const void* item, void* arraypointer);
 
 	size_t Size;
 	size_t (*Hash)(const void* item);
@@ -21,6 +22,7 @@ struct ScalarType
 	FreeFunc Free;
 	CompareFunc Compare;
 	IndexOfFunc IndexOf;
+	CopyInFunc CopyIn;
 
 	bool operator ()(const void* left, const void* right) const
 	{

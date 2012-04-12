@@ -146,7 +146,7 @@ void SequentialIntTest()
 	
 	cout << "\tRows per second: " << numrows / secs << "\r\n";
 
-	//wcout << tree->ToString();
+	//wcout << tree.ToString();
 }
 
 void SequentialIntArrayTest()
@@ -283,7 +283,7 @@ void RandomStringTest()
 {
 	cout << "Testing Random Strings...";
 	
-	long numrows = 100;
+	long numrows = 1000000;
 
 	auto stringType = GetStringType();
 	BTree tree(stringType, stringType);	
@@ -292,7 +292,7 @@ void RandomStringTest()
 
 	for (int i = 0; i < numrows; i++)
 	{
-		fs::wstring x = RandomString(8);
+		fs::wstring x = RandomString(16);
 		watch.StartTimer();
 		BTree::Path path = tree.GetPath(&x);
 		if (!path.Match)
@@ -305,7 +305,7 @@ void RandomStringTest()
 	
 	cout << "\tRows per second: " << numrows / secs << "\r\n";
 
-	wcout << tree.ToString();
+	//wcout << tree.ToString();
 }
 
 void GuidTest()
