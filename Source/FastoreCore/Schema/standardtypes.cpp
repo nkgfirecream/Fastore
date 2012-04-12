@@ -57,45 +57,45 @@ int standardtypes::ScaledIndexOf(const char* items, const int count, void *key)
 	return ~lo;
 }
 
-template <>
-int standardtypes::ScaledIndexOf<fs::wstring>(const char* items, const int count, void *key)
-{
-	int lo = 0;
-	int hi = count - 1;
-	int split = 0;
-	int result = -1;
-	wchar_t* keychar = &(*(fs::wstring*)key)[0];
-	int lastmatchindex = 0;
-	while (lo <= hi)
-	{
-		split = (lo + hi)  >> 1;  // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-
-		wchar_t* splitchar = &(((fs::wstring*)items)[split])[lastmatchindex];
-		
-		result = *keychar - *splitchar;
-		while(result == 0)
-		{
-		    if (*keychar == '\0')
-				break;				
-
-			lastmatchindex++;
-			keychar++;
-			splitchar++;
-
-			result = *keychar - *splitchar;
-		}
-		
-
-		if (result == 0)
-			return split;
-		else if (result < 0)
-			hi = split - 1;
-		else
-			lo = split + 1;
-	}
-
-	return ~lo;
-}
+//template <>
+//int standardtypes::ScaledIndexOf<fs::wstring>(const char* items, const int count, void *key)
+//{
+//	int lo = 0;
+//	int hi = count - 1;
+//	int split = 0;
+//	int result = -1;
+//	wchar_t* keychar = &(*(fs::wstring*)key)[0];
+//	int lastmatchindex = 0;
+//	while (lo <= hi)
+//	{
+//		split = (lo + hi)  >> 1;  // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
+//
+//		wchar_t* splitchar = &(((fs::wstring*)items)[split])[lastmatchindex];
+//		
+//		result = *keychar - *splitchar;
+//		while(result == 0)
+//		{
+//		    if (*keychar == '\0')
+//				break;				
+//
+//			lastmatchindex++;
+//			keychar++;
+//			splitchar++;
+//
+//			result = *keychar - *splitchar;
+//		}
+//		
+//
+//		if (result == 0)
+//			return split;
+//		else if (result < 0)
+//			hi = split - 1;
+//		else
+//			lo = split + 1;
+//	}
+//
+//	return ~lo;
+//}
 
 inline int SignNum(int value)
 {
@@ -233,8 +233,8 @@ ScalarType standardtypes::GetStringType()
 	type.Size = sizeof(fs::wstring);
 	type.ToString = StringString;
 	type.Hash = StringHash;
-	//type.IndexOf = CompareIndexOf<fs::wstring, StringCompare>;
-	type.IndexOf = ScaledIndexOf<fs::wstring>;
+	type.IndexOf = CompareIndexOf<fs::wstring, StringCompare>;
+	//type.IndexOf = ScaledIndexOf<fs::wstring>;
 	type.CopyIn = CopyToArray<fs::wstring>;
 	return type;
 }
