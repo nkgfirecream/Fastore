@@ -235,13 +235,23 @@ namespace Fastore.Core
 		private dynamic GetRows(int column, object start, object end, int? limit, bool isForward)
 		{
 			var store = _stores[column];
+			dynamic dynstore = store;
 			var storeType = store.GetType();
 			var dataType = storeType.GetGenericArguments()[0];
 			var optionalType = typeof(Optional<>).MakeGenericType(dataType);
 			var nullOptional = optionalType.GetField("Null", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public).GetValue(null);
-			var optionalStart = start == null ? nullOptional : Activator.CreateInstance(optionalType, start);
-			var optionalEnd = end == null ? nullOptional : Activator.CreateInstance(optionalType, end);
-			return storeType.GetMethod("GetRows", new Type[] { typeof(bool), optionalType, optionalType, typeof(int?) }).Invoke(store, new object[] { isForward, optionalStart, optionalEnd, limit });
+			dynamic optionalStart = start == null ? nullOptional : Activator.CreateInstance(optionalType, start);
+			dynamic optionalEnd = end == null ? nullOptional : Activator.CreateInstance(optionalType, end);
+			if (limit.HasValue)
+				return Enumerable.Take(dynstore.GetRows(isForward, optionalStart, optionalEnd), limit.Value);
+			else
+				return dynstore.GetRows(isForward, optionalStart, optionalEnd);
+			//var result = storeType.GetMethod("GetRows", new Type[] { typeof(bool), optionalType, optionalType }).Invoke(store, new object[] { isForward, optionalStart, optionalEnd });
+			
+			//{
+			//    return Enumerable.Take(result, limit.Value);
+			//}
+			//return result;
 		}
 
 		private int[] EnsureProjection(int[] projection)
