@@ -2,5 +2,5 @@
 
 Database Client::Connect(Host host)
 {
-	return Database();
+	return Database(host);
 }

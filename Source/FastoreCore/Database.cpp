@@ -9,5 +9,5 @@ TransactionID Database::GetID()
 
 Session Database::Start()
 {
-	return Session();
+	return Session(_host);
 }

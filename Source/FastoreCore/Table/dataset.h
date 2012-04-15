@@ -6,9 +6,9 @@
 class DataSet
 {
 	char* _buffer;
-	TupleType Type;
 	int RowCount;
 	public:
+		TupleType Type;
 
 		DataSet(const TupleType tupleType, int rowCount) : Type(tupleType), RowCount(rowCount) 
 		{
@@ -18,6 +18,16 @@ class DataSet
 		~DataSet()
 		{
 			delete _buffer;
+		}
+
+		DataSet(const DataSet& copyfrom) : Type(copyfrom.Type), RowCount(copyfrom.RowCount)
+		{
+			_buffer = new char[Type.BufferSize * RowCount];
+
+			for (long long i = 0; i < Type.BufferSize * RowCount; i++)
+			{
+				_buffer[i] = copyfrom._buffer[i];
+			}
 		}
 
 		void* operator[](int row)
@@ -40,12 +50,12 @@ class DataSet
 
 		void* const Cell(int row, int column)
 		{
-			return (char*)operator[](row) + ColumnOffset(column);
+			return &_buffer[(row * Type.BufferSize) + ColumnOffset(column)];
 		}
 
 		void SetCell(int row, int column, void* value)
 		{	
-			memcpy((char*)operator[](row) + ColumnOffset(column), value, Type[column].Type.Size);
+			Type[column].Type.CopyIn(value, &_buffer[(row * Type.BufferSize) + ColumnOffset(column)]);
 		}
 
 		class byColumn : public eastl::iterator<std::forward_iterator_tag, void*>

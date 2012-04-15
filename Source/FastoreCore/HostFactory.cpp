@@ -2,5 +2,12 @@
 
 Host HostFactory::Create(Topology topo)
 {
-	return Host();
+	Host host;
+
+	for (int i = 0; i < topo.size(); i++)
+	{
+		host.CreateColumn(topo[i]);
+	}
+
+	return host;
 }

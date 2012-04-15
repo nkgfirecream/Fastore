@@ -11,6 +11,10 @@
 #include <bitset>
 #include "TransactionID.h"
 #include "Change.h"
+#include "Topology.h"
+#include "HostFactory.h"
+#include "Database.h"
+#include "Session.h"
 
 
 
@@ -446,7 +450,7 @@ void HashBufferTest()
 	ScalarType stringType = GetStringType();
 	cout << "Testing HashBuffer...\n\r";
 
-	HashBuffer* hash = new HashBuffer(longType, longType);
+	HashBuffer* hash = new HashBuffer(longType, longType, L"Test");
 
 	/*long* i = new long(0);
 	hash->Include(i,i);
@@ -503,7 +507,7 @@ void HashBufferTest()
 
 	//OutputResult(result, longType, longType);
 
-	HashBuffer* hash2 = new HashBuffer(longType, stringType);
+	HashBuffer* hash2 = new HashBuffer(longType, stringType, L"Test");
 	
 	rowId = 0;
 	for (long i = 0; i < numvalues * 2; i = i + 2)
@@ -561,7 +565,9 @@ void UniqueBufferTest()
 	ScalarType stringType = GetStringType();
 	cout << "Testing UniqueBuffer...\n\r";
 
-	UniqueBuffer* unique = new UniqueBuffer(longType, longType);
+
+
+	UniqueBuffer* unique = new UniqueBuffer(longType, longType, L"Test");
 
 	/*long* i = new long(0);
 	unique->Include(i,i);
@@ -618,7 +624,7 @@ void UniqueBufferTest()
 
 	//OutputResult(result, longType, longType);
 
-	UniqueBuffer* unique2 = new UniqueBuffer(longType, stringType);
+	UniqueBuffer* unique2 = new UniqueBuffer(longType, stringType, L"Test");
 	
 	rowId = 0;
 	for (long i = 0; i < numvalues * 2; i = i + 2)
@@ -939,6 +945,77 @@ void TestChange()
 
 }
 
+void DatabaseTest()
+{
+	ColumnDef c1;
+	c1.IsUnique = true;
+	c1.KeyType = L"String";
+	c1.Type = L"Int";
+	c1.Name = L"Name";
+
+	ColumnDef c2;
+	c2.IsUnique = false;
+	c2.KeyType = L"Int";
+	c2.Type = L"Int";
+	c2.Name = L"ID";
+
+	Topology topo;
+
+	topo.push_back(c1);
+	topo.push_back(c2);
+
+	Session session;
+	{
+		HostFactory hf;
+		Host host = hf.Create(topo);
+		Database db(host);
+		session = db.Start();
+	}
+
+	eastl::vector<fs::wstring> columns;
+
+	columns.push_back(L"ID");
+	columns.push_back(L"Name");
+
+	for (int i = 0; i < 5; i++)
+	{
+		fs::wstring name = RandomString(16);
+		eastl::vector<void*> row;
+		row.push_back(&i);
+		row.push_back(&name);
+
+		session.Include(&i, row, columns, false);
+	}
+
+
+	//TODO: put these on the heap as int pointers or something so that they don't go out of scope
+	int a = 0;
+	int b = 1;
+	int c = 2;
+	int d = 4;
+
+	eastl::vector<void*> rowIds;
+
+	rowIds.push_back(&a);
+	rowIds.push_back(&b);
+	rowIds.push_back(&c);
+	rowIds.push_back(&d);
+
+	auto result = session.GetRows(rowIds,columns);
+
+	cout << "ID\tName\n";
+	cout << "_______________________________\n";
+	for (int i = 0; i < rowIds.size(); i++)
+	{
+		for (int j = 0; j < columns.size(); j++)
+		{
+			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << "\t";
+		}
+
+		cout << "\n";
+	}
+}
+
 void main()
 {
 	
@@ -952,7 +1029,7 @@ void main()
 	//ReverseSequentialIntTest();
 	//RandomIntTest();
 	//RandomLongTest();
-	RandomStringTest();
+	//RandomStringTest();
 	//SequentialPLongTest();
 	//InterlockedTest();
 	//ArrayCopyTest();
@@ -964,6 +1041,8 @@ void main()
 	//BTreePathTest();
 	//TestTransactionID();
 	//TestChange();
+
+	DatabaseTest();
 	_getch();
 }
 

@@ -10,6 +10,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Xml;
 using System.Diagnostics;
+using Microsoft.VisualBasic.FileIO;
 
 namespace Fastore.Core.Demo2
 {
@@ -35,70 +36,92 @@ namespace Fastore.Core.Demo2
 					new ColumnDef("BirthPlace", typeof(string), false)
 				);
 
-			using (var fileStream = new FileStream(@"E:\owt.xml.gz", FileMode.Open, FileAccess.Read))
-			{
-				var deflateStream = new GZipStream(fileStream, CompressionMode.Decompress);
-				var streamReader = new StreamReader(deflateStream);
+            var input = new Microsoft.VisualBasic.FileIO.TextFieldParser(@"c:\owt.txt");
+            input.Delimiters = new string[] { "^" };
 
-				// output sample
-				//var output = new StringWriter();
-				//for (var i = 0; i < 150; i++)
-				//{
-				//    output.WriteLine(streamReader.ReadLine());
-				//}
-				//System.Diagnostics.Debug.WriteLine(output.ToString());
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            object[] record = new object[6];
+            int numrows = 150000;
+            for (int i = 0; i < numrows; i++)
+            {
+                var result = input.ReadFields();
 
-				var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment };
-				var xmlReader = XmlReader.Create(deflateStream, xrs);
+                record[0] = int.Parse(result[0]);
+                record[1] = result[1];
+                record[2] = result[2];
+                record[3] = result[3].StartsWith("M");
+                record[4] = result[4];
+                record[5] = result[5];
+                CompleteRecord(record);
+            }
+            timer.Stop();
 
-				var count = 0;
-				Stopwatch timer = new Stopwatch();
-				timer.Start();
-				while (count++ < 1000000)//16000000)
-				{
-					xmlReader.MoveToContent();
-					if (xmlReader.EOF)
-						break;
+            MessageBox.Show("Load time: " + timer.Elapsed.ToString() + "\nNumber of rows: " + numrows);
+            System.Diagnostics.Debug.WriteLine("Load time: " + timer.Elapsed.ToString());
 
-					var subReader = xmlReader.ReadSubtree();
-					object[] record = null;
-					while (subReader.Read())
-					{
-						if (subReader.NodeType == XmlNodeType.Element)
-						{
-							if (subReader.Name == "d")
-							{
-								CompleteRecord(record);
-								record = new object[_table.ColumnCount];
+            comboBox1.SelectedIndex = 0;
+           
+            //using (var fileStream = new FileStream(@"E:\owt.xml.gz", FileMode.Open, FileAccess.Read))
+            //{
+            //    var deflateStream = new GZipStream(fileStream, CompressionMode.Decompress);
+            //    var streamReader = new StreamReader(deflateStream);
 
-								if (subReader.MoveToAttribute("p"))
-									record[0] = int.Parse(subReader.Value);
-							}
-							else if (subReader.Name == "f" && subReader.MoveToAttribute("i"))
-							{
-								var code = subReader.Value;
-								subReader.MoveToContent();
-								switch (code)
-								{
-									case "80004002": record[1] = subReader.ReadString(); break;
-									case "80004003": record[2] = subReader.ReadString(); break;
-									case "83004003": record[3] = subReader.ReadString().StartsWith("M", StringComparison.OrdinalIgnoreCase); break;
-									case "81004010": record[4] = subReader.ReadString(); break;
-									case "82004010": record[5] = subReader.ReadString(); break;
-								}
-							}
-						}
-					}
-					CompleteRecord(record);
+            //    // output sample
+            //    //var output = new StringWriter();
+            //    //for (var i = 0; i < 150; i++)
+            //    //{
+            //    //    output.WriteLine(streamReader.ReadLine());
+            //    //}
+            //    //System.Diagnostics.Debug.WriteLine(output.ToString());
 
-					xmlReader.Read();
-				}
-				timer.Stop();
+            //    var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment };
+            //    var xmlReader = XmlReader.Create(deflateStream, xrs);
 
-				System.Diagnostics.Debug.WriteLine("Load time: " + timer.Elapsed.ToString());
+            //    var count = 0;
+				
+				
+            //    while (count++ < 1000000)//16000000)
+            //    {
+            //        xmlReader.MoveToContent();
+            //        if (xmlReader.EOF)
+            //            break;
 
-				comboBox1.SelectedIndex = 0;
-			}
+            //        var subReader = xmlReader.ReadSubtree();
+            //        object[] record = null;
+            //        while (subReader.Read())
+            //        {
+            //            if (subReader.NodeType == XmlNodeType.Element)
+            //            {
+            //                if (subReader.Name == "d")
+            //                {
+            //                    CompleteRecord(record);
+            //                    record = new object[_table.ColumnCount];
+
+            //                    if (subReader.MoveToAttribute("p"))
+            //                        record[0] = int.Parse(subReader.Value);
+            //                }
+            //                else if (subReader.Name == "f" && subReader.MoveToAttribute("i"))
+            //                {
+            //                    var code = subReader.Value;
+            //                    subReader.MoveToContent();
+            //                    switch (code)
+            //                    {
+            //                        case "80004002": record[1] = subReader.ReadString(); break;
+            //                        case "80004003": record[2] = subReader.ReadString(); break;
+            //                        case "83004003": record[3] = subReader.ReadString().StartsWith("M", StringComparison.OrdinalIgnoreCase); break;
+            //                        case "81004010": record[4] = subReader.ReadString(); break;
+            //                        case "82004010": record[5] = subReader.ReadString(); break;
+            //                    }
+            //                }
+            //            }
+            //        }
+					
+
+            //        xmlReader.Read();
+            //    }
+				
+            //}
 		}
 
 		private void RefreshItems()

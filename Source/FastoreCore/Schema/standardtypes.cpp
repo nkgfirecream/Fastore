@@ -316,7 +316,14 @@ ScalarType standardtypes::GetIntType()
 	type.ToString = IntString;
 	type.IndexOf = TargetedIndexOf<int>;
 	type.CopyIn = CopyToArray<int>;
+	type.Hash = IntHash;
 	return type;
+}
+
+size_t standardtypes::IntHash(const void* item)
+{
+	static eastl::hash<int> hash;
+	return hash(*(int*)item);
 }
 
 // PLong type

@@ -42,7 +42,9 @@ namespace standardtypes
 	// Int ScalarType
 	int IntCompare(const void*, const void*);
 	fs::wstring IntString(const void*);
+	size_t IntHash(const void*);
 	ScalarType GetIntType();
+
 
 	// PLong type
 	int PLongCompare(const void*, const void*);

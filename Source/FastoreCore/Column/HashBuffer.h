@@ -15,12 +15,18 @@ const int HashBufferRowMapInitialSize = 32;
 class HashBuffer : public IColumnBuffer
 {
 	public:
-		HashBuffer(const ScalarType& rowType, const ScalarType &valueType);
+		HashBuffer(const ScalarType& rowType, const ScalarType &valueType, const fs::wstring& name);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
 		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
+
+		ScalarType GetRowType();
+		ScalarType GetKeyType();
+		fs::wstring GetName();
+		bool GetUnique();
+		bool GetRequired();
 
 	private:
 		typedef eastl::hash_set<Key, ScalarType, ScalarType> HashBufferHashSet;
@@ -36,14 +42,18 @@ class HashBuffer : public IColumnBuffer
 		ScalarType _valueType;
 		HashBufferHashMap* _rows;
 		BTree* _values;
+		fs::wstring _name;
+		bool _required;
 };
 
-inline HashBuffer::HashBuffer(const ScalarType& rowType, const ScalarType& valueType)
+inline HashBuffer::HashBuffer(const ScalarType& rowType, const ScalarType& valueType,const fs::wstring& name)
 {
+	_name = name;
 	_rowType = rowType;
 	_valueType = valueType;
 	_rows = new HashBufferHashMap(HashBufferRowMapInitialSize, _rowType, _rowType);
 	_values = new BTree(_valueType, standardtypes::GetHashSetType());
+	_required = false;
 	_values->setValuesMovedCallback
 	(
 		[this](void* value, Node* newLeaf) -> void
@@ -51,6 +61,31 @@ inline HashBuffer::HashBuffer(const ScalarType& rowType, const ScalarType& value
 			this->ValuesMoved(value, newLeaf);
 		}
 	);
+}
+
+inline fs::wstring HashBuffer::GetName()
+{
+	return _name;
+}
+
+inline ScalarType HashBuffer::GetKeyType()
+{
+	return _valueType;
+}
+
+inline ScalarType HashBuffer::GetRowType()
+{
+	return _rowType;
+}
+
+inline bool HashBuffer::GetUnique()
+{
+	return false;
+}
+
+inline bool HashBuffer::GetRequired()
+{
+	return _required;
 }
 
 inline ValueVector HashBuffer::GetValues(const KeyVector& rowIds)

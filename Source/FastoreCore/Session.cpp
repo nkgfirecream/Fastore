@@ -4,7 +4,7 @@
 //ISession
 Transaction Session::Begin(bool readIsolation, bool writeIsolation)
 {
-	return Transaction();
+	return Transaction(_host);
 }
 
 void Session::Dispose()
