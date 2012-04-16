@@ -16,6 +16,8 @@
 #include "Database.h"
 #include "Session.h"
 
+#include <iostream>
+#include <fstream>
 
 
 using namespace std;
@@ -1016,6 +1018,154 @@ void DatabaseTest()
 	}
 }
 
+eastl::vector<fs::wstring> split(const fs::wstring& s, wchar_t delim, unsigned int length)
+{
+	eastl::vector<fs::wstring> elems(length);
+    wstringstream ss(s);
+    fs::wstring item;
+	unsigned int i = 0;
+    while(getline(ss, item, delim) && i < length)
+	{
+        elems[i] = item;
+		i++;
+    }
+	while(i < length)
+	{
+		elems[i] = L"";
+		i++;
+	}
+    return elems;
+}
+
+bool stringtobool(const fs::wstring& s)
+{
+	return s.size() > 0 && (s.at(0) == 't' ||  s.at(0) == 'T' || s.at(0) == '0');
+}
+
+void OWTTest()
+{
+	wifstream owtfile;
+	owtfile.open("C:\\owt.txt");
+
+	ColumnDef c1;
+	c1.IsUnique = true;
+	c1.KeyType = L"Int";
+	c1.Name = L"ID";
+
+	ColumnDef c2;
+	c2.IsUnique = false;
+	c2.KeyType = L"String";
+	c2.Name = L"Given";
+
+	ColumnDef c3;
+	c3.IsUnique = false;
+	c3.KeyType = L"String";
+	c3.Name = L"Surname";
+
+	ColumnDef c4;
+	c4.IsUnique = false;
+	c4.KeyType = L"Bool";
+	c4.Name = L"Gender";
+
+	ColumnDef c5;
+	c5.IsUnique = false;
+	c5.KeyType = L"String";
+	c5.Name = L"BirthDate";
+
+	ColumnDef c6;
+	c6.IsUnique = false;
+	c6.KeyType = L"String";
+	c6.Name = L"BirthPlace";
+
+	Topology topo;
+
+	topo.push_back(c1);
+	topo.push_back(c2);
+	topo.push_back(c3);
+	topo.push_back(c4);
+	topo.push_back(c5);
+	topo.push_back(c6);
+
+	Session session;
+	{
+		HostFactory hf;
+		Host host = hf.Create(topo);
+		Database db(host);
+		session = db.Start();
+	}
+
+	eastl::vector<fs::wstring> columns;
+
+	columns.push_back(L"ID");
+	columns.push_back(L"Given");
+	columns.push_back(L"Surname");
+	columns.push_back(L"Gender");
+	columns.push_back(L"BirthDate");
+	columns.push_back(L"BirthPlace");
+
+	
+	Stopwatch watch;
+
+	int numrows = 1000;
+	for (int i = 0; i < numrows; i++)
+	{
+		//Parse file
+		fs::wstring item;
+		getline(owtfile, item);
+		eastl::vector<fs::wstring> row = split(item, '^', 6);
+		eastl::vector<void*> rowpointers(6);
+
+		int id = _wtoi(row.at(0).c_str());
+		bool gender = stringtobool(row.at(3));
+		rowpointers[0] = &id;
+		rowpointers[3] = &gender;
+
+		rowpointers[1] = &row.at(1);
+		rowpointers[2] = &row.at(2);		
+		rowpointers[4] = &row.at(4);
+		rowpointers[5] = &row.at(5);
+		watch.StartTimer();
+		session.Include(rowpointers, columns, false);
+		watch.StopTimer();
+	}
+
+	double secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";	
+	cout << "\tRows per second: " << numrows / secs << "\r\n";
+
+	//cout << "Press key to pull rows";
+	//_getch();
+	
+	Stopwatch watch2;
+
+	int start = 100;
+	int stop = 1000;
+
+	fs::RangeBound startb(&start); 
+	fs::RangeBound endb(&stop);
+
+	Range range(100, Optional<fs::RangeBound>(startb), Optional<fs::RangeBound>(endb));
+	watch2.StartTimer();
+	auto result = session.GetRange(columns, range);
+	watch2.StopTimer();
+
+	secs = watch.TotalTime();
+	cout << " secs: " << secs << "\r\n";	
+	cout << "\tRows per second: " << result.Size() / secs << "\r\n";
+
+	wcout << columns[0] << " " << columns[1] << " " << columns[2] << " " << columns[3] << " " << columns[4] << " " << columns[5] << "\n";
+	wcout << "___________________________________________________________\n";
+
+	for(int i = 0; i < result.Size(); i++)
+	{
+		for(int j = 0; j < 6; j++)
+		{
+			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << " ";
+		}
+		cout << "\n";
+	}
+}
+
 void main()
 {
 	
@@ -1041,8 +1191,9 @@ void main()
 	//BTreePathTest();
 	//TestTransactionID();
 	//TestChange();
+	//DatabaseTest();
+	OWTTest();
 
-	DatabaseTest();
 	_getch();
 }
 

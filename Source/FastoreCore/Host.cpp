@@ -6,15 +6,14 @@
 void Host::CreateColumn(ColumnDef  def)
 {
 	IColumnBuffer* newbuffer;
-	ScalarType rowType = GetScalarTypeFromString(def.Type);
 	ScalarType keyType = GetScalarTypeFromString(def.KeyType);
 	if(def.IsUnique)
 	{
-		newbuffer = new UniqueBuffer(rowType, keyType, def.Name);
+		newbuffer = new UniqueBuffer(standardtypes::GetLongType(), keyType, def.Name);
 	}
 	else
 	{
-		newbuffer = new HashBuffer(rowType, keyType, def.Name);
+		newbuffer = new HashBuffer(standardtypes::GetLongType(), keyType, def.Name);
 	}
 
 	_columns.push_back(newbuffer);
@@ -64,7 +63,7 @@ ScalarType Host::GetScalarTypeFromString(fs::wstring tname)
 	}
 	else if (tname == L"Bool")
 	{
-		throw; //TODO: Impelement Bool type
+		return standardtypes::GetBoolType();
 	}
 	else
 	{

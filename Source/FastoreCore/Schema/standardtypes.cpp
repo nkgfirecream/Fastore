@@ -242,7 +242,7 @@ ScalarType standardtypes::GetStringType()
 // Long ScalarType
 int standardtypes::LongCompare(const void* left, const void* right)
 {
-	return (int)(*(long long*)left - *(long long*)right);
+	return (*(long long*)left - *(long long*)right);
 }
 
 fs::wstring standardtypes::LongString(const void* item)
@@ -324,6 +324,50 @@ size_t standardtypes::IntHash(const void* item)
 {
 	static eastl::hash<int> hash;
 	return hash(*(int*)item);
+}
+
+// Bool ScalarType
+int standardtypes::BoolCompare(const void* left, const void* right)
+{
+	//Arbitrarily put true after false.
+	if (*(bool*)left == *(bool*)right)
+	{
+		return 0;
+	} 
+	else if (*(bool*)left)
+	{
+		return 1;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+fs::wstring standardtypes::BoolString(const void* item)
+{
+	wstringstream result;
+	result << *(bool*)item;
+	return result.str();
+}
+
+ScalarType standardtypes::GetBoolType()
+{
+	ScalarType type;
+	type.Compare = BoolCompare;
+	type.Free = NULL;
+	type.Size = sizeof(bool);
+	type.ToString = BoolString;
+	type.IndexOf = CompareIndexOf<bool, BoolCompare>;
+	type.CopyIn = CopyToArray<bool>;
+	type.Hash = BoolHash;
+	return type;
+}
+
+size_t standardtypes::BoolHash(const void* item)
+{
+	static eastl::hash<bool> hash;
+	return hash(*(bool*)item);
 }
 
 // PLong type

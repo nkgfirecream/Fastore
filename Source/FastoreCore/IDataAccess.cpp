@@ -37,7 +37,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range /*
 	GetResult result =  _host.GetColumn(columns[0])->GetRows(range);
 
 	//TODO: need to count results to get size of dataset to allocate.. How can we do this better? Pass count back with result?
-	int numrows;
+	int numrows = 0;
 	for (int i = 0; i < result.Data.size(); i++)
 	{
 		fs::ValueKeys keys = result.Data[i];
@@ -97,8 +97,7 @@ DataSet IDataAccess::GetRows(eastl::vector<void*> rowIds, eastl::vector<fs::wstr
 
 		fs::ValueVector result = cb->GetValues(rowIds);
 		for (int j = 0; j < rowIds.size(); j++)
-		{
-			
+		{			
 			ds.SetCell(j, i, result[j]);
 		}
 	}
@@ -106,10 +105,18 @@ DataSet IDataAccess::GetRows(eastl::vector<void*> rowIds, eastl::vector<fs::wstr
 	return ds;
 }
 
-void* IDataAccess::Include(eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)
+long long IDataAccess::Include(eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)
 {
-	//TODO: Need to generate Ids...
-	return NULL;
+	for (int i = 0; i < columns.size(); i++)
+	{
+		IColumnBuffer* cb = _host.GetColumn(columns[i]);
+
+		bool result = cb->Include(row[i], &_currentID);
+	}
+
+	_currentID++;
+
+	return _currentID - 1;
 }
 
 void IDataAccess::Include(void* rowID, eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)

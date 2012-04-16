@@ -45,6 +45,11 @@ namespace standardtypes
 	size_t IntHash(const void*);
 	ScalarType GetIntType();
 
+	//Bool ScalarType
+	int BoolCompare(const void*, const void*);
+	fs::wstring BoolString(const void*);
+	size_t BoolHash(const void*);
+	ScalarType GetBoolType();
 
 	// PLong type
 	int PLongCompare(const void*, const void*);
