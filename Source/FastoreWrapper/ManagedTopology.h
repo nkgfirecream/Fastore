@@ -5,7 +5,7 @@
 #include "../FastoreCore/Topology.h"
 #pragma managed(pop)
 
-using namespace System;
+#include "ManagedColumnDef.h"
 
 namespace Wrapper
 {
@@ -15,8 +15,15 @@ namespace Wrapper
 			Topology* _nativeTopology;
 
 		public:
+			ManagedTopology()
+			{
+				_nativeTopology = new Topology();
+			}
+
 			ManagedTopology(Topology* nativeTopology) : _nativeTopology(nativeTopology) {};
 			Topology* GetNativePointer();
+
+			void Add(ManagedColumnDef^ columndef);
 
 	};
 }

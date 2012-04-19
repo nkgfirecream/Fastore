@@ -6,7 +6,7 @@ using namespace Wrapper;
 Wrapper::ManagedDatabase^ Wrapper::ManagedClient::Connect(ManagedHost^ host)
 {
 	//create database based on host
-	Database* database = new Database();
+	Database* database = new Database(*(host->GetNativePointer()));
 
 	ManagedDatabase^ wrapper = gcnew ManagedDatabase(database);
 	return wrapper;

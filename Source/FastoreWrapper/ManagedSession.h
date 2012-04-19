@@ -8,8 +8,6 @@
 #include "ManagedDataSet.h"
 #include "ManagedTransaction.h"
 
-using namespace System;
-
 namespace Wrapper
 {
 	public ref class ManagedSession
@@ -26,9 +24,9 @@ namespace Wrapper
 
 
 			ManagedTransaction^ Begin(System::Boolean readIsolation, System::Boolean writeIsolation);
-			ManagedDataSet^ GetRange(array<System::Int32>^ columns, ManagedRange^ range/* [sorting]*/);
-			ManagedDataSet^ GetRows(array<Object^>^ rowIds, array<System::Int32>^ columns/* Sorting*/);
-			System::Object^ Include(array<Object^>^ row, array<System::Int32>^ columns, System::Boolean isPicky);
-			void Exclude(array<Object^>^ rowsIds, array<System::Int32>^ columns, System::Boolean isPicky);
+			ManagedDataSet^ GetRange(array<System::String^>^ columns, ManagedRange^ range/* [sorting]*/);
+			ManagedDataSet^ GetRows(array<System::Object^>^ rowIds, array<System::String^>^ columns/* Sorting*/);
+			System::Object^ Include(array<System::Object^>^ row, array<System::String^>^ columns, System::Boolean isPicky);
+			void Exclude(array<System::Object^>^ rowsIds, array<System::String^>^ columns, System::Boolean isPicky);
 	};
 }

@@ -5,8 +5,6 @@
 #include "../FastoreCore/Host.h"
 #pragma managed(pop)
 
-using namespace System;
-
 namespace Wrapper
 {
 	public ref class ManagedHost

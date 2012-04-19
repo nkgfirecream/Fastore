@@ -247,9 +247,9 @@ int standardtypes::LongCompare(const void* left, const void* right)
 
 fs::wstring standardtypes::LongString(const void* item)
 {
-	wstringstream result;
-	result << *(long long*)item;
-	return result.str();
+	long long temp = *(long long *)item;
+	fs::wstring converted = to_wstring(temp);
+	return converted;
 }
 
 size_t standardtypes::LongHash(const void* item)

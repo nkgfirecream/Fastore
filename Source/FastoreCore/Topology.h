@@ -6,7 +6,6 @@ using namespace fs;
 struct ColumnDef
 {
 	fs::wstring Name;
-	fs::wstring Type;
 	fs::wstring KeyType;
 	bool IsUnique;
 };

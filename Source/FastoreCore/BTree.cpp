@@ -11,7 +11,6 @@ using namespace std;
 	Assumtion: nodes will never be empty, except for a leaf when root.
 */
 
-
 template<> void standardtypes::CopyToArray<Node*>(const void* item, void* arrpointer)
 {
 	memcpy(arrpointer, item, sizeof(Node*));
@@ -24,6 +23,7 @@ ScalarType GetNodeType()
 	type.Size = sizeof(Node*);
 	return type;
 }
+
 
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
 	_keyType(keyType), _valueType(valueType), 

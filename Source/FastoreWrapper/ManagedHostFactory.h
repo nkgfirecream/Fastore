@@ -9,8 +9,6 @@
 #include "ManagedHost.h"
 
 
-using namespace System;
-
 namespace Wrapper
 {
 	public ref class ManagedHostFactory
@@ -21,7 +19,12 @@ namespace Wrapper
 		public:
 			HostFactory* GetNativePointer();
 
-			ManagedHostFactory(HostFactory* nativeHostFactory) : _nativeHostFactory(nativeHostFactory) {};
+			ManagedHostFactory()
+			{
+				_nativeHostFactory = new HostFactory();
+			}
+
+			ManagedHostFactory(HostFactory* nativeHostFactory) : _nativeHostFactory(nativeHostFactory) {}
 			ManagedHost^ Create(ManagedTopology^ topo);
 			//Lower Priority
 			//IHost Connect(address);		

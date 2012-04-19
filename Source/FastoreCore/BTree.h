@@ -142,6 +142,8 @@ class BTree
 //Type 1 = Branch;
 //Todo: Enum
 
+ScalarType GetNodeType();
+
 class Node
 {
 	public:
@@ -515,5 +517,7 @@ class Node
 
 	friend class BTree::iterator;
 };
+
+
 
 

@@ -38,16 +38,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range /*
 
 	//TODO: need to count results to get size of dataset to allocate.. How can we do this better? Pass count back with result?
 	int numrows = 0;
-	for (int i = 0; i < result.Data.size(); i++)
-	{
-		fs::ValueKeys keys = result.Data[i];
-		numrows += keys.second.size();
-	}
 
-	DataSet ds(tt, numrows);
-
-	//TODO: DataSet could easily be filled in a multi-thread fashion with a pointer the its buffer, a rowsize, and a rowoffset (each thread fills one column)
-	//TODO: It's also the case that we don't need to call back into the column buffer to get the values for the ranged rows, we just need to write the code to materialize the data
 	KeyVector kv(numrows);
 	for (int i = 0; i < result.Data.size(); i++)
 	{
@@ -55,8 +46,15 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range /*
 		for (int j = 0; j < keys.second.size(); j++)
 		{
 			kv.push_back(keys.second[j]);
+			numrows++;
 		}
 	}
+
+	DataSet ds(tt, numrows);
+
+	//TODO: DataSet could easily be filled in a multi-thread fashion with a pointer the its buffer, a rowsize, and a rowoffset (each thread fills one column)
+	//TODO: It's also the case that we don't need to call back into the column buffer to get the values for the ranged rows, we just need to write the code to materialize the data
+	
 
 	for (int i = 0; i < columns.size(); i++)
 	{
@@ -105,7 +103,7 @@ DataSet IDataAccess::GetRows(eastl::vector<void*> rowIds, eastl::vector<fs::wstr
 	return ds;
 }
 
-long long IDataAccess::Include(eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)
+int IDataAccess::Include(eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)
 {
 	for (int i = 0; i < columns.size(); i++)
 	{

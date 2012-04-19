@@ -8,8 +8,6 @@
 #include "ManagedDatabase.h"
 #include "ManagedHost.h"
 
-using namespace System;
-
 namespace Wrapper
 {
 	public ref class ManagedClient

@@ -1,5 +1,6 @@
 #include "Host.h"
 #include "Column\HashBuffer.h"
+#include "Column\TreeBuffer.h"
 #include "Column\UniqueBuffer.h"
 #include "Util\utilities.h"
 
@@ -9,11 +10,11 @@ void Host::CreateColumn(ColumnDef  def)
 	ScalarType keyType = GetScalarTypeFromString(def.KeyType);
 	if(def.IsUnique)
 	{
-		newbuffer = new UniqueBuffer(standardtypes::GetLongType(), keyType, def.Name);
+		newbuffer = new UniqueBuffer(standardtypes::GetIntType(), keyType, def.Name);
 	}
 	else
 	{
-		newbuffer = new HashBuffer(standardtypes::GetLongType(), keyType, def.Name);
+		newbuffer = new TreeBuffer(standardtypes::GetIntType(), keyType, def.Name);
 	}
 
 	_columns.push_back(newbuffer);

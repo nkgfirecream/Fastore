@@ -5,8 +5,6 @@
 #include "../FastoreCore/Table/dataset.h"
 #pragma managed(pop)
 
-using namespace System;
-
 namespace Wrapper
 {
 	//TODO: These next few items are basically POD -- it may be more efficient to map them to memory and copy rather than wrap. 
@@ -16,7 +14,10 @@ namespace Wrapper
 			DataSet* _nativeDataSet;
 
 		public:
-			ManagedDataSet(DataSet* nativeSet) : _nativeDataSet(nativeSet) {};
+			ManagedDataSet() {}
+			ManagedDataSet(DataSet* nativeSet) : _nativeDataSet(nativeSet) {}
 			DataSet* GetNativePointer();
+
+			void Dump();
 	};
 }

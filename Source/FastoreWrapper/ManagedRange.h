@@ -6,8 +6,6 @@
 #include "../FastoreCore/Range.h"
 #pragma managed(pop)
 
-using namespace System;
-
 namespace Wrapper
 {
 	//TODO: These should probably be value types... 
@@ -22,13 +20,13 @@ namespace Wrapper
 			ManagedRangeBound(System::Object^ value, System::Object^ rowId, System::Boolean inclusive)
 			{
 				//Convert object to void*
-				void* valuep = ConvertObjectToVoidPointer(value);
+				//void* valuep = ConvertObjectToVoidPointer(value);
 
 				Optional<void*>* rowIdp;
 
 				if (rowId != nullptr)
 				{
-					rowIdp = new Optional<void*>(ConvertObjectToVoidPointer(rowId));
+					//rowIdp = new Optional<void*>(ConvertObjectToVoidPointer(rowId));
 				}
 				else
 				{
@@ -36,7 +34,7 @@ namespace Wrapper
 				}
 
 				//TODO : Create pointers, Optional, etc.
-				_nativeRangeBound = new fs::RangeBound(valuep, *rowIdp, inclusive);
+				//_nativeRangeBound = new fs::RangeBound(valuep, *rowIdp, inclusive);
 
 				delete rowIdp;
 			}

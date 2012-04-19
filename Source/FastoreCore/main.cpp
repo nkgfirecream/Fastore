@@ -2,7 +2,7 @@
 #include "Table\table.h"
 #include "Column\HashBuffer.h"
 #include "Column\UniqueBuffer.h"
-
+//#include "Column\TreeBuffer.h"
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
 #include <iostream>
@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <fstream>
+
 
 
 using namespace std;
@@ -561,6 +562,123 @@ void HashBufferTest()
 	cout << "Rows inserted";
 }
 
+//void TreeBufferTest()
+//{
+//	ScalarType longType = GetLongType();
+//	ScalarType stringType = GetStringType();
+//	cout << "Testing TreeBuffer...\n\r";
+//
+//	TreeBuffer* tree = new TreeBuffer(longType, longType, L"Test");
+//
+//	/*long* i = new long(0);
+//	hash->Include(i,i);
+//	auto result = hash->GetValue(i);
+//	wcout << *(long*)result;*/
+//	long numvalues = 1000;
+//	long rowspervalue = 10;
+//	
+//	long rowId = 0;
+//	//Leave gaps so we can test match/no match
+//	//for (long i = 0; i < numvalues * 2; i = i + 2)
+//	//{
+//	//	for (long j = 0; j < rowspervalue; j++)
+//	//	{
+//	//		long* v = new long(i);
+//	//		long* r = new long(rowId);
+//	//		hash->Include(v, r);
+//	//		rowId++;
+//	//	}
+//	//}
+//
+//	//rowId = 0;
+//	///*for (long i = 0; i < 1; i++)
+//	//{
+//	//	for (long j = 0; j < rowspervalue; j++)
+//	//	{
+//	//		long* r = new long(rowId);
+//	//		wcout << *(long*)hash->GetValue(r) << "\r\n";
+//	//		rowId++;
+//	//	}
+//	//}*/
+//
+//	////Ascending, inclusive, first 30 rows;
+//	//Range range;
+//	//range.Ascending = true;
+//	//range.Limit = 400;
+//
+//	//
+//	//RangeBound start;
+//	//start.Inclusive = false;
+//	//long i = 2;
+//	//start.Value = &i;
+//
+//	//range.Start = start;
+//
+//	//RangeBound end;
+//	//end.Inclusive = true;	
+//	//long j = 46;
+//	//end.Value = &j; 
+//
+//	//range.End = end;
+//
+//	//auto result = hash->GetRows(range);
+//
+//	//OutputResult(result, longType, longType);
+//
+//	TreeBuffer* tree2 = new TreeBuffer(longType, stringType, L"Test");
+//	
+//	rowId = 0;
+//	for (long i = 0; i < numvalues * 2; i = i + 2)
+//	{
+//		fs::wstring s = RandomString(8);
+//		for (long j = 0; j < rowspervalue; j++)
+//		{
+//			tree2->Include(&s, &rowId);
+//			rowId++;
+//		}
+//	}
+//
+//	/*rowId = 0;
+//	for (long i = 0; i < numvalues / 10; i++)
+//	{
+//		for (long j = 0; j < rowspervalue; j++)
+//		{
+//			wcout << *(fs::wstring*)tree2->GetValue(&rowId) << "\r\n";
+//			rowId++;
+//		}
+//	}*/
+//
+//	//Ascending, inclusive, first 30 rows;
+//	Range range;
+//	range.Ascending = true;
+//	range.Limit = 400;
+//
+//	RangeBound start;
+//	start.Inclusive = true;
+//	wstringstream stream;
+//	stream << "AAFBGARC";
+//	start.Value = new fs::wstring(stream.str());
+//
+//	range.Start = start;
+//
+//	RangeBound end;
+//	end.Inclusive = true;
+//	wstringstream stream2;
+//	stream2 << "BAFBGARC";
+//	end.Value = new fs::wstring(stream2.str());
+//
+//	range.End = end;
+//
+//	wcout << tree2->ToString();
+//
+//	auto result2 = tree2->GetRows(range);
+//
+//	OutputResult(result2, longType, stringType);
+//
+//	
+//	//cout << "Rows inserted";
+//}
+
 void UniqueBufferTest()
 {
 	ScalarType longType = GetLongType();
@@ -952,13 +1070,13 @@ void DatabaseTest()
 	ColumnDef c1;
 	c1.IsUnique = true;
 	c1.KeyType = L"String";
-	c1.Type = L"Int";
+	//c1.Type = L"Int";
 	c1.Name = L"Name";
 
 	ColumnDef c2;
 	c2.IsUnique = false;
 	c2.KeyType = L"Int";
-	c2.Type = L"Int";
+	//c2.Type = L"Int";
 	c2.Name = L"ID";
 
 	Topology topo;
@@ -1105,8 +1223,10 @@ void OWTTest()
 
 	
 	Stopwatch watch;
+	Stopwatch watchtotal;
+	long long numrows = 1000000;
 
-	int numrows = 1000;
+	watchtotal.StartTimer();
 	for (int i = 0; i < numrows; i++)
 	{
 		//Parse file
@@ -1128,10 +1248,40 @@ void OWTTest()
 		session.Include(rowpointers, columns, false);
 		watch.StopTimer();
 	}
-
+	watchtotal.StopTimer();
 	double secs = watch.TotalTime();
 	cout << " secs: " << secs << "\r\n";	
-	cout << "\tRows per second: " << numrows / secs << "\r\n";
+	cout << "\tRows per second (no parsing): " << numrows / secs << "\r\n";
+
+	secs = watchtotal.TotalTime();
+	cout << " secs: " << secs << "\r\n";	
+	cout << "\tRows per second (including parsing): " << numrows / secs << "\r\n";
+
+	//long long rowId[987];
+	//eastl::vector<fs::Value> rowIds2;
+
+	////rowIds2.push_back(&numpull);
+
+	//for (long long i = 0; i < numrows; i++)
+	//{
+	//	rowId[i] = i;
+	//	rowIds2.push_back(&rowId[i]);
+	//}
+	//eastl::vector<fs::wstring> columns2;
+	//
+
+	////columns2.push_back(L"Surname");
+	//auto result = session.GetRows(rowIds2, columns);
+
+	//for (int i = 0; i < numrows; i++)
+	//{
+	//	for(int j = 0; j < 6; j++)
+	//	{
+	//		if (result.Cell(i,j) != NULL)
+	//			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << "^";
+	//	}
+	//	cout << "\n";
+	//}	
 
 	//cout << "Press key to pull rows";
 	//_getch();
@@ -1149,7 +1299,7 @@ void OWTTest()
 	auto result = session.GetRange(columns, range);
 	watch2.StopTimer();
 
-	secs = watch.TotalTime();
+	secs = watch2.TotalTime();
 	cout << " secs: " << secs << "\r\n";	
 	cout << "\tRows per second: " << result.Size() / secs << "\r\n";
 
@@ -1165,6 +1315,29 @@ void OWTTest()
 		cout << "\n";
 	}
 }
+
+void HashTest()
+{
+	eastl::hash<long long> hash;
+
+	for (long long i = 0; i < 100; i++)
+	{
+		cout << hash(i) << "\n";
+	}
+}
+
+//void KeyTreeTest()
+//{
+//	KeyTree kt(standardtypes::GetIntType());
+//
+//	for (int i = 0; i < 1000; i++)
+//	{
+//		auto path = kt.GetPath(&i);
+//		kt.Insert(path, &i);
+//	}
+//
+//	wcout << kt.ToString();
+//}
 
 void main()
 {
@@ -1193,6 +1366,9 @@ void main()
 	//TestChange();
 	//DatabaseTest();
 	OWTTest();
+	//HashTest();
+	//KeyTreeTest();
+	//TreeBufferTest();
 
 	_getch();
 }

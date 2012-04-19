@@ -7,3 +7,9 @@ Topology* Wrapper::ManagedTopology::GetNativePointer()
 {
 	return _nativeTopology;
 }
+
+void Wrapper::ManagedTopology::Add(ManagedColumnDef^ def)
+{
+	_nativeTopology->push_back(*(def->GetNativePointer()));
+}
+

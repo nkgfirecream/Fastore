@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="ManagedBTree.h" />
     <ClInclude Include="ManagedClient.h" />
+    <ClInclude Include="ManagedColumnDef.h" />
     <ClInclude Include="ManagedDatabase.h" />
     <ClInclude Include="ManagedDataSet.h" />
     <ClInclude Include="ManagedHost.h" />
@@ -180,6 +181,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ManagedBTree.cpp" />
     <ClCompile Include="ManagedClient.cpp" />
+    <ClCompile Include="ManagedColumnDef.cpp" />
     <ClCompile Include="ManagedDatabase.cpp" />
     <ClCompile Include="ManagedDataSet.cpp" />
     <ClCompile Include="ManagedHost.cpp" />

@@ -1,21 +1,52 @@
 #pragma once
 
 #include "..\typedefs.h"
-#include <EASTL\hash_set.h>
-#include <EASTL\hash_map.h>
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
+#include "..\KeyTree.h"
 #include "..\Column\IColumnBuffer.h"
 #include <EASTL\sort.h>
 
-using namespace eastl;
 
-const int UniqueBufferRowMapInitialSize = 32;
+template<> void standardtypes::CopyToArray<KeyTree*>(const void* item, void* arrpointer)
+{
+	memcpy(arrpointer, item, sizeof(KeyTree*));
+}
 
-class UniqueBuffer : public IColumnBuffer
+template<> void standardtypes::CopyToArray<BTree*>(const void* item, void* arrpointer)
+{
+	memcpy(arrpointer, item, sizeof(BTree*));
+}
+
+fs::wstring KeyTreeString(const void* item)
+{
+	wstringstream result;
+	result << (*(KeyTree**)item)->ToString();
+	return result.str();
+}
+
+ScalarType GetKeyTreeType()
+{
+	ScalarType type;
+	type.CopyIn = CopyToArray<KeyTree*>;
+	type.Size = sizeof(KeyTree*);
+	type.ToString = KeyTreeString;
+	return type;
+}
+
+ScalarType GetBTreeType()
+{
+	ScalarType type;
+	type.CopyIn = CopyToArray<BTree*>;
+	type.Size = sizeof(BTree*);
+	return type;
+}
+
+
+class TreeBuffer : public IColumnBuffer
 {
 	public:
-		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name);
+		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType, const fs::wstring& name);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
@@ -28,9 +59,12 @@ class UniqueBuffer : public IColumnBuffer
 		bool GetUnique();
 		bool GetRequired();
 
+		Value GetValue(Key rowId);
+		fs::wstring ToString();
+
 	private:
 		void ValuesMoved(void*, Node*);
-		Value GetValue(Key rowId);
+		
 		ValueKeysVector BuildData(BTree::iterator&, BTree::iterator&, void*, bool, int, bool&);
 		ScalarType _rowType;
 		ScalarType _valueType;
@@ -41,14 +75,14 @@ class UniqueBuffer : public IColumnBuffer
 		bool _required;
 };
 
-inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name)
+inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType& valueType,const fs::wstring& name)
 {
 	_name = name;
 	_rowType = rowType;
 	_valueType = valueType;
 	_nodeType = GetNodeType();
 	_rows = new BTree(_rowType, _nodeType);
-	_values = new BTree(_valueType, standardtypes::GetHashSetType());
+	_values = new BTree(_valueType, GetKeyTreeType());
 	_required = false;
 	_values->setValuesMovedCallback
 	(
@@ -59,33 +93,37 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 	);
 }
 
-inline fs::wstring UniqueBuffer::GetName()
+inline fs::wstring TreeBuffer::ToString()
+{
+	return _values->ToString();
+}
+
+inline fs::wstring TreeBuffer::GetName()
 {
 	return _name;
 }
 
-inline ScalarType UniqueBuffer::GetKeyType()
+inline ScalarType TreeBuffer::GetKeyType()
 {
 	return _valueType;
 }
 
-inline ScalarType UniqueBuffer::GetRowType()
+inline ScalarType TreeBuffer::GetRowType()
 {
 	return _rowType;
 }
 
-inline bool UniqueBuffer::GetUnique()
+inline bool TreeBuffer::GetUnique()
 {
-	return true;
+	return false;
 }
 
-inline bool UniqueBuffer::GetRequired()
+inline bool TreeBuffer::GetRequired()
 {
 	return _required;
 }
 
-
-inline ValueVector UniqueBuffer::GetValues(const KeyVector& rowIds)
+inline ValueVector TreeBuffer::GetValues(const KeyVector& rowIds)
 {
 	ValueVector values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
@@ -96,7 +134,7 @@ inline ValueVector UniqueBuffer::GetValues(const KeyVector& rowIds)
 	return values;
 }
 
-inline Value UniqueBuffer::GetValue(Key rowId)
+inline Value TreeBuffer::GetValue(Key rowId)
 {
 	bool match;
 	auto iterator = _rows->find(rowId, match);
@@ -104,13 +142,11 @@ inline Value UniqueBuffer::GetValue(Key rowId)
 	if (match)
 	{
 		Node* leaf = *(Node**)(*(iterator)).value;
-		auto locRowType = _rowType;
 		return leaf->GetKey
 		(
-			// TODO: would it help perf to put this callback into the type?
-			[rowId, locRowType](void* foundId) -> bool
+			[rowId](void* kt) -> bool
 			{
-				return locRowType.Compare(foundId, rowId) == 0;
+				return (*(KeyTree**)kt)->GetPath(rowId).Match;
 			}
 		);
 	}
@@ -120,7 +156,7 @@ inline Value UniqueBuffer::GetValue(Key rowId)
 	}
 }
 
-inline ValueKeysVectorVector UniqueBuffer::GetSorted(const KeyVectorVector& input)
+inline ValueKeysVectorVector TreeBuffer::GetSorted(const KeyVectorVector& input)
 {
 	ValueKeysVectorVector result;
 	for (unsigned int i = 0; i < input.size(); i++)
@@ -166,55 +202,94 @@ inline ValueKeysVectorVector UniqueBuffer::GetSorted(const KeyVectorVector& inpu
 	return result;
 }
 
-inline bool UniqueBuffer::Include(Value value, Key rowId)
+inline bool TreeBuffer::Include(Value value, Key rowId)
 {
 	//TODO: Return Undo Information
-	BTree::Path path = _values->GetPath(value);
+	BTree::Path  path = _values->GetPath(value);
 	if (path.Match)
-		return false;
+	{
+		KeyTree* existing = *(KeyTree**)(*path.Leaf)[path.LeafIndex].value;
+
+		auto keypath = existing->GetPath(rowId);
+		if (!keypath.Match)
+		{
+			existing->Insert(keypath, rowId);
+			auto rowpath = _rows->GetPath(rowId);
+			_rows->Insert(rowpath, rowId, &path.Leaf);			
+		}
+		else
+		{
+			return false;
+		}
+	}
 	else
 	{
+		KeyTree* newRows = new KeyTree(_rowType);
+
+		auto keypath = newRows->GetPath(rowId);
+		newRows->Insert(keypath, rowId);
 		auto rowpath = _rows->GetPath(rowId);
-		_rows->Insert(rowpath, rowId, &path.Leaf);
+		_rows->Insert(rowpath, rowId, &path.Leaf);		
 		//Insert may generate a different leaf that the value gets inserted into,
 		//so the above may be incorrect momentarily. If the value gets inserted
 		//on a new split, the callback will be run and change the entry.
-		_values->Insert(path, value, rowId);
+		_values->Insert(path, value, &newRows);
 
 		return true;
 	}
 }
 
-inline bool UniqueBuffer::Exclude(Value value, Key rowId)
+inline bool TreeBuffer::Exclude(Value value, Key rowId)
 {
 	BTree::Path  path = _values->GetPath(value);
 	//If existing is NULL, that row id did not exist under that value
 	if (path.Match)
 	{
-		Key existing = (Key)(*path.Leaf)[path.LeafIndex].value;
-		if (_rowType.Compare(existing, rowId) == 0)
+		KeyTree* existing = *(KeyTree**)(*path.Leaf)[path.LeafIndex].value;
+		auto keypath = existing->GetPath(rowId);
+		if (keypath.Match)
 		{
-			_values->Delete(path);
+			existing->Delete(keypath);
+			if (existing->Count() == 0)
+			{
+				_values->Delete(path);
+				delete(existing);
+			}
 			auto rowpath = _rows->GetPath(rowId);
-			_rows->Delete(rowpath);
+			if (rowpath.Match)
+				_rows->Delete(rowpath);
+
 			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 	
 	return false;
 }
 
-inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
+inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 {
-	bool match;
-	auto result = _rows->GetPath(value);
-	if (result.Match)
+	KeyTree* existingValues = *(KeyTree**)(value);
+
+	auto start = existingValues->begin();
+
+	while (!start.End())
 	{
-		_nodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
-	}
+		//TODO: Make Btree or iterator writeable
+		bool match;
+		auto result = _rows->GetPath((*start).key);
+		if (result.Match)
+		{
+			_nodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
+		}
+		start++;
+	}	
 }
 
-inline GetResult UniqueBuffer::GetRows(Range& range)
+inline GetResult TreeBuffer::GetRows(Range& range)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
@@ -303,7 +378,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	return result;
 }
 
-inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, Key startId, bool ascending, int limit, bool &limited)
+inline ValueKeysVector TreeBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, Key startId, bool ascending, int limit, bool &limited)
 {	
 	int num = 0;
 	bool foundCurrentId = startId == NULL;
@@ -312,14 +387,31 @@ inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::it
 	
 	while (first != last && !limited)
 	{
-		auto rowId = (Key)((*first).value);
+		auto rowIds = (KeyTree*)*(void**)((*first).value);
 		
-		KeyVector keys;
-		keys.push_back(rowId);
-		num++;
-		if (num == limit)
+		auto idStart = rowIds->begin();
+		auto idEnd = rowIds->end();
+
+		//Assumption.. The Id will exist in the first value we pull
+		//Otherwise either our tree has changed (we are on the wrong revision) or we have an invalid start id, and this loop will never terminate. Ever. Until the end of time.
+		while (!foundCurrentId)
 		{
-			limited = true; break;
+			if ((*idStart).key == startId)
+				foundCurrentId = true;
+
+			idStart++;				
+		}
+
+		KeyVector keys;
+		while (idStart != idEnd)
+		{
+			keys.push_back((*idStart).key);
+			idStart++;
+			num++;
+			if (num == limit)
+			{
+				limited = true; break;
+			}
 		}
 
 		if (keys.size() > 0)

@@ -55,7 +55,8 @@ class DataSet
 
 		void SetCell(int row, int column, void* value)
 		{	
-			Type[column].Type.CopyIn(value, &_buffer[(row * Type.BufferSize) + ColumnOffset(column)]);
+			if(value != NULL)
+				Type[column].Type.CopyIn(value, &_buffer[(row * Type.BufferSize) + ColumnOffset(column)]);
 		}
 
 		class byColumn : public eastl::iterator<std::forward_iterator_tag, void*>

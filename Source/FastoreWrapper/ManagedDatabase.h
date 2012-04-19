@@ -3,11 +3,11 @@
 
 #pragma managed(push, off)
 #include "../FastoreCore/Database.h"
+#include "../FastoreCore/Host.h"
 #pragma managed(pop)
 
 #include "ManagedSession.h"
-
-using namespace System;
+#include "ManagedHost.h"
 
 namespace Wrapper
 {
@@ -15,10 +15,15 @@ namespace Wrapper
 	{
 		private:
 			Database* _nativeDatabase;
+			Host* _nativeHost;
 
 		public:
 			Database* GetNativePointer();
 
+			ManagedDatabase(ManagedHost^ host) : _nativeHost(host->GetNativePointer())
+			{
+				_nativeDatabase = new Database(*(_nativeHost));
+			}
 			ManagedDatabase(Database* nativeDatabase) : _nativeDatabase(nativeDatabase) {};
 			ManagedSession^ Start();
 			TransactionID GetID(/* Token */);
