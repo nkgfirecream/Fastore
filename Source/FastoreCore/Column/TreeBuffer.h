@@ -204,6 +204,8 @@ inline ValueKeysVectorVector TreeBuffer::GetSorted(const KeyVectorVector& input)
 
 inline bool TreeBuffer::Include(Value value, Key rowId)
 {
+	int num = *(int*)rowId;
+	int badrow = 851;
 	//TODO: Return Undo Information
 	BTree::Path  path = _values->GetPath(value);
 	if (path.Match)
@@ -215,7 +217,13 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 		{
 			existing->Insert(keypath, rowId);
 			auto rowpath = _rows->GetPath(rowId);
-			_rows->Insert(rowpath, rowId, &path.Leaf);			
+			_rows->Insert(rowpath, rowId, &path.Leaf);	
+
+			if (GetValue(rowId) == NULL) //Debugging purposes -- insertion failed
+				throw;			
+	
+			if (num > badrow && GetValue(&badrow) == NULL)
+				throw;
 		}
 		else
 		{
@@ -234,6 +242,12 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 		//so the above may be incorrect momentarily. If the value gets inserted
 		//on a new split, the callback will be run and change the entry.
 		_values->Insert(path, value, &newRows);
+
+		if (GetValue(rowId) == NULL) //Debugging purposes -- insertion failed
+			throw;
+
+		if (num > badrow && GetValue(&badrow) == NULL)
+				throw;
 
 		return true;
 	}
@@ -275,18 +289,39 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	KeyTree* existingValues = *(KeyTree**)(value);
 
 	auto start = existingValues->begin();
+	auto end = existingValues->end();
 
-	while (!start.End())
+	while (start != end)
 	{
 		//TODO: Make Btree or iterator writeable
 		bool match;
 		auto result = _rows->GetPath((*start).key);
+
+		int num = *(int*)(*start).key;
+
+		
 		if (result.Match)
 		{
 			_nodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
 		}
-		start++;
+		else
+		{
+			throw;
+		}
+		++start;
 	}	
+
+
+	//start = existingValues->begin();
+
+	//while(start != end)
+	//{
+	//	auto result = _rows->GetPath((*start).key);
+	//	if(!((*result.Leaf)[result.LeafIndex].value == leaf))
+	//		throw;
+
+	//	++start;
+	//}
 }
 
 inline GetResult TreeBuffer::GetRows(Range& range)
@@ -294,8 +329,8 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	//These may not exist, add logic for handling that.
 	GetResult result;
 
-	bool firstMatch = true; //Seeking to beginning or end
-	bool lastMatch = true;
+	bool firstMatch = false; //Seeking to beginning or end
+	bool lastMatch = false;
 	BTree::iterator first = range.Start.HasValue() ? _values->find((*range.Start).Value, firstMatch) : _values->begin();
 	BTree::iterator last =  range.End.HasValue() ? _values->find((*range.End).Value, lastMatch) : _values->end();
 

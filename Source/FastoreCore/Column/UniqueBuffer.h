@@ -181,6 +181,9 @@ inline bool UniqueBuffer::Include(Value value, Key rowId)
 		//on a new split, the callback will be run and change the entry.
 		_values->Insert(path, value, rowId);
 
+		if (GetValue(rowId) == NULL)
+			throw;
+
 		return true;
 	}
 }
@@ -219,8 +222,8 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	//These may not exist, add logic for handling that.
 	GetResult result;
 
-	bool firstMatch = true; //Seeking to beginning or end
-	bool lastMatch = true;
+	bool firstMatch = false; //Seeking to beginning or end
+	bool lastMatch = false;
 	BTree::iterator first = range.Start.HasValue() ? _values->find((*range.Start).Value, firstMatch) : _values->begin();
 	BTree::iterator last =  range.End.HasValue() ? _values->find((*range.End).Value, lastMatch) : _values->end();
 

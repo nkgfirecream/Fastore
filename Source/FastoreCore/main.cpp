@@ -3,6 +3,7 @@
 #include "Column\HashBuffer.h"
 #include "Column\UniqueBuffer.h"
 //#include "Column\TreeBuffer.h"
+#include "KeyTree.h"
 #include <conio.h>
 #include <tbb\queuing_mutex.h>
 #include <iostream>
@@ -1149,7 +1150,7 @@ eastl::vector<fs::wstring> split(const fs::wstring& s, wchar_t delim, unsigned i
     }
 	while(i < length)
 	{
-		elems[i] = L"";
+		elems[i] = fs::wstring(L"");
 		i++;
 	}
     return elems;
@@ -1224,7 +1225,7 @@ void OWTTest()
 	
 	Stopwatch watch;
 	Stopwatch watchtotal;
-	long long numrows = 1000000;
+	long long numrows = 2000;
 
 	watchtotal.StartTimer();
 	for (int i = 0; i < numrows; i++)
@@ -1288,29 +1289,29 @@ void OWTTest()
 	
 	Stopwatch watch2;
 
-	int start = 100;
-	int stop = 1000;
+	//int start = 100;
+	//int stop = 1000;
 
-	fs::RangeBound startb(&start); 
-	fs::RangeBound endb(&stop);
+	fs::RangeBound startb(); 
+	fs::RangeBound endb();
 
-	Range range(100, Optional<fs::RangeBound>(startb), Optional<fs::RangeBound>(endb));
+	Range range(35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>(), true);
 	watch2.StartTimer();
-	auto result = session.GetRange(columns, range, 0);
+	auto result = session.GetRange(columns, range, 1);
 	watch2.StopTimer();
 
 	secs = watch2.TotalTime();
 	cout << " secs: " << secs << "\r\n";	
 	cout << "\tRows per second: " << result.Size() / secs << "\r\n";
 
-	wcout << columns[0] << " " << columns[1] << " " << columns[2] << " " << columns[3] << " " << columns[4] << " " << columns[5] << "\n";
+	wcout << columns[0] << "-" << columns[1] << "-" << columns[2] << "-" << columns[3] << "-" << columns[4] << "-" << columns[5] << "\n";
 	wcout << "___________________________________________________________\n";
 
 	for(int i = 0; i < result.Size(); i++)
 	{
 		for(int j = 0; j < 6; j++)
 		{
-			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << " ";
+			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << "-";
 		}
 		cout << "\n";
 	}
@@ -1326,18 +1327,65 @@ void HashTest()
 	}
 }
 
-//void KeyTreeTest()
-//{
-//	KeyTree kt(standardtypes::GetIntType());
-//
-//	for (int i = 0; i < 1000; i++)
-//	{
-//		auto path = kt.GetPath(&i);
-//		kt.Insert(path, &i);
-//	}
-//
-//	wcout << kt.ToString();
-//}
+void KeyTreeTest()
+{
+	cout << "Checking trees for all values (forward)\n";
+	BTree btf(standardtypes::GetIntType(), standardtypes::GetIntType());
+	KeyTree ktf(standardtypes::GetIntType());
+
+	int numrows = 8256;	
+	for (int i = 0; i <=0; i++)
+	{
+		auto path = ktf.GetPath(&i);
+		ktf.Insert(path, &i);
+
+		auto bpath = btf.GetPath(&i);
+		btf.Insert(bpath, &i, &i);
+	}
+
+	auto startf = ktf.begin();
+	auto endf = ktf.end();
+
+	for (int i = numrows; i <=0; i++)
+	{		
+		auto path = ktf.GetPath(&i);
+		if (!path.Match)
+			throw;
+
+		auto bpath = btf.GetPath(&i);
+		if (!bpath.Match)
+			throw;	
+	}
+
+	cout << "Checking trees for all values (reverse)\n";
+	BTree bt(standardtypes::GetIntType(), standardtypes::GetIntType());
+	KeyTree kt(standardtypes::GetIntType());
+
+	for (int i = numrows; i >= 0; i--)
+	{
+		auto path = kt.GetPath(&i);
+		kt.Insert(path, &i);
+
+		auto bpath = bt.GetPath(&i);
+		bt.Insert(bpath, &i, &i);
+	}
+
+	auto start = kt.begin();
+	auto end = kt.end();
+
+	for (int i = numrows; i >= 0; i--)
+	{		
+		auto path = kt.GetPath(&i);
+		if (!path.Match)
+			throw;
+
+		auto bpath = bt.GetPath(&i);
+		if (!bpath.Match)
+			throw;	
+	}
+
+	cout << "Stuff checks out...";
+}
 
 void main()
 {
@@ -1365,11 +1413,11 @@ void main()
 	//TestTransactionID();
 	//TestChange();
 	//DatabaseTest();
-	OWTTest();
+	//OWTTest();
 	//HashTest();
-	//KeyTreeTest();
+	KeyTreeTest();
 	//TreeBufferTest();
-
+	//AbigailDebugging();
 	_getch();
 }
 

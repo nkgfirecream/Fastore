@@ -269,7 +269,7 @@ class KeyNode
 			else
 			{
 				path.Leaf = this;
-				path.LeafIndex = _count -1;
+				path.LeafIndex = _count - 1;
 			}
 		}
 

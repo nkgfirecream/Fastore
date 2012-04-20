@@ -91,12 +91,12 @@ namespace Fastore.Core.Demo2
                 //}
                 //System.Diagnostics.Debug.WriteLine(output.ToString());
 
-                var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment };
+                var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
                 var xmlReader = XmlReader.Create(deflateStream, xrs);
 
                 var count = 0;
 
-                while (count++ < 10000)//16000000)
+                while (count++ < 1500)//16000000)
                 {
                     xmlReader.MoveToContent();
                     if (xmlReader.EOF)
@@ -177,11 +177,11 @@ namespace Fastore.Core.Demo2
         {
             if (record != null && record[0] != null) //Filter out junk data..
             {
-                record[1] = record[1] ?? "";
-                record[2] = record[2] ?? "";
+                record[1] = record[1] ?? "-";
+                record[2] = record[2] ?? "-";
                 record[3] = record[3] ?? false;
-                record[4] = record[4] ?? "";
-                record[5] = record[5] ?? "";
+                record[4] = record[4] ?? "-";
+                record[5] = record[5] ?? "-";
 
                 _session.Include(record, _columns, false);
             }

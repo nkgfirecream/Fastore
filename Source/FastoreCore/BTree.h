@@ -191,7 +191,7 @@ class Node
 					return operator[](i).key;
 			}
 
-			return NULL;
+			throw;
 		}
 
 		fs::wstring ToString()
@@ -276,7 +276,7 @@ class Node
 			else
 			{
 				path.Leaf = this;
-				path.LeafIndex = _count -1;
+				path.LeafIndex = _count - 1;
 			}
 		}
 
