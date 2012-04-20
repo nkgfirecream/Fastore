@@ -27,8 +27,8 @@ namespace Fastore.Core.Demo2
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
-            Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(@"C:\owt.txt");
-            parser.Delimiters = new string[] { "^" };
+           // Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(@"C:\owt.txt");
+           // parser.Delimiters = new string[] { "^" };            
 
             ManagedColumnDef c1 = new ManagedColumnDef();
             c1.IsUnique = true;
@@ -77,39 +77,115 @@ namespace Fastore.Core.Demo2
             _session = db.Start();
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
-            Stopwatch watch = new Stopwatch();
-            Stopwatch watchInner = new Stopwatch();
-            watch.Start();
-            int numrows = 150000;
-            for (int i = 0; i < numrows; i++)
+
+            using (var fileStream = new FileStream(@"C:\owt.xml.gz", FileMode.Open, FileAccess.Read))
             {
-                var strings = parser.ReadFields();
-                object[] objects = new object[6];
+                var deflateStream = new GZipStream(fileStream, CompressionMode.Decompress);
+                var streamReader = new StreamReader(deflateStream);
 
-                int id = int.Parse(strings[0]);
-                bool gender = strings[3].StartsWith("T");
+                // output sample
+                //var output = new StringWriter();
+                //for (var i = 0; i < 150; i++)
+                //{
+                //    output.WriteLine(streamReader.ReadLine());
+                //}
+                //System.Diagnostics.Debug.WriteLine(output.ToString());
 
-                objects[0] = id;
-                objects[3] = gender;
-                objects[1] = strings[1];
-                objects[2] = strings[2];
-                objects[4] = strings[4];
-                objects[5] = strings[5];
+                var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment };
+                var xmlReader = XmlReader.Create(deflateStream, xrs);
 
-                watchInner.Start();
-                _session.Include(objects, _columns, false);
-                watchInner.Stop();
+                var count = 0;
+
+                while (count++ < 10000)//16000000)
+                {
+                    xmlReader.MoveToContent();
+                    if (xmlReader.EOF)
+                        break;
+
+                    var subReader = xmlReader.ReadSubtree();
+                    object[] record = null;
+                    while (subReader.Read())
+                    {
+                        if (subReader.NodeType == XmlNodeType.Element)
+                        {
+                            if (subReader.Name == "d")
+                            {
+                                InsertRecord(record);
+
+                                record = new object[_columns.Length];
+
+                                if (subReader.MoveToAttribute("p"))
+                                    record[0] = int.Parse(subReader.Value);
+                            }
+                            else if (subReader.Name == "f" && subReader.MoveToAttribute("i"))
+                            {
+                                var code = subReader.Value;
+                                subReader.MoveToContent();
+                                switch (code)
+                                {
+                                    case "80004002": record[1] = subReader.ReadString(); break;
+                                    case "80004003": record[2] = subReader.ReadString(); break;
+                                    case "83004003": record[3] = subReader.ReadString().StartsWith("M", StringComparison.OrdinalIgnoreCase); break;
+                                    case "81004010": record[4] = subReader.ReadString(); break;
+                                    case "82004010": record[5] = subReader.ReadString(); break;
+                                }
+                            }
+                        }
+                    }
+
+                    InsertRecord(record);
+
+                    xmlReader.Read();
+                }
+
             }
-            watch.Stop();
 
-            //Stopwatch is not accurate...
-            MessageBox.Show("Rows: " + numrows + "\n" + "Row per second (excluding parsing): " + (watchInner.ElapsedMilliseconds / 1000.0) / numrows + "\n" + "Row per second (including parsing): " + (watch.ElapsedMilliseconds / 1000.0) / numrows);
-            Console.WriteLine();
+            //Stopwatch watch = new Stopwatch();
+            //Stopwatch watchInner = new Stopwatch();
+            //watch.Start();
+            //int numrows = 10000;
+            //for (int i = 0; i < numrows; i++)
+            //{
+            //    var strings = parser.ReadFields();
+            //    object[] objects = new object[6];
 
-            System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
+            //    int id = int.Parse(strings[0]);
+            //    bool gender = strings[3].StartsWith("T");
+
+            //    objects[0] = id;
+            //    objects[3] = gender;
+            //    objects[1] = strings[1];
+            //    objects[2] = strings[2];
+            //    objects[4] = strings[4];
+            //    objects[5] = strings[5];
+
+            //    watchInner.Start();
+            //    _session.Include(objects, _columns, false);
+            //    watchInner.Stop();
+            //}
+            //watch.Stop();
+
+            ////Stopwatch is not accurate...
+            //MessageBox.Show("Rows: " + numrows + "\n" + "Row per second (excluding parsing): " + (watchInner.ElapsedMilliseconds / 1000.0) / numrows + "\n" + "Row per second (including parsing): " + (watch.ElapsedMilliseconds / 1000.0) / numrows);
+
+            //System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
 
             comboBox1.SelectedIndex = 0;
 		}
+
+        private void InsertRecord(object[] record)
+        {
+            if (record != null && record[0] != null) //Filter out junk data..
+            {
+                record[1] = record[1] ?? "";
+                record[2] = record[2] ?? "";
+                record[3] = record[3] ?? false;
+                record[4] = record[4] ?? "";
+                record[5] = record[5] ?? "";
+
+                _session.Include(record, _columns, false);
+            }
+        }
 
 		private void RefreshItems()
 		{
@@ -145,6 +221,7 @@ namespace Fastore.Core.Demo2
             range = new ManagedRange(limit.HasValue ? limit.Value : 30, isForward, startb, endb);   
             
             var set = _session.GetRange(_columns, range, column);
+
             return ParseDataSet(set);
         }
 
