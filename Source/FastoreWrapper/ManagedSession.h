@@ -24,7 +24,7 @@ namespace Wrapper
 
 
 			ManagedTransaction^ Begin(System::Boolean readIsolation, System::Boolean writeIsolation);
-			ManagedDataSet^ GetRange(array<System::String^>^ columns, ManagedRange^ range/* [sorting]*/);
+			ManagedDataSet^ GetRange(array<System::String^>^ columns, ManagedRange^ range, System::Int32 rangecolumn/* [sorting]*/);
 			ManagedDataSet^ GetRows(array<System::Object^>^ rowIds, array<System::String^>^ columns/* Sorting*/);
 			System::Object^ Include(array<System::Object^>^ row, array<System::String^>^ columns, System::Boolean isPicky);
 			void Exclude(array<System::Object^>^ rowsIds, array<System::String^>^ columns, System::Boolean isPicky);

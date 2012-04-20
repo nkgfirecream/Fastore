@@ -13,6 +13,9 @@ namespace Wrapper
 	{
 		private:
 			fs::RangeBound* _nativeRangeBound;
+			void* valuep;
+			void* idp;
+			void* rowIdp;
 
 		public:
 			fs::RangeBound* GetNativePointer();
@@ -20,13 +23,49 @@ namespace Wrapper
 			ManagedRangeBound(System::Object^ value, System::Object^ rowId, System::Boolean inclusive)
 			{
 				//Convert object to void*
-				//void* valuep = ConvertObjectToVoidPointer(value);
+				
+				//Refactor this code into utilities... It appears all over.
+				auto type = value->GetType();
+				if (type == System::Int32::typeid)
+				{
+					valuep = new int((int)value);
+				}
+				else if (type == System::Boolean::typeid)
+				{
+					valuep = new bool((bool)value);
+				}
+				else if (type == System::String::typeid)
+				{
+					valuep = new std::wstring(Utilities::ConvertString((System::String^)value));
+				}
+				else
+				{
+					throw;
+				}
 
 				Optional<void*>* rowIdp;
 
 				if (rowId != nullptr)
 				{
-					//rowIdp = new Optional<void*>(ConvertObjectToVoidPointer(rowId));
+					auto type = rowId->GetType();
+					if (type == System::Int32::typeid)
+					{
+						idp = new int((int)value);
+					}
+					else if (type == System::Boolean::typeid)
+					{
+						idp = new bool((bool)value);
+					}
+					else if (type == System::String::typeid)
+					{
+						idp = new std::wstring(Utilities::ConvertString((System::String^)value));
+					}
+					else
+					{
+						throw;
+					}
+
+					rowIdp = new Optional<void*>(idp);
 				}
 				else
 				{
@@ -34,14 +73,24 @@ namespace Wrapper
 				}
 
 				//TODO : Create pointers, Optional, etc.
-				//_nativeRangeBound = new fs::RangeBound(valuep, *rowIdp, inclusive);
-
-				delete rowIdp;
+				_nativeRangeBound = new fs::RangeBound(valuep, *rowIdp, inclusive);
 			}
 
 			ManagedRangeBound()
 			{
 				_nativeRangeBound = new fs::RangeBound();
+			}
+
+			~ManagedRangeBound()
+			{
+				if (idp != NULL)
+					delete idp;
+
+				if (valuep != NULL)
+					delete valuep;
+
+				if (rowIdp != NULL)
+					delete rowIdp;
 			}
 	};
 
@@ -51,16 +100,15 @@ namespace Wrapper
 
 		private:
 			fs::Range* _nativeRange;
+			Optional<fs::RangeBound>*  startOpt;
+			Optional<fs::RangeBound>*  endOpt;
 
 		public:
 			fs::Range* GetNativePointer();
 
 			ManagedRange(fs::Range* nativeRange) : _nativeRange(nativeRange) {};
-			ManagedRange(System::Int32 limit, ManagedRangeBound^ start, ManagedRangeBound^ end, System::Boolean ascending)
-			{
-				Optional<fs::RangeBound>*  startOpt;
-				Optional<fs::RangeBound>*  endOpt;
-
+			ManagedRange(System::Int32 limit,  System::Boolean ascending, ManagedRangeBound^ start, ManagedRangeBound^ end)
+			{		
 				if (start != nullptr)
 				{
 					startOpt = new Optional<fs::RangeBound>(*(start->GetNativePointer()));
@@ -80,9 +128,15 @@ namespace Wrapper
 				}
 
 				_nativeRange = new fs::Range(limit, *startOpt, *endOpt, ascending);
+			}
 
-				delete startOpt;
-				delete endOpt;
-			}		
+			~ManagedRange()
+			{
+				if (startOpt != NULL)
+					delete startOpt;
+
+				if (endOpt != NULL)
+					delete endOpt;
+			}
 	};
 }

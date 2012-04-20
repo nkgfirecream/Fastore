@@ -13,7 +13,7 @@ namespace WrapperTest
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Reading people into Fastore...");
+           
             Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(@"C:\owt.txt");
             parser.Delimiters = new string[] { "^" };
 
@@ -101,7 +101,12 @@ namespace WrapperTest
                 rowIds[i] = i;
             }
 
-            var result = session.GetRows(rowIds, columns);
+            ManagedRangeBound bound1 = new ManagedRangeBound(100, null, true);
+            ManagedRangeBound bound2 = new ManagedRangeBound(1000, null, true);
+
+            ManagedRange range = new ManagedRange(100, false, bound1, bound2);
+
+            var result = session.GetRange(columns, range, 0);
 
             result.Dump();
             

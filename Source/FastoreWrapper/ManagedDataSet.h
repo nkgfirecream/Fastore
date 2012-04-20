@@ -18,6 +18,8 @@ namespace Wrapper
 			ManagedDataSet(DataSet* nativeSet) : _nativeDataSet(nativeSet) {}
 			DataSet* GetNativePointer();
 
+			int Size();
+			array<System::String^>^ Row(int row);
 			void Dump();
 	};
 }

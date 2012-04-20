@@ -110,12 +110,15 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fastore.Core\Fastore.Core.csproj">
-      <Project>{AAF3B01E-3982-4130-9269-A21366981891}</Project>
-      <Name>Fastore.Core</Name>
+    <ProjectReference Include="..\FastoreWrapper\FastoreWrapper.vcxproj">
+      <Project>{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}</Project>
+      <Name>FastoreWrapper</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(SolutionDir)\FastoreCore\tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)\tbb.dll</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -1296,7 +1296,7 @@ void OWTTest()
 
 	Range range(100, Optional<fs::RangeBound>(startb), Optional<fs::RangeBound>(endb));
 	watch2.StartTimer();
-	auto result = session.GetRange(columns, range);
+	auto result = session.GetRange(columns, range, 0);
 	watch2.StopTimer();
 
 	secs = watch2.TotalTime();

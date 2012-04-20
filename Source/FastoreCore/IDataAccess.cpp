@@ -17,7 +17,7 @@ void IDataAccess::Exclude(eastl::vector<void*> rowIds, eastl::vector<fs::wstring
 	}
 }
 
-DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range /*, [sorting]*/)
+DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range, int rangecolumn /*, [sorting]*/)
 {
 	//TODO: Fix this assumption: Range is always based on first column passed
 	ColumnTypeVector ctv;
@@ -34,7 +34,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range /*
 	}
 	TupleType tt(ctv);
 	
-	GetResult result =  _host.GetColumn(columns[0])->GetRows(range);
+	GetResult result =  _host.GetColumn(columns[rangecolumn])->GetRows(range);
 
 	//TODO: need to count results to get size of dataset to allocate.. How can we do this better? Pass count back with result?
 	int numrows = 0;
