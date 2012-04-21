@@ -181,9 +181,6 @@ inline bool UniqueBuffer::Include(Value value, Key rowId)
 		//on a new split, the callback will be run and change the entry.
 		_values->Insert(path, value, rowId);
 
-		if (GetValue(rowId) == NULL)
-			throw;
-
 		return true;
 	}
 }

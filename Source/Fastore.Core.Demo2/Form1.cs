@@ -96,7 +96,7 @@ namespace Fastore.Core.Demo2
 
                 var count = 0;
 
-                while (count++ < 1500)//16000000)
+                while (count++ < 1000000)//16000000)
                 {
                     xmlReader.MoveToContent();
                     if (xmlReader.EOF)

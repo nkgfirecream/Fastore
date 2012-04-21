@@ -269,7 +269,8 @@ class KeyNode
 			else
 			{
 				path.Leaf = this;
-				path.LeafIndex = _count - 1;
+				//This is after the last valid item on purpose. Do not change (unless you're changing all the logic that depends on it being this way too).
+				path.LeafIndex = _count;
 			}
 		}
 
@@ -426,7 +427,7 @@ class KeyNode
 				_count = mid - 1;
 
 				KeySplit* split = new KeySplit();
-				split->key = &_keys[(mid - 1) *_keyType.Size];
+				split->key = node->GetChildKey();
 				split->right = node;
 
 				if (index <= _count)
@@ -437,6 +438,18 @@ class KeyNode
 				return split;
 			}
 		}
+
+	   void* GetChildKey()
+	   {
+			if (_type == 1)
+			{
+				return (*(KeyNode**)(&_values[0]))->GetChildKey();
+			}
+			else
+			{
+				return &_keys[0];
+			}
+	   }
 
 
 		KeyTreeEntry operator[](int index)

@@ -2,7 +2,7 @@
 #include "Table\dataset.h"
 
 //IDataAccess
-void IDataAccess::Exclude(eastl::vector<void*> rowIds, eastl::vector<fs::wstring> columns, bool isPicky)
+void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns, bool isPicky)
 {
 	for (int i = 0; i < columns.size(); i++)
 	{
@@ -17,7 +17,7 @@ void IDataAccess::Exclude(eastl::vector<void*> rowIds, eastl::vector<fs::wstring
 	}
 }
 
-DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range, int rangecolumn /*, [sorting]*/)
+DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, Range& range, int rangecolumn /*, [sorting]*/)
 {
 	//TODO: Fix this assumption: Range is always based on first column passed
 	ColumnTypeVector ctv;
@@ -70,7 +70,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring> columns, Range range, i
 	return ds;
 }
 
-DataSet IDataAccess::GetRows(eastl::vector<void*> rowIds, eastl::vector<fs::wstring> columns  /*, sorting */)
+DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns  /*, sorting */)
 {
 	ColumnTypeVector ctv;
 	for (int i = 0; i < columns.size(); i++)
@@ -103,7 +103,7 @@ DataSet IDataAccess::GetRows(eastl::vector<void*> rowIds, eastl::vector<fs::wstr
 	return ds;
 }
 
-int IDataAccess::Include(eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)
+int IDataAccess::Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky)
 {
 	for (int i = 0; i < columns.size(); i++)
 	{
@@ -117,7 +117,7 @@ int IDataAccess::Include(eastl::vector<void*> row, eastl::vector<fs::wstring> co
 	return _currentID - 1;
 }
 
-void IDataAccess::Include(void* rowID, eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky)
+void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky)
 {
 	for (int i = 0; i < columns.size(); i++)
 	{

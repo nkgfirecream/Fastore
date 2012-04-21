@@ -108,7 +108,6 @@ Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds
 		}
 	}	
 
-
 	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
 
 	auto result = _nativeSession->GetRows(nativeIds, cols);

@@ -1145,12 +1145,15 @@ eastl::vector<fs::wstring> split(const fs::wstring& s, wchar_t delim, unsigned i
 	unsigned int i = 0;
     while(getline(ss, item, delim) && i < length)
 	{
-        elems[i] = item;
+		if (item != L"")
+			elems[i] = item;
+		else
+			elems[i] = fs::wstring(L"-");
 		i++;
     }
 	while(i < length)
 	{
-		elems[i] = fs::wstring(L"");
+		elems[i] = fs::wstring(L"-");
 		i++;
 	}
     return elems;
@@ -1225,7 +1228,7 @@ void OWTTest()
 	
 	Stopwatch watch;
 	Stopwatch watchtotal;
-	long long numrows = 2000;
+	long long numrows = 1000;
 
 	watchtotal.StartTimer();
 	for (int i = 0; i < numrows; i++)
@@ -1333,7 +1336,7 @@ void KeyTreeTest()
 	BTree btf(standardtypes::GetIntType(), standardtypes::GetIntType());
 	KeyTree ktf(standardtypes::GetIntType());
 
-	int numrows = 8256;	
+	int numrows = 100000;	
 	for (int i = 0; i <=0; i++)
 	{
 		auto path = ktf.GetPath(&i);
@@ -1413,9 +1416,9 @@ void main()
 	//TestTransactionID();
 	//TestChange();
 	//DatabaseTest();
-	//OWTTest();
+	OWTTest();
 	//HashTest();
-	KeyTreeTest();
+	//KeyTreeTest();
 	//TreeBufferTest();
 	//AbigailDebugging();
 	_getch();

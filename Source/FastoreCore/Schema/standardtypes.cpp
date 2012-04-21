@@ -314,7 +314,7 @@ ScalarType standardtypes::GetIntType()
 	type.Free = NULL;
 	type.Size = sizeof(int);
 	type.ToString = IntString;
-	type.IndexOf = TargetedIndexOf<int>;
+	type.IndexOf = CompareIndexOf<int, IntCompare>;
 	type.CopyIn = CopyToArray<int>;
 	type.Hash = IntHash;
 	return type;

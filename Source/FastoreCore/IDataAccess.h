@@ -26,10 +26,10 @@ class IDataAccess
 		}
 
 
-		DataSet GetRange(eastl::vector<fs::wstring> columns, Range range, int rangecolumn /*, [sorting]*/);
-		DataSet GetRows(eastl::vector<void*> rowdIds, eastl::vector<fs::wstring> columns  /*, sorting */);
-		int Include(eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky);
-		void Include(void* rowID, eastl::vector<void*> row, eastl::vector<fs::wstring> columns, bool isPicky);
-		void Exclude(eastl::vector<void*> rowIds, eastl::vector<fs::wstring> columns, bool isPicky);
+		DataSet GetRange(eastl::vector<fs::wstring>& columns, Range& range, int rangecolumn /*, [sorting]*/);
+		DataSet GetRows(eastl::vector<void*>& rowdIds, eastl::vector<fs::wstring>& columns  /*, sorting */);
+		int Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky);
+		void Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky);
+		void Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns, bool isPicky);
 		//void Exclude(range, columns, isPicky);
 };
