@@ -421,8 +421,7 @@ class KeyNode
 				KeyNode* node = new KeyNode(_tree, 1);
 				node->_count = _count - mid;
 				memcpy(&node->_keys[0], &_keys[mid *_keyType.Size], node->_count *_keyType.Size);
-				if(_type == 1)
-					memcpy(&node->_values[0], &_values[mid *_valueType.Size], (node->_count + 1) * _valueType.Size);
+				memcpy(&node->_values[0], &_values[mid *_valueType.Size], (node->_count + 1) * _valueType.Size);
 		
 				_count = mid - 1;
 

@@ -29,25 +29,22 @@ void Wrapper::ManagedSession::Exclude(array<Object^>^ rowIds, array<System::Stri
 System::Object^  Wrapper::ManagedSession::Include(array<Object^>^ row, array<System::String^>^ columns, System::Boolean isPicky)
 {
 	//Convert row
-	eastl::vector<void*> nativeRow;
+	eastl::vector<void*> nativeRow(row->Length);
 
 	for (int i = 0; i < row->Length; i++)
 	{
 		auto type = row[i]->GetType();
 		if (type == System::Int32::typeid)
 		{
-			int* intp = new int((int)row[i]);
-			nativeRow.push_back(intp);
+			nativeRow[i] = new int((int)row[i]);
 		}
 		else if (type == System::Boolean::typeid)
 		{
-			bool* boolp = new bool((bool)row[i]);
-			nativeRow.push_back(boolp);
+			nativeRow[i] = new bool((bool)row[i]);
 		}
 		else if (type == System::String::typeid)
 		{
-			std::wstring* pointer = new std::wstring(Utilities::ConvertString((System::String^)row[i]));
-			nativeRow.push_back(pointer);
+			nativeRow[i] = new std::wstring(Utilities::ConvertString((System::String^)row[i]));
 		}
 		else
 		{
@@ -82,25 +79,22 @@ Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds
 {
 	//ConvertIDs
 	//Convert row
-	eastl::vector<void*> nativeIds;
+	eastl::vector<void*> nativeIds(rowIds->Length);
 
 	for (int i = 0; i < rowIds->Length; i++)
 	{
 		auto type = rowIds[i]->GetType();
 		if (type == System::Int32::typeid)
 		{
-			int* intp = new int((int)rowIds[i]);
-			nativeIds.push_back(intp);
+			nativeIds[i] = new int((int)rowIds[i]);
 		}
 		else if (type == System::Boolean::typeid)
 		{
-			bool* boolp = new bool((bool)rowIds[i]);
-			nativeIds.push_back(boolp);
+			nativeIds[i] = new bool((bool)rowIds[i]);
 		}
 		else if (type == System::String::typeid)
 		{
-			std::wstring* pointer = new std::wstring(Utilities::ConvertString((System::String^)rowIds[i]));
-			nativeIds.push_back(pointer);
+			nativeIds[i] = new std::wstring(Utilities::ConvertString((System::String^)rowIds[i]));
 		}
 		else
 		{
@@ -111,6 +105,11 @@ Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds
 	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
 
 	auto result = _nativeSession->GetRows(nativeIds, cols);
+
+	for (int i = 0; i < nativeIds.size(); i++)
+	{
+		delete nativeIds[i];
+	}
 
 	//Put a copy of the DataSet on the heap, since we are wrapping it -- TODO: This is another tradeoff between marshaling everything at once vs marshal on demand. Right now, I'm using Marshal on Demand
 	DataSet* ds = new DataSet(result);
