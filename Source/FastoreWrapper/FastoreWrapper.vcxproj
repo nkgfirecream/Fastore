@@ -67,23 +67,31 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;C:\Projects\Alphora\Fastore\Source\FastoreCore;C:\Projects\Alphora\Fastore\Source\FastoreCore\TBB\include;C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Projects\Alphora\Fastore\Source\FastoreCore\bin\Debug;C:\Projects\Alphora\Fastore\Source\FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;C:\Projects\Alphora\Fastore\Source\FastoreCore;C:\Projects\Alphora\Fastore\Source\FastoreCore\TBB\include;C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Projects\Alphora\Fastore\Source\FastoreCore\bin\Debug;C:\Projects\Alphora\Fastore\Source\FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\intel64\vc10;$(LibraryPath)</LibraryPath>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;C:\Projects\Alphora\Fastore\Source\FastoreCore;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Projects\Alphora\Fastore\Source\FastoreCore\TBB\lib\ia32\vc10;C:\Projects\Alphora\Fastore\Source\FastoreCore\bin\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Projects\Alphora\Fastore\Source\FastoreCore\EABase\local\include\Common;C:\Projects\Alphora\Fastore\Source\FastoreCore\EASTL\include;C:\Projects\Alphora\Fastore\Source\FastoreCore;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Projects\Alphora\Fastore\Source\FastoreCore\TBB\lib\ia32\vc10;C:\Projects\Alphora\Fastore\Source\FastoreCore\bin\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\intel64\vc10;$(LibraryPath)</LibraryPath>
+    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,6 +105,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -108,8 +120,12 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FastoreCore.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -128,6 +144,10 @@
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Outputs>tbb.dll;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -146,6 +166,12 @@
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
     </Link>
+    <CustomBuildStep>
+      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>tbb.dll;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Reference Include="System" />

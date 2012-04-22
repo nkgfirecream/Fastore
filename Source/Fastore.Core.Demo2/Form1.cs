@@ -78,7 +78,7 @@ namespace Fastore.Core.Demo2
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
 
-            using (var fileStream = new FileStream(@"C:\owt.xml.gz", FileMode.Open, FileAccess.Read))
+            using (var fileStream = new FileStream(@"e:\owt.xml.gz", FileMode.Open, FileAccess.Read))
             {
                 var deflateStream = new GZipStream(fileStream, CompressionMode.Decompress);
                 var streamReader = new StreamReader(deflateStream);
@@ -96,7 +96,7 @@ namespace Fastore.Core.Demo2
 
                 var count = 0;
 
-                while (count++ < 1000000)//16000000)
+                while (count++ < 100000)//16000000)
                 {
                     xmlReader.MoveToContent();
                     if (xmlReader.EOF)
