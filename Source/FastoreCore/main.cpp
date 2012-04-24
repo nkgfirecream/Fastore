@@ -1295,8 +1295,8 @@ void OWTTest()
 	//int start = 100;
 	//int stop = 1000;
 
-	fs::RangeBound startb(); 
-	fs::RangeBound endb();
+	fs::RangeBound startb; 
+	fs::RangeBound endb;
 
 	Range range(L"Given", 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>(), true);
 

@@ -206,7 +206,6 @@ inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 
 inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 {
-	bool match;
 	auto result = _rows->GetPath(value);
 	if (result.Match)
 	{

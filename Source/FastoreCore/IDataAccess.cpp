@@ -19,7 +19,7 @@ void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstrin
 
 DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Range>& ranges)
 {
-	//TODO: Fix this assumption: Range is always based on first column passed
+	//TODO: Fix this assumption: Orderby is always first range passed.
 	ColumnTypeVector ctv;
 	for (int i = 0; i < columns.size(); i++)
 	{
@@ -35,7 +35,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	TupleType tt(ctv);
 
 	//Store old ids...
-	eastl::hash_set<void*> rowIds;
+	eastl::vector<void*> rowIds;
 	eastl::vector<void*> rowIdsOrdered;
 	for (int i = 0; i < ranges.size(); i++)
 	{
@@ -48,21 +48,28 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 				fs::ValueKeys keys = result.Data[k];
 				for (int j = 0; j < keys.second.size(); j++)
 				{
-					rowIds.insert(keys.second[j]);
+					rowIds.push_back(keys.second[j]);
 					rowIdsOrdered.push_back(keys.second[j]);
 				}
 			}
 		}
 		else
 		{
-			eastl::hash_set<void*> temp;
+			//Holy Nested Loops batman!!! (rework this once we have a substitute for the hash_set)
+			eastl::vector<void*> temp;
 			for (int k = 0; k < result.Data.size(); k++)
 			{
 				fs::ValueKeys keys = result.Data[k];
 				for (int j = 0; j < keys.second.size(); j++)
 				{
-					if (rowIds.find(keys.second[j]) != rowIds.end())
-						temp.insert(keys.second[j]);
+					for (int l; l < rowIds.size(); l++)
+					{
+						if (keys.second[j] == rowIds[l])
+						{
+							temp.push_back(keys.second[j]);
+							break;
+						}
+					}
 				}
 			}
 
@@ -79,10 +86,14 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	int index = 0;
 	for (int i = 0; i < rowIdsOrdered.size(); i++)
 	{
-		if (rowIds.find(rowIdsOrdered[i]) != rowIds.end())
+		for (int j = 0; j < rowIds.size(); j++)
 		{
-			kv[index] = rowIdsOrdered[i];
-			index++;
+			if (rowIds[j] == rowIdsOrdered[i])
+			{
+				kv[index] = rowIdsOrdered[i];
+				index++;
+				break;
+			}
 		}
 	}
 

@@ -282,7 +282,6 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	while (!start.End())
 	{
 		//TODO: Make Btree or iterator writeable
-		bool match;
 		auto result = _rows->GetPath((*start).key);
 		
 		if (result.Match)
