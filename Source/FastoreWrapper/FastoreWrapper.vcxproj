@@ -106,7 +106,7 @@
       <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
       <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -123,7 +123,7 @@
       <AdditionalDependencies>FastoreCore.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
       <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -145,7 +145,7 @@
       </LinkTimeCodeGeneration>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
       <Outputs>tbb.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -167,7 +167,7 @@
       </LinkTimeCodeGeneration>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>tbb.dll;%(Outputs)</Outputs>
