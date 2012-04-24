@@ -17,7 +17,7 @@ void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstrin
 	}
 }
 
-DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, Range& range, int rangecolumn /*, [sorting]*/)
+DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Range>& ranges)
 {
 	//TODO: Fix this assumption: Range is always based on first column passed
 	ColumnTypeVector ctv;
@@ -33,37 +33,75 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, Range& range,
 		ctv.push_back(ct);
 	}
 	TupleType tt(ctv);
-	
-	GetResult result =  _host.GetColumn(columns[rangecolumn])->GetRows(range);
 
-	//TODO: need to count results to get size of dataset to allocate.. How can we do this better? Pass count back with result?
-	int numrows = 0;
-
-	KeyVector kv(numrows);
-	for (int i = 0; i < result.Data.size(); i++)
+	//Store old ids...
+	eastl::hash_set<void*> rowIds;
+	eastl::vector<void*> rowIdsOrdered;
+	for (int i = 0; i < ranges.size(); i++)
 	{
-		fs::ValueKeys keys = result.Data[i];
-		for (int j = 0; j < keys.second.size(); j++)
+		GetResult result = _host.GetColumn(ranges[i].Column)->GetRows(ranges[i]);
+
+		if (i == 0)
+		{	
+			for (int k = 0; k < result.Data.size(); k++)
+			{
+				fs::ValueKeys keys = result.Data[k];
+				for (int j = 0; j < keys.second.size(); j++)
+				{
+					rowIds.insert(keys.second[j]);
+					rowIdsOrdered.push_back(keys.second[j]);
+				}
+			}
+		}
+		else
 		{
-			kv.push_back(keys.second[j]);
-			numrows++;
+			eastl::hash_set<void*> temp;
+			for (int k = 0; k < result.Data.size(); k++)
+			{
+				fs::ValueKeys keys = result.Data[k];
+				for (int j = 0; j < keys.second.size(); j++)
+				{
+					if (rowIds.find(keys.second[j]) != rowIds.end())
+						temp.insert(keys.second[j]);
+				}
+			}
+
+			rowIds = temp;
+		}
+
+		//filtered everything, just skip
+		if(rowIds.size() == 0)
+			break;
+	}
+
+	KeyVector kv(rowIds.size());
+	//Put stuff back into a vector... but in the right order
+	int index = 0;
+	for (int i = 0; i < rowIdsOrdered.size(); i++)
+	{
+		if (rowIds.find(rowIdsOrdered[i]) != rowIds.end())
+		{
+			kv[index] = rowIdsOrdered[i];
+			index++;
 		}
 	}
 
-	DataSet ds(tt, numrows);
+	DataSet ds(tt, kv.size());
 
 	//TODO: DataSet could easily be filled in a multi-thread fashion with a pointer the its buffer, a rowsize, and a rowoffset (each thread fills one column)
 	//TODO: It's also the case that we don't need to call back into the column buffer to get the values for the ranged rows, we just need to write the code to materialize the data
 	
-
-	for (int i = 0; i < columns.size(); i++)
+	if (kv.size() > 0)
 	{
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
-
-		fs::ValueVector result = cb->GetValues(kv);
-		for (int j = 0; j < kv.size(); j++)
+		for (int i = 0; i < columns.size(); i++)
 		{
-			ds.SetCell(j, i, result[j]);
+			IColumnBuffer* cb = _host.GetColumn(columns[i]);
+
+			fs::ValueVector result = cb->GetValues(kv);
+			for (int j = 0; j < kv.size(); j++)
+			{
+				ds.SetCell(j, i, result[j]);
+			}
 		}
 	}
 

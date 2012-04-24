@@ -26,7 +26,7 @@ class IDataAccess
 		}
 
 
-		DataSet GetRange(eastl::vector<fs::wstring>& columns, Range& range, int rangecolumn /*, [sorting]*/);
+		DataSet GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Range>& ranges);
 		DataSet GetRows(eastl::vector<void*>& rowdIds, eastl::vector<fs::wstring>& columns  /*, sorting */);
 		int Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky);
 		void Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky);

@@ -1,6 +1,10 @@
 #pragma once
 #include "stdafx.h"
 
+#pragma managed(push, off)
+#include "../FastoreCore/Range.h"
+#pragma managed(pop)
+
 using namespace fs;
 
 namespace Wrapper

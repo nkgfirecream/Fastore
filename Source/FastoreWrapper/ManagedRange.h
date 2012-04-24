@@ -1,10 +1,11 @@
 #pragma once
 #include "stdafx.h"
-#include "Utilities.h"
 
 #pragma managed(push, off)
 #include "../FastoreCore/Range.h"
 #pragma managed(pop)
+
+#include "Utilities.h"
 
 namespace Wrapper
 {
@@ -107,7 +108,7 @@ namespace Wrapper
 			fs::Range* GetNativePointer();
 
 			ManagedRange(fs::Range* nativeRange) : _nativeRange(nativeRange) {};
-			ManagedRange(System::Int32 limit,  System::Boolean ascending, ManagedRangeBound^ start, ManagedRangeBound^ end)
+			ManagedRange(System::String^ column, System::Int32 limit,  System::Boolean ascending, ManagedRangeBound^ start, ManagedRangeBound^ end)
 			{		
 				if (start != nullptr)
 				{
@@ -127,7 +128,7 @@ namespace Wrapper
 					endOpt = new Optional<fs::RangeBound>();
 				}
 
-				_nativeRange = new fs::Range(limit, *startOpt, *endOpt, ascending);
+				_nativeRange = new fs::Range(Wrapper::Utilities::ConvertString(column), limit, *startOpt, *endOpt, ascending);
 			}
 
 			~ManagedRange()

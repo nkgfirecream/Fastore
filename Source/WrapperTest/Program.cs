@@ -104,9 +104,11 @@ namespace WrapperTest
             ManagedRangeBound bound1 = new ManagedRangeBound(100, null, true);
             ManagedRangeBound bound2 = new ManagedRangeBound(1000, null, true);
 
-            ManagedRange range = new ManagedRange(100, false, bound1, bound2);
+            ManagedRange range = new ManagedRange("ID", 100, false, bound1, bound2);
 
-            var result = session.GetRange(columns, range, 0);
+            ManagedRange[] ranges = new ManagedRange[] { range };
+
+            var result = session.GetRange(columns, ranges);
 
             result.Dump();
             

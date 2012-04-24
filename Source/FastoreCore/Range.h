@@ -21,13 +21,16 @@ namespace fs
 	{
 		const static int MaxLimit = 500;
 
-		Range(int limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>(), bool ascending = true):
-			Limit(limit), Start(start), End(end), Ascending(ascending) {}	
+		Range(fs::wstring column, int limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>(), bool ascending = true):
+			Limit(limit), Start(start), End(end), Ascending(ascending), Column(column) {}	
 
 		int Limit;
 		bool Ascending;
+		fs::wstring Column;
 
 		Optional<RangeBound> Start;
 		Optional<RangeBound> End;
+
+
 	};
 }

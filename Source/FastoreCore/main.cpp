@@ -535,7 +535,7 @@ void HashBufferTest()
 	}*/
 
 	//Ascending, inclusive, first 30 rows;
-	Range range;
+	Range range(L"Dummy");
 	range.Ascending = true;
 	range.Limit = 400;
 
@@ -770,7 +770,7 @@ void UniqueBufferTest()
 	}*/
 
 	//Ascending, inclusive, first 30 rows;
-	Range range;
+	Range range(L"Dummy");
 	range.Ascending = true;
 	range.Limit = 400;
 
@@ -1298,9 +1298,12 @@ void OWTTest()
 	fs::RangeBound startb(); 
 	fs::RangeBound endb();
 
-	Range range(35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>(), true);
+	Range range(L"Given", 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>(), true);
+
+	eastl::vector<Range> ranges;
+	ranges.push_back(range);
 	watch2.StartTimer();
-	auto result = session.GetRange(columns, range, 1);
+	auto result = session.GetRange(columns, ranges);
 	watch2.StopTimer();
 
 	secs = watch2.TotalTime();

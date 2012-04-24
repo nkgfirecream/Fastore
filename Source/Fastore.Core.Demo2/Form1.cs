@@ -78,25 +78,17 @@ namespace Fastore.Core.Demo2
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
 
-            using (var fileStream = new FileStream(@"e:\owt.xml.gz", FileMode.Open, FileAccess.Read))
+            using (var fileStream = new FileStream(@"E:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
             {
-                var deflateStream = new GZipStream(fileStream, CompressionMode.Decompress);
-                var streamReader = new StreamReader(deflateStream);
-
-                // output sample
-                //var output = new StringWriter();
-                //for (var i = 0; i < 150; i++)
-                //{
-                //    output.WriteLine(streamReader.ReadLine());
-                //}
-                //System.Diagnostics.Debug.WriteLine(output.ToString());
 
                 var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
-                var xmlReader = XmlReader.Create(deflateStream, xrs);
+                var xmlReader = XmlReader.Create(fileStream, xrs);
 
+               
                 var count = 0;
-
-                while (count++ < 100000)//16000000)
+                Stopwatch watch = new Stopwatch();
+                watch.Start();
+                while (count++ < 10000)//16000000)
                 {
                     xmlReader.MoveToContent();
                     if (xmlReader.EOF)
@@ -137,6 +129,11 @@ namespace Fastore.Core.Demo2
 
                     xmlReader.Read();
                 }
+                watch.Stop();
+
+                MessageBox.Show("Row per second : " + (1000000 /(watch.ElapsedMilliseconds / 1000.0)));
+
+                System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
 
             }
 
@@ -166,9 +163,8 @@ namespace Fastore.Core.Demo2
             //watch.Stop();
 
             ////Stopwatch is not accurate...
-            //MessageBox.Show("Rows: " + numrows + "\n" + "Row per second (excluding parsing): " + (watchInner.ElapsedMilliseconds / 1000.0) / numrows + "\n" + "Row per second (including parsing): " + (watch.ElapsedMilliseconds / 1000.0) / numrows);
-
-            //System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
+            
+        
 
             comboBox1.SelectedIndex = 0;
 		}
@@ -177,11 +173,11 @@ namespace Fastore.Core.Demo2
         {
             if (record != null && record[0] != null) //Filter out junk data..
             {
-                record[1] = record[1] ?? "-";
-                record[2] = record[2] ?? "-";
+                record[1] = record[1] ?? "";
+                record[2] = record[2] ?? "";
                 record[3] = record[3] ?? false;
-                record[4] = record[4] ?? "-";
-                record[5] = record[5] ?? "-";
+                record[4] = record[4] ?? "";
+                record[5] = record[5] ?? "";
 
                 _session.Include(record, _columns, false);
             }
@@ -190,7 +186,7 @@ namespace Fastore.Core.Demo2
 		private void RefreshItems()
 		{
 			listView1.Items.Clear();
-			foreach (var item in Select(comboBox1.SelectedIndex, String.IsNullOrEmpty(textBox1.Text) ? null : textBox1.Text, null, 35, true, null))
+			foreach (var item in SelectData())
 			{
 				listView1.Items.Add
 				(
@@ -202,27 +198,91 @@ namespace Fastore.Core.Demo2
 			}
 		}
 
-        private IEnumerable<string[]> Select(int column, object start, object end, int? limit, bool isForward, int[] projection)
+        private IEnumerable<string[]> SelectData()
         {
-            ManagedRange range = null;
-            ManagedRangeBound startb = null;
-            ManagedRangeBound endb = null;
+            List<ManagedRange> ranges = new List<ManagedRange>();
 
-            if (start != null)
+            foreach (var item in _columns)
             {
-                startb = new ManagedRangeBound(start, null, true);              
+                if (item == comboBox1.SelectedItem.ToString())
+                {
+                    //Force the selected Item into the range as the first item
+                    //So that the data is ordered by it/
+                    ranges.Insert(0, CreateRange(item, true));
+                }
+                else
+                {
+                    var range = CreateRange(item, false);
+                    if (range != null)
+                        ranges.Add(range);
+                }
             }
-
-            if (end != null)
-            {
-                endb = new ManagedRangeBound(start, null, true);     
-            }
-
-            range = new ManagedRange(limit.HasValue ? limit.Value : 30, isForward, startb, endb);   
             
-            var set = _session.GetRange(_columns, range, column);
+            var set = _session.GetRange(_columns, ranges.ToArray());
 
             return ParseDataSet(set);
+        }
+
+        //Force just means create a range even even we aren't searching on it. There's a better way to do this I'm sure,
+        //But time crunch time.
+        private ManagedRange CreateRange(string item, bool force)
+        {
+            //How do you search for controls by name on winforms...
+            ManagedRange range = null;
+            int limit = 100;
+            switch (item)
+            {
+                case "ID":
+                    if (force || !String.IsNullOrEmpty(IDSearch.Text))
+                    {
+                        int id = 0;
+                        int.TryParse(IDSearch.Text, out id);
+
+                        ManagedRangeBound start = new ManagedRangeBound(id, null, true);
+                        range = new ManagedRange("ID", limit, true, start, null);
+                    }
+                    break;
+                case "Given":
+                    if (force || !String.IsNullOrEmpty(GivenSearch.Text))
+                    {
+                        ManagedRangeBound start = new ManagedRangeBound(GivenSearch.Text, null, true);
+                        range = new ManagedRange("Given", limit, true, start, null);
+                    }
+                    break;
+                case "Surname":
+                    if (force || !String.IsNullOrEmpty(SurnameSearch.Text))
+                    {
+                        ManagedRangeBound start = new ManagedRangeBound(SurnameSearch.Text, null, true);
+                        range = new ManagedRange("Surname", limit, true, start, null);
+                    }
+                    break;
+                case "Gender" :
+                    if (force || !String.IsNullOrEmpty(GenderSearch.Text))
+                    {
+                        bool gender;
+                        bool.TryParse(GenderSearch.Text, out gender);
+                        ManagedRangeBound start = new ManagedRangeBound(gender, null, true);
+                        range = new ManagedRange("Gender", limit, true, start, null);
+                    }
+                    break;
+                case "BirthPlace" :
+                    if (force || !String.IsNullOrEmpty(BirthPlaceSearch.Text))
+                    {
+                        ManagedRangeBound start = new ManagedRangeBound(BirthPlaceSearch.Text, null, true);
+                        range = new ManagedRange("BirthPlace", limit, true, start, null);
+                    }
+                    break;
+                case "BirthDate" :
+                    if (force || !String.IsNullOrEmpty(BirthDateSearch.Text))
+                    {
+                        ManagedRangeBound start = new ManagedRangeBound(BirthDateSearch.Text, null, true);
+                        range = new ManagedRange("BirthDate", limit, true, start, null);
+                    }
+                    break;
+                default: break;
+            }
+
+            return range;
         }
 
         private IEnumerable<string[]> ParseDataSet(ManagedDataSet set)
@@ -238,10 +298,10 @@ namespace Fastore.Core.Demo2
 			RefreshItems();
 		}
 
-		private void textBox1_TextChanged(object sender, EventArgs e)
-		{
-			RefreshItems();
-		}
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            RefreshItems();
+        }
 
 
 	}

@@ -64,10 +64,17 @@ System::Object^  Wrapper::ManagedSession::Include(array<Object^>^ row, array<Sys
 	return gcnew System::Int32;
 }
 
-Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRange(array<System::String^>^ columns, ManagedRange^ range, System::Int32 rangecolumn/* [sorting]*/)
+Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRange(array<System::String^>^ columns, array<ManagedRange^>^ ranges)
 {
 	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
-	auto result = _nativeSession->GetRange(cols, *range->GetNativePointer(), rangecolumn);
+
+	eastl::vector<Range> rgs;
+	for (int i = 0; i < ranges->Length; i++)
+	{
+		rgs.push_back((*ranges[i]->GetNativePointer()));
+	}
+
+	auto result = _nativeSession->GetRange(cols, rgs);
 
 	//Put a copy of the DataSet on the heap, since we are wrapping it -- TODO: This is another tradeoff between marshaling everything at once vs marshal on demand. Right now, I'm using Marshal on Demand
 	DataSet* ds = new DataSet(result);
