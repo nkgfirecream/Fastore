@@ -1,0 +1,2 @@
+***Testing***
+The testing suite, cfix, is included in a Visual Studio add-on: Visual Assert (http://www.visualassert.com/unit-testing-framework/), which has been included in the External source directory.

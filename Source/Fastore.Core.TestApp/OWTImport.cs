@@ -10,9 +10,9 @@ namespace Fastore.Core.TestApp
 {
 	public class OWTImport
 	{
-		static void Main(string[] args)
-		{
+        //static void Main(string[] args)
+        //{
 
-		}
+        //}
 	}
 }
