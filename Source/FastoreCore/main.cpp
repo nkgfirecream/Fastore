@@ -1213,13 +1213,10 @@ void OWTTest()
 	topo.push_back(c5);
 	topo.push_back(c6);
 
-	Session session;
-	{
-		HostFactory hf;
-		Host host = hf.Create(topo);
-		Database db(host);
-		session = db.Start();
-	}
+	HostFactory hf;
+	Host host = hf.Create(topo);
+	Database db(host);
+	Session	session = db.Start();
 
 	eastl::vector<fs::wstring> columns;
 
@@ -1254,7 +1251,7 @@ void OWTTest()
 		rowpointers[4] = &row.at(4);
 		rowpointers[5] = &row.at(5);
 		watch.StartTimer();
-		session.Include(rowpointers, columns, false);
+		session.Include(&i, rowpointers, columns);
 		watch.StopTimer();
 	}
 	watchtotal.StopTimer();
@@ -1303,12 +1300,13 @@ void OWTTest()
 	fs::RangeBound startb; 
 	fs::RangeBound endb;
 
-	Range range(L"Given", 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>(), true);
+	Range range(L"Given", 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>());
 
 	eastl::vector<Range> ranges;
+	eastl::vector<Order> orders;
 	ranges.push_back(range);
 	watch2.StartTimer();
-	auto result = session.GetRange(columns, ranges);
+	auto result = session.GetRange(columns, orders, ranges);
 	watch2.StopTimer();
 
 	secs = watch2.TotalTime();

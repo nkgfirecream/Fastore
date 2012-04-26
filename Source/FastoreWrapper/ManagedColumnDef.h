@@ -62,5 +62,18 @@ namespace Wrapper
 					_nativeColumnDef->KeyType = Utilities::ConvertString(value);
 				}
 			}
+
+			property System::String^ IDType
+			{
+				System::String^ get()
+				{
+					return Utilities::ConvertString(_nativeColumnDef->IDType);
+				}
+
+				void set(System::String^ value)
+				{
+					_nativeColumnDef->IDType = Utilities::ConvertString(value);
+				}
+			}
 	};
 }

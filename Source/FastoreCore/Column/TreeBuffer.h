@@ -50,7 +50,7 @@ class TreeBuffer : public IColumnBuffer
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
-		GetResult GetRows(Range& range);
+		GetResult GetRows(Range& range, bool ascending);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 
 		ScalarType GetRowType();
@@ -299,7 +299,7 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	}	
 }
 
-inline GetResult TreeBuffer::GetRows(Range& range)
+inline GetResult TreeBuffer::GetRows(Range& range, bool ascending = true)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
@@ -311,8 +311,8 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 
 	if (range.Start.HasValue() && range.End.HasValue())
 	{
-		RangeBound& start = *range.Start;
-		RangeBound& end = *range.End;
+		RangeBound start = *range.Start;
+		RangeBound end = *range.End;
 
 		//Bounds checking
 		//TODO: Is this needed? Could the BuildData logic handle this correctly?
@@ -330,7 +330,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	}
 
 	//Swap iterators if descending
-	if (range.Ascending)
+	if (ascending)
 	{
 		//Adjust iterators
 		//Last needs to point to the element AFTER the last one we want to get
@@ -378,7 +378,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				: range.End.HasValue() && (*range.End).RowId.HasValue() 
 					? *(*range.End).RowId
 					: NULL, 
-			range.Ascending, 
+			ascending, 
 			range.Limit > range.MaxLimit
 				? range.MaxLimit 
 				: range.Limit, 

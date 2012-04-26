@@ -5,25 +5,39 @@
 
 using namespace msclr::interop;
 
-void* Wrapper::Utilities::ConvertObjectToVoidPointer(System::Object^ object)
+void* Wrapper::Utilities::ConvertObjectToNative(System::Object^ object)
 {
 	if (object == nullptr)
 		return NULL;
 
+	//TODO: Consider storing the conversions as functions in a hash to avoid branching.
 	auto type = object->GetType();
-	if (type->IsValueType)
+	if (type == System::Int32::typeid)
 	{
-		//pin and return
+		return new int((int)object);
+	}
+	else if (type == System::Int64::typeid)
+	{
+		return new long long((long long)object);
+	}
+	else if (type == System::Boolean::typeid)
+	{
+		return new bool((bool)object);
 	}
 	else if (type == System::String::typeid)
 	{
-
+		return new std::wstring(ConvertString((System::String^)object));
+	}
+	else
+	{
+		//Unsupported Type.
+		throw;
 	}
 
 	return NULL;
 }
 
-System::Object^ Wrapper::Utilities::ConvertVoidPointerToObject(void* pointer)
+System::Object^ Wrapper::Utilities::ConvertNativeToObject(void* pointer)
 {
 	//TODO: What if we are get the actual bytes for an int? Then this won't work...
 	if (pointer == NULL)

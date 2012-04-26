@@ -8,13 +8,14 @@ void Host::CreateColumn(ColumnDef  def)
 {
 	IColumnBuffer* newbuffer;
 	ScalarType keyType = GetScalarTypeFromString(def.KeyType);
+	ScalarType idType = GetScalarTypeFromString(def.IDType);
 	if(def.IsUnique)
 	{
-		newbuffer = new UniqueBuffer(standardtypes::GetIntType(), keyType, def.Name);
+		newbuffer = new UniqueBuffer(idType, keyType, def.Name);
 	}
 	else
 	{
-		newbuffer = new TreeBuffer(standardtypes::GetIntType(), keyType, def.Name);
+		newbuffer = new TreeBuffer(idType, keyType, def.Name);
 	}
 
 	_columns.push_back(newbuffer);
@@ -50,6 +51,7 @@ IColumnBuffer* Host::GetColumn(const fs::wstring name)
 
 ScalarType Host::GetScalarTypeFromString(fs::wstring tname)
 {
+	//TODO: Consider putting this into a hash to avoid branches.
 	if (tname == L"String")
 	{
 		return standardtypes::GetStringType();

@@ -23,8 +23,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreWrapper", "FastoreWr
 		{15EB3934-3C4F-450A-B1A4-88E8216A396B} = {15EB3934-3C4F-450A-B1A4-88E8216A396B}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrapperTest", "WrapperTest\WrapperTest.csproj", "{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo", "Fastore.Core.Demo\Fastore.Core.Demo.csproj", "{5FF0C992-F981-4940-AD28-1EE27153597D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo2", "Fastore.Core.Demo2\Fastore.Core.Demo2.csproj", "{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}"
@@ -111,16 +109,6 @@ Global
 		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|x64.Build.0 = Release|x64
 		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|x86.ActiveCfg = Release|Win32
 		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|x86.Build.0 = Release|Win32
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Debug|x86.ActiveCfg = Debug|x86
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|Mixed Platforms.Build.0 = Release|x86
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|Win32.ActiveCfg = Release|Any CPU
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|x64.ActiveCfg = Release|Any CPU
-		{21FA58B1-3453-4E18-8E9A-3A3FD2905AE3}.Release|x86.ActiveCfg = Release|x86
 		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
 		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|Mixed Platforms.Build.0 = Debug|x86
 		{5FF0C992-F981-4940-AD28-1EE27153597D}.Debug|Win32.ActiveCfg = Debug|Any CPU

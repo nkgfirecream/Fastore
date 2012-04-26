@@ -235,6 +235,7 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="ILock.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
+    <ClInclude Include="Order.h" />
     <ClInclude Include="Range.h" />
     <ClInclude Include="Schema\column.h" />
     <ClInclude Include="Schema\standardtypes.h" />

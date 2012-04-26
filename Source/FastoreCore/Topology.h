@@ -7,6 +7,7 @@ struct ColumnDef
 {
 	fs::wstring Name;
 	fs::wstring KeyType;
+	fs::wstring IDType;
 	bool IsUnique;
 };
 

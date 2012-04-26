@@ -19,7 +19,7 @@ class UniqueBuffer : public IColumnBuffer
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
-		GetResult GetRows(Range& range);
+		GetResult GetRows(Range& range, bool ascending);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 
 		ScalarType GetRowType();
@@ -31,7 +31,7 @@ class UniqueBuffer : public IColumnBuffer
 	private:
 		void ValuesMoved(void*, Node*);
 		Value GetValue(Key rowId);
-		ValueKeysVector BuildData(BTree::iterator&, BTree::iterator&, void*, bool, int, bool&);
+		ValueKeysVector BuildData(BTree::iterator&, BTree::iterator&, bool, int, bool&);
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -213,7 +213,7 @@ inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 	}
 }
 
-inline GetResult UniqueBuffer::GetRows(Range& range)
+inline GetResult UniqueBuffer::GetRows(Range& range, bool ascending = true)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
@@ -244,7 +244,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	}
 
 	//Swap iterators if descending
-	if (range.Ascending)
+	if (ascending)
 	{
 		//Adjust iterators
 		//Last needs to point to the element AFTER the last one we want to get
@@ -286,13 +286,8 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 		BuildData
 		(
 			first, 
-			last, 
-			range.Start.HasValue() && (*range.Start).RowId.HasValue() 
-				? *(*range.Start).RowId 
-				: range.End.HasValue() && (*range.End).RowId.HasValue() 
-					? *(*range.End).RowId
-					: NULL, 
-			range.Ascending, 
+			last,
+			ascending, 
 			range.Limit > range.MaxLimit
 				? range.MaxLimit 
 				: range.Limit, 
@@ -302,7 +297,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	return result;
 }
 
-inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, Key startId, bool ascending, int limit, bool &limited)
+inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, bool ascending, int limit, bool &limited)
 {	
 	int num = 0;
     limited = false;

@@ -85,7 +85,7 @@ namespace WrapperTest
                 objects[5] = strings[5];
 
                 watchInner.Start();
-                session.Include(objects, columns, false);
+                session.Include(objects, columns);
                 watchInner.Stop();
             }
             watch.Stop();

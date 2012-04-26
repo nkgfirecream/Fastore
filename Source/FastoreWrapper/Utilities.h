@@ -12,10 +12,10 @@ namespace Wrapper
 	public ref class Utilities
 	{
 		public:
-			static void* ConvertObjectToVoidPointer(System::Object^ object);
+			static void* ConvertObjectToNative(System::Object^ object);
 
 			//TODO: template this function? What type do we need to go to?
-			static System::Object^ ConvertVoidPointerToObject(void* pointer);
+			static System::Object^ ConvertNativeToObject(void* pointer);
 
 			static array<System::String^>^ ConvertStringArray(eastl::vector<std::wstring>);
 			static eastl::vector<std::wstring> ConvertStringArray(array<System::String^>^);

@@ -20,7 +20,7 @@ class IColumnBuffer
 		virtual bool Include(Value value, Key rowID) = 0;
 		virtual bool Exclude(Value value, Key rowID) = 0;
 		virtual ValueKeysVectorVector GetSorted(const KeyVectorVector &keyValues) = 0; 
-		virtual GetResult GetRows(Range &range) = 0;
+		virtual GetResult GetRows(Range &range, bool ascending) = 0;
 
 
 		//TODO: Either get rid of these as we refactor, or push them to the base class to reduce the number of virtual calls.

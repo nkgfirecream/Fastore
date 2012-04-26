@@ -2,7 +2,7 @@
 #include "Table\dataset.h"
 
 //IDataAccess
-void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns, bool isPicky)
+void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns)
 {
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
@@ -17,12 +17,12 @@ void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstrin
 	}
 }
 
-DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Range>& ranges)
+DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Order>& orders, eastl::vector<Range>& ranges)
 {
 	//TODO: Fix this assumption: Orderby is always first range passed.
 	ColumnTypeVector ctv;
 	for (unsigned int i = 0; i < columns.size(); i++)
-	{
+	{ 
 		ColumnType ct;
 		IColumnBuffer* cb = _host.GetColumn(columns[i]);
 		ct.IsRequired = cb->GetRequired();
@@ -34,69 +34,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	}
 
 	TupleType tt(ctv);
-	GetResult result = _host.GetColumn(ranges[0].Column)->GetRows(ranges[0]);
-
-	//Store old ids...
-	//eastl::vector<void*> rowIds;
-	//eastl::vector<void*> rowIdsOrdered;
-	//for (unsigned int i = 0; i < ranges.size(); i++)
-	//{
-	//	
-	//	if (i == 0)
-	//	{
-	//		for (unsigned int k = 0; k < result.Data.size(); k++)
-	//		{
-	//			fs::ValueKeys keys = result.Data[k];
-	//			for (unsigned int j = 0; j < keys.second.size(); j++)
-	//			{
-	//				rowIds.push_back(keys.second[j]);
-	//				rowIdsOrdered.push_back(keys.second[j]);
-	//			}
-	//		}
-	//	}
-	//	else
-	//	{
-	//		//Holy Nested Loops batman!!! (rework this once we have a substitute for the hash_set)
-	//		eastl::vector<void*> temp;
-	//		for (unsigned int k = 0; k < result.Data.size(); k++)
-	//		{
-	//			fs::ValueKeys keys = result.Data[k];
-	//			for (unsigned int j = 0; j < keys.second.size(); j++)
-	//			{
-	//				for (unsigned int l = 0; l < rowIds.size(); l++)
-	//				{
-	//					if (keys.second[j] == rowIds[l])
-	//					{
-	//						temp.push_back(keys.second[j]);
-	//						break;
-	//					}
-	//				}
-	//			}
-	//		}
-
-	//		rowIds = temp;
-	//	}
-
-	//	//filtered everything, just skip
-	//	if(rowIds.size() == 0)
-	//		break;
-	//}
-
-	//KeyVector kv(rowIds.size());
-	////Put stuff back into a vector... but in the right order
-	//int index = 0;
-	//for (unsigned int i = 0; i < rowIdsOrdered.size(); i++)
-	//{
-	//	for (unsigned int j = 0; j < rowIds.size(); j++)
-	//	{
-	//		if (rowIds[j] == rowIdsOrdered[i])
-	//		{
-	//			kv[index] = rowIdsOrdered[i];
-	//			index++;
-	//			break;
-	//		}
-	//	}
-	//}
+	GetResult result = _host.GetColumn(ranges[0].Column)->GetRows(ranges[0], true);
 
 	KeyVector kv;
 
@@ -132,7 +70,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	return ds;
 }
 
-DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns  /*, sorting */)
+DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns)
 {
 	ColumnTypeVector ctv;
 	for (unsigned int i = 0; i < columns.size(); i++)
@@ -165,21 +103,21 @@ DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wst
 	return ds;
 }
 
-int IDataAccess::Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky)
-{
-	for (unsigned int i = 0; i < columns.size(); i++)
-	{
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
+//int IDataAccess::Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky)
+//{
+//	for (unsigned int i = 0; i < columns.size(); i++)
+//	{
+//		IColumnBuffer* cb = _host.GetColumn(columns[i]);
+//
+//		cb->Include(row[i], &_currentID);
+//	}
+//
+//	_currentID++;
+//
+//	return _currentID - 1;
+//}
 
-		cb->Include(row[i], &_currentID);
-	}
-
-	_currentID++;
-
-	return _currentID - 1;
-}
-
-void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky)
+void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns)
 {
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
