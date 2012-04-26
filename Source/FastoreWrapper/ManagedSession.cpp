@@ -56,7 +56,7 @@ System::Object^  Wrapper::ManagedSession::Include(array<Object^>^ row, array<Sys
 	auto result = _nativeSession->Include(nativeRow, cols, isPicky);
 
 
-	for (int i = 0; i < nativeRow.size(); i++)
+	for (unsigned int i = 0; i < nativeRow.size(); i++)
 	{
 		delete nativeRow[i];
 	}
@@ -113,7 +113,7 @@ Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds
 
 	auto result = _nativeSession->GetRows(nativeIds, cols);
 
-	for (int i = 0; i < nativeIds.size(); i++)
+	for (unsigned int i = 0; i < nativeIds.size(); i++)
 	{
 		delete nativeIds[i];
 	}

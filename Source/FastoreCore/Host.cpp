@@ -34,7 +34,7 @@ void Host::DeleteColumn(fs::wstring name)
 	//rebuild index
 	_columnMap.clear();
 
-	for (int i = 0; i < _columns.size(); i++)
+	for (unsigned int i = 0; i < _columns.size(); i++)
 	{
 		IColumnBuffer* buf = _columns.at(i);
 

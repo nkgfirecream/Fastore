@@ -244,8 +244,8 @@ inline GetResult HashBuffer::GetRows(Range& range)
 
 	if (range.Start.HasValue() && range.End.HasValue())
 	{
-		RangeBound& start = *range.Start;
-		RangeBound& end = *range.End;
+		RangeBound start = *range.Start;
+		RangeBound end = *range.End;
 
 		//Bounds checking
 		//TODO: Is this needed? Could the BuildData logic handle this correctly?

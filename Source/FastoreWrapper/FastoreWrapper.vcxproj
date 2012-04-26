@@ -84,8 +84,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)FastoreCore\bin\Release;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
     <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>

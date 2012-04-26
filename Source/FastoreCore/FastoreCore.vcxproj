@@ -199,7 +199,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
     <ClCompile Include="Client.cpp" />
-    <ClCompile Include="ColumnTransactor.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="EASTL\source\allocator.cpp" />
     <ClCompile Include="EASTL\source\assert.cpp" />
@@ -216,7 +215,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClCompile Include="Table\dataset.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
-    <ClCompile Include="Table\table.cpp" />
     <ClCompile Include="Transaction.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
@@ -225,7 +223,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="BTree.h" />
     <ClInclude Include="Change.h" />
     <ClInclude Include="Client.h" />
-    <ClInclude Include="ColumnTransactor.h" />
     <ClInclude Include="Column\HashBuffer.h" />
     <ClInclude Include="Column\IColumnBuffer.h" />
     <ClInclude Include="Column\ColumnManager.h" />
@@ -245,7 +242,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="Table\dataset.h" />
     <ClInclude Include="Schema\tuple.h" />
     <ClInclude Include="Schema\scalar.h" />
-    <ClInclude Include="Table\ranges.h" />
     <ClInclude Include="Topology.h" />
     <ClInclude Include="Transaction.h" />
     <ClInclude Include="TransactionID.h" />
@@ -253,7 +249,6 @@ copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
     <ClInclude Include="typedefs.h" />
     <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
-    <ClInclude Include="Table\table.h" />
     <ClInclude Include="Util\utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

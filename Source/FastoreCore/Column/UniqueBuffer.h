@@ -225,8 +225,8 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 
 	if (range.Start.HasValue() && range.End.HasValue())
 	{
-		RangeBound& start = *range.Start;
-		RangeBound& end = *range.End;
+		RangeBound start = *range.Start;
+		RangeBound end = *range.End;
 
 		//Bounds checking
 		//TODO: Is this needed? Could the BuildData logic handle this correctly?
@@ -305,7 +305,6 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, Key startId, bool ascending, int limit, bool &limited)
 {	
 	int num = 0;
-	bool foundCurrentId = startId == NULL;
     limited = false;
 	ValueKeysVector rows;	
 	

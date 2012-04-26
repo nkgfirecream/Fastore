@@ -147,8 +147,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>copy $(SolutionDir)FastoreCore\tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)
+copy $(SolutionDir)FastoreWrapper\bin\$(Configuration)\FastoreWrapper.dll $(ProjectDir)bin\$(Configuration)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

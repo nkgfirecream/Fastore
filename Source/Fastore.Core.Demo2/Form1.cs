@@ -78,7 +78,7 @@ namespace Fastore.Core.Demo2
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
 
-            using (var fileStream = new FileStream(@"E:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
+            using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
             {
 
                 var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
@@ -88,8 +88,9 @@ namespace Fastore.Core.Demo2
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                while (count++ < 10000)//16000000)
-                {
+                int numrows = 7000000;
+                while (count++ < numrows)//16000000)
+                { 
                     xmlReader.MoveToContent();
                     if (xmlReader.EOF)
                         break;
@@ -131,7 +132,7 @@ namespace Fastore.Core.Demo2
                 }
                 watch.Stop();
 
-                MessageBox.Show("Row per second : " + (1000000 /(watch.ElapsedMilliseconds / 1000.0)));
+                MessageBox.Show("Row per second : " + (numrows /(watch.ElapsedMilliseconds / 1000.0)));
 
                 System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
 
@@ -202,21 +203,29 @@ namespace Fastore.Core.Demo2
         {
             List<ManagedRange> ranges = new List<ManagedRange>();
 
-            foreach (var item in _columns)
+            ManagedRangeBound start = null;
+            if (!String.IsNullOrWhiteSpace(Search.Text))
             {
-                if (item == comboBox1.SelectedItem.ToString())
-                {
-                    //Force the selected Item into the range as the first item
-                    //So that the data is ordered by it/
-                    ranges.Insert(0, CreateRange(item, true));
-                }
-                else
-                {
-                    var range = CreateRange(item, false);
-                    if (range != null)
-                        ranges.Add(range);
-                }
+                start = new ManagedRangeBound(Search.Text, null, true);
             }
+         
+            ranges.Add(new ManagedRange(comboBox1.SelectedItem.ToString(), 100, true, start, null));
+
+            //foreach (var item in _columns)
+            //{
+            //    if (item == comboBox1.SelectedItem.ToString())
+            //    {
+            //        //Force the selected Item into the range as the first item
+            //        //So that the data is ordered by it/
+            //        ranges.Insert(0, CreateRange(item, true));
+            //    }
+            //    else
+            //    {
+            //        var range = CreateRange(item, false);
+            //        if (range != null)
+            //            ranges.Add(range);
+            //    }
+            //}
             
             var set = _session.GetRange(_columns, ranges.ToArray());
 
@@ -225,65 +234,65 @@ namespace Fastore.Core.Demo2
 
         //Force just means create a range even even we aren't searching on it. There's a better way to do this I'm sure,
         //But time crunch time.
-        private ManagedRange CreateRange(string item, bool force)
-        {
-            //How do you search for controls by name on winforms...
-            ManagedRange range = null;
-            int limit = 100;
-            switch (item)
-            {
-                case "ID":
-                    if (force || !String.IsNullOrEmpty(IDSearch.Text))
-                    {
-                        int id = 0;
-                        int.TryParse(IDSearch.Text, out id);
+        //private ManagedRange CreateRange(string item, bool force)
+        //{
+        //    //How do you search for controls by name on winforms...
+        //    ManagedRange range = null;
+        //    int limit = 100;
+        //    switch (item)
+        //    {
+        //        case "ID":
+        //            if (force || !String.IsNullOrEmpty(IDSearch.Text))
+        //            {
+        //                int id = 0;
+        //                int.TryParse(IDSearch.Text, out id);
 
-                        ManagedRangeBound start = new ManagedRangeBound(id, null, true);
-                        range = new ManagedRange("ID", limit, true, start, null);
-                    }
-                    break;
-                case "Given":
-                    if (force || !String.IsNullOrEmpty(GivenSearch.Text))
-                    {
-                        ManagedRangeBound start = new ManagedRangeBound(GivenSearch.Text, null, true);
-                        range = new ManagedRange("Given", limit, true, start, null);
-                    }
-                    break;
-                case "Surname":
-                    if (force || !String.IsNullOrEmpty(SurnameSearch.Text))
-                    {
-                        ManagedRangeBound start = new ManagedRangeBound(SurnameSearch.Text, null, true);
-                        range = new ManagedRange("Surname", limit, true, start, null);
-                    }
-                    break;
-                case "Gender" :
-                    if (force || !String.IsNullOrEmpty(GenderSearch.Text))
-                    {
-                        bool gender;
-                        bool.TryParse(GenderSearch.Text, out gender);
-                        ManagedRangeBound start = new ManagedRangeBound(gender, null, true);
-                        range = new ManagedRange("Gender", limit, true, start, null);
-                    }
-                    break;
-                case "BirthPlace" :
-                    if (force || !String.IsNullOrEmpty(BirthPlaceSearch.Text))
-                    {
-                        ManagedRangeBound start = new ManagedRangeBound(BirthPlaceSearch.Text, null, true);
-                        range = new ManagedRange("BirthPlace", limit, true, start, null);
-                    }
-                    break;
-                case "BirthDate" :
-                    if (force || !String.IsNullOrEmpty(BirthDateSearch.Text))
-                    {
-                        ManagedRangeBound start = new ManagedRangeBound(BirthDateSearch.Text, null, true);
-                        range = new ManagedRange("BirthDate", limit, true, start, null);
-                    }
-                    break;
-                default: break;
-            }
+        //                ManagedRangeBound start = new ManagedRangeBound(id, null, true);
+        //                range = new ManagedRange("ID", limit, true, start, null);
+        //            }
+        //            break;
+        //        case "Given":
+        //            if (force || !String.IsNullOrEmpty(GivenSearch.Text))
+        //            {
+        //                ManagedRangeBound start = new ManagedRangeBound(GivenSearch.Text, null, true);
+        //                range = new ManagedRange("Given", limit, true, start, null);
+        //            }
+        //            break;
+        //        case "Surname":
+        //            if (force || !String.IsNullOrEmpty(SurnameSearch.Text))
+        //            {
+        //                ManagedRangeBound start = new ManagedRangeBound(SurnameSearch.Text, null, true);
+        //                range = new ManagedRange("Surname", limit, true, start, null);
+        //            }
+        //            break;
+        //        case "Gender" :
+        //            if (force || !String.IsNullOrEmpty(GenderSearch.Text))
+        //            {
+        //                bool gender;
+        //                bool.TryParse(GenderSearch.Text, out gender);
+        //                ManagedRangeBound start = new ManagedRangeBound(gender, null, true);
+        //                range = new ManagedRange("Gender", limit, true, start, null);
+        //            }
+        //            break;
+        //        case "BirthPlace" :
+        //            if (force || !String.IsNullOrEmpty(BirthPlaceSearch.Text))
+        //            {
+        //                ManagedRangeBound start = new ManagedRangeBound(BirthPlaceSearch.Text, null, true);
+        //                range = new ManagedRange("BirthPlace", limit, true, start, null);
+        //            }
+        //            break;
+        //        case "BirthDate" :
+        //            if (force || !String.IsNullOrEmpty(BirthDateSearch.Text))
+        //            {
+        //                ManagedRangeBound start = new ManagedRangeBound(BirthDateSearch.Text, null, true);
+        //                range = new ManagedRange("BirthDate", limit, true, start, null);
+        //            }
+        //            break;
+        //        default: break;
+        //    }
 
-            return range;
-        }
+        //    return range;
+        //}
 
         private IEnumerable<string[]> ParseDataSet(ManagedDataSet set)
         {

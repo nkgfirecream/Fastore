@@ -30,7 +30,7 @@
 		{
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.IDSearch = new System.Windows.Forms.TextBox();
+            this.Search = new System.Windows.Forms.TextBox();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -38,11 +38,6 @@
             this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.GivenSearch = new System.Windows.Forms.TextBox();
-            this.SurnameSearch = new System.Windows.Forms.TextBox();
-            this.GenderSearch = new System.Windows.Forms.TextBox();
-            this.BirthDateSearch = new System.Windows.Forms.TextBox();
-            this.BirthPlaceSearch = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // comboBox1
@@ -66,23 +61,23 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(402, 14);
+            this.label1.Location = new System.Drawing.Point(127, 14);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(41, 13);
             this.label1.TabIndex = 1;
             this.label1.Text = "Search";
             // 
-            // IDSearch
+            // Search
             // 
-            this.IDSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.Search.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.IDSearch.Location = new System.Drawing.Point(11, 36);
-            this.IDSearch.Margin = new System.Windows.Forms.Padding(2);
-            this.IDSearch.Name = "IDSearch";
-            this.IDSearch.Size = new System.Drawing.Size(112, 20);
-            this.IDSearch.TabIndex = 2;
-            this.IDSearch.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
+            this.Search.Location = new System.Drawing.Point(172, 11);
+            this.Search.Margin = new System.Windows.Forms.Padding(2);
+            this.Search.Name = "Search";
+            this.Search.Size = new System.Drawing.Size(349, 20);
+            this.Search.TabIndex = 2;
+            this.Search.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // listView1
             // 
@@ -96,10 +91,10 @@
             this.columnHeader4,
             this.columnHeader5,
             this.columnHeader6});
-            this.listView1.Location = new System.Drawing.Point(11, 60);
+            this.listView1.Location = new System.Drawing.Point(11, 36);
             this.listView1.Margin = new System.Windows.Forms.Padding(2);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(904, 493);
+            this.listView1.Size = new System.Drawing.Size(902, 494);
             this.listView1.TabIndex = 3;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -134,73 +129,13 @@
             this.columnHeader6.Text = "Birth Place";
             this.columnHeader6.Width = 198;
             // 
-            // GivenSearch
-            // 
-            this.GivenSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.GivenSearch.Location = new System.Drawing.Point(127, 36);
-            this.GivenSearch.Margin = new System.Windows.Forms.Padding(2);
-            this.GivenSearch.Name = "GivenSearch";
-            this.GivenSearch.Size = new System.Drawing.Size(151, 20);
-            this.GivenSearch.TabIndex = 4;
-            this.GivenSearch.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
-            // SurnameSearch
-            // 
-            this.SurnameSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.SurnameSearch.Location = new System.Drawing.Point(282, 36);
-            this.SurnameSearch.Margin = new System.Windows.Forms.Padding(2);
-            this.SurnameSearch.Name = "SurnameSearch";
-            this.SurnameSearch.Size = new System.Drawing.Size(131, 20);
-            this.SurnameSearch.TabIndex = 5;
-            this.SurnameSearch.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
-            // GenderSearch
-            // 
-            this.GenderSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.GenderSearch.Location = new System.Drawing.Point(417, 36);
-            this.GenderSearch.Margin = new System.Windows.Forms.Padding(2);
-            this.GenderSearch.Name = "GenderSearch";
-            this.GenderSearch.Size = new System.Drawing.Size(112, 20);
-            this.GenderSearch.TabIndex = 6;
-            this.GenderSearch.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
-            // BirthDateSearch
-            // 
-            this.BirthDateSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.BirthDateSearch.Location = new System.Drawing.Point(533, 36);
-            this.BirthDateSearch.Margin = new System.Windows.Forms.Padding(2);
-            this.BirthDateSearch.Name = "BirthDateSearch";
-            this.BirthDateSearch.Size = new System.Drawing.Size(178, 20);
-            this.BirthDateSearch.TabIndex = 7;
-            this.BirthDateSearch.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
-            // BirthPlaceSearch
-            // 
-            this.BirthPlaceSearch.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.BirthPlaceSearch.Location = new System.Drawing.Point(719, 36);
-            this.BirthPlaceSearch.Margin = new System.Windows.Forms.Padding(2);
-            this.BirthPlaceSearch.Name = "BirthPlaceSearch";
-            this.BirthPlaceSearch.Size = new System.Drawing.Size(186, 20);
-            this.BirthPlaceSearch.TabIndex = 8;
-            this.BirthPlaceSearch.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(926, 564);
-            this.Controls.Add(this.BirthPlaceSearch);
-            this.Controls.Add(this.BirthDateSearch);
-            this.Controls.Add(this.GenderSearch);
-            this.Controls.Add(this.SurnameSearch);
-            this.Controls.Add(this.GivenSearch);
+            this.ClientSize = new System.Drawing.Size(924, 541);
             this.Controls.Add(this.listView1);
-            this.Controls.Add(this.IDSearch);
+            this.Controls.Add(this.Search);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.comboBox1);
             this.Margin = new System.Windows.Forms.Padding(2);
@@ -216,19 +151,14 @@
 
 		private System.Windows.Forms.ComboBox comboBox1;
 		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.TextBox IDSearch;
+		private System.Windows.Forms.TextBox Search;
 		private System.Windows.Forms.ListView listView1;
 		private System.Windows.Forms.ColumnHeader columnHeader1;
 		private System.Windows.Forms.ColumnHeader columnHeader2;
 		private System.Windows.Forms.ColumnHeader columnHeader3;
 		private System.Windows.Forms.ColumnHeader columnHeader4;
 		private System.Windows.Forms.ColumnHeader columnHeader5;
-		private System.Windows.Forms.ColumnHeader columnHeader6;
-        private System.Windows.Forms.TextBox GivenSearch;
-        private System.Windows.Forms.TextBox SurnameSearch;
-        private System.Windows.Forms.TextBox GenderSearch;
-        private System.Windows.Forms.TextBox BirthDateSearch;
-        private System.Windows.Forms.TextBox BirthPlaceSearch;
+        private System.Windows.Forms.ColumnHeader columnHeader6;
 	}
 }
 

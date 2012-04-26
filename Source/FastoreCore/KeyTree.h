@@ -10,7 +10,7 @@
 using namespace std;
 using namespace standardtypes;
 
-const int KeyDefaultListCapacity = 128;
+const int KeyDefaultListCapacity = 24;
 const int KeyDefaultBranchListSize = 8;
 
 struct KeySplit;
@@ -294,7 +294,6 @@ class KeyNode
 					return true;
 				else
 				{
-					int depth =  - 1;
 					// walk up until we are no longer at the end
 					while (path.Branches.size() > 0)
 					{
@@ -330,7 +329,6 @@ class KeyNode
 					return true;
 				else
 				{
-					int depth =  - 1;
 					// walk up until we are no longer at the beginning
 					while (path.Branches.size() > 0)
 					{

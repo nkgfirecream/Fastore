@@ -218,6 +218,8 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 			auto rowpath = _rows->GetPath(rowId);
 
 			_rows->Insert(rowpath, rowId, &path.Leaf);
+
+			return true;
 		}
 		else
 		{
@@ -295,18 +297,6 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 
 		++start;
 	}	
-
-
-	//start = existingValues->begin();
-
-	//while(start != end)
-	//{
-	//	auto result = _rows->GetPath((*start).key);
-	//	if(!((*result.Leaf)[result.LeafIndex].value == leaf))
-	//		throw;
-
-	//	++start;
-	//}
 }
 
 inline GetResult TreeBuffer::GetRows(Range& range)

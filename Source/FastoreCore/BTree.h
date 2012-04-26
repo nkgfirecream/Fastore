@@ -301,7 +301,6 @@ class Node
 					return true;
 				else
 				{
-					int depth =  - 1;
 					// walk up until we are no longer at the end
 					while (path.Branches.size() > 0)
 					{
@@ -337,7 +336,6 @@ class Node
 					return true;
 				else
 				{
-					int depth =  - 1;
 					// walk up until we are no longer at the beginning
 					while (path.Branches.size() > 0)
 					{

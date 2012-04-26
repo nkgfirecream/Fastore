@@ -48,7 +48,7 @@ array<System::String^>^ Wrapper::Utilities::ConvertStringArray(eastl::vector<std
 {
 	array<System::String^>^ strings = gcnew array<System::String^>(native.size());
 
-	for (int i = 0; i < native.size(); i++)
+	for (unsigned int i = 0; i < native.size(); i++)
 	{
 		strings[i] = Utilities::ConvertString(native[i]);
 	}

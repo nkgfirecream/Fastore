@@ -4,7 +4,7 @@ Host HostFactory::Create(Topology topo)
 {
 	Host host;
 
-	for (int i = 0; i < topo.size(); i++)
+	for (unsigned int i = 0; i < topo.size(); i++)
 	{
 		host.CreateColumn(topo[i]);
 	}
