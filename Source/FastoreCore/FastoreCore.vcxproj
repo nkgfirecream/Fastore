@@ -65,27 +65,27 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
+    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,7 +108,7 @@
       </Profile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(OutDir)</Command>
       <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -131,7 +131,7 @@
       <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(OutDir)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
@@ -161,7 +161,7 @@
       <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(OutDir)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>tbb.dll;%(Outputs)</Outputs>
@@ -189,11 +189,10 @@
       <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)Hoard\winhoard.dll $(ProjectDir)bin\$(Configuration)
-copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
+      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(OutDir)</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>winhoard.dll;tbb.dll;%(Outputs)</Outputs>
+      <Outputs>tbb.dll;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>

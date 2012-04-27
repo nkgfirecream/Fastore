@@ -85,11 +85,12 @@ namespace Fastore.Core.Demo2
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
 
-            using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
+			using (var fileStream = new FileStream(@"e:\owt.xml.gz", FileMode.Open, FileAccess.Read))
             {
+				var deflated = new GZipStream(fileStream, CompressionMode.Decompress);
 
                 var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
-                var xmlReader = XmlReader.Create(fileStream, xrs);
+                var xmlReader = XmlReader.Create(deflated, xrs);
 
                
                 var count = 0;

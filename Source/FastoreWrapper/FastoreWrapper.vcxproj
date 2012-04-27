@@ -42,12 +42,14 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CLRSupport>true</CLRSupport>
     <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -68,32 +70,32 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)bin\;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10\;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\intel64\vc10;$(LibraryPath)</LibraryPath>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <LibraryPath>$(SolutionDir)bin\;$(SolutionDir)FastoreCore\TBB\lib\intel64\vc10\;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
+    <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FastoreCore\bin\Release;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(LibraryPath)</LibraryPath>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
-    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <LibraryPath>$(SolutionDir)bin\;$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10\;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib</LibraryPath>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)FastoreCore\bin\Debug;$(SolutionDir)FastoreCore\TBB\lib\intel64\vc10;$(LibraryPath)</LibraryPath>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <LibraryPath>$(SolutionDir)bin\;$(SolutionDir)FastoreCore\TBB\lib\intel64\vc10\;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -105,12 +107,9 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FastoreCore.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\ia32\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
-      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -124,10 +123,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>FastoreCore.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\intel64\vc10\tbb_debug.dll $(ProjectDir)bin\$(Configuration)</Command>
-      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -146,10 +142,7 @@
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\ia32\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
-      <Outputs>tbb.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -163,17 +156,13 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(SolutionDir)FastoreCore\tbb\bin\intel64\vc10\tbb.dll $(ProjectDir)bin\$(Configuration)</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>tbb.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemGroup>
     <Reference Include="System" />
