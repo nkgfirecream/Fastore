@@ -111,5 +111,13 @@ Wrapper::ManagedTransaction^ Wrapper::ManagedSession::Begin(System::Boolean read
 	return wrapper;
 }
 
+Wrapper::ManagedStatistics^ Wrapper::ManagedSession::GetStatistics(System::String^ column)
+{
+	fs::wstring col = Utilities::ConvertString(column);
+	Statistics* stats = new Statistics(_nativeSession->GetStatistics(col));
+	ManagedStatistics^ mstats = gcnew ManagedStatistics(stats);
+	return mstats;
+}
+
 
 

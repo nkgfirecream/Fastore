@@ -184,6 +184,7 @@
     <ClInclude Include="ManagedOrder.h" />
     <ClInclude Include="ManagedRange.h" />
     <ClInclude Include="ManagedSession.h" />
+    <ClInclude Include="ManagedStatistics.h" />
     <ClInclude Include="ManagedTopology.h" />
     <ClInclude Include="ManagedTransaction.h" />
     <ClInclude Include="resource.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="ManagedOrder.cpp" />
     <ClCompile Include="ManagedRange.cpp" />
     <ClCompile Include="ManagedSession.cpp" />
+    <ClCompile Include="ManagedStatistics.cpp" />
     <ClCompile Include="ManagedTopology.cpp" />
     <ClCompile Include="ManagedTransaction.cpp" />
     <ClCompile Include="stdafx.cpp">

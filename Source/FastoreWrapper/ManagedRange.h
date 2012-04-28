@@ -27,44 +27,13 @@ namespace Wrapper
 				
 				//Refactor this code into utilities... It appears all over.
 				auto type = value->GetType();
-				if (type == System::Int32::typeid)
-				{
-					valuep = new int((int)value);
-				}
-				else if (type == System::Boolean::typeid)
-				{
-					valuep = new bool((bool)value);
-				}
-				else if (type == System::String::typeid)
-				{
-					valuep = new std::wstring(Utilities::ConvertString((System::String^)value));
-				}
-				else
-				{
-					throw;
-				}
+				valuep = Utilities::ConvertObjectToNative(value);
 
 				Optional<void*>* rowIdp;
 
 				if (rowId != nullptr)
 				{
-					auto type = rowId->GetType();
-					if (type == System::Int32::typeid)
-					{
-						idp = new int((int)value);
-					}
-					else if (type == System::Boolean::typeid)
-					{
-						idp = new bool((bool)value);
-					}
-					else if (type == System::String::typeid)
-					{
-						idp = new std::wstring(Utilities::ConvertString((System::String^)value));
-					}
-					else
-					{
-						throw;
-					}
+					idp = Utilities::ConvertObjectToNative(rowId);
 
 					rowIdp = new Optional<void*>(idp);
 				}

@@ -17,18 +17,6 @@ struct Split;
 class Node;
 class BTree;
 
-struct InsertResult
-{
-	void* found;
-	Split* split;
-};
-
-struct DeleteResult
-{
-	bool found;
-	bool empty;
-};
-
 struct Split
 {
 	void* key;

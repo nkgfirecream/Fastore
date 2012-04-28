@@ -52,6 +52,7 @@ class TreeBuffer : public IColumnBuffer
 		bool Exclude(Value value, Key rowId);
 		GetResult GetRows(Range& range, bool ascending);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
+		Statistics GetStatistics();
 
 		ScalarType GetRowType();
 		ScalarType GetKeyType();
@@ -73,6 +74,8 @@ class TreeBuffer : public IColumnBuffer
 		BTree* _values;
 		fs::wstring _name;
 		bool _required;
+		long long _unique;
+		long long _total;
 };
 
 inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType& valueType,const fs::wstring& name)
@@ -84,6 +87,8 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType& value
 	_rows = new BTree(_rowType, _nodeType);
 	_values = new BTree(_valueType, GetKeyTreeType());
 	_required = false;
+	_unique = 0;
+	_total = 0;
 	_values->setValuesMovedCallback
 	(
 		[this](void* value, Node* newLeaf) -> void
@@ -91,6 +96,11 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType& value
 			this->ValuesMoved(value, newLeaf);
 		}
 	);
+}
+
+inline Statistics TreeBuffer::GetStatistics()
+{
+	return Statistics(_total, _unique);
 }
 
 inline fs::wstring TreeBuffer::ToString()
@@ -219,6 +229,7 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 
 			_rows->Insert(rowpath, rowId, &path.Leaf);
 
+			_total++;
 			return true;
 		}
 		else
@@ -239,6 +250,8 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 		//on a new split, the callback will be run and change the entry.
 		_values->Insert(path, value, &newRows);
 
+		_unique++;
+		_total++;
 		return true;
 	}
 }
@@ -258,11 +271,13 @@ inline bool TreeBuffer::Exclude(Value value, Key rowId)
 			{
 				_values->Delete(path);
 				delete(existing);
+				_unique--;
 			}
 			auto rowpath = _rows->GetPath(rowId);
 			if (rowpath.Match)
 				_rows->Delete(rowpath);
 
+			_total--;
 			return true;
 		}
 		else

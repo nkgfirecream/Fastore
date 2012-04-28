@@ -85,7 +85,7 @@ namespace Fastore.Core.Demo2
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
 
-			using (var fileStream = new FileStream(@"e:\owt.xml.gz", FileMode.Open, FileAccess.Read))
+			using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml.gz", FileMode.Open, FileAccess.Read))
             {
 				var deflated = new GZipStream(fileStream, CompressionMode.Decompress);
 
@@ -96,7 +96,7 @@ namespace Fastore.Core.Demo2
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                int numrows = 100000;
+                int numrows = 6000000;
                 while (count++ < numrows)//16000000)
                 { 
                     xmlReader.MoveToContent();
@@ -142,6 +142,9 @@ namespace Fastore.Core.Demo2
 
                 MessageBox.Show("Row per second : " + (numrows /(watch.ElapsedMilliseconds / 1000.0)));
 
+                string result = GetStats();
+                MessageBox.Show(result);
+
                 System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
 
             }
@@ -177,6 +180,18 @@ namespace Fastore.Core.Demo2
 
             comboBox1.SelectedIndex = 0;
 		}
+
+        private string GetStats()
+        {
+            string results = "";
+            foreach (var item in _columns)
+            {
+                var stats = _session.GetStatistics(item);
+                results += "Column: " + item + " Unique: " + stats.Unique() + " Total: " + stats.Total() + " Avg Density: " + (double)stats.Total() / (double)stats.Unique() + "\n";
+            }
+
+            return results;
+        }
 
         private void InsertRecord(object[] record)
         {

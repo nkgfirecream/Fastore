@@ -23,5 +23,6 @@ class IDataAccess
 		//int Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky);
 		void Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns);
 		void Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns);
+		Statistics GetStatistics(fs::wstring column);
 		//void Exclude(range, columns, isPicky);
 };

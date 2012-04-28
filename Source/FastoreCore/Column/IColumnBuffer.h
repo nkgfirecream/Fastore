@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../typedefs.h"
+#include "../Schema/scalar.h"
 #include "../Range.h"
 
 using namespace fs;
@@ -12,6 +13,14 @@ struct GetResult
 	ValueKeysVector Data;
 };
 
+struct Statistics
+{
+	Statistics() : Total(0), Unique(0) {}
+	Statistics(long long total, long long unique) : Total(total), Unique(unique) {}
+	long long Total;
+	long long Unique;
+};
+
 
 class IColumnBuffer
 {
@@ -21,6 +30,7 @@ class IColumnBuffer
 		virtual bool Exclude(Value value, Key rowID) = 0;
 		virtual ValueKeysVectorVector GetSorted(const KeyVectorVector &keyValues) = 0; 
 		virtual GetResult GetRows(Range &range, bool ascending) = 0;
+		virtual Statistics GetStatistics() = 0;
 
 
 		//TODO: Either get rid of these as we refactor, or push them to the base class to reduce the number of virtual calls.

@@ -21,6 +21,7 @@ class UniqueBuffer : public IColumnBuffer
 		bool Exclude(Value value, Key rowId);
 		GetResult GetRows(Range& range, bool ascending);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
+		Statistics GetStatistics();
 
 		ScalarType GetRowType();
 		ScalarType GetKeyType();
@@ -37,6 +38,7 @@ class UniqueBuffer : public IColumnBuffer
 		ScalarType _nodeType;
 		BTree* _rows;
 		BTree* _values;
+		long long _count;
 		fs::wstring _name;
 		bool _required;
 };
@@ -50,6 +52,7 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 	_rows = new BTree(_rowType, _nodeType);
 	_values = new BTree(_valueType, standardtypes::GetHashSetType());
 	_required = false;
+	_count = 0;
 	_values->setValuesMovedCallback
 	(
 		[this](void* value, Node* newLeaf) -> void
@@ -57,6 +60,11 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 			this->ValuesMoved(value, newLeaf);
 		}
 	);
+}
+
+inline Statistics UniqueBuffer::GetStatistics()
+{
+	return Statistics(_count, _count);
 }
 
 inline fs::wstring UniqueBuffer::GetName()
@@ -180,7 +188,7 @@ inline bool UniqueBuffer::Include(Value value, Key rowId)
 		//so the above may be incorrect momentarily. If the value gets inserted
 		//on a new split, the callback will be run and change the entry.
 		_values->Insert(path, value, rowId);
-
+		_count++;
 		return true;
 	}
 }
@@ -197,6 +205,7 @@ inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 			_values->Delete(path);
 			auto rowpath = _rows->GetPath(rowId);
 			_rows->Delete(rowpath);
+			_count--;
 			return true;
 		}
 	}

@@ -7,6 +7,7 @@
 
 #include "ManagedDataSet.h"
 #include "ManagedTransaction.h"
+#include "ManagedStatistics.h"
 
 namespace Wrapper
 {
@@ -28,5 +29,6 @@ namespace Wrapper
 			ManagedDataSet^ GetRows(array<System::Object^>^ rowIds, array<System::String^>^ columns);
 			void Include(Object^ rowId, array<System::Object^>^ row, array<System::String^>^ columns);
 			void Exclude(array<System::Object^>^ rowsIds, array<System::String^>^ columns);
+			ManagedStatistics^ GetStatistics(System::String^ column);
 	};
 }

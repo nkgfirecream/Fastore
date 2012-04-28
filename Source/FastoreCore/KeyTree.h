@@ -16,18 +16,6 @@ const int KeyDefaultBranchListSize = 8;
 struct KeySplit;
 class KeyNode;
 
-struct KeyInsertResult
-{
-	void* found;
-	KeySplit* split;
-};
-
-struct KeyDeleteResult
-{
-	bool found;
-	bool empty;
-};
-
 struct KeySplit
 {
 	void* key;

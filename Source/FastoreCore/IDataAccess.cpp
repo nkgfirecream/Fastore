@@ -126,3 +126,8 @@ void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<
 		cb->Include(row[i], rowID);
 	}
 }
+
+Statistics IDataAccess::GetStatistics(fs::wstring column)
+{
+	return _host.GetColumn(column)->GetStatistics();
+}
