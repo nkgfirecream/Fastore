@@ -34,7 +34,7 @@ class KeyTree
 		KeyTree(ScalarType keyType);
 		~KeyTree();
 
-		const static short KeyDefaultListCapacity = 24;
+		const static short KeyDefaultListCapacity = 32;
 		const static short KeyDefaultBranchListSize = 8;
 
 		fs::wstring ToString();

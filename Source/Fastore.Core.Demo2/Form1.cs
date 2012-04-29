@@ -85,18 +85,18 @@ namespace Fastore.Core.Demo2
             _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
 
 
-			using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml.gz", FileMode.Open, FileAccess.Read))
+			using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
             {
-				var deflated = new GZipStream(fileStream, CompressionMode.Decompress);
+				//var deflated = new GZipStream(fileStream, CompressionMode.Decompress);
 
                 var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
-                var xmlReader = XmlReader.Create(deflated, xrs);
+                var xmlReader = XmlReader.Create(fileStream, xrs);
 
                
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                int numrows = 100000;
+                int numrows = 7250000;
                 while (count++ < numrows)//16000000)
                 { 
                     xmlReader.MoveToContent();

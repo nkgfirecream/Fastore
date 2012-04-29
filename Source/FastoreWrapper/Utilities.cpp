@@ -27,7 +27,7 @@ void* Wrapper::Utilities::ConvertObjectToNative(System::Object^ object)
 	else if (type == System::String::typeid)
 	{
 		//TODO: Make string/wstring conversion dependent on encoding of string
-		return new std::wstring(ConvertToNativeWString((System::String^)object));
+		return new std::string(ConvertToNativeString((System::String^)object));
 	}
 	else
 	{
