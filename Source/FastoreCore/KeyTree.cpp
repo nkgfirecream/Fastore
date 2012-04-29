@@ -25,8 +25,7 @@ ScalarType GetKeyNodeType()
 }
 
 KeyTree::KeyTree(ScalarType keyType) : 
-	_keyType(keyType),
-	_listCapacity(KeyDefaultListCapacity)
+	_keyType(keyType)
 {
 	_count = 0;
 	_nodeType = GetKeyNodeType();

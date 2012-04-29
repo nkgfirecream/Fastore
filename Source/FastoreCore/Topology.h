@@ -1,15 +1,8 @@
 #pragma once
 #include "typedefs.h"
+#include "Schema\column.h"
 
 using namespace fs;
-
-struct ColumnDef
-{
-	fs::wstring Name;
-	fs::wstring KeyType;
-	fs::wstring IDType;
-	bool IsUnique;
-};
 
 //TODO: This is wrong
 typedef eastl::vector<ColumnDef> Topology;

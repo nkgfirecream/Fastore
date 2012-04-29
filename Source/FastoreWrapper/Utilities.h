@@ -3,6 +3,7 @@
 
 #pragma managed(push, off)
 #include "../FastoreCore/Range.h"
+#include "../FastoreCore/Util/utilities.h"
 #pragma managed(pop)
 
 using namespace fs;
@@ -19,7 +20,12 @@ namespace Wrapper
 
 			static array<System::String^>^ ConvertStringArray(eastl::vector<std::wstring>);
 			static eastl::vector<std::wstring> ConvertStringArray(array<System::String^>^);
-			static System::String^ ConvertString(std::wstring);
-			static std::wstring ConvertString(System::String^);
+			static System::String^ ConvertToManagedString(std::wstring);
+			static System::String^ ConvertToManagedString(std::string);
+			static std::wstring ConvertToNativeWString(System::String^);
+			static std::string ConvertToNativeString(System::String^);
+
+			static ScalarType ConvertStringToScalarType(System::String^);
+			static System::String^ ConvertScalarTypeToString(ScalarType);
 	};
 }

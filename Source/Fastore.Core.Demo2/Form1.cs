@@ -24,7 +24,7 @@ namespace Fastore.Core.Demo2
 
         private ManagedSession _session;
         private string[] _columns;
-        private long _ids = 0;
+        private int _ids = 0;
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
@@ -96,7 +96,7 @@ namespace Fastore.Core.Demo2
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                int numrows = 6000000;
+                int numrows = 100000;
                 while (count++ < numrows)//16000000)
                 { 
                     xmlReader.MoveToContent();

@@ -23,6 +23,7 @@ struct ScalarType
 	CompareFunc Compare;
 	IndexOfFunc IndexOf;
 	CopyInFunc CopyIn;
+	fs::string Name;
 
 	bool operator ()(const void* left, const void* right) const
 	{

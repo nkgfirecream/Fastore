@@ -6,7 +6,7 @@ void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstrin
 {
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
+		IColumnBuffer* cb = _host.GetColumn(columns[i]).first;
 
 		fs::ValueVector values = cb->GetValues(rowIds);
 
@@ -20,21 +20,14 @@ void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstrin
 DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Order>& orders, eastl::vector<Range>& ranges)
 {
 	//TODO: Fix this assumption: Orderby is always first range passed.
-	ColumnTypeVector ctv;
+	ColumnDefVector ctv(columns.size());
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{ 
-		ColumnType ct;
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
-		ct.IsRequired = cb->GetRequired();
-		ct.IsUnique = cb->GetUnique();
-		ct.Name = columns[i];
-		ct.Type = cb->GetKeyType();
-
-		ctv.push_back(ct);
+		ctv[i] = _host.GetColumn(columns[i]).second;
 	}
 
 	TupleType tt(ctv);
-	GetResult result = _host.GetColumn(ranges[0].Column)->GetRows(ranges[0], true);
+	GetResult result = _host.GetColumn(ranges[0].Column).first->GetRows(ranges[0], true);
 
 	KeyVector kv;
 
@@ -57,7 +50,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	{
 		for (unsigned int i = 0; i < columns.size(); i++)
 		{
-			IColumnBuffer* cb = _host.GetColumn(columns[i]);
+			IColumnBuffer* cb = _host.GetColumn(columns[i]).first;
 
 			fs::ValueVector result = cb->GetValues(kv);
 			for (unsigned int j = 0; j < kv.size(); j++)
@@ -72,17 +65,10 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 
 DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns)
 {
-	ColumnTypeVector ctv;
+	ColumnDefVector ctv(columns.size());
 	for (unsigned int i = 0; i < columns.size(); i++)
-	{
-		ColumnType ct;
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
-		ct.IsRequired = cb->GetRequired();
-		ct.IsUnique = cb->GetUnique();
-		ct.Name = columns[i];
-		ct.Type = cb->GetKeyType();
-
-		ctv.push_back(ct);
+	{ 
+		ctv[i] = _host.GetColumn(columns[i]).second;
 	}
 
 	TupleType tt(ctv);
@@ -91,7 +77,7 @@ DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wst
 
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
+		IColumnBuffer* cb = _host.GetColumn(columns[i]).first;
 
 		fs::ValueVector result = cb->GetValues(rowIds);
 		for (unsigned int j = 0; j < rowIds.size(); j++)
@@ -121,7 +107,7 @@ void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<
 {
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
-		IColumnBuffer* cb = _host.GetColumn(columns[i]);
+		IColumnBuffer* cb = _host.GetColumn(columns[i]).first;
 
 		cb->Include(row[i], rowID);
 	}
@@ -129,5 +115,5 @@ void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<
 
 Statistics IDataAccess::GetStatistics(fs::wstring column)
 {
-	return _host.GetColumn(column)->GetStatistics();
+	return _host.GetColumn(column).first->GetStatistics();
 }

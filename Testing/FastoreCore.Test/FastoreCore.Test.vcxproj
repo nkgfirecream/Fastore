@@ -39,11 +39,15 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)\..\External\VisualAssert\lib\i386;$(SolutionDir)FastoreCore\bin\$(Configuration)</LibraryPath>
+    <LibraryPath>$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)\..\External\VisualAssert\lib\i386;$(SolutionDir)..\Source\bin</LibraryPath>
+    <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)\..\External\VisualAssert\lib\i386;$(SolutionDir)FastoreCore\bin\$(Configuration)</LibraryPath>
+    <OutDir>$(SolutionDir)\bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

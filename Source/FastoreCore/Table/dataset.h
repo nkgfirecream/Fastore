@@ -39,7 +39,7 @@ class DataSet
 		{
 			int result = 0;
 			for (int i = 0; i < column; i++)
-				result += Type[i].Type.Size;
+				result += Type[i].KeyType.Size;
 			return result;
 		}
 
@@ -55,8 +55,7 @@ class DataSet
 
 		void SetCell(int row, int column, void* value)
 		{	
-			if(value != NULL)
-				Type[column].Type.CopyIn(value, &_buffer[(row * Type.BufferSize) + ColumnOffset(column)]);
+			Type[column].KeyType.CopyIn(value, &_buffer[(row * Type.BufferSize) + ColumnOffset(column)]);
 		}
 
 		class byColumn : public eastl::iterator<std::forward_iterator_tag, void*>

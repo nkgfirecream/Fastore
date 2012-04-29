@@ -8,8 +8,11 @@
 
 using namespace fs;
 
+typedef eastl::pair<IColumnBuffer*,ColumnDef> PointerDefPair;
+
 class Host
 {
+	
 	//TODO: Host Information...
 	//Address
 
@@ -17,7 +20,7 @@ class Host
 	//addtions and removals can simply be includes/excludes.
 	private:
 		//Store pointers to the column buffers..
-		eastl::vector<IColumnBuffer*> _columns;
+		eastl::vector<PointerDefPair> _columns;
 
 		//Map Ids to locations in the vector (should I just point to a pointer instead? No, because I potentially need additional information about the column)
 	//Topology should probably store column info
@@ -31,6 +34,6 @@ class Host
 		//TODO: kill these..
 		void CreateColumn(ColumnDef  def);
 		void DeleteColumn(const fs::wstring name);
-		IColumnBuffer* GetColumn(fs::wstring name);
+		PointerDefPair GetColumn(fs::wstring name);
 
 };

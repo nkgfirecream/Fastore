@@ -41,12 +41,12 @@ namespace Wrapper
 			{
 				System::String^ get()
 				{
-					return Utilities::ConvertString(_nativeColumnDef->Name);
+					return Utilities::ConvertToManagedString(_nativeColumnDef->Name);
 				}
 
 				void set(System::String^ value)
 				{
-					_nativeColumnDef->Name = Utilities::ConvertString(value);
+					_nativeColumnDef->Name = Utilities::ConvertToNativeWString(value);
 				}
 			}
 
@@ -54,12 +54,12 @@ namespace Wrapper
 			{
 				System::String^ get()
 				{
-					return Utilities::ConvertString(_nativeColumnDef->KeyType);
+					return Utilities::ConvertScalarTypeToString(_nativeColumnDef->KeyType);
 				}
 
 				void set(System::String^ value)
 				{
-					_nativeColumnDef->KeyType = Utilities::ConvertString(value);
+					_nativeColumnDef->KeyType = Utilities::ConvertStringToScalarType(value);
 				}
 			}
 
@@ -67,12 +67,12 @@ namespace Wrapper
 			{
 				System::String^ get()
 				{
-					return Utilities::ConvertString(_nativeColumnDef->IDType);
+					return Utilities::ConvertScalarTypeToString(_nativeColumnDef->IDType);
 				}
 
 				void set(System::String^ value)
 				{
-					_nativeColumnDef->IDType = Utilities::ConvertString(value);
+					_nativeColumnDef->IDType = Utilities::ConvertStringToScalarType(value);
 				}
 			}
 	};

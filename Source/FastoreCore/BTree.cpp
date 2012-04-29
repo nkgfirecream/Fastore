@@ -26,8 +26,7 @@ ScalarType GetNodeType()
 
 
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
-	_keyType(keyType), _valueType(valueType), 
-	_listCapacity(DefaultListCapacity)
+	_keyType(keyType), _valueType(valueType)
 {
 	_nodeType = GetNodeType();
 	_root = new Node(this);

@@ -26,7 +26,8 @@ void* Wrapper::Utilities::ConvertObjectToNative(System::Object^ object)
 	}
 	else if (type == System::String::typeid)
 	{
-		return new std::wstring(ConvertString((System::String^)object));
+		//TODO: Make string/wstring conversion dependent on encoding of string
+		return new std::wstring(ConvertToNativeWString((System::String^)object));
 	}
 	else
 	{
@@ -52,7 +53,7 @@ eastl::vector<std::wstring> Wrapper::Utilities::ConvertStringArray(array<System:
 
 	for (int i = 0; i < managed->Length; i++)
 	{
-		strings[i] = Utilities::ConvertString(managed[i]);
+		strings[i] = Utilities::ConvertToNativeWString(managed[i]);
 	}
 
 	return strings;
@@ -64,18 +65,62 @@ array<System::String^>^ Wrapper::Utilities::ConvertStringArray(eastl::vector<std
 
 	for (unsigned int i = 0; i < native.size(); i++)
 	{
-		strings[i] = Utilities::ConvertString(native[i]);
+		strings[i] = Utilities::ConvertToManagedString(native[i]);
 	}
 
 	return strings;
 }
 
-std::wstring Wrapper::Utilities::ConvertString(System::String^ managed)
+std::wstring Wrapper::Utilities::ConvertToNativeWString(System::String^ managed)
 {
 	return marshal_as<std::wstring>(managed);
 }
 
-System::String^ Wrapper::Utilities::ConvertString(std::wstring native)
+System::String^ Wrapper::Utilities::ConvertToManagedString(std::wstring native)
 {
 	return marshal_as<System::String^>(native);
+}
+
+std::string Wrapper::Utilities::ConvertToNativeString(System::String^ managed)
+{
+	return marshal_as<std::string>(managed);
+}
+
+System::String^ Wrapper::Utilities::ConvertToManagedString(std::string native)
+{
+	return marshal_as<System::String^>(native);
+}
+
+ScalarType Wrapper::Utilities::ConvertStringToScalarType(System::String^ typestring)
+{
+	//TODO: Consider putting this into a hash to avoid branches.
+	if (typestring == L"WString")
+	{
+		return standardtypes::GetWStringType();
+	}
+	else if (typestring == L"String")
+	{
+		return standardtypes::GetStringType();
+	}
+	else if (typestring == L"Int")
+	{
+		return standardtypes::GetIntType();
+	}
+	else if (typestring == L"Long")
+	{
+		return standardtypes::GetLongType();
+	}
+	else if (typestring == L"Bool")
+	{
+		return standardtypes::GetBoolType();
+	}
+	else
+	{
+		throw;
+	}
+}
+
+System::String^ Wrapper::Utilities::ConvertScalarTypeToString(ScalarType type)
+{
+	return ConvertToManagedString(type.Name);
 }

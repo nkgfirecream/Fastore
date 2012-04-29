@@ -8,17 +8,17 @@
 
 using namespace std;
 
-typedef eastl::vector<ColumnType> ColumnTypeVector;
+typedef eastl::vector<ColumnDef> ColumnDefVector;
 
 class TupleType
 {
-		ColumnTypeVector _columns;
+		ColumnDefVector _columns;
 
 		size_t bufferSize()
 		{
 			size_t result = 0;
-			for (ColumnTypeVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
-				result += (*it).Type.Size;
+			for (ColumnDefVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
+				result += (*it).KeyType.Size;
 
 			return result;
 		}
@@ -26,16 +26,16 @@ class TupleType
 	public:
 		const size_t BufferSize;
 
-		TupleType(ColumnTypeVector columns) : _columns(columns), BufferSize(bufferSize()) {};
+		TupleType(ColumnDefVector columns) : _columns(columns), BufferSize(bufferSize()) {};
 
-		const ColumnType& operator[] (int index)
+		const ColumnDef& operator[] (int index)
 		{
 			return _columns[index];
 		}
 
-		const ColumnType& operator[] (fs::wstring name)
+		const ColumnDef& operator[] (fs::wstring name)
 		{
-			for (ColumnTypeVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
+			for (ColumnDefVector::iterator it = _columns.begin(); it != _columns.end(); ++it)
 				if ((*it).Name.compare(name) == 0)
 					return *it;
 			wstringstream error;
@@ -43,7 +43,7 @@ class TupleType
 			throw std::exception(fs::string(error.str().begin(), error.str().end()).c_str());
 		}
 
-		typedef ColumnTypeVector::const_iterator iterator;
+		typedef ColumnDefVector::const_iterator iterator;
 
 		iterator begin() const
 		{

@@ -10,9 +10,6 @@
 using namespace std;
 using namespace standardtypes;
 
-const int DefaultListCapacity = 128;
-const int DefaultBranchListSize = 8;
-
 struct Split;
 class Node;
 class BTree;
@@ -46,22 +43,25 @@ class BTree
 		fs::wstring ToString();
 		int getListCapacity();
 
+		const static short DefaultListCapacity = 128;
+		const static short DefaultBranchListSize = 8;
+
 		void setValuesMovedCallback(valuesMovedHandler callback);
 		valuesMovedHandler getValuesMovedCallback();
 
 		struct PathNode
 		{
-			PathNode(Node* node, const int index) : Node(node), Index(index) {}
+			PathNode(Node* node, const short index) : Node(node), Index(index) {}
 			PathNode(const PathNode& other) : Node(other.Node), Index(other.Index) {}
 			Node* Node;
-			int Index;
+			short Index;
 		};
 
 		struct Path
 		{
 			eastl::fixed_vector<PathNode, DefaultBranchListSize> Branches;
 			Node* Leaf;
-			int LeafIndex;
+			short LeafIndex;
 			bool Match;
 		};
 
@@ -113,7 +113,6 @@ class BTree
 
 	private:
 		Node* _root;
-		int _listCapacity;
 		ScalarType _keyType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -135,14 +134,14 @@ ScalarType GetNodeType();
 class Node
 {
 	public:
-		Node(BTree* tree, int type = 0, int count = 0,  Node* left = NULL, Node* right = NULL, void* key = NULL) : _tree(tree), _count(count), _type(type)
+		Node(BTree* tree, short type = 0, short count = 0,  Node* left = NULL, Node* right = NULL, void* key = NULL) : _tree(tree), _count(count), _type(type)
 		{
 			try
 			{
 				_valueType = type == 1 ? _tree->_nodeType : _tree->_valueType;
 				_keyType = _tree->_keyType;
-				_keys = new char[(_tree->_listCapacity - type) * _keyType.Size];
-				_values = new char[(_tree->_listCapacity) *  _valueType.Size];				
+				_keys = new char[(_tree->DefaultListCapacity - type) * _keyType.Size];
+				_values = new char[(_tree->DefaultListCapacity) *  _valueType.Size];				
 
 				if(left != NULL)
 				{
@@ -164,7 +163,7 @@ class Node
 			delete[] _values;
 		}
 
-		int IndexOf(void* key, bool& match)
+		short IndexOf(void* key, bool& match)
 		{
  			auto result =_keyType.IndexOf(_keys, _count, key);
 			match = result >= 0;
@@ -173,7 +172,7 @@ class Node
 
 		void* GetKey(function<bool(void*)> predicate)
 		{
-			for (int i = 0; i < _count; i++)
+			for (short i = 0; i < _count; i++)
 			{
 				if (predicate(operator[](i).value))
 					return operator[](i).key;
@@ -350,14 +349,14 @@ class Node
 		}
 
 		//Index operations (for path -- behavior undefined for invalid paths)
-		bool Delete(int index)
+		bool Delete(short index)
 		{
 			if (_type == 1)
 			{
 				delete *(Node**)&_values[index * sizeof(Node*)];
 			}
 
-			int size = _count - index;
+			short size = _count - index;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
 			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
 			memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
@@ -367,9 +366,9 @@ class Node
 			return _count + _type <= 0;			
 		}
 
-		Split* Insert(int index, void* key, void* value)
+		Split* Insert(short index, void* key, void* value)
 		{
-			if (_count != _tree->_listCapacity - _type)
+			if (_count != _tree->DefaultListCapacity - _type)
 			{
 				InternalInsertIndex(index, key, value);
 				return NULL;
@@ -379,7 +378,7 @@ class Node
 				Node* node = new Node(_tree);
 				if (index != _count)
 				{
-					node->_count = (_tree->_listCapacity + 1) / 2;
+					node->_count = (_tree->DefaultListCapacity + 1) / 2;
 					_count = _count - node->_count;
 
 					memcpy(&node->_keys[0], &_keys[node->_count *_keyType.Size],  node->_count *_keyType.Size);
@@ -401,16 +400,16 @@ class Node
 			}
 		}
 
-		Split* Insert(int index, void* key, Node* child)
+		Split* Insert(short index, void* key, Node* child)
 		{
-			if (_count != _tree->_listCapacity - _type)
+			if (_count != _tree->DefaultListCapacity - _type)
 			{
 				InternalInsertIndex(index, key, &child);
 				return NULL;
 			}
 			else
 			{
-				int mid = (_count + 1) / 2;
+				short mid = (_count + 1) / 2;
 				Node* node = new Node(_tree, 1);
 				node->_count = _count - mid;
 				memcpy(&node->_keys[0], &_keys[mid *_keyType.Size], node->_count *_keyType.Size);
@@ -443,7 +442,7 @@ class Node
 			}
 		}
 
-		TreeEntry operator[](int index)
+		TreeEntry operator[](short index)
 		{
 			return TreeEntry(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
 		}
@@ -483,8 +482,8 @@ class Node
 		}	
 
 	private:
-		int _type;
-		int _count;
+		short _type;
+		short _count;
 		char* _keys;
 		char* _values;
 		BTree* _tree;
@@ -492,13 +491,13 @@ class Node
 		ScalarType _keyType;
 		ScalarType _valueType;
 
-		int IndexOf(void* key)
+		short IndexOf(void* key)
 		{
 			auto result =_keyType.IndexOf(_keys, _count, key);
 			return result >= 0 ? result + 1 : ~result;
 		}
 
-		void InternalInsertIndex(int index, void* key, void* value)
+		void InternalInsertIndex(short index, void* key, void* value)
 		{
 			int size = _count - index;
 			if (_count != index)

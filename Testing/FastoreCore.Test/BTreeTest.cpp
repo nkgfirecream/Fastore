@@ -54,7 +54,6 @@ public:
 		long numrows = 1000000;
 
 		BTree tree(GetStringType(), GetStringType());	
-		BTree tree2(GetPStringType(), GetPStringType());
 
 		//Stopwatch* watch = new Stopwatch();
 		//Stopwatch* watch2 = new Stopwatch();

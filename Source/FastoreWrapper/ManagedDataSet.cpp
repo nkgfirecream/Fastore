@@ -13,7 +13,7 @@ void Wrapper::ManagedDataSet::Dump()
 	{
 		for(int j = 0; j < 6; j++)
 		{
-			System::Console::Write(Utilities::ConvertString((_nativeDataSet->Type)[j].Type.ToString(_nativeDataSet->Cell(i,j))));
+			System::Console::Write(Utilities::ConvertToManagedString((_nativeDataSet->Type)[j].KeyType.ToString(_nativeDataSet->Cell(i,j))));
 			System::Console::Write(L" ");
 		}
 		System::Console::WriteLine();
@@ -31,7 +31,7 @@ array<System::String^>^  Wrapper::ManagedDataSet::Row(System::Int32 rownum)
 	array<System::String^>^ cells = gcnew array<System::String^>(numcolumns);
 	for(int i = 0; i < numcolumns; i++)
 	{
-		cells[i] = Utilities::ConvertString((_nativeDataSet->Type)[i].Type.ToString(_nativeDataSet->Cell(rownum, i)));
+		cells[i] = Utilities::ConvertToManagedString((_nativeDataSet->Type)[i].KeyType.ToString(_nativeDataSet->Cell(rownum, i)));
 	}
 
 	return cells;

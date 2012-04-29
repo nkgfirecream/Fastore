@@ -1176,32 +1176,32 @@ void OWTTest()
 
 	ColumnDef c1;
 	c1.IsUnique = true;
-	c1.KeyType = L"Int";
+	c1.KeyType = standardtypes::GetIntType();
 	c1.Name = L"ID";
 
 	ColumnDef c2;
 	c2.IsUnique = false;
-	c2.KeyType = L"String";
+	c2.KeyType = standardtypes::GetStringType();
 	c2.Name = L"Given";
 
 	ColumnDef c3;
 	c3.IsUnique = false;
-	c3.KeyType = L"String";
+	c3.KeyType = standardtypes::GetStringType();
 	c3.Name = L"Surname";
 
 	ColumnDef c4;
 	c4.IsUnique = false;
-	c4.KeyType = L"Bool";
+	c4.KeyType = standardtypes::GetBoolType();
 	c4.Name = L"Gender";
 
 	ColumnDef c5;
 	c5.IsUnique = false;
-	c5.KeyType = L"String";
+	c5.KeyType = standardtypes::GetStringType();
 	c5.Name = L"BirthDate";
 
 	ColumnDef c6;
 	c6.IsUnique = false;
-	c6.KeyType = L"String";
+	c6.KeyType = standardtypes::GetStringType();
 	c6.Name = L"BirthPlace";
 
 	Topology topo;
@@ -1320,7 +1320,7 @@ void OWTTest()
 	{
 		for(int j = 0; j < 6; j++)
 		{
-			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << "-";
+			wcout << result.Type[j].KeyType.ToString(result.Cell(i,j)) << "-";
 		}
 		cout << "\n";
 	}

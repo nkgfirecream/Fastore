@@ -97,7 +97,7 @@ namespace Wrapper
 					endOpt = new Optional<fs::RangeBound>();
 				}
 
-				_nativeRange = new fs::Range(Wrapper::Utilities::ConvertString(column), limit, *startOpt, *endOpt);
+				_nativeRange = new fs::Range(Wrapper::Utilities::ConvertToNativeWString(column), limit, *startOpt, *endOpt);
 			}
 
 			~ManagedRange()

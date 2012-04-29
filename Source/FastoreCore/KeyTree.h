@@ -10,9 +10,6 @@
 using namespace std;
 using namespace standardtypes;
 
-const int KeyDefaultListCapacity = 24;
-const int KeyDefaultBranchListSize = 8;
-
 struct KeySplit;
 class KeyNode;
 
@@ -37,22 +34,25 @@ class KeyTree
 		KeyTree(ScalarType keyType);
 		~KeyTree();
 
+		const static short KeyDefaultListCapacity = 24;
+		const static short KeyDefaultBranchListSize = 8;
+
 		fs::wstring ToString();
 		int getListCapacity();
 
 		struct PathNode
 		{
-			PathNode(KeyNode* node, const int index) : Node(node), Index(index) {}
+			PathNode(KeyNode* node, const short index) : Node(node), Index(index) {}
 			PathNode(const PathNode& other) : Node(other.Node), Index(other.Index) {}
 			KeyNode* Node;
-			int Index;
+			short Index;
 		};
 
 		struct Path
 		{
 			eastl::fixed_vector<PathNode, KeyDefaultBranchListSize> Branches;
 			KeyNode* Leaf;
-			int LeafIndex;
+			short LeafIndex;
 			bool Match;
 		};
 
@@ -109,7 +109,6 @@ class KeyTree
 
 	private:
 		KeyNode* _root;
-		int _listCapacity;
 		ScalarType _keyType;
 		ScalarType _nodeType;
 		int _count;
@@ -128,18 +127,18 @@ ScalarType GetKeyNodeType();
 class KeyNode
 {
 	public:
-		KeyNode(KeyTree* tree, int type = 0, int count = 0,  KeyNode* left = NULL, KeyNode* right = NULL, void* key = NULL) : _tree(tree), _count(count), _type(type)
+		KeyNode(KeyTree* tree, short type = 0, short count = 0,  KeyNode* left = NULL, KeyNode* right = NULL, void* key = NULL) : _tree(tree), _count(count), _type(type)
 		{
 			try
 			{
 				_valueType = _tree->_nodeType;
 				_keyType = _tree->_keyType;
-				_keys = new char[(_tree->_listCapacity - type) * _keyType.Size];
+				_keys = new char[(_tree->KeyDefaultListCapacity - type) * _keyType.Size];
 
 				//Only the branches have value types, which are Links to other branches or leaves.
 				if (_type == 1)
 				{
-					_values = new char[(_tree->_listCapacity) *  _valueType.Size];	
+					_values = new char[(_tree->KeyDefaultListCapacity) *  _valueType.Size];	
 				}
 
 				if(left != NULL)
@@ -170,7 +169,7 @@ class KeyNode
 			}
 		}
 
-		int IndexOf(void* key, bool& match)
+		short IndexOf(void* key, bool& match)
 		{
  			auto result =_keyType.IndexOf(_keys, _count, key);
 			match = result >= 0;
@@ -343,7 +342,7 @@ class KeyNode
 		}
 
 		//Index operations (for path -- behavior undefined for invalid paths)
-		bool Delete(int index)
+		bool Delete(short index)
 		{
 			if (_type == 1)
 			{
@@ -361,9 +360,9 @@ class KeyNode
 			return _count + _type <= 0;			
 		}
 
-		KeySplit* Insert(int index, void* key, void* value)
+		KeySplit* Insert(short index, void* key, void* value)
 		{
-			if (_count != _tree->_listCapacity - _type)
+			if (_count != _tree->KeyDefaultListCapacity - _type)
 			{
 				InternalInsertIndex(index, key, value);
 				return NULL;
@@ -373,7 +372,7 @@ class KeyNode
 				KeyNode* node = new KeyNode(_tree);
 				if (index != _count)
 				{
-					node->_count = (_tree->_listCapacity + 1) / 2;
+					node->_count = (_tree->KeyDefaultListCapacity + 1) / 2;
 					_count = _count - node->_count;
 
 					memcpy(&node->_keys[0], &_keys[node->_count *_keyType.Size],  node->_count *_keyType.Size);
@@ -394,16 +393,16 @@ class KeyNode
 			}
 		}
 
-		KeySplit* Insert(int index, void* key, KeyNode* child)
+		KeySplit* Insert(short index, void* key, KeyNode* child)
 		{
-			if (_count != _tree->_listCapacity - _type)
+			if (_count != _tree->KeyDefaultListCapacity - _type)
 			{
 				InternalInsertIndex(index, key, &child);
 				return NULL;
 			}
 			else
 			{
-				int mid = (_count + 1) / 2;
+				short mid = (_count + 1) / 2;
 				KeyNode* node = new KeyNode(_tree, 1);
 				node->_count = _count - mid;
 				memcpy(&node->_keys[0], &_keys[mid *_keyType.Size], node->_count *_keyType.Size);
@@ -437,7 +436,7 @@ class KeyNode
 	   }
 
 
-		KeyTreeEntry operator[](int index)
+		KeyTreeEntry operator[](short index)
 		{
 			return KeyTreeEntry(_keys + (_tree->_keyType.Size * index));
 		}
@@ -477,8 +476,8 @@ class KeyNode
 		}	
 
 	private:
-		int _type;
-		int _count;
+		short _type;
+		short _count;
 		char* _keys;
 		char* _values;
 		KeyTree* _tree;
@@ -486,13 +485,13 @@ class KeyNode
 		ScalarType _keyType;
 		ScalarType _valueType;
 
-		int IndexOf(void* key)
+		short IndexOf(void* key)
 		{
 			auto result =_keyType.IndexOf(_keys, _count, key);
 			return result >= 0 ? result + 1 : ~result;
 		}
 
-		void InternalInsertIndex(int index, void* key, void* value)
+		void InternalInsertIndex(short index, void* key, void* value)
 		{
 			int size = _count - index;
 			if (_count != index)

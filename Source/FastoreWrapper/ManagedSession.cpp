@@ -113,7 +113,7 @@ Wrapper::ManagedTransaction^ Wrapper::ManagedSession::Begin(System::Boolean read
 
 Wrapper::ManagedStatistics^ Wrapper::ManagedSession::GetStatistics(System::String^ column)
 {
-	fs::wstring col = Utilities::ConvertString(column);
+	fs::wstring col = Utilities::ConvertToNativeWString(column);
 	Statistics* stats = new Statistics(_nativeSession->GetStatistics(col));
 	ManagedStatistics^ mstats = gcnew ManagedStatistics(stats);
 	return mstats;

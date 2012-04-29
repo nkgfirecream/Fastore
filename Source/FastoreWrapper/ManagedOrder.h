@@ -37,12 +37,12 @@ namespace Wrapper
 			{
 				System::String^ get()
 				{
-					return Utilities::ConvertString(_nativeOrder->Column);
+					return Utilities::ConvertToManagedString(_nativeOrder->Column);
 				}
 
 				void set(System::String^ value)
 				{
-					_nativeOrder->Column = Utilities::ConvertString(value);
+					_nativeOrder->Column = Utilities::ConvertToNativeWString(value);
 				}
 			}
 

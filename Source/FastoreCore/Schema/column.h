@@ -2,11 +2,11 @@
 
 #include "scalar.h"
 
-struct ColumnType
+struct ColumnDef
 {
 	fs::wstring Name;
-	ScalarType Type;
+	ScalarType KeyType;
+	ScalarType IDType;
 	bool IsUnique;
 	bool IsRequired;
 };
-
