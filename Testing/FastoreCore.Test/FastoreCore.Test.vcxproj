@@ -39,9 +39,10 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)\..\External\VisualAssert\lib\i386;$(SolutionDir)..\Source\bin</LibraryPath>
+    <LibraryPath>$(SolutionDir)FastoreCore\TBB\lib\ia32\vc10;$(VCInstallDir)lib;$(VCInstallDir)atlmfc\lib;$(WindowsSdkDir)lib;$(FrameworkSDKDir)\lib;$(SolutionDir)..\External\VisualAssert\lib\i386;$(SolutionDir)..\Source\bin</LibraryPath>
     <OutDir>$(SolutionDir)\bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <IncludePath>$(SolutionDir)..\External\VisualAssert\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -55,13 +56,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FASTORECORETEST_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\External\VisualAsssert\include;$(SolutionDir)\FastoreCore\EABase\local\include\Common;$(SolutionDir)\FastoreCore\TBB\include;$(SolutionDir)\FastoreCore\EASTL\include;$(SolutionDir)\FastoreCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\VisualAssert\include;$(SolutionDir)\FastoreCore\EABase\local\include\Common;$(SolutionDir)\FastoreCore\TBB\include;$(SolutionDir)\FastoreCore\EASTL\include;$(SolutionDir)\FastoreCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\External\VisualAssert\lib\i386;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
