@@ -55,7 +55,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FASTORECORETEST_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\FastoreCore\EABase\local\include\Common;$(SolutionDir)\FastoreCore\TBB\include;$(SolutionDir)\FastoreCore\EASTL\include;$(SolutionDir)\FastoreCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\VisualAsssert\include;$(SolutionDir)\FastoreCore\EABase\local\include\Common;$(SolutionDir)\FastoreCore\TBB\include;$(SolutionDir)\FastoreCore\EASTL\include;$(SolutionDir)\FastoreCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
