@@ -1176,33 +1176,39 @@ void OWTTest()
 
 	ColumnDef c1;
 	c1.IsUnique = true;
-	c1.KeyType = standardtypes::GetIntType();
+	c1.ValueType = standardtypes::GetIntType();
 	c1.Name = L"ID";
+	c1.ColumnID = 0;
 
 	ColumnDef c2;
 	c2.IsUnique = false;
-	c2.KeyType = standardtypes::GetStringType();
+	c2.ValueType = standardtypes::GetStringType();
 	c2.Name = L"Given";
+	c2.ColumnID = 1;
 
 	ColumnDef c3;
 	c3.IsUnique = false;
-	c3.KeyType = standardtypes::GetStringType();
+	c3.ValueType = standardtypes::GetStringType();
 	c3.Name = L"Surname";
+	c3.ColumnID = 2;
 
 	ColumnDef c4;
 	c4.IsUnique = false;
-	c4.KeyType = standardtypes::GetBoolType();
+	c4.ValueType = standardtypes::GetBoolType();
 	c4.Name = L"Gender";
+	c4.ColumnID = 3;
 
 	ColumnDef c5;
 	c5.IsUnique = false;
-	c5.KeyType = standardtypes::GetStringType();
+	c5.ValueType = standardtypes::GetStringType();
 	c5.Name = L"BirthDate";
+	c5.ColumnID = 4;
 
 	ColumnDef c6;
 	c6.IsUnique = false;
-	c6.KeyType = standardtypes::GetStringType();
+	c6.ValueType = standardtypes::GetStringType();
 	c6.Name = L"BirthPlace";
+	c6.ColumnID = 5;
 
 	Topology topo;
 
@@ -1218,14 +1224,14 @@ void OWTTest()
 	Database db(host);
 	Session	session = db.Start();
 
-	eastl::vector<fs::wstring> columns;
+	eastl::vector<int> columns;
 
-	columns.push_back(L"ID");
-	columns.push_back(L"Given");
-	columns.push_back(L"Surname");
-	columns.push_back(L"Gender");
-	columns.push_back(L"BirthDate");
-	columns.push_back(L"BirthPlace");
+	columns.push_back(0);
+	columns.push_back(1);
+	columns.push_back(2);
+	columns.push_back(3);
+	columns.push_back(4);
+	columns.push_back(5);
 
 	
 	Stopwatch watch;
@@ -1300,7 +1306,7 @@ void OWTTest()
 	fs::RangeBound startb; 
 	fs::RangeBound endb;
 
-	Range range(L"Given", 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>());
+	Range range(2, 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>());
 
 	eastl::vector<Range> ranges;
 	eastl::vector<Order> orders;
@@ -1320,7 +1326,7 @@ void OWTTest()
 	{
 		for(int j = 0; j < 6; j++)
 		{
-			wcout << result.Type[j].KeyType.ToString(result.Cell(i,j)) << "-";
+			wcout << result.Type[j].ValueType.ToString(result.Cell(i,j)) << "-";
 		}
 		cout << "\n";
 	}

@@ -5,6 +5,8 @@
 #include "../FastoreCore/Host.h"
 #pragma managed(pop)
 
+#include "ManagedColumnDef.h"
+
 namespace Wrapper
 {
 	public ref class ManagedHost
@@ -14,7 +16,10 @@ namespace Wrapper
 
 		public:
 			Host* GetNativePointer();
-
 			ManagedHost(Host* nativeHost) : _nativeHost(nativeHost) {};
+
+			void CreateColumn(ManagedColumnDef^  def);
+			void DeleteColumn(System::Int32 columnId);
+			System::Boolean ExistsColumn(System::Int32 columnId);			
 	};
 }

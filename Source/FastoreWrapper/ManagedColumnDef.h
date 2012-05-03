@@ -23,6 +23,20 @@ namespace Wrapper
 			ManagedColumnDef(ColumnDef* nativeColumnDef) : _nativeColumnDef(nativeColumnDef) {};
 			ColumnDef* GetNativePointer();
 
+			property int ColumnID
+			{
+				int get()
+				{
+					return _nativeColumnDef->ColumnID;
+				}
+
+				void set(int value)
+				{
+					_nativeColumnDef->ColumnID = value;
+				}
+			}
+
+
 			property bool IsUnique
 			{
 				bool get()
@@ -34,7 +48,19 @@ namespace Wrapper
 				{
 					_nativeColumnDef->IsUnique = value;
 				}
+			}
 
+			property bool IsRequired
+			{
+				bool get()
+				{
+					return _nativeColumnDef->IsRequired;
+				}
+
+				void set(bool value)
+				{
+					_nativeColumnDef->IsRequired = value;
+				}
 			}
 
 			property System::String^ Name
@@ -50,29 +76,29 @@ namespace Wrapper
 				}
 			}
 
-			property System::String^ KeyType
+			property System::String^ ValueType
 			{
 				System::String^ get()
 				{
-					return Utilities::ConvertScalarTypeToString(_nativeColumnDef->KeyType);
+					return Utilities::ConvertScalarTypeToString(_nativeColumnDef->ValueType);
 				}
 
 				void set(System::String^ value)
 				{
-					_nativeColumnDef->KeyType = Utilities::ConvertStringToScalarType(value);
+					_nativeColumnDef->ValueType = Utilities::ConvertStringToScalarType(value);
 				}
 			}
 
-			property System::String^ IDType
+			property System::String^ RowIDType
 			{
 				System::String^ get()
 				{
-					return Utilities::ConvertScalarTypeToString(_nativeColumnDef->IDType);
+					return Utilities::ConvertScalarTypeToString(_nativeColumnDef->RowIDType);
 				}
 
 				void set(System::String^ value)
 				{
-					_nativeColumnDef->IDType = Utilities::ConvertStringToScalarType(value);
+					_nativeColumnDef->RowIDType = Utilities::ConvertStringToScalarType(value);
 				}
 			}
 	};

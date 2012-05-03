@@ -14,19 +14,22 @@ Wrapper::ManagedSession::~ManagedSession()
 	_nativeSession->Dispose();
 }
 
-void Wrapper::ManagedSession::Exclude(array<Object^>^ rowIds, array<System::String^>^ columns)
+void Wrapper::ManagedSession::Exclude(Object^ rowId, array<System::Int32>^ columns)
 {
-	//Convert Ids.
-	eastl::vector<void*> ids;
-	
-	//Run operation in native code.
-	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
-	_nativeSession->Exclude(ids, cols);
+	//Convert Id..
+	void* rowIdp = Utilities::ConvertObjectToNative(rowId);
 
-	//Pinned pointer should release bool when it goes out of scope here.
+	eastl::vector<int> cols(columns->Length);
+	for (int i = 0; i < columns->Length; i++)
+	{
+		cols[i] = columns[i];
+	}
+	_nativeSession->Exclude(rowIdp, cols);
+	
+	delete rowIdp;
 }
 
-void  Wrapper::ManagedSession::Include(Object^ rowId, array<Object^>^ row, array<System::String^>^ columns)
+void  Wrapper::ManagedSession::Include(Object^ rowId, array<Object^>^ row, array<System::Int32>^ columns)
 {
 	//Convert row
 	eastl::vector<void*> nativeRow(row->Length);
@@ -36,7 +39,11 @@ void  Wrapper::ManagedSession::Include(Object^ rowId, array<Object^>^ row, array
 			nativeRow[i] = Utilities::ConvertObjectToNative(row[i]);
 	}	
 
-	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
+	eastl::vector<int> cols(columns->Length);
+	for (int i = 0; i < columns->Length; i++)
+	{
+		cols[i] = columns[i];
+	}
 
 	void* rowIdp = Utilities::ConvertObjectToNative(rowId);
 
@@ -50,9 +57,13 @@ void  Wrapper::ManagedSession::Include(Object^ rowId, array<Object^>^ row, array
 	}
 }
 
-Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRange(array<System::String^>^ columns, array<ManagedOrder^>^ orders, array<ManagedRange^>^ ranges)
+Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRange(array<System::Int32>^ columns, array<ManagedOrder^>^ orders, array<ManagedRange^>^ ranges)
 {
-	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
+	eastl::vector<int> cols(columns->Length);
+	for (int i = 0; i < columns->Length; i++)
+	{
+		cols[i] = columns[i];
+	}
 
 	eastl::vector<Range> rgs;
 	for (int i = 0; i < ranges->Length; i++)
@@ -74,7 +85,7 @@ Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRange(array<System::String^
 	return gcnew ManagedDataSet(ds);
 }
 
-Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds, array<System::String^>^ columns)
+Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds, array<System::Int32>^ columns)
 {
 	//ConvertIDs
 	//Convert row
@@ -85,7 +96,11 @@ Wrapper::ManagedDataSet^ Wrapper::ManagedSession::GetRows(array<Object^>^ rowIds
 		nativeIds[i] = Utilities::ConvertObjectToNative(rowIds[i]);
 	}	
 
-	eastl::vector<fs::wstring> cols = Utilities::ConvertStringArray(columns);
+	eastl::vector<int> cols(columns->Length);
+	for (int i = 0; i < columns->Length; i++)
+	{
+		cols[i] = columns[i];
+	}
 
 	auto result = _nativeSession->GetRows(nativeIds, cols);
 
@@ -111,10 +126,9 @@ Wrapper::ManagedTransaction^ Wrapper::ManagedSession::Begin(System::Boolean read
 	return wrapper;
 }
 
-Wrapper::ManagedStatistics^ Wrapper::ManagedSession::GetStatistics(System::String^ column)
+Wrapper::ManagedStatistics^ Wrapper::ManagedSession::GetStatistics(System::Int32 column)
 {
-	fs::wstring col = Utilities::ConvertToNativeWString(column);
-	Statistics* stats = new Statistics(_nativeSession->GetStatistics(col));
+	Statistics* stats = new Statistics(_nativeSession->GetStatistics(column));
 	ManagedStatistics^ mstats = gcnew ManagedStatistics(stats);
 	return mstats;
 }

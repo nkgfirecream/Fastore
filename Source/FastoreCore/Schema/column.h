@@ -5,8 +5,9 @@
 struct ColumnDef
 {
 	fs::wstring Name;
-	ScalarType KeyType;
-	ScalarType IDType;
+	ScalarType ValueType;
+	ScalarType RowIDType;
 	bool IsUnique;
 	bool IsRequired;
+	int ColumnID;
 };

@@ -23,7 +23,7 @@ namespace Fastore.Core.Demo2
 		}
 
         private ManagedSession _session;
-        private string[] _columns;
+        private int[] _columns;
         private int _ids = 0;
 
 		private void Form1_Load(object sender, EventArgs e)
@@ -33,39 +33,45 @@ namespace Fastore.Core.Demo2
 
             ManagedColumnDef c1 = new ManagedColumnDef();
             c1.IsUnique = true;
-            c1.KeyType = "Int";
-            c1.IDType = "Int";
+            c1.ValueType = "Int";
+            c1.RowIDType = "Int";
             c1.Name = "ID";
+            c1.ColumnID = 0;
 
             ManagedColumnDef c2 = new ManagedColumnDef();
             c2.IsUnique = false;
-            c2.KeyType = "String";
-            c2.IDType = "Int";
+            c2.ValueType = "String";
+            c2.RowIDType = "Int";
             c2.Name = "Given";
+            c2.ColumnID = 1;
 
             ManagedColumnDef c3 = new ManagedColumnDef();
             c3.IsUnique = false;
-            c3.KeyType = "String";
-            c3.IDType = "Int";
+            c3.ValueType = "String";
+            c3.RowIDType = "Int";
             c3.Name = "Surname";
+            c3.ColumnID = 2;
 
             ManagedColumnDef c4 = new ManagedColumnDef();
             c4.IsUnique = false;
-            c4.KeyType = "Bool";
-            c4.IDType = "Int";
+            c4.ValueType = "Bool";
+            c4.RowIDType = "Int";
             c4.Name = "Gender";
+            c4.ColumnID = 3;
 
             ManagedColumnDef c5 = new ManagedColumnDef();
             c5.IsUnique = false;
-            c5.KeyType = "String";
-            c5.IDType = "Int";
+            c5.ValueType = "String";
+            c5.RowIDType = "Int";
             c5.Name = "BirthDate";
+            c5.ColumnID = 4;
 
             ManagedColumnDef c6 = new ManagedColumnDef();
             c6.IsUnique = false;
-            c6.KeyType = "String";
-            c6.IDType = "Int";
+            c6.ValueType = "String";
+            c6.RowIDType = "Int";
             c6.Name = "BirthPlace";
+            c6.ColumnID = 5;
 
             ManagedTopology topo = new ManagedTopology();
 
@@ -82,7 +88,7 @@ namespace Fastore.Core.Demo2
             var db = new ManagedDatabase(host);
 
             _session = db.Start();
-            _columns = new string[] { "ID", "Given", "Surname", "Gender", "BirthDate", "BirthPlace" };
+            _columns = new int[] {0, 1, 2, 3, 4, 5};
 
 
 			using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
@@ -96,7 +102,7 @@ namespace Fastore.Core.Demo2
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                int numrows = 7250000;
+                int numrows = 100000;
                 while (count++ < numrows)//16000000)
                 { 
                     xmlReader.MoveToContent();
@@ -233,7 +239,7 @@ namespace Fastore.Core.Demo2
                 start = new ManagedRangeBound(Search.Text, null, true);
             }
          
-            ranges.Add(new ManagedRange(comboBox1.SelectedItem.ToString(), 100, start, null));
+            ranges.Add(new ManagedRange(comboBox1.SelectedIndex, 100, start, null));
 
             List<ManagedOrder> orders = new List<ManagedOrder>();
 

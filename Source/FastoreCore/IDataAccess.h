@@ -18,11 +18,11 @@ class IDataAccess
 		IDataAccess(Host host): _host(host) {}
 
 
-		DataSet GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Order>& orders, eastl::vector<Range>& ranges);
-		DataSet GetRows(eastl::vector<void*>& rowdIds, eastl::vector<fs::wstring>& columns  /*, sorting */);
+		DataSet GetRange(eastl::vector<int>& columns, eastl::vector<Order>& orders, eastl::vector<Range>& ranges);
+		DataSet GetRows(eastl::vector<void*>& rowdIds, eastl::vector<int>& columns  /*, sorting */);
 		//int Include(eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns, bool isPicky);
-		void Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns);
-		void Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns);
-		Statistics GetStatistics(fs::wstring column);
+		void Include(void* rowID, eastl::vector<void*>& row, eastl::vector<int>& columns);
+		void Exclude(void* rowID, eastl::vector<int>& columns);
+		Statistics GetStatistics(const int& columnId);
 		//void Exclude(range, columns, isPicky);
 };

@@ -77,7 +77,7 @@ namespace Wrapper
 			fs::Range* GetNativePointer();
 
 			ManagedRange(fs::Range* nativeRange) : _nativeRange(nativeRange) {};
-			ManagedRange(System::String^ column, System::Int32 limit, ManagedRangeBound^ start, ManagedRangeBound^ end)
+			ManagedRange(System::Int32 column, System::Int32 limit, ManagedRangeBound^ start, ManagedRangeBound^ end)
 			{		
 				if (start != nullptr)
 				{
@@ -97,7 +97,7 @@ namespace Wrapper
 					endOpt = new Optional<fs::RangeBound>();
 				}
 
-				_nativeRange = new fs::Range(Wrapper::Utilities::ConvertToNativeWString(column), limit, *startOpt, *endOpt);
+				_nativeRange = new fs::Range(column, limit, *startOpt, *endOpt);
 			}
 
 			~ManagedRange()

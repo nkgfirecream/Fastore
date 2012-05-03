@@ -24,7 +24,7 @@ class Host
 
 		//Map Ids to locations in the vector (should I just point to a pointer instead? No, because I potentially need additional information about the column)
 	//Topology should probably store column info
-		eastl::hash_map<fs::wstring, int, eastl::string_hash<fs::wstring>> _columnMap;
+		eastl::hash_map<int, int> _columnMap;
 
 		ScalarType GetScalarTypeFromString(fs::wstring tname);
 		
@@ -33,7 +33,8 @@ class Host
 
 		//TODO: kill these..
 		void CreateColumn(ColumnDef  def);
-		void DeleteColumn(const fs::wstring name);
-		PointerDefPair GetColumn(fs::wstring name);
+		void DeleteColumn(const int& columnId);
+		PointerDefPair GetColumn(const int& columnId);
+		bool ExistsColumn(const int& columnId);
 
 };

@@ -21,11 +21,11 @@ namespace fs
 	{
 		const static int MaxLimit = 500;
 
-		Range(fs::wstring column, int limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>()):
-			Limit(limit), Start(start), End(end), Column(column) {}	
+		Range(const int& columnId, const int& limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>()):
+			Limit(limit), Start(start), End(end), ColumnID(columnId) {}	
 
 		int Limit;
-		fs::wstring Column;
+		int ColumnID;
 
 		Optional<RangeBound> Start;
 		Optional<RangeBound> End;

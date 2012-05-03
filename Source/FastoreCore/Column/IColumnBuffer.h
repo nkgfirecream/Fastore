@@ -34,9 +34,10 @@ class IColumnBuffer
 
 
 		//TODO: Either get rid of these as we refactor, or push them to the base class to reduce the number of virtual calls.
-		virtual ScalarType GetRowType() = 0;
-		virtual ScalarType GetKeyType() = 0;
+		virtual ScalarType GetRowIDType() = 0;
+		virtual ScalarType GetValueType() = 0;
 		virtual fs::wstring GetName() = 0;
 		virtual bool GetUnique() = 0;
 		virtual bool GetRequired() = 0;
+		virtual int GetID() = 0;
 };

@@ -7,22 +7,23 @@
 void Host::CreateColumn(ColumnDef  def)
 {
 	IColumnBuffer* newbuffer;
+	//Maybe I should just pass in the entire column def...
 	if(def.IsUnique)
 	{
-		newbuffer = new UniqueBuffer(def.IDType, def.KeyType, def.Name);
+		newbuffer = new UniqueBuffer(def.ColumnID, def.RowIDType, def.ValueType, def.Name);
 	}
 	else
 	{
-		newbuffer = new TreeBuffer(def.IDType, def.KeyType, def.Name);
+		newbuffer = new TreeBuffer(def.ColumnID, def.RowIDType, def.ValueType, def.Name);
 	}
 
 	_columns.push_back(PointerDefPair(newbuffer, def));
-	_columnMap.insert(eastl::pair<fs::wstring, int>(def.Name, _columns.size() - 1));
+	_columnMap.insert(eastl::pair<int, int>(def.ColumnID, _columns.size() - 1));
 }
 
-void Host::DeleteColumn(fs::wstring name)
+void Host::DeleteColumn(const int& columnId)
 {
-	int index = _columnMap.find(name)->second;
+	int index = _columnMap.find(columnId)->second;
 
 	IColumnBuffer* toDelete = _columns[index].first;
 
@@ -38,11 +39,16 @@ void Host::DeleteColumn(fs::wstring name)
 		IColumnBuffer* buf = _columns.at(i).first;
 		ColumnDef def = _columns.at(i).second;
 
-		_columnMap.insert(eastl::pair<fs::wstring, int>(buf->GetName(), i));
+		_columnMap.insert(eastl::pair<int, int>(buf->GetID(), i));
 	}
 }
 
-PointerDefPair Host::GetColumn(const fs::wstring name)
+PointerDefPair Host::GetColumn(const int& columnId)
 {
-	return _columns[_columnMap.find(name)->second];
+	return _columns[_columnMap.find(columnId)->second];
+}
+
+bool Host::ExistsColumn(const int& columnId)
+{
+	return _columnMap.find(columnId) != _columnMap.end();
 }

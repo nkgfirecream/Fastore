@@ -108,6 +108,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>FastoreCore.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep />
   </ItemDefinitionGroup>
@@ -122,6 +123,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>FastoreCore.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep />
   </ItemDefinitionGroup>
@@ -141,6 +143,7 @@
       <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep />
   </ItemDefinitionGroup>
@@ -160,6 +163,7 @@
       <AdditionalDependencies>FastoreCore.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>
       </LinkTimeCodeGeneration>
+      <Profile>true</Profile>
     </Link>
     <CustomBuildStep />
     <CustomBuildStep />

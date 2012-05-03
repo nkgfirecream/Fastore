@@ -2,22 +2,25 @@
 #include "Table\dataset.h"
 
 //IDataAccess
-void IDataAccess::Exclude(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns)
+void IDataAccess::Exclude(void* rowId, eastl::vector<int>& columns)
 {
+	fs::KeyVector kv;
+	kv.push_back(rowId);
+
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
 		IColumnBuffer* cb = _host.GetColumn(columns[i]).first;
 
-		fs::ValueVector values = cb->GetValues(rowIds);
+		fs::ValueVector values = cb->GetValues(kv);
 
-		for (unsigned int j = 0; j < rowIds.size(); j++)
+		for (unsigned int j = 0; j < values.size(); j++)
 		{
-			cb->Exclude(values[j], rowIds[j]);
+			cb->Exclude(values[j], rowId);
 		}
 	}
 }
 
-DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector<Order>& orders, eastl::vector<Range>& ranges)
+DataSet IDataAccess::GetRange(eastl::vector<int>& columns, eastl::vector<Order>& orders, eastl::vector<Range>& ranges)
 {
 	//TODO: Fix this assumption: Orderby is always first range passed.
 	ColumnDefVector ctv(columns.size());
@@ -25,9 +28,19 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	{ 
 		ctv[i] = _host.GetColumn(columns[i]).second;
 	}
-
+	
 	TupleType tt(ctv);
-	GetResult result = _host.GetColumn(ranges[0].Column).first->GetRows(ranges[0], true);
+	GetResult result;
+	
+	if (ranges.size() > 0)
+	{
+		result = _host.GetColumn(ranges[0].ColumnID).first->GetRows(ranges[0], true);
+	}
+	else
+	{
+		Range range(columns[0]);
+		result = _host.GetColumn(range.ColumnID).first->GetRows(range, true);
+	}
 
 	KeyVector kv;
 
@@ -63,7 +76,7 @@ DataSet IDataAccess::GetRange(eastl::vector<fs::wstring>& columns, eastl::vector
 	return ds;
 }
 
-DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wstring>& columns)
+DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<int>& columns)
 {
 	ColumnDefVector ctv(columns.size());
 	for (unsigned int i = 0; i < columns.size(); i++)
@@ -103,7 +116,7 @@ DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<fs::wst
 //	return _currentID - 1;
 //}
 
-void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<fs::wstring>& columns)
+void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<int>& columns)
 {
 	for (unsigned int i = 0; i < columns.size(); i++)
 	{
@@ -113,7 +126,7 @@ void IDataAccess::Include(void* rowID, eastl::vector<void*>& row, eastl::vector<
 	}
 }
 
-Statistics IDataAccess::GetStatistics(fs::wstring column)
+Statistics IDataAccess::GetStatistics(const int& columnId)
 {
-	return _host.GetColumn(column).first->GetStatistics();
+	return _host.GetColumn(columnId).first->GetStatistics();
 }

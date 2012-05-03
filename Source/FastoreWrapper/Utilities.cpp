@@ -27,7 +27,7 @@ void* Wrapper::Utilities::ConvertObjectToNative(System::Object^ object)
 	else if (type == System::String::typeid)
 	{
 		//TODO: Make string/wstring conversion dependent on encoding of string
-		return new std::string(ConvertToNativeString((System::String^)object));
+		return new std::wstring(ConvertToNativeWString((System::String^)object));
 	}
 	else
 	{
@@ -38,13 +38,36 @@ void* Wrapper::Utilities::ConvertObjectToNative(System::Object^ object)
 	return NULL;
 }
 
-System::Object^ Wrapper::Utilities::ConvertNativeToObject(void* pointer)
+System::Object^ Wrapper::Utilities::ConvertNativeToObject(void* pointer, fs::wstring tname)
 {
 	//TODO: What if we are get the actual bytes for an int? Then this won't work...
 	if (pointer == NULL)
 		return nullptr;
 
-	return nullptr;
+	if (tname == L"WString")
+	{
+		return Utilities::ConvertToManagedString(*(fs::wstring*)pointer);
+	}
+	else if (tname == L"String")
+	{
+		return Utilities::ConvertToManagedString(*(fs::string*)pointer);
+	}
+	else if (tname == L"Int")
+	{
+		return *(int*)pointer;
+	}
+	else if (tname == L"Long")
+	{
+		return *(long long*)pointer;
+	}
+	else if (tname == L"Bool")
+	{
+		return *(bool*)pointer;
+	}
+	else
+	{
+		throw;
+	}
 }
 
 eastl::vector<std::wstring> Wrapper::Utilities::ConvertStringArray(array<System::String^>^ managed)
@@ -100,7 +123,7 @@ ScalarType Wrapper::Utilities::ConvertStringToScalarType(System::String^ typestr
 	}
 	else if (typestring == L"String")
 	{
-		return standardtypes::GetStringType();
+		return standardtypes::GetWStringType();
 	}
 	else if (typestring == L"Int")
 	{

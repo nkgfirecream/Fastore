@@ -15,7 +15,7 @@ const int UniqueBufferRowMapInitialSize = 32;
 class UniqueBuffer : public IColumnBuffer
 {
 	public:
-		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name);
+		UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
@@ -23,11 +23,12 @@ class UniqueBuffer : public IColumnBuffer
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
 
-		ScalarType GetRowType();
-		ScalarType GetKeyType();
+		ScalarType GetRowIDType();
+		ScalarType GetValueType();
 		fs::wstring GetName();
 		bool GetUnique();
 		bool GetRequired();
+		int GetID();
 
 	private:
 		void ValuesMoved(void*, Node*);
@@ -41,10 +42,12 @@ class UniqueBuffer : public IColumnBuffer
 		long long _count;
 		fs::wstring _name;
 		bool _required;
+		int _id;
 };
 
-inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name)
+inline UniqueBuffer::UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name)
 {
+	_id = columnId;
 	_name = name;
 	_rowType = rowType;
 	_valueType = valueType;
@@ -62,6 +65,11 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 	);
 }
 
+inline int UniqueBuffer::GetID()
+{
+	return _id;
+}
+
 inline Statistics UniqueBuffer::GetStatistics()
 {
 	return Statistics(_count, _count);
@@ -72,12 +80,12 @@ inline fs::wstring UniqueBuffer::GetName()
 	return _name;
 }
 
-inline ScalarType UniqueBuffer::GetKeyType()
+inline ScalarType UniqueBuffer::GetValueType()
 {
 	return _valueType;
 }
 
-inline ScalarType UniqueBuffer::GetRowType()
+inline ScalarType UniqueBuffer::GetRowIDType()
 {
 	return _rowType;
 }

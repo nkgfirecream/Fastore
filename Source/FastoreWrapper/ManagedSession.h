@@ -25,10 +25,10 @@ namespace Wrapper
 
 
 			ManagedTransaction^ Begin(System::Boolean readIsolation, System::Boolean writeIsolation);
-			ManagedDataSet^ GetRange(array<System::String^>^ columns, array<ManagedOrder^>^ orders, array<ManagedRange^>^ ranges);
-			ManagedDataSet^ GetRows(array<System::Object^>^ rowIds, array<System::String^>^ columns);
-			void Include(Object^ rowId, array<System::Object^>^ row, array<System::String^>^ columns);
-			void Exclude(array<System::Object^>^ rowsIds, array<System::String^>^ columns);
-			ManagedStatistics^ GetStatistics(System::String^ column);
+			ManagedDataSet^ GetRange(array<System::Int32>^ columns, array<ManagedOrder^>^ orders, array<ManagedRange^>^ ranges);
+			ManagedDataSet^ GetRows(array<System::Object^>^ rowIds, array<System::Int32>^ columns);
+			void Include(Object^ rowId, array<System::Object^>^ row, array<System::Int32>^ columns);
+			void Exclude(Object^ rowsId, array<System::Int32>^ columns);
+			ManagedStatistics^ GetStatistics(System::Int32 columnId);
 	};
 }

@@ -46,7 +46,7 @@ ScalarType GetBTreeType()
 class TreeBuffer : public IColumnBuffer
 {
 	public:
-		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType, const fs::wstring& name);
+		TreeBuffer(const int& columnId, const ScalarType& rowType, const ScalarType &valueType, const fs::wstring& name);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
@@ -54,11 +54,12 @@ class TreeBuffer : public IColumnBuffer
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
 
-		ScalarType GetRowType();
-		ScalarType GetKeyType();
+		ScalarType GetRowIDType();
+		ScalarType GetValueType();
 		fs::wstring GetName();
 		bool GetUnique();
 		bool GetRequired();
+		int GetID();
 
 		Value GetValue(Key rowId);
 		fs::wstring ToString();
@@ -76,10 +77,12 @@ class TreeBuffer : public IColumnBuffer
 		bool _required;
 		long long _unique;
 		long long _total;
+		int _id;
 };
 
-inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType& valueType,const fs::wstring& name)
+inline TreeBuffer::TreeBuffer(const int& columnId, const ScalarType& rowType, const ScalarType &valueType, const fs::wstring& name)
 {
+	_id = columnId;
 	_name = name;
 	_rowType = rowType;
 	_valueType = valueType;
@@ -98,6 +101,11 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType& value
 	);
 }
 
+inline int TreeBuffer::GetID()
+{
+	return _id;
+}
+
 inline Statistics TreeBuffer::GetStatistics()
 {
 	return Statistics(_total, _unique);
@@ -113,12 +121,12 @@ inline fs::wstring TreeBuffer::GetName()
 	return _name;
 }
 
-inline ScalarType TreeBuffer::GetKeyType()
+inline ScalarType TreeBuffer::GetValueType()
 {
 	return _valueType;
 }
 
-inline ScalarType TreeBuffer::GetRowType()
+inline ScalarType TreeBuffer::GetRowIDType()
 {
 	return _rowType;
 }
