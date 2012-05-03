@@ -31,7 +31,7 @@ array<System::Object^>^ Wrapper::ManagedDataSet::Row(System::Int32 rownum)
 	array<System::Object^>^ cells = gcnew array<System::Object^>(numcolumns);
 	for(int i = 0; i < numcolumns; i++)
 	{
-		cells[i] = Utilities::ConvertNativeToObject(_nativeDataSet->Cell(rownum, i), _nativeDataSet->Type[i].Name);
+		cells[i] = Utilities::ConvertNativeToObject(_nativeDataSet->Cell(rownum, i), _nativeDataSet->Type[i].ValueType.Name);
 	}
 
 	return cells;

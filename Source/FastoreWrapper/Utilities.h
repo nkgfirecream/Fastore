@@ -16,7 +16,7 @@ namespace Wrapper
 			static void* ConvertObjectToNative(System::Object^ object);
 
 			//TODO: template this function? What type do we need to go to?
-			static System::Object^ ConvertNativeToObject(void* pointer, fs::wstring tname);
+			static System::Object^ ConvertNativeToObject(void* pointer, fs::string tname);
 
 			static array<System::String^>^ ConvertStringArray(eastl::vector<std::wstring>);
 			static eastl::vector<std::wstring> ConvertStringArray(array<System::String^>^);

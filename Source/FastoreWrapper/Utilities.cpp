@@ -38,29 +38,29 @@ void* Wrapper::Utilities::ConvertObjectToNative(System::Object^ object)
 	return NULL;
 }
 
-System::Object^ Wrapper::Utilities::ConvertNativeToObject(void* pointer, fs::wstring tname)
+System::Object^ Wrapper::Utilities::ConvertNativeToObject(void* pointer, fs::string tname)
 {
 	//TODO: What if we are get the actual bytes for an int? Then this won't work...
 	if (pointer == NULL)
 		return nullptr;
 
-	if (tname == L"WString")
+	if (tname == "WString")
 	{
 		return Utilities::ConvertToManagedString(*(fs::wstring*)pointer);
 	}
-	else if (tname == L"String")
+	else if (tname == "String")
 	{
 		return Utilities::ConvertToManagedString(*(fs::string*)pointer);
 	}
-	else if (tname == L"Int")
+	else if (tname == "Int")
 	{
 		return *(int*)pointer;
 	}
-	else if (tname == L"Long")
+	else if (tname == "Long")
 	{
 		return *(long long*)pointer;
 	}
-	else if (tname == L"Bool")
+	else if (tname == "Bool")
 	{
 		return *(bool*)pointer;
 	}

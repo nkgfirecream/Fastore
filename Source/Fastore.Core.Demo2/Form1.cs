@@ -102,7 +102,7 @@ namespace Fastore.Core.Demo2
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                int numrows = 100000;
+                int numrows = 1000;
                 while (count++ < numrows)//16000000)
                 { 
                     xmlReader.MoveToContent();
@@ -330,7 +330,7 @@ namespace Fastore.Core.Demo2
         {
             for (int i = 0; i < set.Size(); i++)
             {
-                yield return set.Row(i);
+                yield return (from c in set.Row(i) select c.ToString()).ToArray();
             }
         }
 
