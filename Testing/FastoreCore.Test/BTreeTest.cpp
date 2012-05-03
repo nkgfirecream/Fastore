@@ -1,5 +1,5 @@
 #include "StdAfx.h"
-#include "cfixcc.h"
+#include <cfixcc.h>
 #include "BTree.h"
 
 #include "Schema\standardtypes.h"
