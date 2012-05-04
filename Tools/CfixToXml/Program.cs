@@ -19,7 +19,8 @@ namespace CfixToXml
         [Argument(ArgumentType.Required, ShortName = "n", HelpText = "The name of the test.")]
         public string Name = String.Empty;
 
-        private const string ASSEMBLYTEMPLATE = "<assemblies><assembly name=\"{0}\" run-date=\"{1}\" run-time=\"{2}\" total=\"{3}\" passed=\"{4}\" failed=\"{5}\" test-framework=\"{6}\">{7}</assembly></assemblies>";      
+        //TODO: configFile, time, skipped, and environment are hard-coded to match xsl.  Should probably build a custom xsl to match this xml instead.
+        private const string ASSEMBLYTEMPLATE = "<assemblies><assembly name=\"{0}\" run-date=\"{1}\" run-time=\"{2}\" configFile=\"unknown\" time=\"1.0\" total=\"{3}\" passed=\"{4}\" failed=\"{5}\" skipped=\"0\" environment=\"32-bit .NET 4.0.30319.261\" test-framework=\"xUnit.net 1.8.0.1545\">{6}</assembly></assemblies>";      
         public int Run()
         {
             bool hasErrors = false;
@@ -50,7 +51,7 @@ namespace CfixToXml
                         classes.Sum(c => c.Value.Total).ToString(), 
                         classes.Sum(c => c.Value.Passed).ToString(), 
                         classes.Sum(c => c.Value.Failed).ToString(),
-                        input.Substring(0, input.IndexOf("\r\n")),
+                       // input.Substring(0, input.IndexOf("\r\n")),
                         classesText
                     );
                 using (FileStream outputFile = new FileInfo(OutputPath).OpenWrite())
@@ -104,14 +105,16 @@ namespace CfixToXml
     }
 
     class Class
-    {
-        private const string CLASSTEMPLATE = "<class name=\"{0}\" total=\"{1}\" passed=\"{2}\" failed=\"{3}\" >{4}</class>";
+    {         
         private List<Test> tests = new List<Test>();
         public List<Test> Tests { get { return tests; } }        
         public string Name { get; set; }
         public int Total { get { return Passed + Failed; } }
         public int Passed { get { return tests.Count(t => t.Result == TestResult.Pass); } }
         public int Failed { get { return tests.Count(t => t.Result != TestResult.Pass); } }
+        
+        //TODO: time and skipped are hard-coded
+        private const string CLASSTEMPLATE = "<class time=\"1.0\" name=\"{0}\" total=\"{1}\" passed=\"{2}\" failed=\"{3}\" skipped\"0\" >{4}</class>";
         public override string ToString()
         {
             return String.Format(CLASSTEMPLATE, Name, Total.ToString(), Passed.ToString(), Failed.ToString(), tests.Select(ts => ts.ToString()).Aggregate((ts, tss) => ts + tss));
@@ -120,7 +123,8 @@ namespace CfixToXml
 
     struct Test
     {
-        private const string TESTTEMPLATE = "<test name=\"{0}\" result=\"{1}\" resulttext=\"{2}\" method=\"{3}\" type=\"{4}\" />";
+        //TODO: time is hard-coded, add resulttext back in
+        private const string TESTTEMPLATE = "<test name=\"{0}\" type=\"{1}\" method=\"{2}\" result=\"{3}\" time=\"1.0\" />";
         public string Name { get; set; }
         public TestResult Result { get; set; }
         public String ResultText { get; set; }
@@ -128,7 +132,7 @@ namespace CfixToXml
         public string Type { get; set; }
         public override string ToString()
         {
-            return String.Format(TESTTEMPLATE, Name, Enum.GetName(typeof(TestResult), Result), ResultText, Method, Type);  
+            return String.Format(TESTTEMPLATE, Name, Type, Method, Enum.GetName(typeof(TestResult), Result));  
         }
     }
 
