@@ -25,8 +25,9 @@ namespace Fastore.Core.Demo2
         private ManagedSession _session;
         private int[] _columns;
         private int _ids = 0;
+		public bool Canceled { get; set; }
 
-		private void Form1_Load(object sender, EventArgs e)
+		private void Form1_Shown(object sender, EventArgs e)
 		{
            // Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(@"C:\owt.txt");
            // parser.Delimiters = new string[] { "^" };            
@@ -91,23 +92,27 @@ namespace Fastore.Core.Demo2
             _columns = new int[] {0, 1, 2, 3, 4, 5};
 
 
-			using (var fileStream = new FileStream(@"F:\Ancestry\OWT\owt.xml", FileMode.Open, FileAccess.Read))
+			var fileName = @"e:\owt.xml.gz";
+			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
-				//var deflated = new GZipStream(fileStream, CompressionMode.Decompress);
+				var deflated = Path.GetExtension(fileName) == ".gz" 
+					? (Stream)new GZipStream(fileStream, CompressionMode.Decompress)
+					: fileStream;
 
                 var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
-                var xmlReader = XmlReader.Create(fileStream, xrs);
+                var xmlReader = XmlReader.Create(deflated, xrs);
 
                
                 var count = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                int numrows = 1000;
-                while (count++ < numrows)//16000000)
+                while (!Canceled)
                 { 
                     xmlReader.MoveToContent();
                     if (xmlReader.EOF)
                         break;
+
+					count++;
 
                     var subReader = xmlReader.ReadSubtree();
                     object[] record = null;
@@ -138,21 +143,27 @@ namespace Fastore.Core.Demo2
                                 }
                             }
                         }
-                    }
+					}
 
                     InsertRecord(record);
 
                     xmlReader.Read();
-                }
+
+					if (count % 100000 == 0)
+						StatusBox.AppendText("\r\nLoaded: " + count.ToString());
+					if (count % 1000 == 0)
+						Application.DoEvents();
+				}
                 watch.Stop();
 
-                MessageBox.Show("Row per second : " + (numrows /(watch.ElapsedMilliseconds / 1000.0)));
+				StatusBox.AppendText("\r\nRow per second : " + (count / (watch.ElapsedMilliseconds / 1000.0)));
 
                 string result = GetStats();
-                MessageBox.Show(result);
+				StatusBox.AppendText("\r\n" + result);
 
-                System.Diagnostics.Debug.WriteLine("Load time: " + watch.Elapsed.ToString());
+				StatusBox.AppendText("\r\nLoad time: " + watch.Elapsed.ToString());
 
+				StopButton.Visible = false;
             }
 
             //Stopwatch watch = new Stopwatch();
@@ -326,13 +337,13 @@ namespace Fastore.Core.Demo2
         //    return range;
         //}
 
-        private IEnumerable<string[]> ParseDataSet(ManagedDataSet set)
-        {
-            for (int i = 0; i < set.Size(); i++)
-            {
+		private IEnumerable<string[]> ParseDataSet(ManagedDataSet set)
+		{
+			for (int i = 0; i < set.Size(); i++)
+			{
                 yield return (from c in set.Row(i) select c.ToString()).ToArray();
-            }
-        }
+			}
+		}
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
 		{
@@ -343,6 +354,11 @@ namespace Fastore.Core.Demo2
         {
             RefreshItems();
         }
+
+		private void StopButton_Click(object sender, EventArgs e)
+		{
+			Canceled = true;
+		}
 
 
 	}

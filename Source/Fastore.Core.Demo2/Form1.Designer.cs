@@ -38,6 +38,11 @@
 			this.columnHeader4 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.columnHeader5 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.StatusBox = new System.Windows.Forms.TextBox();
+			this.StopButton = new System.Windows.Forms.Button();
+			this.splitter1 = new System.Windows.Forms.Splitter();
+			this.panel1 = new System.Windows.Forms.Panel();
+			this.panel1.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// comboBox1
@@ -51,7 +56,7 @@
             "Gender",
             "BirthDate",
             "BirthPlace"});
-			this.comboBox1.Location = new System.Drawing.Point(15, 14);
+			this.comboBox1.Location = new System.Drawing.Point(15, 11);
 			this.comboBox1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.comboBox1.Name = "comboBox1";
 			this.comboBox1.Size = new System.Drawing.Size(132, 24);
@@ -61,7 +66,7 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(169, 17);
+			this.label1.Location = new System.Drawing.Point(170, 14);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(53, 17);
 			this.label1.TabIndex = 1;
@@ -71,7 +76,7 @@
 			// 
 			this.Search.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.Search.Location = new System.Drawing.Point(229, 14);
+			this.Search.Location = new System.Drawing.Point(229, 11);
 			this.Search.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.Search.Name = "Search";
 			this.Search.Size = new System.Drawing.Size(700, 22);
@@ -80,9 +85,6 @@
 			// 
 			// listView1
 			// 
-			this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
 			this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2,
@@ -90,10 +92,11 @@
             this.columnHeader4,
             this.columnHeader5,
             this.columnHeader6});
-			this.listView1.Location = new System.Drawing.Point(15, 44);
+			this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.listView1.Location = new System.Drawing.Point(0, 47);
 			this.listView1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.listView1.Name = "listView1";
-			this.listView1.Size = new System.Drawing.Size(914, 607);
+			this.listView1.Size = new System.Drawing.Size(945, 631);
 			this.listView1.TabIndex = 3;
 			this.listView1.UseCompatibleStateImageBehavior = false;
 			this.listView1.View = System.Windows.Forms.View.Details;
@@ -128,19 +131,62 @@
 			this.columnHeader6.Text = "Birth Place";
 			this.columnHeader6.Width = 198;
 			// 
+			// StatusBox
+			// 
+			this.StatusBox.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.StatusBox.Location = new System.Drawing.Point(0, 633);
+			this.StatusBox.Multiline = true;
+			this.StatusBox.Name = "StatusBox";
+			this.StatusBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+			this.StatusBox.Size = new System.Drawing.Size(945, 45);
+			this.StatusBox.TabIndex = 4;
+			// 
+			// StopButton
+			// 
+			this.StopButton.Location = new System.Drawing.Point(331, 314);
+			this.StopButton.Name = "StopButton";
+			this.StopButton.Size = new System.Drawing.Size(230, 27);
+			this.StopButton.TabIndex = 5;
+			this.StopButton.Text = "Loading... press to stop.";
+			this.StopButton.UseVisualStyleBackColor = true;
+			this.StopButton.Click += new System.EventHandler(this.StopButton_Click);
+			// 
+			// splitter1
+			// 
+			this.splitter1.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.splitter1.Location = new System.Drawing.Point(0, 630);
+			this.splitter1.Name = "splitter1";
+			this.splitter1.Size = new System.Drawing.Size(945, 3);
+			this.splitter1.TabIndex = 6;
+			this.splitter1.TabStop = false;
+			// 
+			// panel1
+			// 
+			this.panel1.Controls.Add(this.label1);
+			this.panel1.Controls.Add(this.comboBox1);
+			this.panel1.Controls.Add(this.Search);
+			this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+			this.panel1.Location = new System.Drawing.Point(0, 0);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(945, 47);
+			this.panel1.TabIndex = 7;
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(945, 666);
+			this.ClientSize = new System.Drawing.Size(945, 678);
+			this.Controls.Add(this.splitter1);
+			this.Controls.Add(this.StopButton);
+			this.Controls.Add(this.StatusBox);
 			this.Controls.Add(this.listView1);
-			this.Controls.Add(this.Search);
-			this.Controls.Add(this.label1);
-			this.Controls.Add(this.comboBox1);
+			this.Controls.Add(this.panel1);
 			this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.Name = "Form1";
 			this.Text = "Form1";
-			this.Load += new System.EventHandler(this.Form1_Load);
+			this.Shown += new System.EventHandler(this.Form1_Shown);
+			this.panel1.ResumeLayout(false);
+			this.panel1.PerformLayout();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -158,6 +204,10 @@
 		private System.Windows.Forms.ColumnHeader columnHeader4;
 		private System.Windows.Forms.ColumnHeader columnHeader5;
         private System.Windows.Forms.ColumnHeader columnHeader6;
+		private System.Windows.Forms.TextBox StatusBox;
+		private System.Windows.Forms.Button StopButton;
+		private System.Windows.Forms.Splitter splitter1;
+		private System.Windows.Forms.Panel panel1;
 	}
 }
 
