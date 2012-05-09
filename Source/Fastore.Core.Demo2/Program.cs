@@ -15,7 +15,13 @@ namespace Fastore.Core.Demo2
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
+			Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
 			Application.Run(new Form1());
+		}
+
+		static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+		{
+			MessageBox.Show(e.Exception.ToString());
 		}
 	}
 }

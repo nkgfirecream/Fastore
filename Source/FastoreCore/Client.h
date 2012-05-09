@@ -7,5 +7,6 @@ using namespace fs;
 class Client
 {
 	public:
-		Database Connect(Host host);
+		Database Connect(fs::wstring address);
+		Database Start(Topology topology);
 };

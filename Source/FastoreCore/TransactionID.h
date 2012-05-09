@@ -14,22 +14,16 @@ struct TransactionID
 
 		void SetRevision(long long revision)
 		{
-			//Clear upper 48 (keep lower 16)
-			_id &= 0x000000000000FFFF;
-			//Set upper 48
-			_id |= (revision << 16);
+			_id = (revision << 16) | (_id & 0x000000000000FFFF);
 		}
 
-		short GetTransaction()
+		short GetSequence()
 		{
 			return (short)_id;
 		}
 
-		void SetTransaction(short transaction)
+		void SetSequence(short transaction)
 		{
-			//Clear lower 16 bits (keep upper 48)
-			_id &= ~0x000000000000FFFF;
-			//Set lower 16 bits
-			_id |= transaction;
+			_id = transaction | (_id & 0xFFFFFFFFFFFF0000);
 		}
 };

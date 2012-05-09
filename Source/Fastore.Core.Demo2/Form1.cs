@@ -92,7 +92,7 @@ namespace Fastore.Core.Demo2
             _columns = new int[] {0, 1, 2, 3, 4, 5};
 
 
-			var fileName = @"e:\owt.xml.gz";
+			var fileName = @"e:\owt.xml";
 			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
 				var deflated = Path.GetExtension(fileName) == ".gz" 
@@ -104,6 +104,7 @@ namespace Fastore.Core.Demo2
 
                
                 var count = 0;
+				long lastMilliseconds = 0;
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
                 while (!Canceled)
@@ -150,7 +151,10 @@ namespace Fastore.Core.Demo2
                     xmlReader.Read();
 
 					if (count % 100000 == 0)
-						StatusBox.AppendText("\r\nLoaded: " + count.ToString());
+					{
+						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 100000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
+						lastMilliseconds = watch.ElapsedMilliseconds;
+					}
 					if (count % 1000 == 0)
 						Application.DoEvents();
 				}
