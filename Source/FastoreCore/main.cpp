@@ -1038,7 +1038,7 @@ void TestTransactionID()
 {
 	TransactionID trans;
 
-	trans.SetRevision(100);
+	/*trans.SetRevision(100);
 	trans.SetTransaction(5);
 
 
@@ -1051,7 +1051,7 @@ void TestTransactionID()
 
 	trans.SetTransaction(446);
 	cout << "Revision: " << trans.GetRevision() << "\n\r";
-	cout << "Transaction: " << trans.GetTransaction() << "\n\r";
+	cout << "Transaction: " << trans.GetTransaction() << "\n\r";*/
 }
 
 void TestChange()

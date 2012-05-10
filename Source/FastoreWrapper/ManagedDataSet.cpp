@@ -25,6 +25,11 @@ System::Int32 Wrapper::ManagedDataSet::Size()
 	return _nativeDataSet->Size();
 }
 
+System::Boolean Wrapper::ManagedDataSet::Limited()
+{
+	return _nativeDataSet->Limited;
+}
+
 array<System::Object^>^ Wrapper::ManagedDataSet::Row(System::Int32 rownum)
 {
 	int numcolumns = (_nativeDataSet->Type).size();

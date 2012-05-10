@@ -19,6 +19,7 @@ namespace Wrapper
 			DataSet* GetNativePointer();
 
 			int Size();
+			bool Limited();
 			array<System::Object^>^ Row(int row);
 			void Dump();
 	};

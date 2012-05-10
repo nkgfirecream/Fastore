@@ -19,7 +19,7 @@ namespace fs
 
 	struct Range
 	{
-		const static int MaxLimit = 500;
+		const static int MaxLimit = 5;
 
 		Range(const int& columnId, const int& limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>()):
 			Limit(limit), Start(start), End(end), ColumnID(columnId) {}	

@@ -10,6 +10,10 @@ class DataSet
 	public:
 		TupleType Type;
 
+		//Limited indicates a partial DataSet (This may not be the most appropriate place for it as Limited is with regards to the initial query,
+		//and the dataset has no representation of that query.)
+		bool Limited;
+
 		DataSet(const TupleType tupleType, int rowCount) : Type(tupleType), RowCount(rowCount) 
 		{
 			_buffer = new char[Type.BufferSize * RowCount];
@@ -20,7 +24,7 @@ class DataSet
 			delete _buffer;
 		}
 
-		DataSet(const DataSet& copyfrom) : Type(copyfrom.Type), RowCount(copyfrom.RowCount)
+		DataSet(const DataSet& copyfrom) : Type(copyfrom.Type), RowCount(copyfrom.RowCount), Limited(copyfrom.Limited)
 		{
 			_buffer = new char[Type.BufferSize * RowCount];
 

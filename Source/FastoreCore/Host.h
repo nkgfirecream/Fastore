@@ -16,8 +16,8 @@ class Host
 	//TODO: Host Information...
 	//Address
 
-	//TODO: So... Let's dump the columns into the host.. This is non-bootstrapped, and therfore wrong. The Host factory will evenutally need to create a bootstrapped host so columns
-	//addtions and removals can simply be includes/excludes.
+	//TODO: So... Let's dump the columns into the host.. This is non-bootstrapped, and therefore wrong. The Host factory will eventually need to create a bootstrapped host so columns
+	//additions and removals can simply be includes/excludes.
 	private:
 		//Store pointers to the column buffers..
 		eastl::vector<PointerDefPair> _columns;

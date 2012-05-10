@@ -28,8 +28,10 @@ class IColumnBuffer
 		virtual ValueVector GetValues(const KeyVector& rowIds) = 0;
 		virtual bool Include(Value value, Key rowID) = 0;
 		virtual bool Exclude(Value value, Key rowID) = 0;
+
+		//Eventually will need a sort order. Now just assume natural ordering and reverse if necessary.
 		virtual ValueKeysVectorVector GetSorted(const KeyVectorVector &keyValues) = 0; 
-		virtual GetResult GetRows(Range &range, bool ascending) = 0;
+		virtual GetResult GetRows(Range &range) = 0;
 		virtual Statistics GetStatistics() = 0;
 
 

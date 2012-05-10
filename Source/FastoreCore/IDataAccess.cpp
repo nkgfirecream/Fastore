@@ -34,12 +34,12 @@ DataSet IDataAccess::GetRange(eastl::vector<int>& columns, eastl::vector<Order>&
 	
 	if (ranges.size() > 0)
 	{
-		result = _host.GetColumn(ranges[0].ColumnID).first->GetRows(ranges[0], true);
+		result = _host.GetColumn(ranges[0].ColumnID).first->GetRows(ranges[0]);
 	}
 	else
 	{
 		Range range(columns[0]);
-		result = _host.GetColumn(range.ColumnID).first->GetRows(range, true);
+		result = _host.GetColumn(range.ColumnID).first->GetRows(range);
 	}
 
 	KeyVector kv;
@@ -53,8 +53,8 @@ DataSet IDataAccess::GetRange(eastl::vector<int>& columns, eastl::vector<Order>&
 	}
 
 
-
 	DataSet ds(tt, kv.size());
+	ds.Limited = result.Limited;
 
 	//TODO: DataSet could easily be filled in a multi-thread fashion with a pointer the its buffer, a rowsize, and a rowoffset (each thread fills one column)
 	//TODO: It's also the case that we don't need to call back into the column buffer to get the values for the ranged rows, we just need to write the code to materialize the data
@@ -99,6 +99,8 @@ DataSet IDataAccess::GetRows(eastl::vector<void*>& rowIds, eastl::vector<int>& c
 		}
 	}
 
+	//We always return the complete set of rowsIds. Buffering will be handled on a higher level (consider rethinking this...)
+	ds.Limited = false;
 	return ds;
 }
 
