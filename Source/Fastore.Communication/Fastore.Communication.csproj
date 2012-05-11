@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E417B076-B58A-4339-8142-089AB4761679}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Fastore.Communication</RootNamespace>
+    <AssemblyName>Fastore.Communication</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Thrift">
+      <HintPath>..\packages\Thrift.0.8.0.27874\lib\net35\Thrift.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Alphora\Fastore\Answer.cs" />
+    <Compile Include="Alphora\Fastore\BeyondHistory.cs" />
+    <Compile Include="Alphora\Fastore\ColumnWrites.cs" />
+    <Compile Include="Alphora\Fastore\Conflict.cs" />
+    <Compile Include="Alphora\Fastore\Exclude.cs" />
+    <Compile Include="Alphora\Fastore\Host.cs" />
+    <Compile Include="Alphora\Fastore\HostReport.cs" />
+    <Compile Include="Alphora\Fastore\HostStatus.cs" />
+    <Compile Include="Alphora\Fastore\Include.cs" />
+    <Compile Include="Alphora\Fastore\LockExpired.cs" />
+    <Compile Include="Alphora\Fastore\LockMode.cs" />
+    <Compile Include="Alphora\Fastore\LockTimedOut.cs" />
+    <Compile Include="Alphora\Fastore\NotLatest.cs" />
+    <Compile Include="Alphora\Fastore\Query.cs" />
+    <Compile Include="Alphora\Fastore\RangeBound.cs" />
+    <Compile Include="Alphora\Fastore\RangeRequest.cs" />
+    <Compile Include="Alphora\Fastore\ReadResults.cs" />
+    <Compile Include="Alphora\Fastore\Repository.cs" />
+    <Compile Include="Alphora\Fastore\RepositoryStatus.cs" />
+    <Compile Include="Alphora\Fastore\Service.cs" />
+    <Compile Include="Alphora\Fastore\Statistic.cs" />
+    <Compile Include="Alphora\Fastore\Topology.cs" />
+    <Compile Include="Alphora\Fastore\TopologyReport.cs" />
+    <Compile Include="Alphora\Fastore\TopologyResult.cs" />
+    <Compile Include="Alphora\Fastore\TransactionID.cs" />
+    <Compile Include="Alphora\Fastore\ValueRows.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>$(SolutionDir)..\External\Thrift\thrift-0.8.0 --gen csharp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</PreBuildEvent>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

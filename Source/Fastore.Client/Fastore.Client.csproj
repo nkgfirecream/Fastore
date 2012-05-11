@@ -40,7 +40,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Thrift">
+    <Reference Include="Thrift, Version=0.8.0.27874, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Thrift.0.8.0.27874\lib\net35\Thrift.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -58,9 +58,19 @@
     <Compile Include="Transaction.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Fastore.Communication\Fastore.Communication.csproj">
+      <Project>{E417B076-B58A-4339-8142-089AB4761679}</Project>
+      <Name>Fastore.Communication</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -183,7 +183,7 @@ exception LockExpired
 
 exception LockTimedOut {}
 
-service Host
+service Service
 {
 	/** Returns the target topology as this host presently understands it. */
 	TopologyResult GetTopology(),

@@ -15,7 +15,7 @@ namespace Alphora.Fastore.Client
 
         public Session Start()
         {
-            throw new NotImplementedException();
+            return new Session(_client);
         }
 
         public void CreateColumn(ColumnDef def)

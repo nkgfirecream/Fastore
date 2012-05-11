@@ -206,6 +206,7 @@
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
+    <ClCompile Include="Storage\Schema\standardtypes.cpp" />
     <ClCompile Include="Table\dataset.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>
@@ -225,11 +226,15 @@
     <ClInclude Include="optional.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="Range.h" />
-    <ClInclude Include="Schema\column.h" />
-    <ClInclude Include="Schema\standardtypes.h" />
+    <ClInclude Include="schema\column.h" />
+    <ClInclude Include="schema\scalar.h" />
+    <ClInclude Include="schema\standardtypes.h" />
+    <ClInclude Include="schema\tuple.h" />
+    <ClInclude Include="Storage\Schema\column.h" />
+    <ClInclude Include="Storage\Schema\standardtypes.h" />
     <ClInclude Include="Table\dataset.h" />
-    <ClInclude Include="Schema\tuple.h" />
-    <ClInclude Include="Schema\scalar.h" />
+    <ClInclude Include="Storage\Schema\tuple.h" />
+    <ClInclude Include="Storage\Schema\scalar.h" />
     <ClInclude Include="Topology.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
