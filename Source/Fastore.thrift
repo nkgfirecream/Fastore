@@ -22,8 +22,8 @@ struct Host
 
 struct Repository
 {
-	1: ColumnID ColumnID,
-	2: HostID HostID,
+	1: ColumnID columnID,
+	2: HostID hostID,
 }
 
 struct Topology
@@ -35,8 +35,8 @@ struct Topology
 
 struct TopologyResult
 {
-	1: Topology Topology,
-	2: Revision Revision
+	1: Topology topology,
+	2: Revision revision
 }
 
 // Topology Reporting
@@ -68,9 +68,9 @@ struct HostReport
 
 struct TopologyReport
 {
-	1: TopologyID TopologyID,
+	1: TopologyID topologyID,
 	2: map<HostID, HostReport> Hosts,
-	3: Revision Revision = 1
+	3: Revision revision = 1
 }
 
 // Host
@@ -84,7 +84,7 @@ const LockTimeout DefaultLockTimeout = 1000;
 
 struct TransactionID
 {
-	1: Revision Revision,
+	1: Revision revision,
 	2: i64 Key
 }
 
@@ -153,7 +153,7 @@ struct Answer
 struct ReadResults
 {
 	1:map<ColumnID, Answer> Answers,
-	2:Revision Revision
+	2:Revision revision
 }
 
 typedef map<Query, Answer> Read
@@ -178,7 +178,7 @@ exception BeyondHistory
 
 exception LockExpired
 {
-	1: LockID LockID
+	1: LockID lockID
 }
 
 exception LockTimedOut {}

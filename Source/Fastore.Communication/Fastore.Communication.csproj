@@ -76,7 +76,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)..\External\Thrift\thrift-0.8.0 --gen csharp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</PreBuildEvent>
+    <PreBuildEvent>$(SolutionDir)..\External\Thrift\thrift --gen csharp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</PreBuildEvent>
   </PropertyGroup>
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

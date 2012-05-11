@@ -67,6 +67,11 @@ UnitTests_SOURCES = \
 	TMemoryBufferTest.cpp \
 	TBufferBaseTest.cpp
 
+if !WITH_BOOSTTHREADS
+UnitTests_SOURCES += \
+        RWMutexStarveTest.cpp
+endif
+
 UnitTests_LDADD = \
   libtestgencpp.la \
   $(BOOST_ROOT_PATH)/lib/libboost_unit_test_framework.a
