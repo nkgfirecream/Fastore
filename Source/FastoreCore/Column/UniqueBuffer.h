@@ -19,7 +19,7 @@ class UniqueBuffer : public IColumnBuffer
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
-		GetResult GetRows(Range& range, bool ascending);
+		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
 
@@ -230,7 +230,7 @@ inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 	}
 }
 
-inline GetResult UniqueBuffer::GetRows(Range& range, bool ascending = true)
+inline GetResult UniqueBuffer::GetRows(Range& range)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
@@ -261,7 +261,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range, bool ascending = true)
 	}
 
 	//Swap iterators if descending
-	if (ascending)
+	if (range.Ascending)
 	{
 		//Adjust iterators
 		//Last needs to point to the element AFTER the last one we want to get
@@ -304,7 +304,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range, bool ascending = true)
 		(
 			first, 
 			last,
-			ascending, 
+			range.Ascending, 
 			range.Limit > range.MaxLimit
 				? range.MaxLimit 
 				: range.Limit, 

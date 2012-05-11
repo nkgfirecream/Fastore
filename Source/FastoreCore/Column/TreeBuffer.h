@@ -50,7 +50,7 @@ class TreeBuffer : public IColumnBuffer
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
-		GetResult GetRows(Range& range, bool ascending);
+		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
 
@@ -322,7 +322,7 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	}	
 }
 
-inline GetResult TreeBuffer::GetRows(Range& range, bool ascending = true)
+inline GetResult TreeBuffer::GetRows(Range& range)
 {
 	//These may not exist, add logic for handling that.
 	GetResult result;
@@ -353,7 +353,7 @@ inline GetResult TreeBuffer::GetRows(Range& range, bool ascending = true)
 	}
 
 	//Swap iterators if descending
-	if (ascending)
+	if (range.Ascending)
 	{
 		//Adjust iterators
 		//Last needs to point to the element AFTER the last one we want to get
@@ -401,7 +401,7 @@ inline GetResult TreeBuffer::GetRows(Range& range, bool ascending = true)
 				: range.End.HasValue() && (*range.End).RowId.HasValue() 
 					? *(*range.End).RowId
 					: NULL, 
-			ascending, 
+			range.Ascending, 
 			range.Limit > range.MaxLimit
 				? range.MaxLimit 
 				: range.Limit, 

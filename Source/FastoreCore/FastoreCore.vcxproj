@@ -206,7 +206,6 @@
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
-    <ClCompile Include="Storage\Schema\standardtypes.cpp" />
     <ClCompile Include="Table\dataset.cpp">
       <DeploymentContent>false</DeploymentContent>
     </ClCompile>

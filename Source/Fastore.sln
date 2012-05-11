@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Communication", "Fa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommunication", "FastoreCommunication\FastoreCommunication.vcxproj", "{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreWrapper", "FastoreWrapper\FastoreWrapper.vcxproj", "{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Fastore.vsmdi
@@ -157,6 +159,22 @@ Global
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Win32.Build.0 = Release|Win32
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.ActiveCfg = Release|Win32
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x86.ActiveCfg = Release|Win32
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|Win32.Build.0 = Debug|Win32
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|x64.ActiveCfg = Debug|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|x64.Build.0 = Debug|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Debug|x86.ActiveCfg = Debug|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|Any CPU.ActiveCfg = Release|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|Mixed Platforms.Build.0 = Release|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|Win32.ActiveCfg = Release|Win32
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|Win32.Build.0 = Release|Win32
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|x64.ActiveCfg = Release|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|x64.Build.0 = Release|x64
+		{0DB613DB-125A-4299-9EF4-6BEEC78F95F5}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

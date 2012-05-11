@@ -1036,7 +1036,7 @@ void BTreePathTest()
 
 void TestTransactionID()
 {
-	TransactionID trans;
+	//TransactionID trans;
 
 	/*trans.SetRevision(100);
 	trans.SetTransaction(5);
