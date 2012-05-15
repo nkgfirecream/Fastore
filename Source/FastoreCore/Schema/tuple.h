@@ -1,6 +1,5 @@
 #pragma once
 
-#include <EASTL/vector.h>
 #include "column.h"
 #include "../typedefs.h"
 #include <sstream>
@@ -8,7 +7,7 @@
 
 using namespace std;
 
-typedef eastl::vector<ColumnDef> ColumnDefVector;
+typedef std::vector<ColumnDef> ColumnDefVector;
 
 class TupleType
 {

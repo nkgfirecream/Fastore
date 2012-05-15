@@ -1,21 +1,14 @@
 #include "Schema\standardtypes.h"
-#include "Table\table.h"
-#include "Column\HashBuffer.h"
 #include "Column\UniqueBuffer.h"
 //#include "Column\TreeBuffer.h"
 #include "KeyTree.h"
 #include <conio.h>
-#include <tbb\queuing_mutex.h>
 #include <iostream>
 #include "Util/Stopwatch.h"
 #include <sstream>
 #include <bitset>
 #include "TransactionID.h"
-#include "Change.h"
-#include "Topology.h"
-#include "HostFactory.h"
-#include "Database.h"
-#include "Session.h"
+#include "FastoreHost.h"
 
 #include <iostream>
 #include <fstream>
@@ -163,7 +156,7 @@ void SequentialIntArrayTest()
 	
 	long numrows = 1000000;
 
-	eastl::vector<int> a;
+	std::vector<int> a;
 	//a.set_capacity(numrows);	// preallocation
 
 	Stopwatch watch;
@@ -320,27 +313,6 @@ void RandomLongTest()
 void GuidTest()
 {
 	//To be implemented
-}
-
-void QueueingMutexTest()
-{
-	tbb::queuing_mutex qm;
-
-	cout << "Testing Queueing mutex...";
-	Stopwatch watch;
-	long numrows = 100000000;
-	
-	for(int i = 0; i < numrows; i++)
-	{
-		watch.StartTimer();
-		tbb::queuing_mutex::scoped_lock lock(qm);
-		lock.release();
-		watch.StopTimer();
-	}
-
-	double secs = watch.TotalTime();
-	cout << " secs: " << secs << "\r\n";
-	cout << "Mutexes per second: " << numrows / secs << "\r\n";
 }
 
 void InterlockedTest()
@@ -1054,21 +1026,7 @@ void TestTransactionID()
 	cout << "Transaction: " << trans.GetTransaction() << "\n\r";*/
 }
 
-void TestChange()
-{
-	Change change;
-	change.RowID = new long(1);
-	change.Value = new long(1);
-	change.Operation = change.Include;
 
-	ChangeSet set;
-	set.push_back(change);
-
-	//TODO: actually test changes...
-	cout << "Change created and added to set";
-
-
-}
 
 //TODO: implement this
 //void DatabaseTest()
@@ -1142,9 +1100,9 @@ void TestChange()
 //	}
 //}
 
-eastl::vector<fs::wstring> split(const fs::wstring& s, wchar_t delim, unsigned int length)
+std::vector<fs::wstring> split(const fs::wstring& s, wchar_t delim, unsigned int length)
 {
-	eastl::vector<fs::wstring> elems(length);
+	std::vector<fs::wstring> elems(length);
     wstringstream ss(s);
     fs::wstring item;
 	unsigned int i = 0;
@@ -1169,172 +1127,9 @@ bool stringtobool(const fs::wstring& s)
 	return s.size() > 0 && (s.at(0) == 't' ||  s.at(0) == 'T' || s.at(0) == '0');
 }
 
-void OWTTest()
-{
-	wifstream owtfile;
-	owtfile.open("C:\\owt.txt");
-
-	ColumnDef c1;
-	c1.IsUnique = true;
-	c1.ValueType = standardtypes::GetIntType();
-	c1.Name = L"ID";
-	c1.ColumnID = 0;
-
-	ColumnDef c2;
-	c2.IsUnique = false;
-	c2.ValueType = standardtypes::GetStringType();
-	c2.Name = L"Given";
-	c2.ColumnID = 1;
-
-	ColumnDef c3;
-	c3.IsUnique = false;
-	c3.ValueType = standardtypes::GetStringType();
-	c3.Name = L"Surname";
-	c3.ColumnID = 2;
-
-	ColumnDef c4;
-	c4.IsUnique = false;
-	c4.ValueType = standardtypes::GetBoolType();
-	c4.Name = L"Gender";
-	c4.ColumnID = 3;
-
-	ColumnDef c5;
-	c5.IsUnique = false;
-	c5.ValueType = standardtypes::GetStringType();
-	c5.Name = L"BirthDate";
-	c5.ColumnID = 4;
-
-	ColumnDef c6;
-	c6.IsUnique = false;
-	c6.ValueType = standardtypes::GetStringType();
-	c6.Name = L"BirthPlace";
-	c6.ColumnID = 5;
-
-	Topology topo;
-
-	topo.push_back(c1);
-	topo.push_back(c2);
-	topo.push_back(c3);
-	topo.push_back(c4);
-	topo.push_back(c5);
-	topo.push_back(c6);
-
-	HostFactory hf;
-	Host host = hf.Create(topo);
-	Database db(host);
-	Session	session = db.Start();
-
-	eastl::vector<int> columns;
-
-	columns.push_back(0);
-	columns.push_back(1);
-	columns.push_back(2);
-	columns.push_back(3);
-	columns.push_back(4);
-	columns.push_back(5);
-
-	
-	Stopwatch watch;
-	Stopwatch watchtotal;
-	long long numrows = 1000;
-
-	watchtotal.StartTimer();
-	for (int i = 0; i < numrows; i++)
-	{
-		//Parse file
-		fs::wstring item;
-		getline(owtfile, item);
-		eastl::vector<fs::wstring> row = split(item, '^', 6);
-		eastl::vector<void*> rowpointers(6);
-
-		int id = _wtoi(row.at(0).c_str());
-		bool gender = stringtobool(row.at(3));
-		rowpointers[0] = &id;
-		rowpointers[3] = &gender;
-
-		rowpointers[1] = &row.at(1);
-		rowpointers[2] = &row.at(2);		
-		rowpointers[4] = &row.at(4);
-		rowpointers[5] = &row.at(5);
-		watch.StartTimer();
-		session.Include(&i, rowpointers, columns);
-		watch.StopTimer();
-	}
-	watchtotal.StopTimer();
-	double secs = watch.TotalTime();
-	cout << " secs: " << secs << "\r\n";	
-	cout << "\tRows per second (no parsing): " << numrows / secs << "\r\n";
-
-	secs = watchtotal.TotalTime();
-	cout << " secs: " << secs << "\r\n";	
-	cout << "\tRows per second (including parsing): " << numrows / secs << "\r\n";
-
-	//long long rowId[987];
-	//eastl::vector<fs::Value> rowIds2;
-
-	////rowIds2.push_back(&numpull);
-
-	//for (long long i = 0; i < numrows; i++)
-	//{
-	//	rowId[i] = i;
-	//	rowIds2.push_back(&rowId[i]);
-	//}
-	//eastl::vector<fs::wstring> columns2;
-	//
-
-	////columns2.push_back(L"Surname");
-	//auto result = session.GetRows(rowIds2, columns);
-
-	//for (int i = 0; i < numrows; i++)
-	//{
-	//	for(int j = 0; j < 6; j++)
-	//	{
-	//		if (result.Cell(i,j) != NULL)
-	//			wcout << result.Type[j].Type.ToString(result.Cell(i,j)) << "^";
-	//	}
-	//	cout << "\n";
-	//}	
-
-	//cout << "Press key to pull rows";
-	//_getch();
-	
-	Stopwatch watch2;
-
-	//int start = 100;
-	//int stop = 1000;
-
-	fs::RangeBound startb; 
-	fs::RangeBound endb;
-
-	Range range(2, 35, Optional<fs::RangeBound>(), Optional<fs::RangeBound>());
-
-	eastl::vector<Range> ranges;
-	eastl::vector<Order> orders;
-	ranges.push_back(range);
-	watch2.StartTimer();
-	auto result = session.GetRange(columns, orders, ranges);
-	watch2.StopTimer();
-
-	secs = watch2.TotalTime();
-	cout << " secs: " << secs << "\r\n";	
-	cout << "\tRows per second: " << result.Size() / secs << "\r\n";
-
-	wcout << columns[0] << "-" << columns[1] << "-" << columns[2] << "-" << columns[3] << "-" << columns[4] << "-" << columns[5] << "\n";
-	wcout << "___________________________________________________________\n";
-
-	for(int i = 0; i < result.Size(); i++)
-	{
-		for(int j = 0; j < 6; j++)
-		{
-			wcout << result.Type[j].ValueType.ToString(result.Cell(i,j)) << "-";
-		}
-		cout << "\n";
-	}
-}
-
 void HashTest()
 {
-	eastl::hash<long long> hash;
+	std::hash<long long> hash;
 
 	for (long long i = 0; i < 100; i++)
 	{
@@ -1404,7 +1199,7 @@ void KeyTreeTest()
 
 void main()
 {
-	
+	FastoreHost host;
 	//BTreeIteratorTest();
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
@@ -1428,7 +1223,6 @@ void main()
 	//TestTransactionID();
 	//TestChange();
 	//DatabaseTest();
-	OWTTest();
 	//HashTest();
 	//KeyTreeTest();
 	//TreeBufferTest();

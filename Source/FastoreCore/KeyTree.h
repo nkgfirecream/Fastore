@@ -3,8 +3,8 @@
 #include "Schema\standardtypes.h"
 #include "typedefs.h"
 #include <functional>
+#include <array>
 #include "optional.h"
-#include <EASTL\fixed_vector.h>
 #include <sstream>
 
 using namespace std;
@@ -50,7 +50,7 @@ class KeyTree
 
 		struct Path
 		{
-			eastl::fixed_vector<PathNode, KeyDefaultBranchListSize> Branches;
+			std::vector<PathNode> Branches;
 			KeyNode* Leaf;
 			short LeafIndex;
 			bool Match;

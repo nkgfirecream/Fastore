@@ -1,14 +1,9 @@
 #pragma once
 
 #include "..\typedefs.h"
-#include <EASTL\hash_set.h>
-#include <EASTL\hash_map.h>
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
 #include "..\Column\IColumnBuffer.h"
-#include <EASTL\sort.h>
-
-using namespace eastl;
 
 const int UniqueBufferRowMapInitialSize = 32;
 

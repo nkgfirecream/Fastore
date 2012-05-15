@@ -67,24 +67,20 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <CustomBuildAfterTargets>PreBuildEvent</CustomBuildAfterTargets>
     <IntDir>obj\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -95,8 +91,6 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -107,10 +101,7 @@
       <Profile>
       </Profile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb_debug.dll $(OutDir)</Command>
-      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -120,8 +111,6 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
-      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -131,11 +120,10 @@
       <Profile>true</Profile>
     </Link>
     <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb_debug.dll $(OutDir)</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>tbb_debug.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -147,8 +135,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\EASTL\include;$(MSBuildProjectDirectory)\TBB\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/D "_CHAR16T" %(AdditionalOptions)</AdditionalOptions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -160,12 +146,8 @@
       <AdditionalDependencies>tbb\lib\ia32\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\ia32\vc10\tbb.dll $(OutDir)</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>tbb.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -177,8 +159,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/D " _CHAR16T" %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(MSBuildProjectDirectory)\EABase\local\include\Common;$(MSBuildProjectDirectory)\TBB\include;$(MSBuildProjectDirectory)\EASTL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -188,39 +168,25 @@
       <AdditionalDependencies>hoard\winhoard.lib;tbb\lib\intel64\vc10\tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Profile>true</Profile>
     </Link>
-    <CustomBuildStep>
-      <Command>copy $(ProjectDir)tbb\bin\intel64\vc10\tbb.dll $(OutDir)</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>tbb.dll;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
+    <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
-    <ClCompile Include="EASTL\source\allocator.cpp" />
-    <ClCompile Include="EASTL\source\assert.cpp" />
-    <ClCompile Include="EASTL\source\fixed_pool.cpp" />
-    <ClCompile Include="EASTL\source\hashtable.cpp" />
-    <ClCompile Include="EASTL\useEASTL.cpp" />
-    <ClCompile Include="Host.cpp" />
+    <ClCompile Include="FastoreHost.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
-    <ClCompile Include="Table\dataset.cpp">
-      <DeploymentContent>false</DeploymentContent>
-    </ClCompile>
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BTree.h" />
-    <ClInclude Include="Change.h" />
-    <ClInclude Include="Column\HashBuffer.h" />
     <ClInclude Include="Column\IColumnBuffer.h" />
     <ClInclude Include="Column\ColumnManager.h" />
     <ClInclude Include="Column\TreeBuffer.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
-    <ClInclude Include="Host.h" />
+    <ClInclude Include="FastoreHost.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Order.h" />
@@ -231,10 +197,8 @@
     <ClInclude Include="schema\tuple.h" />
     <ClInclude Include="Storage\Schema\column.h" />
     <ClInclude Include="Storage\Schema\standardtypes.h" />
-    <ClInclude Include="Table\dataset.h" />
     <ClInclude Include="Storage\Schema\tuple.h" />
     <ClInclude Include="Storage\Schema\scalar.h" />
-    <ClInclude Include="Topology.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="typedefs.h" />

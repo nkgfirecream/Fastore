@@ -40,20 +40,25 @@ void __cdecl _tmain(int argc, _TCHAR* argv[])
 		printf("Service started.\n");
 
 		// Start async main
-		FastoreMain(ghSvcStopEvent);
-
-		// Ctrl-C handling
-		printf("Press Ctrl-C to stop...\n");
-		if (!SetConsoleCtrlHandler( (PHANDLER_ROUTINE)CtrlCHandler, TRUE ) ) 
-			printf( "ERROR: Could not set control handler.\n");
-
-		while(1)
+		if(FastoreMain(ghSvcStopEvent) == 0)
 		{
-			// Wait for service to stop
-			WaitForSingleObject(ghSvcStopEvent, INFINITE);
+			// Ctrl-C handling
+			printf("Press Ctrl-C to stop...\n");
+			if (!SetConsoleCtrlHandler( (PHANDLER_ROUTINE)CtrlCHandler, TRUE ) ) 
+				printf( "ERROR: Could not set control handler.\n");
 
-			printf("Service stopped.\n");
-			return;
+			while(1)
+			{
+				// Wait for service to stop
+				WaitForSingleObject(ghSvcStopEvent, INFINITE);
+
+				printf("Service stopped.\n");
+				return;
+			}
+		}
+		else
+		{
+			printf( "ERROR: Could start thrift server.\n");
 		}
 	}
 	else if (lstrcmpi( argv[1], TEXT("-install")) == 0 || lstrcmpi( argv[1], TEXT("-i")) == 0)

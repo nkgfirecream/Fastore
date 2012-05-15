@@ -1,7 +1,7 @@
 #pragma once
 
 #include "optional.h"
-#include <EASTL\vector.h>
+#include "typedefs.h"
 
 namespace fs
 {

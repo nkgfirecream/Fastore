@@ -49,6 +49,7 @@
     <Compile Include="Alphora\Fastore\BeyondHistory.cs" />
     <Compile Include="Alphora\Fastore\ColumnWrites.cs" />
     <Compile Include="Alphora\Fastore\Conflict.cs" />
+    <Compile Include="Alphora\Fastore\Constants.cs" />
     <Compile Include="Alphora\Fastore\Exclude.cs" />
     <Compile Include="Alphora\Fastore\Host.cs" />
     <Compile Include="Alphora\Fastore\HostReport.cs" />

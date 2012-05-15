@@ -4,7 +4,6 @@
 #include "typedefs.h"
 #include <functional>
 #include "optional.h"
-#include <EASTL\fixed_vector.h>
 #include <sstream>
 
 using namespace std;
@@ -59,7 +58,7 @@ class BTree
 
 		struct Path
 		{
-			eastl::fixed_vector<PathNode, DefaultBranchListSize> Branches;
+			std::vector<PathNode> Branches;
 			Node* Leaf;
 			short LeafIndex;
 			bool Match;

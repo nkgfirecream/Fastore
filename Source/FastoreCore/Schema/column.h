@@ -8,6 +8,5 @@ struct ColumnDef
 	ScalarType ValueType;
 	ScalarType RowIDType;
 	bool IsUnique;
-	bool IsRequired;
 	int ColumnID;
 };

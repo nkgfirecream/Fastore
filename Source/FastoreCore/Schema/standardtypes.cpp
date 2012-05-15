@@ -1,8 +1,7 @@
 #include "..\typedefs.h"
 #include "standardtypes.h"
 #include <sstream>
-#include "EASTL\functional.h"
-#include "EASTL\hash_set.h"
+#include <hash_set>
 
 using namespace std;
 
@@ -221,7 +220,7 @@ fs::wstring standardtypes::WStringString(const void* item)
 
 size_t  standardtypes::WStringHash(const void* item)
 {
-	static eastl::string_hash<fs::wstring> hash;
+	static std::hash<fs::wstring> hash;
 	return hash(*(fs::wstring*)item);
 }
 
@@ -254,7 +253,7 @@ fs::wstring standardtypes::StringString(const void* item)
 
 size_t  standardtypes::StringHash(const void* item)
 {
-	static eastl::string_hash<fs::string> hash;
+	static std::hash<fs::string> hash;
 	return hash(*(fs::string*)item);
 }
 
@@ -288,7 +287,7 @@ fs::wstring standardtypes::LongString(const void* item)
 
 size_t standardtypes::LongHash(const void* item)
 {
-	static eastl::hash<long long> hash;
+	static std::hash<long long> hash;
 	return hash(*(long long*)item);
 }
 
@@ -335,7 +334,7 @@ ScalarType standardtypes::GetIntType()
 
 size_t standardtypes::IntHash(const void* item)
 {
-	static eastl::hash<int> hash;
+	static std::hash<int> hash;
 	return hash(*(int*)item);
 }
 
@@ -380,7 +379,7 @@ ScalarType standardtypes::GetBoolType()
 
 size_t standardtypes::BoolHash(const void* item)
 {
-	static eastl::hash<bool> hash;
+	static std::hash<bool> hash;
 	return hash(*(bool*)item);
 }
 
@@ -391,9 +390,9 @@ ScalarType standardtypes::GetHashSetType()
 	type.Name = "HashSet";
 	type.Compare = NULL;
 	type.Free = IndirectDelete;
-	type.Size = sizeof(eastl::hash_set<void*, ScalarType, ScalarType>*);
+	type.Size = sizeof(std::hash_set<void*, ScalarType, ScalarType>*);
 	type.ToString = NULL;
-	type.CopyIn = CopyToArray<eastl::hash_set<void*, ScalarType, ScalarType>*>;
+	type.CopyIn = CopyToArray<std::hash_set<void*, ScalarType, ScalarType>*>;
 	return type;
 }
 

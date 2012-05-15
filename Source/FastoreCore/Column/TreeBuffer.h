@@ -5,8 +5,6 @@
 #include "..\BTree.h"
 #include "..\KeyTree.h"
 #include "..\Column\IColumnBuffer.h"
-#include <EASTL\sort.h>
-
 
 template<> void standardtypes::CopyToArray<KeyTree*>(const void* item, void* arrpointer)
 {

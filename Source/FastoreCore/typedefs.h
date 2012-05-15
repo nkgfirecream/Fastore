@@ -1,6 +1,6 @@
 #pragma once
-#include <EASTL\string.h>
-#include <EASTL\vector.h>
+#include <string>
+#include <vector>
 
 namespace fs
 {
@@ -9,13 +9,13 @@ namespace fs
 	typedef void* Value;
 	typedef void* Key;
 
-	typedef eastl::vector<Value> ValueVector;
-	typedef eastl::vector<Key> KeyVector;
+	typedef std::vector<Value> ValueVector;
+	typedef std::vector<Key> KeyVector;
 
-	typedef eastl::pair<Value, Key> ValueKey;
-	typedef eastl::pair<Value, KeyVector> ValueKeys;
-	typedef eastl::vector<ValueKey> ValueKeyVector;
-	typedef eastl::vector<ValueKeys> ValueKeysVector;
-	typedef eastl::vector<ValueKeysVector> ValueKeysVectorVector;
-	typedef eastl::vector<KeyVector> KeyVectorVector;
+	typedef std::pair<Value, Key> ValueKey;
+	typedef std::pair<Value, KeyVector> ValueKeys;
+	typedef std::vector<ValueKey> ValueKeyVector;
+	typedef std::vector<ValueKeys> ValueKeysVector;
+	typedef std::vector<ValueKeysVector> ValueKeysVectorVector;
+	typedef std::vector<KeyVector> KeyVectorVector;	
 }
