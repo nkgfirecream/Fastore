@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Fastore.Client")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Fastore.Client")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyCompany("Alphora")]
+[assembly: AssemblyProduct("Fastore")]
+[assembly: AssemblyCopyright("Copyright © Alphora 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("c22838e2-e3ce-4f04-ab0f-656ccdab2f7e")]
+[assembly: Guid("94377e39-bd46-4a4d-9223-a33c798acd7d")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -21,34 +21,34 @@ namespace Alphora.Fastore
   #if !SILVERLIGHT
   [Serializable]
   #endif
-  public partial class Query : TBase
+  public partial class RangeResult : TBase
   {
-    private List<byte[]> _RowIDs;
-    private List<RangeRequest> _Ranges;
+    private List<ValueRows> _ValueRows;
+    private bool _EndOfRange;
 
-    public List<byte[]> RowIDs
+    public List<ValueRows> ValueRows
     {
       get
       {
-        return _RowIDs;
+        return _ValueRows;
       }
       set
       {
-        __isset.RowIDs = true;
-        this._RowIDs = value;
+        __isset.ValueRows = true;
+        this._ValueRows = value;
       }
     }
 
-    public List<RangeRequest> Ranges
+    public bool EndOfRange
     {
       get
       {
-        return _Ranges;
+        return _EndOfRange;
       }
       set
       {
-        __isset.Ranges = true;
-        this._Ranges = value;
+        __isset.EndOfRange = true;
+        this._EndOfRange = value;
       }
     }
 
@@ -58,11 +58,11 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool RowIDs;
-      public bool Ranges;
+      public bool ValueRows;
+      public bool EndOfRange;
     }
 
-    public Query() {
+    public RangeResult() {
     }
 
     public void Read (TProtocol iprot)
@@ -80,13 +80,14 @@ namespace Alphora.Fastore
           case 1:
             if (field.Type == TType.List) {
               {
-                RowIDs = new List<byte[]>();
-                TList _list34 = iprot.ReadListBegin();
-                for( int _i35 = 0; _i35 < _list34.Count; ++_i35)
+                ValueRows = new List<ValueRows>();
+                TList _list30 = iprot.ReadListBegin();
+                for( int _i31 = 0; _i31 < _list30.Count; ++_i31)
                 {
-                  byte[] _elem36 = null;
-                  _elem36 = iprot.ReadBinary();
-                  RowIDs.Add(_elem36);
+                  ValueRows _elem32 = new ValueRows();
+                  _elem32 = new ValueRows();
+                  _elem32.Read(iprot);
+                  ValueRows.Add(_elem32);
                 }
                 iprot.ReadListEnd();
               }
@@ -95,19 +96,8 @@ namespace Alphora.Fastore
             }
             break;
           case 2:
-            if (field.Type == TType.List) {
-              {
-                Ranges = new List<RangeRequest>();
-                TList _list37 = iprot.ReadListBegin();
-                for( int _i38 = 0; _i38 < _list37.Count; ++_i38)
-                {
-                  RangeRequest _elem39 = new RangeRequest();
-                  _elem39 = new RangeRequest();
-                  _elem39.Read(iprot);
-                  Ranges.Add(_elem39);
-                }
-                iprot.ReadListEnd();
-              }
+            if (field.Type == TType.Bool) {
+              EndOfRange = iprot.ReadBool();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -122,37 +112,30 @@ namespace Alphora.Fastore
     }
 
     public void Write(TProtocol oprot) {
-      TStruct struc = new TStruct("Query");
+      TStruct struc = new TStruct("RangeResult");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (RowIDs != null && __isset.RowIDs) {
-        field.Name = "RowIDs";
+      if (ValueRows != null && __isset.ValueRows) {
+        field.Name = "ValueRows";
         field.Type = TType.List;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteListBegin(new TList(TType.String, RowIDs.Count));
-          foreach (byte[] _iter40 in RowIDs)
+          oprot.WriteListBegin(new TList(TType.Struct, ValueRows.Count));
+          foreach (ValueRows _iter33 in ValueRows)
           {
-            oprot.WriteBinary(_iter40);
+            _iter33.Write(oprot);
           }
           oprot.WriteListEnd();
         }
         oprot.WriteFieldEnd();
       }
-      if (Ranges != null && __isset.Ranges) {
-        field.Name = "Ranges";
-        field.Type = TType.List;
+      if (__isset.EndOfRange) {
+        field.Name = "EndOfRange";
+        field.Type = TType.Bool;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
-        {
-          oprot.WriteListBegin(new TList(TType.Struct, Ranges.Count));
-          foreach (RangeRequest _iter41 in Ranges)
-          {
-            _iter41.Write(oprot);
-          }
-          oprot.WriteListEnd();
-        }
+        oprot.WriteBool(EndOfRange);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -160,11 +143,11 @@ namespace Alphora.Fastore
     }
 
     public override string ToString() {
-      StringBuilder sb = new StringBuilder("Query(");
-      sb.Append("RowIDs: ");
-      sb.Append(RowIDs);
-      sb.Append(",Ranges: ");
-      sb.Append(Ranges);
+      StringBuilder sb = new StringBuilder("RangeResult(");
+      sb.Append("ValueRows: ");
+      sb.Append(ValueRows);
+      sb.Append(",EndOfRange: ");
+      sb.Append(EndOfRange);
       sb.Append(")");
       return sb.ToString();
     }

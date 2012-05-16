@@ -80,7 +80,6 @@ typedef string LockName
 enum LockMode { Read = 1, Write = 2 }
 /** Timeout in ms; <= 0 means fail immediately. */
 typedef i32 LockTimeout
-const LockTimeout DefaultLockTimeout = 1000;
 
 struct TransactionID
 {
@@ -136,6 +135,12 @@ struct ValueRows
 
 typedef list<ValueRows> ValueRowsList
 
+struct RangeResult
+{
+	1: ValueRowsList ValueRows,
+	2: bool EndOfRange
+}
+
 struct Query
 {
 	1: list<binary> RowIDs,
@@ -147,7 +152,7 @@ typedef map<ColumnID, Query> Queries
 struct Answer
 {
 	1: list<binary> RowIDValues,
-	2: list<ValueRowsList> RangeValues
+	2: list<RangeResult> RangeValues
 }
 
 struct ReadResults
@@ -236,7 +241,7 @@ service Service
 
 	
 	/** Acquires a given named lock given a mode and timeout. */
-	LockID AcquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = DefaultLockTimeout)
+	LockID AcquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
 		throws (1:LockTimedOut timeout),
 
 	/** Keeps a given lock alive - locks automatically expire if not renewed. */

@@ -8,7 +8,7 @@
     <ProjectGuid>{E417B076-B58A-4339-8142-089AB4761679}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Fastore.Communication</RootNamespace>
+    <RootNamespace>Alphora.Fastore</RootNamespace>
     <AssemblyName>Fastore.Communication</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -49,7 +49,6 @@
     <Compile Include="Alphora\Fastore\BeyondHistory.cs" />
     <Compile Include="Alphora\Fastore\ColumnWrites.cs" />
     <Compile Include="Alphora\Fastore\Conflict.cs" />
-    <Compile Include="Alphora\Fastore\Constants.cs" />
     <Compile Include="Alphora\Fastore\Exclude.cs" />
     <Compile Include="Alphora\Fastore\Host.cs" />
     <Compile Include="Alphora\Fastore\HostReport.cs" />
@@ -62,6 +61,7 @@
     <Compile Include="Alphora\Fastore\Query.cs" />
     <Compile Include="Alphora\Fastore\RangeBound.cs" />
     <Compile Include="Alphora\Fastore\RangeRequest.cs" />
+    <Compile Include="Alphora\Fastore\RangeResult.cs" />
     <Compile Include="Alphora\Fastore\ReadResults.cs" />
     <Compile Include="Alphora\Fastore\Repository.cs" />
     <Compile Include="Alphora\Fastore\RepositoryStatus.cs" />
