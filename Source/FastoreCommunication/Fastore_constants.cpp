@@ -11,8 +11,6 @@ namespace fastore {
 const FastoreConstants g_Fastore_constants;
 
 FastoreConstants::FastoreConstants() {
-  DefaultLockTimeout = 1000;
-
 }
 
 } // namespace

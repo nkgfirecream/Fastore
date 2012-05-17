@@ -827,6 +827,57 @@ class ValueRows {
 
 void swap(ValueRows &a, ValueRows &b);
 
+typedef struct _RangeResult__isset {
+  _RangeResult__isset() : valueRowsList(false), EndOfRange(false) {}
+  bool valueRowsList;
+  bool EndOfRange;
+} _RangeResult__isset;
+
+class RangeResult {
+ public:
+
+  static const char* ascii_fingerprint; // = "466F20C01BC68974A3A89E63D894331C";
+  static const uint8_t binary_fingerprint[16]; // = {0x46,0x6F,0x20,0xC0,0x1B,0xC6,0x89,0x74,0xA3,0xA8,0x9E,0x63,0xD8,0x94,0x33,0x1C};
+
+  RangeResult() : EndOfRange(0) {
+  }
+
+  virtual ~RangeResult() throw() {}
+
+  ValueRowsList valueRowsList;
+  bool EndOfRange;
+
+  _RangeResult__isset __isset;
+
+  void __set_valueRowsList(const ValueRowsList& val) {
+    valueRowsList = val;
+  }
+
+  void __set_EndOfRange(const bool val) {
+    EndOfRange = val;
+  }
+
+  bool operator == (const RangeResult & rhs) const
+  {
+    if (!(valueRowsList == rhs.valueRowsList))
+      return false;
+    if (!(EndOfRange == rhs.EndOfRange))
+      return false;
+    return true;
+  }
+  bool operator != (const RangeResult &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const RangeResult & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(RangeResult &a, RangeResult &b);
+
 typedef struct _Query__isset {
   _Query__isset() : RowIDs(false), Ranges(false) {}
   bool RowIDs;
@@ -887,8 +938,8 @@ typedef struct _Answer__isset {
 class Answer {
  public:
 
-  static const char* ascii_fingerprint; // = "0FB114B390851A159B26E67943B609BD";
-  static const uint8_t binary_fingerprint[16]; // = {0x0F,0xB1,0x14,0xB3,0x90,0x85,0x1A,0x15,0x9B,0x26,0xE6,0x79,0x43,0xB6,0x09,0xBD};
+  static const char* ascii_fingerprint; // = "D36BF0BC25155834835044274D0ED190";
+  static const uint8_t binary_fingerprint[16]; // = {0xD3,0x6B,0xF0,0xBC,0x25,0x15,0x58,0x34,0x83,0x50,0x44,0x27,0x4D,0x0E,0xD1,0x90};
 
   Answer() {
   }
@@ -896,7 +947,7 @@ class Answer {
   virtual ~Answer() throw() {}
 
   std::vector<std::string>  RowIDValues;
-  std::vector<ValueRowsList>  RangeValues;
+  std::vector<RangeResult>  RangeValues;
 
   _Answer__isset __isset;
 
@@ -904,7 +955,7 @@ class Answer {
     RowIDValues = val;
   }
 
-  void __set_RangeValues(const std::vector<ValueRowsList> & val) {
+  void __set_RangeValues(const std::vector<RangeResult> & val) {
     RangeValues = val;
   }
 
@@ -938,8 +989,8 @@ typedef struct _ReadResults__isset {
 class ReadResults {
  public:
 
-  static const char* ascii_fingerprint; // = "D93E3C1B5799C174E8F1B3B3D98C97AA";
-  static const uint8_t binary_fingerprint[16]; // = {0xD9,0x3E,0x3C,0x1B,0x57,0x99,0xC1,0x74,0xE8,0xF1,0xB3,0xB3,0xD9,0x8C,0x97,0xAA};
+  static const char* ascii_fingerprint; // = "53FF50347BF983624C055D1DF3E8FA41";
+  static const uint8_t binary_fingerprint[16]; // = {0x53,0xFF,0x50,0x34,0x7B,0xF9,0x83,0x62,0x4C,0x05,0x5D,0x1D,0xF3,0xE8,0xFA,0x41};
 
   ReadResults() : revision(0) {
   }

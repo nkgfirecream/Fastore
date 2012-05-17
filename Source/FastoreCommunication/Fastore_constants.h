@@ -15,7 +15,6 @@ class FastoreConstants {
  public:
   FastoreConstants();
 
-  LockTimeout DefaultLockTimeout;
 };
 
 extern const FastoreConstants g_Fastore_constants;

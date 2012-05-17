@@ -137,7 +137,7 @@ typedef list<ValueRows> ValueRowsList
 
 struct RangeResult
 {
-	1: ValueRowsList ValueRows,
+	1: ValueRowsList valueRowsList,
 	2: bool EndOfRange
 }
 

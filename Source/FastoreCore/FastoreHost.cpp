@@ -1,7 +1,6 @@
 #include "FastoreHost.h"
 #include "Column\TreeBuffer.h"
 #include "Column\UniqueBuffer.h"
-#include "Util\utilities.h"
 #include <hash_set>
 
 FastoreHost::FastoreHost()
@@ -178,4 +177,33 @@ void FastoreHost::SyncToSchema()
 
 		ms++;
 	}	
+}
+
+ScalarType FastoreHost::GetScalarTypeFromString(std::wstring typestring)
+{
+//TODO: Consider putting this into a hash to avoid branches.
+	if (typestring == L"WString")
+	{
+		return standardtypes::GetWStringType();
+	}
+	else if (typestring == L"String")
+	{
+		return standardtypes::GetStringType();
+	}
+	else if (typestring == L"Int")
+	{
+		return standardtypes::GetIntType();
+	}
+	else if (typestring == L"Long")
+	{
+		return standardtypes::GetLongType();
+	}
+	else if (typestring == L"Bool")
+	{
+		return standardtypes::GetBoolType();
+	}
+	else
+	{
+		throw;
+	}
 }

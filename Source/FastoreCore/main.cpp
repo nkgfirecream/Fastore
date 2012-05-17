@@ -13,6 +13,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "Util\utilities.h"
+
 
 
 using namespace std;
@@ -1197,9 +1199,25 @@ void KeyTreeTest()
 	cout << "Stuff checks out...";
 }
 
+void EncodingDecoding()
+{
+	std::string start = "Start";
+	cout << start << "\n";
+	std::string encoded = writeString(start);
+	cout << encoded << "\n";
+	std::string decoded = readString(encoded);
+	cout << decoded << "\n";
+
+	long long longnum = 326;
+	cout << longnum << "\n";
+	std::string encodedlong = writeLong(longnum);
+	cout << encodedlong << "\n";
+	long long decodedlong = readLong(encodedlong);
+	cout << decodedlong << "\n";
+}
+
 void main()
 {
-	FastoreHost host;
 	//BTreeIteratorTest();
 	//BTreeDeleteTest();
 	//QueueingMutexTest();
@@ -1227,6 +1245,7 @@ void main()
 	//KeyTreeTest();
 	//TreeBufferTest();
 	//AbigailDebugging();
+	EncodingDecoding();
 	_getch();
 }
 

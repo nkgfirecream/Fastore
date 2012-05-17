@@ -68,6 +68,7 @@ void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transact
 			void* rowIdp = pdp.second.RowIDType.Decode((*exStart).RowID);
 			pdp.first->Exclude(rowIdp);
 
+			delete rowIdp;
 			exStart++;
 		}
 
@@ -78,6 +79,8 @@ void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transact
 			void* valuep = pdp.second.ValueType.Decode((*inStart).Value);
 
 			pdp.first->Include(valuep, rowIdp);
+
+			delete valuep, rowIdp;
 
 			inStart++;
 		}
@@ -156,7 +159,7 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 
 		PointerDefPair pdp = _host.GetColumn(id);
 
-		fastore::Answer ans;
+		fastore::Answer ans;		
 
 		if (query.Ranges.size() > 0)
 		{
@@ -167,6 +170,9 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 				Optional<fs::RangeBound> starto;
 				Optional<fs::RangeBound> endo;
 
+				void* ostartp = NULL;
+				void* oendp = NULL;
+
 				if (range.__isset.Start)
 				{
 					fs::RangeBound rb;
@@ -175,7 +181,8 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 					if (range.Start.__isset.RowID)
 					{
 						//TODO: Decoding is going to leak all over right now. After item is decoded, temp should be deleted.
-						rb.RowId = Optional<void*>(pdp.second.RowIDType.Decode(range.Start.RowID));
+						ostartp = pdp.second.RowIDType.Decode(range.Start.RowID);
+						rb.RowId = Optional<void*>(ostartp);
 					}
 
 					starto = Optional<fs::RangeBound>(rb);
@@ -188,16 +195,26 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 					rb.Value = pdp.second.ValueType.Decode(range.Start.Value);
 					if (range.Start.__isset.RowID)
 					{
-						rb.RowId = Optional<void*>(pdp.second.RowIDType.Decode(range.Start.RowID));
+						oendp = pdp.second.RowIDType.Decode(range.Start.RowID);
+						rb.RowId = Optional<void*>(oendp);
 					}
 
 					starto = Optional<fs::RangeBound>(rb);
 				}		
 
-				fs::Range frange(range.Limit, starto, endo);				
+				fs::Range frange(range.Limit, range.Ascending, starto, endo);				
 				GetResult result = pdp.first->GetRows(frange);
 
+				if (ostartp != NULL)
+					delete ostartp;
+
+				if (oendp != NULL)
+					delete oendp;
+
 				fastore::ValueRowsList vrl;
+				fastore::RangeResult rr;
+
+				rr.EndOfRange = !result.Limited;
 
 				for (int j = 0; j < result.Data.size(); j++ )
 				{
@@ -214,7 +231,9 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 					vrl.push_back(vr);
 				}
 
-				ans.RangeValues.push_back(vrl);
+				rr.valueRowsList = vrl;
+
+				ans.RangeValues.push_back(rr);
 			}
 		}
 		else

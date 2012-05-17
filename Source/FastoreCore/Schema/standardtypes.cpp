@@ -1,5 +1,6 @@
 #include "..\typedefs.h"
 #include "standardtypes.h"
+#include "..\Util\utilities.h"
 #include <sstream>
 #include <hash_set>
 
@@ -10,18 +11,50 @@ void standardtypes::IndirectDelete(void* item)
 	delete *(void**)item;
 }
 
-//TODO: Fill out various encoding schemes. Perhaps an add on library?
-template <typename T>
-void* Decode(const std::string item)
+void* DecodeString(const std::string item)
 {
-	return new std::string(item);
+	return new std::string(readString(item));
 }
 
-template <typename T>
-std::string Encode(const void* item)
+
+void* DecodeBool(const std::string item)
 {
-	return *(std::string*)item;
+	return new bool(readBool(item));
 }
+
+
+void* DecodeInt(const std::string item)
+{
+	return new int(readInt(item));
+}
+
+
+void* DecodeLong(const std::string item)
+{
+	return new long long(readLong(item));
+}
+
+
+std::string EncodeString(const void* item)
+{
+	return writeString(*(std::string*)item);
+}
+
+std::string EncodeBool(const void* item)
+{
+	return writeBool(*(bool*)item);
+}
+
+std::string EncodeInt(const void* item)
+{
+	return writeInt(*(int*)item);
+}
+
+std::string EncodeLong(const void* item)
+{
+	return writeLong(*(long long*)item);
+}
+
 
 template <typename T>
 int standardtypes::ScaledIndexOf(const char* items, const int count, void *key)
@@ -209,8 +242,8 @@ ScalarType standardtypes::GetWStringType()
 	type.IndexOf = CompareIndexOf<fs::wstring, WStringCompare>;
 	//type.IndexOf = ScaledIndexOf<fs::wstring>;
 	type.CopyIn = CopyToArray<fs::wstring>;
-	type.Encode = Encode<fs::wstring>;
-	type.Decode = Decode<fs::wstring>;
+	//type.Encode = Encode<fs::wstring>;
+	//type.Decode = Decode<fs::wstring>;
 	return type;
 }
 
@@ -244,8 +277,8 @@ ScalarType standardtypes::GetStringType()
 	type.IndexOf = CompareIndexOf<fs::string, StringCompare>;
 	//type.IndexOf = ScaledIndexOf<fs::wstring>;
 	type.CopyIn = CopyToArray<fs::string>;
-	type.Encode = Encode<fs::string>;
-	type.Decode = Decode<fs::string>;
+	type.Encode = EncodeString;
+	type.Decode = DecodeString;
 	return type;
 }
 
@@ -279,8 +312,8 @@ ScalarType standardtypes::GetLongType()
 	type.Hash = LongHash;
 	type.IndexOf = TargetedIndexOf<long long>;
 	type.CopyIn = CopyToArray<long long>;
-	type.Encode = Encode<long long>;
-	type.Decode = Decode<long long>;
+	type.Encode = EncodeLong;
+	type.Decode = DecodeLong;
 	return type;
 }
 
@@ -308,8 +341,8 @@ ScalarType standardtypes::GetIntType()
 	type.IndexOf = CompareIndexOf<int, IntCompare>;
 	type.CopyIn = CopyToArray<int>;
 	type.Hash = IntHash;
-	type.Encode = Encode<int>;
-	type.Decode = Decode<int>;
+	type.Encode = EncodeInt;
+	type.Decode = DecodeInt;
 	return type;
 }
 
@@ -355,8 +388,8 @@ ScalarType standardtypes::GetBoolType()
 	type.IndexOf = CompareIndexOf<bool, BoolCompare>;
 	type.CopyIn = CopyToArray<bool>;
 	type.Hash = BoolHash;
-	type.Encode = Encode<bool>;
-	type.Decode = Decode<bool>;
+	type.Encode = EncodeBool;
+	type.Decode = DecodeBool;
 	return type;
 }
 

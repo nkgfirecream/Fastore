@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class RangeResult : TBase
   {
-    private List<ValueRows> _ValueRows;
+    private List<ValueRows> _valueRowsList;
     private bool _EndOfRange;
 
-    public List<ValueRows> ValueRows
+    public List<ValueRows> ValueRowsList
     {
       get
       {
-        return _ValueRows;
+        return _valueRowsList;
       }
       set
       {
-        __isset.ValueRows = true;
-        this._ValueRows = value;
+        __isset.valueRowsList = true;
+        this._valueRowsList = value;
       }
     }
 
@@ -58,7 +58,7 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool ValueRows;
+      public bool valueRowsList;
       public bool EndOfRange;
     }
 
@@ -80,14 +80,14 @@ namespace Alphora.Fastore
           case 1:
             if (field.Type == TType.List) {
               {
-                ValueRows = new List<ValueRows>();
+                ValueRowsList = new List<ValueRows>();
                 TList _list30 = iprot.ReadListBegin();
                 for( int _i31 = 0; _i31 < _list30.Count; ++_i31)
                 {
                   ValueRows _elem32 = new ValueRows();
                   _elem32 = new ValueRows();
                   _elem32.Read(iprot);
-                  ValueRows.Add(_elem32);
+                  ValueRowsList.Add(_elem32);
                 }
                 iprot.ReadListEnd();
               }
@@ -115,14 +115,14 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("RangeResult");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (ValueRows != null && __isset.ValueRows) {
-        field.Name = "ValueRows";
+      if (ValueRowsList != null && __isset.valueRowsList) {
+        field.Name = "valueRowsList";
         field.Type = TType.List;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteListBegin(new TList(TType.Struct, ValueRows.Count));
-          foreach (ValueRows _iter33 in ValueRows)
+          oprot.WriteListBegin(new TList(TType.Struct, ValueRowsList.Count));
+          foreach (ValueRows _iter33 in ValueRowsList)
           {
             _iter33.Write(oprot);
           }
@@ -144,8 +144,8 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("RangeResult(");
-      sb.Append("ValueRows: ");
-      sb.Append(ValueRows);
+      sb.Append("ValueRowsList: ");
+      sb.Append(ValueRowsList);
       sb.Append(",EndOfRange: ");
       sb.Append(EndOfRange);
       sb.Append(")");
