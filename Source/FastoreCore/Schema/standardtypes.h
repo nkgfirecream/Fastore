@@ -21,6 +21,10 @@ namespace standardtypes
 	int TargetedIndexOf(const char* items, const int count, void *key);
 	template <typename T>
 	void CopyToArray(const void* item, void* arrpointer);
+	template <typename T>
+	std::string Encode(const void* item);
+	template <typename T>
+	void* Decode(const std::string item);
 	
 	// WString type
 	int WStringCompare(const void*, const void*);

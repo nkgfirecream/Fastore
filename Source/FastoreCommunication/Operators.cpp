@@ -4,22 +4,22 @@
 
 bool fastore::Host::operator<(const fastore::Host& other) const
 {
-	return true;
+	return ID < other.ID;
 }
 
 bool fastore::Repository::operator<(const fastore::Repository& other) const
 {
-	return true;
+	return hostID < other.hostID && columnID < other.columnID;
 }
 
 bool fastore::Include::operator<(const fastore::Include& other) const
 {
-	return true;
+	return Value < other.Value && RowID < other.RowID;
 }
 
 bool fastore::Exclude::operator<(const fastore::Exclude& other) const
 {
-	return true;
+	return RowID < other.RowID;
 }
 
 bool fastore::Query::operator<(const fastore::Query& other) const

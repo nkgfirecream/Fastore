@@ -2,6 +2,7 @@
 #include "Column\TreeBuffer.h"
 #include "Column\UniqueBuffer.h"
 #include "Util\utilities.h"
+#include <hash_set>
 
 FastoreHost::FastoreHost()
 {
@@ -95,40 +96,38 @@ void FastoreHost::AddColumnToSchema(ColumnDef def)
 
 void FastoreHost::RemoveColumnFromSchema(int columnId)
 {
-	/*_columnMap.find(0)->second.first->Exclude(&columnId);
+	_columnMap.find(0)->second.first->Exclude(&columnId);
 	_columnMap.find(1)->second.first->Exclude(&columnId);
 	_columnMap.find(2)->second.first->Exclude(&columnId);
 	_columnMap.find(3)->second.first->Exclude(&columnId);
-	_columnMap.find(3)->second.first->Exclude(&columnId);*/
+	_columnMap.find(3)->second.first->Exclude(&columnId);
 }
 
 void FastoreHost::CreateColumn(ColumnDef  def)
 {
 	IColumnBuffer* buffer = InstantiateColumn(def);
 	_columnMap.insert(std::pair<int, PointerDefPair>(def.ColumnID, PointerDefPair(buffer, def)));
-	AddColumnToSchema(def);	
+}
+
+void FastoreHost::CreateColumn(int columnId)
+{
+	ColumnDef def;
+	def.ColumnID = columnId;
+	def.Name = *(fs::wstring*)GetColumn(1).first->GetValue(&columnId);
+	def.ValueType = GetScalarTypeFromString(*(fs::wstring*)GetColumn(2).first->GetValue(&columnId));
+	def.RowIDType = GetScalarTypeFromString(*(fs::wstring*)GetColumn(3).first->GetValue(&columnId));
+	def.IsUnique = *(bool*)GetColumn(4).first->GetValue(&columnId);
+
+	CreateColumn(def);
 }
 
 void FastoreHost::DeleteColumn(const int& columnId)
 {
-	//int index = _columnMap.find(columnId)->second;
+	IColumnBuffer* toDelete   = _columnMap.find(columnId)->second.first;
 
-	//IColumnBuffer* toDelete = _columns[index].first;
+	delete toDelete;
 
-	//_columns.erase(_columns.begin() + index);
-
-	//delete toDelete;
-
-	////rebuild index
-	//_columnMap.clear();
-
-	//for (unsigned int i = 0; i < _columns.size(); i++)
-	//{
-	//	IColumnBuffer* buf = _columns.at(i).first;
-	//	ColumnDef def = _columns.at(i).second;
-
-	//	_columnMap.insert(std::pair<int, int>(buf->GetID(), i));
-	//}
+	_columnMap.erase(columnId);
 }
 
 PointerDefPair FastoreHost::GetColumn(const int& columnId)
@@ -139,4 +138,44 @@ PointerDefPair FastoreHost::GetColumn(const int& columnId)
 bool FastoreHost::ExistsColumn(const int& columnId)
 {
 	return _columnMap.find(columnId) != _columnMap.end();
+}
+
+void FastoreHost::SyncToSchema()
+{
+	//TODO: This will eventually be replaced by the client sending repo updates and the host
+	//instantiating according to that. This algorithm is not going to scale well to lots and lots
+	//of columns.
+
+	std::hash_set<int> schemaIds;
+
+	fs::Range range(2000000, true);
+
+	auto result = GetColumn(0).first->GetRows(range);
+
+	for (int i = 0; i < result.Data.size(); i++)
+	{
+		schemaIds.insert(*(int*)(result.Data[i].first));
+	}
+
+	auto ss = schemaIds.begin();
+	while (ss != schemaIds.end())
+	{
+		int id = (*ss);
+
+		if (_columnMap.find(id) == _columnMap.end())
+			CreateColumn(id);
+
+		ss++;
+	}
+
+	auto ms = _columnMap.begin();
+	while (ms != _columnMap.end())
+	{
+		int id = (*ms).first;
+
+		if (schemaIds.find(id) == schemaIds.end())
+			DeleteColumn(id);
+
+		ms++;
+	}	
 }

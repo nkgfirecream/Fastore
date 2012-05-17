@@ -25,18 +25,23 @@ class FastoreHost
 		std::hash_map<int,  PointerDefPair> _columnMap;
 
 		ScalarType GetScalarTypeFromString(fs::wstring tname);
+
+		//Most of these will probably disappear once API work has been done.
 		void BootStrap();
 		IColumnBuffer* InstantiateColumn(ColumnDef def);
 		void AddColumnToSchema(ColumnDef def);
 		void RemoveColumnFromSchema(int columnId);
+		void CreateColumn(int columnId);
+		void CreateColumn(ColumnDef  def);
+		void DeleteColumn(const int& columnId);		
+		bool ExistsColumn(const int& columnId);
+		
 		
 
 	public:
 		FastoreHost();
-		//TODO: kill these..
-		void CreateColumn(ColumnDef  def);
-		void DeleteColumn(const int& columnId);
+
 		PointerDefPair GetColumn(const int& columnId);
-		bool ExistsColumn(const int& columnId);
+		void SyncToSchema();
 
 };

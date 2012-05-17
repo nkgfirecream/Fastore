@@ -10,6 +10,19 @@ void standardtypes::IndirectDelete(void* item)
 	delete *(void**)item;
 }
 
+//TODO: Fill out various encoding schemes. Perhaps an add on library?
+template <typename T>
+void* Decode(const std::string item)
+{
+	return new std::string(item);
+}
+
+template <typename T>
+std::string Encode(const void* item)
+{
+	return *(std::string*)item;
+}
+
 template <typename T>
 int standardtypes::ScaledIndexOf(const char* items, const int count, void *key)
 {
@@ -55,46 +68,6 @@ int standardtypes::ScaledIndexOf(const char* items, const int count, void *key)
 
 	return ~lo;
 }
-
-//template <>
-//int standardtypes::ScaledIndexOf<fs::wstring>(const char* items, const int count, void *key)
-//{
-//	int lo = 0;
-//	int hi = count - 1;
-//	int split = 0;
-//	int result = -1;
-//	wchar_t* keychar = &(*(fs::wstring*)key)[0];
-//	int lastmatchindex = 0;
-//	while (lo <= hi)
-//	{
-//		split = (lo + hi)  >> 1;  // EASTL says: We use '>>1' here instead of '/2' because MSVC++ for some reason generates significantly worse code for '/2'. Go figure.
-//
-//		wchar_t* splitchar = &(((fs::wstring*)items)[split])[lastmatchindex];
-//		
-//		result = *keychar - *splitchar;
-//		while(result == 0)
-//		{
-//		    if (*keychar == '\0')
-//				break;				
-//
-//			lastmatchindex++;
-//			keychar++;
-//			splitchar++;
-//
-//			result = *keychar - *splitchar;
-//		}
-//		
-//
-//		if (result == 0)
-//			return split;
-//		else if (result < 0)
-//			hi = split - 1;
-//		else
-//			lo = split + 1;
-//	}
-//
-//	return ~lo;
-//}
 
 inline int SignNum(int value)
 {
@@ -236,6 +209,8 @@ ScalarType standardtypes::GetWStringType()
 	type.IndexOf = CompareIndexOf<fs::wstring, WStringCompare>;
 	//type.IndexOf = ScaledIndexOf<fs::wstring>;
 	type.CopyIn = CopyToArray<fs::wstring>;
+	type.Encode = Encode<fs::wstring>;
+	type.Decode = Decode<fs::wstring>;
 	return type;
 }
 
@@ -269,6 +244,8 @@ ScalarType standardtypes::GetStringType()
 	type.IndexOf = CompareIndexOf<fs::string, StringCompare>;
 	//type.IndexOf = ScaledIndexOf<fs::wstring>;
 	type.CopyIn = CopyToArray<fs::string>;
+	type.Encode = Encode<fs::string>;
+	type.Decode = Decode<fs::string>;
 	return type;
 }
 
@@ -302,6 +279,8 @@ ScalarType standardtypes::GetLongType()
 	type.Hash = LongHash;
 	type.IndexOf = TargetedIndexOf<long long>;
 	type.CopyIn = CopyToArray<long long>;
+	type.Encode = Encode<long long>;
+	type.Decode = Decode<long long>;
 	return type;
 }
 
@@ -329,6 +308,8 @@ ScalarType standardtypes::GetIntType()
 	type.IndexOf = CompareIndexOf<int, IntCompare>;
 	type.CopyIn = CopyToArray<int>;
 	type.Hash = IntHash;
+	type.Encode = Encode<int>;
+	type.Decode = Decode<int>;
 	return type;
 }
 
@@ -374,6 +355,8 @@ ScalarType standardtypes::GetBoolType()
 	type.IndexOf = CompareIndexOf<bool, BoolCompare>;
 	type.CopyIn = CopyToArray<bool>;
 	type.Hash = BoolHash;
+	type.Encode = Encode<bool>;
+	type.Decode = Decode<bool>;
 	return type;
 }
 

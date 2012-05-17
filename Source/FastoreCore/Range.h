@@ -19,13 +19,10 @@ namespace fs
 
 	struct Range
 	{
-		const static int MaxLimit = 500;
-
-		Range(const int& columnId, const int& limit = MaxLimit, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>()):
-			Limit(limit), Start(start), End(end), ColumnID(columnId) {}	
+		Range(int limit, bool ascending, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>()):
+			Limit(limit), Start(start), End(end), Ascending(ascending) {}	
 
 		int Limit;
-		int ColumnID;
 		bool Ascending;
 
 		Optional<RangeBound> Start;

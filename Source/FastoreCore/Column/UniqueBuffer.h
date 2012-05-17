@@ -14,6 +14,8 @@ class UniqueBuffer : public IColumnBuffer
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
+		bool Exclude(Key rowId);
+
 		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
@@ -216,6 +218,12 @@ inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 	return false;
 }
 
+inline bool UniqueBuffer::Exclude(Key rowId)
+{
+	Value val = GetValue(rowId);
+	return Exclude(val, rowId);
+}
+
 inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 {
 	auto result = _rows->GetPath(value);
@@ -300,9 +308,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 			first, 
 			last,
 			range.Ascending, 
-			range.Limit > range.MaxLimit
-				? range.MaxLimit 
-				: range.Limit, 
+			range.Limit, 
 			result.Limited
 		);
 

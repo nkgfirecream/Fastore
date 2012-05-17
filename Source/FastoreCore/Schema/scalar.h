@@ -10,6 +10,8 @@ struct ScalarType
 	typedef void (*FreeFunc)(void*);
 	typedef fs::wstring (*ToStringFunc)(const void* item);
 	typedef void (*CopyInFunc)(const void* item, void* arraypointer);
+	typedef std::string (*EncodeFunc)(const void* item);
+	typedef void* (*DecodeFunc)(const std::string item);
 
 	size_t Size;
 	size_t (*Hash)(const void* item);
@@ -24,6 +26,8 @@ struct ScalarType
 	IndexOfFunc IndexOf;
 	CopyInFunc CopyIn;
 	fs::string Name;
+	EncodeFunc Encode;
+	DecodeFunc Decode;
 
 	bool operator ()(const void* left, const void* right) const
 	{

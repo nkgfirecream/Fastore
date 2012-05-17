@@ -48,6 +48,8 @@ class TreeBuffer : public IColumnBuffer
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
+		bool Exclude(Key rowId);
+
 		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
@@ -295,6 +297,12 @@ inline bool TreeBuffer::Exclude(Value value, Key rowId)
 	return false;
 }
 
+inline bool TreeBuffer::Exclude(Key rowId)
+{
+	Value val = GetValue(rowId);
+	return Exclude(val, rowId);
+}
+
 inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 {
 	KeyTree* existingValues = *(KeyTree**)(value);
@@ -400,9 +408,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 					? *(*range.End).RowId
 					: NULL, 
 			range.Ascending, 
-			range.Limit > range.MaxLimit
-				? range.MaxLimit 
-				: range.Limit, 
+			range.Limit, 
 			result.Limited
 		);
 

@@ -42,9 +42,51 @@ printf("Prepare\n");
 return 0;
 }
 
-void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
-// Your implementation goes here
-printf("Apply\n");
+void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) 
+{
+	printf("Apply\n");
+
+	bool syncSchema = false;
+
+	auto start = writes.begin();
+
+	while(start != writes.end())
+	{
+		fastore::ColumnID id = (*start).first;
+
+		if (id == 0)
+			syncSchema = true;
+
+		fastore::ColumnWrites writes = (*start).second;
+
+		PointerDefPair pdp = _host.GetColumn(id);
+
+		auto exStart = writes.Excludes.begin();
+		while (exStart != writes.Excludes.end())
+		{
+			//TODO: Fix Leaks
+			void* rowIdp = pdp.second.RowIDType.Decode((*exStart).RowID);
+			pdp.first->Exclude(rowIdp);
+
+			exStart++;
+		}
+
+		auto inStart = writes.Includes.begin();
+		while (inStart != writes.Includes.end())
+		{
+			void* rowIdp = pdp.second.RowIDType.Decode((*inStart).RowID);
+			void* valuep = pdp.second.ValueType.Decode((*inStart).Value);
+
+			pdp.first->Include(valuep, rowIdp);
+
+			inStart++;
+		}
+
+		start++;
+	}
+
+	if (syncSchema)
+		_host.SyncToSchema();
 }
 
 void ServiceHandler::Commit(const TransactionID& transactionID) {
@@ -101,12 +143,114 @@ void ServiceHandler::ReleaseLock(const LockID lockID) {
 printf("ReleaseLock\n");
 }
 
-void ServiceHandler::Query(ReadResults& _return, const Queries& queries) {
-// Your implementation goes here
-printf("Query\n");
+void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
+{
+	printf("Query\n");
+
+	auto start = queries.begin();
+
+	while(start != queries.end())
+	{
+		fastore::ColumnID id = (*start).first;
+		fastore::Query query = (*start).second;
+
+		PointerDefPair pdp = _host.GetColumn(id);
+
+		fastore::Answer ans;
+
+		if (query.Ranges.size() > 0)
+		{
+			for (int i = 0; i < query.Ranges.size(); i++)
+			{
+				auto range = query.Ranges[i];
+
+				Optional<fs::RangeBound> starto;
+				Optional<fs::RangeBound> endo;
+
+				if (range.__isset.Start)
+				{
+					fs::RangeBound rb;
+					rb.Inclusive = range.Start.Inclusive;
+					rb.Value = pdp.second.ValueType.Decode(range.Start.Value);
+					if (range.Start.__isset.RowID)
+					{
+						//TODO: Decoding is going to leak all over right now. After item is decoded, temp should be deleted.
+						rb.RowId = Optional<void*>(pdp.second.RowIDType.Decode(range.Start.RowID));
+					}
+
+					starto = Optional<fs::RangeBound>(rb);
+				}
+
+				if (range.__isset.End)
+				{
+					fs::RangeBound rb;
+					rb.Inclusive = range.Start.Inclusive;
+					rb.Value = pdp.second.ValueType.Decode(range.Start.Value);
+					if (range.Start.__isset.RowID)
+					{
+						rb.RowId = Optional<void*>(pdp.second.RowIDType.Decode(range.Start.RowID));
+					}
+
+					starto = Optional<fs::RangeBound>(rb);
+				}		
+
+				fs::Range frange(range.Limit, starto, endo);				
+				GetResult result = pdp.first->GetRows(frange);
+
+				fastore::ValueRowsList vrl;
+
+				for (int j = 0; j < result.Data.size(); j++ )
+				{
+					fastore::ValueRows vr;
+					fs::ValueKeys vk = result.Data[j];
+
+					vr.Value = pdp.second.ValueType.Encode(vk.first);
+
+					for (int k = 0; k < vk.second.size(); k++)
+					{
+						vr.RowIDs.push_back(pdp.second.RowIDType.Encode(vk.second[k]));
+					}
+
+					vrl.push_back(vr);
+				}
+
+				ans.RangeValues.push_back(vrl);
+			}
+		}
+		else
+		{
+			fs::KeyVector kv;
+			for (int i = 0; i < query.RowIDs.size(); i++)
+			{
+				void* rid = pdp.second.RowIDType.Decode(query.RowIDs[i]);
+				kv.push_back(rid);
+			}
+
+			auto result = pdp.first->GetValues(kv);
+
+			for (int i = 0; i < result.size(); i++)
+			{
+				ans.RowIDValues.push_back(pdp.second.RowIDType.Encode(result[i]));
+			}
+		}
+
+		_return.Answers.insert(pair<fastore::ColumnID, fastore::Answer>(id, ans));
+		start++;
+	}
 }
 
-void ServiceHandler::GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) {
-// Your implementation goes here
-printf("GetStatistics\n");
+void ServiceHandler::GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)
+{	
+	printf("GetStatistics\n");
+
+	for (int i = 0; i < columnIDs.size(); i++)
+	{
+		Statistic stat;
+		
+		auto result = _host.GetColumn(columnIDs[i]).first->GetStatistics();
+		stat.Total = result.Total;
+		stat.Unique = result.Unique;
+
+		_return.push_back(stat);
+	}
 }
