@@ -18,6 +18,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCore.Test", "..\Test
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreService", "FastoreService\FastoreService.vcxproj", "{8B661664-3CFA-4152-ABD0-8EC85DD9E4B4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{15EB3934-3C4F-450A-B1A4-88E8216A396B} = {15EB3934-3C4F-450A-B1A4-88E8216A396B}
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E} = {FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Client", "Fastore.Client\Fastore.Client.csproj", "{76249753-AD81-455C-8760-62BD64918177}"
 EndProject
