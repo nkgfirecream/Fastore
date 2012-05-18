@@ -28,19 +28,19 @@ void FastoreHost::BootStrap()
 	name.RowIDType = standardtypes::GetIntType();
 	name.IsUnique = false;
 
-	vt.ColumnID = 3;
+	vt.ColumnID = 2;
 	vt.Name = L"ValueType";
 	vt.ValueType = standardtypes::GetStringType();
 	vt.RowIDType = standardtypes::GetIntType();
 	vt.IsUnique = false;
 
-	idt.ColumnID = 4;
+	idt.ColumnID = 3;
 	idt.Name = L"RowIDType";
 	idt.ValueType = standardtypes::GetStringType();
 	idt.RowIDType = standardtypes::GetIntType();
 	idt.IsUnique = false;
 
-	unique.ColumnID = 5;
+	unique.ColumnID = 4;
 	unique.Name = L"IsUnique";
 	unique.ValueType = standardtypes::GetBoolType();
 	unique.RowIDType = standardtypes::GetIntType();
@@ -99,7 +99,7 @@ void FastoreHost::RemoveColumnFromSchema(int columnId)
 	_columnMap.find(1)->second.first->Exclude(&columnId);
 	_columnMap.find(2)->second.first->Exclude(&columnId);
 	_columnMap.find(3)->second.first->Exclude(&columnId);
-	_columnMap.find(3)->second.first->Exclude(&columnId);
+	_columnMap.find(4)->second.first->Exclude(&columnId);
 }
 
 void FastoreHost::CreateColumn(ColumnDef  def)

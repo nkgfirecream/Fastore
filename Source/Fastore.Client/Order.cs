@@ -7,5 +7,7 @@ namespace Alphora.Fastore.Client
 {
     public class Order
     {
+        public int ColumnID;
+        public bool Ascending;
     }
 }

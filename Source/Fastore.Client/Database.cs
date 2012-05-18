@@ -17,20 +17,5 @@ namespace Alphora.Fastore.Client
         {
             return new Session(_client);
         }
-
-        public void CreateColumn(ColumnDef def)
-        {
-            _client.CreateColumn(def);
-        }
-
-        public void DeleteColumn(int columnId)
-        {
-            _client.DeleteColumn(columnId);
-        }
-
-        public bool ExistsColumn(int columnId)
-        {
-            return _client.ExistsColumn(columnId);
-        }
     }
 }

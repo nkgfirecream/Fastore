@@ -5,11 +5,9 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class Range
+    public class RangeBound
     {
-        public int ColumnID;
-
-        public RangeBound Start;
-        public RangeBound End;
+        public object Bound;
+        public bool Inclusive;
     }
 }
