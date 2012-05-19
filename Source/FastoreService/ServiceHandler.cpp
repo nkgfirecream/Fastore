@@ -44,7 +44,7 @@ return 0;
 
 void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) 
 {
-	printf("Apply\n");
+	//printf("Apply\n");
 
 	bool syncSchema = false;
 
@@ -148,7 +148,7 @@ printf("ReleaseLock\n");
 
 void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 {
-	printf("Query\n");
+	//printf("Query\n");
 
 	auto start = queries.begin();
 
@@ -266,7 +266,7 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 
 void ServiceHandler::GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)
 {	
-	printf("GetStatistics\n");
+	//printf("GetStatistics\n");
 
 	for (int i = 0; i < columnIDs.size(); i++)
 	{

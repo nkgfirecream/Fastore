@@ -112,9 +112,9 @@ namespace Fastore.Core.Demo2
 
                     xmlReader.Read();
 
-					if (count % 100000 == 0)
+					if (count % 1000 == 0)
 					{
-						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 100000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
+						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
 					if (count % 1000 == 0)
