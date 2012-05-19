@@ -40,22 +40,22 @@ namespace Alphora.Fastore.Client
 
         public DataSet GetRange(int[] columnIds, Order[] orders, Range[] ranges, object startId = null)
         {
-            throw new NotImplementedException();
+            return Database.GetRange(columnIds, orders, ranges, startId);
         }
 
         public void Include(int[] columnIds, object rowId, object[] row)
         {
-            throw new NotImplementedException();
+            Database.Include(columnIds, rowId, row);
         }
 
         public void Exclude(int[] columnIds, object rowId)
         {
-            throw new NotImplementedException();
+            Database.Exclude(columnIds, rowId);
         }
 
 		public Statistic[] GetStatistics(int[] columnIds)
         {
-            throw new NotImplementedException();
+            return Database.GetStatistics(columnIds);
         }
     }
 }
