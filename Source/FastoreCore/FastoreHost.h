@@ -30,7 +30,7 @@ class FastoreHost
 		void DeleteColumn(const int& columnId);		
 		bool ExistsColumn(const int& columnId);
 
-		ScalarType GetScalarTypeFromString(std::wstring);		
+		ScalarType GetScalarTypeFromString(std::string);		
 
 	public:
 		FastoreHost();

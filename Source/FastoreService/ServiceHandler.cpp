@@ -249,7 +249,13 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 
 			for (int i = 0; i < result.size(); i++)
 			{
-				ans.RowIDValues.push_back(pdp.second.RowIDType.Encode(result[i]));
+				ans.RowIDValues.push_back(pdp.second.ValueType.Encode(result[i]));
+			}
+
+			//Remove temporarily decoded rowIds.
+			for (int i = 0; i < kv.size(); i++)
+			{
+				delete kv[i];
 			}
 		}
 

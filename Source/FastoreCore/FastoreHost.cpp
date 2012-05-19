@@ -17,31 +17,31 @@ void FastoreHost::BootStrap()
 	ColumnDef unique;
 
 	id.ColumnID = 0;
-	id.Name = L"ID";
+	id.Name = "ID";
 	id.ValueType = standardtypes::GetIntType();
 	id.RowIDType = standardtypes::GetIntType();
 	id.IsUnique = true;
 
 	name.ColumnID = 1;
-	name.Name = L"Name";
+	name.Name = "Name";
 	name.ValueType = standardtypes::GetStringType();
 	name.RowIDType = standardtypes::GetIntType();
 	name.IsUnique = false;
 
 	vt.ColumnID = 2;
-	vt.Name = L"ValueType";
+	vt.Name = "ValueType";
 	vt.ValueType = standardtypes::GetStringType();
 	vt.RowIDType = standardtypes::GetIntType();
 	vt.IsUnique = false;
 
 	idt.ColumnID = 3;
-	idt.Name = L"RowIDType";
+	idt.Name = "RowIDType";
 	idt.ValueType = standardtypes::GetStringType();
 	idt.RowIDType = standardtypes::GetIntType();
 	idt.IsUnique = false;
 
 	unique.ColumnID = 4;
-	unique.Name = L"IsUnique";
+	unique.Name = "IsUnique";
 	unique.ValueType = standardtypes::GetBoolType();
 	unique.RowIDType = standardtypes::GetIntType();
 	unique.IsUnique = false;	
@@ -55,7 +55,7 @@ void FastoreHost::BootStrap()
 	_columnMap.insert(std::pair<int, PointerDefPair>(id.ColumnID, PointerDefPair(idp, id)));
 	_columnMap.insert(std::pair<int, PointerDefPair>(name.ColumnID, PointerDefPair(namep, name)));
 	_columnMap.insert(std::pair<int, PointerDefPair>(vt.ColumnID, PointerDefPair(vtp, vt)));
-	_columnMap.insert(std::pair<int, PointerDefPair>(idt.ColumnID, PointerDefPair(idtp, id)));
+	_columnMap.insert(std::pair<int, PointerDefPair>(idt.ColumnID, PointerDefPair(idtp, idt)));
 	_columnMap.insert(std::pair<int, PointerDefPair>(unique.ColumnID, PointerDefPair(uniquep, unique)));
 
 	AddColumnToSchema(id);
@@ -112,9 +112,9 @@ void FastoreHost::CreateColumn(int columnId)
 {
 	ColumnDef def;
 	def.ColumnID = columnId;
-	def.Name = *(fs::wstring*)GetColumn(1).first->GetValue(&columnId);
-	def.ValueType = GetScalarTypeFromString(*(fs::wstring*)GetColumn(2).first->GetValue(&columnId));
-	def.RowIDType = GetScalarTypeFromString(*(fs::wstring*)GetColumn(3).first->GetValue(&columnId));
+	def.Name = *(fs::string*)GetColumn(1).first->GetValue(&columnId);
+	def.ValueType = GetScalarTypeFromString(*(fs::string*)GetColumn(2).first->GetValue(&columnId));
+	def.RowIDType = GetScalarTypeFromString(*(fs::string*)GetColumn(3).first->GetValue(&columnId));
 	def.IsUnique = *(bool*)GetColumn(4).first->GetValue(&columnId);
 
 	CreateColumn(def);
@@ -179,26 +179,26 @@ void FastoreHost::SyncToSchema()
 	}	
 }
 
-ScalarType FastoreHost::GetScalarTypeFromString(std::wstring typestring)
+ScalarType FastoreHost::GetScalarTypeFromString(std::string typestring)
 {
 //TODO: Consider putting this into a hash to avoid branches.
-	if (typestring == L"WString")
+	if (typestring == "WString")
 	{
 		return standardtypes::GetWStringType();
 	}
-	else if (typestring == L"String")
+	else if (typestring == "String")
 	{
 		return standardtypes::GetStringType();
 	}
-	else if (typestring == L"Int")
+	else if (typestring == "Int")
 	{
 		return standardtypes::GetIntType();
 	}
-	else if (typestring == L"Long")
+	else if (typestring == "Long")
 	{
 		return standardtypes::GetLongType();
 	}
-	else if (typestring == L"Bool")
+	else if (typestring == "Bool")
 	{
 		return standardtypes::GetBoolType();
 	}

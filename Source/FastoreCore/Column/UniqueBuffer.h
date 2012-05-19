@@ -10,7 +10,7 @@ const int UniqueBufferRowMapInitialSize = 32;
 class UniqueBuffer : public IColumnBuffer
 {
 	public:
-		UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name);
+		UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::string& name);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
@@ -22,7 +22,7 @@ class UniqueBuffer : public IColumnBuffer
 
 		ScalarType GetRowIDType();
 		ScalarType GetValueType();
-		fs::wstring GetName();
+		fs::string GetName();
 		bool GetUnique();
 		bool GetRequired();
 		int GetID();
@@ -37,12 +37,12 @@ class UniqueBuffer : public IColumnBuffer
 		BTree* _rows;
 		BTree* _values;
 		long long _count;
-		fs::wstring _name;
+		fs::string _name;
 		bool _required;
 		int _id;
 };
 
-inline UniqueBuffer::UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::wstring& name)
+inline UniqueBuffer::UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::string& name)
 {
 	_id = columnId;
 	_name = name;
@@ -72,7 +72,7 @@ inline Statistics UniqueBuffer::GetStatistics()
 	return Statistics(_count, _count);
 }
 
-inline fs::wstring UniqueBuffer::GetName()
+inline fs::string UniqueBuffer::GetName()
 {
 	return _name;
 }

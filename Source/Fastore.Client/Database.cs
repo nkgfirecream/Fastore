@@ -161,6 +161,7 @@ namespace Alphora.Fastore.Client
                 inc.Value = Fastore.Client.Encoder.Encode(row[i]);
 
                 ColumnWrites wt = new ColumnWrites();
+                wt.Includes = new Thrift.Collections.THashSet<Fastore.Include>();
                 wt.Includes.Add(inc);
                 writes.Add(columnIds[i], wt);
             }
@@ -180,6 +181,7 @@ namespace Alphora.Fastore.Client
             ex.RowID = rowIdb;
 
             ColumnWrites wt = new ColumnWrites();
+            wt.Excludes = new Thrift.Collections.THashSet<Fastore.Exclude>();
             wt.Excludes.Add(ex);
 
             for (int i = 0; i < columnIds.Length; i++)
