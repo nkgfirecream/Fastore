@@ -5,19 +5,38 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class Transaction : IDataAccess
+    public class Transaction : IDataAccess, IDisposable
     {
-        public Transaction() {}
+		public Database Database { get; private set; }
+		public bool ReadIsolation { get; private set; }
+		public bool WriteIsolation { get; private set; }
+
+		private bool _completed;
+
+		internal Transaction(Database database, bool readIsolation, bool writeIsolation)
+		{
+			Database = database;
+			ReadIsolation = readIsolation;
+			WriteIsolation = writeIsolation;
+		}
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            if (!_completed)
+				Rollback();
         }
 
         public void Commit()
         {
             throw new NotImplementedException();
+			_completed = true;
         }
+
+		public void Rollback()
+		{
+			throw new NotImplementedException();
+			_completed = true;
+		}
 
         public DataSet GetRange(int[] columnIds, Order[] orders, Range[] ranges, object startId = null)
         {
