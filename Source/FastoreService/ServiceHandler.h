@@ -16,7 +16,7 @@ using boost::shared_ptr;
 using namespace  ::fastore;
 
 //TODO: Need to cleanly separate different ideas in the server/service.
-//We have a Service in c++ which install Fastore as a service, which is a combination
+//We have a Service in c++ which installs Fastore as a service, which is a combination
 // of a FastoreHost, a ServiceHandler, a Thrift server, and a c++ ServiceHost.
 class ServiceHandler : virtual public ServiceIf {
  private: 

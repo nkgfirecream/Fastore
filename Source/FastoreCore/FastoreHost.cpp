@@ -72,7 +72,7 @@ IColumnBuffer* FastoreHost::InstantiateColumn(ColumnDef def)
 {
 	IColumnBuffer* newbuffer;
 	//Maybe I should just pass in the entire column def...
-	if(def.IsUnique)
+	if (def.IsUnique)
 	{
 		newbuffer = new UniqueBuffer(def.ColumnID, def.RowIDType, def.ValueType, def.Name);
 	}

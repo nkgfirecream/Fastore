@@ -16,6 +16,6 @@ namespace Alphora.Fastore.Client
         void Include(int[] columnIds, object rowId, object[] row);
         void Exclude(int[] columnIds, object rowId);
 
-        Statistics GetStatistics(int columnId);
+		Statistic[] GetStatistics(int[] columnIds);
     }
 }

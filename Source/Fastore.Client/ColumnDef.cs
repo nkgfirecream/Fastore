@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class ColumnDef
+    public struct ColumnDef
     {
         public int ColumnID { get; set; }
         public string Name { get; set; }

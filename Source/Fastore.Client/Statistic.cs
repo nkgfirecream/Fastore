@@ -5,7 +5,9 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class Statistics
+    public struct Statistic
     {
+		public long Total;
+		public long Unique;
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class RangeBound
+    public struct RangeBound
     {
         public object Bound;
         public bool Inclusive;

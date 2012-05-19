@@ -46,7 +46,7 @@ int FastoreMain(HANDLE ghSvcStopEvent)
         printf("The Winsock 2.2 dll was found okay\n");
 
 
-	int port = 9090;
+	int port = 8064;
 	boost::shared_ptr<ServiceHandler> handler(new ServiceHandler());
 	boost::shared_ptr<TProcessor> processor(new ServiceProcessor(handler));
 	boost::shared_ptr<TServerTransport> serverTransport(new TServerSocket(port));

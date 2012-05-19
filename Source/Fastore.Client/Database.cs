@@ -5,10 +5,12 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
+	// TODO: concurrency
     public class Database : IDataAccess, IDisposable
     {
 		internal Alphora.Fastore.Service.Client Host { get; set; }
 		private Thrift.Transport.TTransport _transport;
+		private Schema _schema;
 
 		public Database(Alphora.Fastore.Service.Client host, Thrift.Transport.TTransport transport)
         {
@@ -55,9 +57,53 @@ namespace Alphora.Fastore.Client
 			throw new NotImplementedException();
 		}
 
-		public Statistics GetStatistics(int columnId)
+		public Statistic[] GetStatistics(int[] columnIds)
 		{
-			throw new NotImplementedException();
+			return 
+			(
+				from s in Host.GetStatistics(columnIds.ToList()) 
+					select new Statistic { Total = s.Total, Unique = s.Unique }
+			).ToArray();
+		}
+
+		public Schema GetSchema()
+		{
+			if (_schema == null)
+				_schema = LoadSchema();
+			return new Schema(_schema);
+		}
+
+		private Schema LoadSchema()
+		{
+			var schema = new Schema();
+			var columns =
+				GetRange
+				(
+					new[] { 0, 1, 2, 3, 4 },
+					new[] { new Order { ColumnID = 0, Ascending = true } },
+					new[] { new Range { ColumnID = 0 } }
+				);
+			foreach (var column in columns)
+			{
+				var def =
+					new ColumnDef
+					{
+						ColumnID = (int)column[0],
+						Name = (string)column[1],
+						Type = (string)column[2],
+						IDType = (string)column[3],
+						IsUnique = (bool)column[4]
+					};
+				schema.Add(def.ColumnID, def);
+			}
+			return schema;
+		}
+
+
+
+		public void RefreshSchema()
+		{
+			_schema = null;
 		}
 
 		//These will change as the various other objects are fleshed out.
@@ -66,12 +112,13 @@ namespace Alphora.Fastore.Client
 
 		//Basically, this class will only serve as a wrapper for talking to hosts. All the other processing will already be done beforehand.
 		//(We will probably in fact have several clients connected to various hosts)
-		internal void CreateColumn(ColumnDef def)
+		public void CreateColumn(ColumnDef def)
 		{
-			var topo = Host.GetTopology();
-			topo.Topology.Repositories.Add(new Repository() { ColumnID = def.ColumnID, HostID = 0 });
+			//var topo = Host.GetTopology();
+			//topo.Topology.Repositories.Add(new Repository() { ColumnID = def.ColumnID, HostID = 0 });
 
-			Host.PrepareTopology(null, topo.Topology);
+			//Host.PrepareTopology(null, topo.Topology);
+			Include(new[] { 0, 1, 2, 3, 4 }, def.ColumnID, new object[] { def.ColumnID, def.Name, def.Type, def.IDType, def.IsUnique });
 		}
 
 		internal void DeleteColumn(int columnId)

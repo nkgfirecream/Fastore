@@ -11,7 +11,8 @@ using System.IO.Compression;
 using System.Xml;
 using System.Diagnostics;
 using Microsoft.VisualBasic.FileIO;
-using Wrapper;
+
+using Alphora.Fastore.Client;
 
 namespace Fastore.Core.Demo2
 {
@@ -22,73 +23,77 @@ namespace Fastore.Core.Demo2
 			InitializeComponent();
 		}
 
-        private ManagedSession _session;
+        private Database _database;
         private int[] _columns;
         private int _ids = 0;
 		public bool Canceled { get; set; }
 
 		private void Form1_Shown(object sender, EventArgs e)
 		{
+			var connect = new ConnectForm();
+			if (connect.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+			{
+				Close();
+				return;
+			}
+			var address = connect.Address;
+			var port = connect.Port;
+			connect.Dispose();
+
            // Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(@"C:\owt.txt");
            // parser.Delimiters = new string[] { "^" };            
 
-            ManagedColumnDef c1 = new ManagedColumnDef();
+            ColumnDef c1 = new ColumnDef();
             c1.IsUnique = true;
-            c1.ValueType = "Int";
-            c1.RowIDType = "Int";
+            c1.Type = "Int";
+            c1.IDType = "Int";
             c1.Name = "ID";
-            c1.ColumnID = 0;
+            c1.ColumnID = 1000;
 
-            ManagedColumnDef c2 = new ManagedColumnDef();
+            ColumnDef c2 = new ColumnDef();
             c2.IsUnique = false;
-            c2.ValueType = "String";
-            c2.RowIDType = "Int";
+            c2.Type = "String";
+            c2.IDType = "Int";
             c2.Name = "Given";
-            c2.ColumnID = 1;
+            c2.ColumnID = 1001;
 
-            ManagedColumnDef c3 = new ManagedColumnDef();
+            ColumnDef c3 = new ColumnDef();
             c3.IsUnique = false;
-            c3.ValueType = "String";
-            c3.RowIDType = "Int";
+            c3.Type = "String";
+            c3.IDType = "Int";
             c3.Name = "Surname";
-            c3.ColumnID = 2;
+            c3.ColumnID = 1002;
 
-            ManagedColumnDef c4 = new ManagedColumnDef();
+            ColumnDef c4 = new ColumnDef();
             c4.IsUnique = false;
-            c4.ValueType = "Bool";
-            c4.RowIDType = "Int";
+            c4.Type = "Bool";
+            c4.IDType = "Int";
             c4.Name = "Gender";
-            c4.ColumnID = 3;
+            c4.ColumnID = 1003;
 
-            ManagedColumnDef c5 = new ManagedColumnDef();
+            ColumnDef c5 = new ColumnDef();
             c5.IsUnique = false;
-            c5.ValueType = "String";
-            c5.RowIDType = "Int";
+            c5.Type = "String";
+            c5.IDType = "Int";
             c5.Name = "BirthDate";
-            c5.ColumnID = 4;
+            c5.ColumnID = 1004;
 
-            ManagedColumnDef c6 = new ManagedColumnDef();
+            ColumnDef c6 = new ColumnDef();
             c6.IsUnique = false;
-            c6.ValueType = "String";
-            c6.RowIDType = "Int";
+            c6.Type = "String";
+            c6.IDType = "Int";
             c6.Name = "BirthPlace";
-            c6.ColumnID = 5;
+            c6.ColumnID = 1005;
 
-            ManagedTopology topo = new ManagedTopology();
+			_database = Client.Connect(address, port);
+			
+            _database.CreateColumn(c1);
+			_database.CreateColumn(c2);
+			_database.CreateColumn(c3);
+			_database.CreateColumn(c4);
+			_database.CreateColumn(c5);
+			_database.CreateColumn(c6);
 
-            topo.Add(c1);
-            topo.Add(c2);
-            topo.Add(c3);
-            topo.Add(c4);
-            topo.Add(c5);
-            topo.Add(c6);
-
-            ManagedHostFactory hf = new ManagedHostFactory();
-            var host = hf.Create(topo);
-
-            var db = new ManagedDatabase(host);
-
-            _session = db.Start();
             _columns = new int[] {0, 1, 2, 3, 4, 5};
 
 
@@ -205,11 +210,10 @@ namespace Fastore.Core.Demo2
         private string GetStats()
         {
             string results = "";
-            foreach (var item in _columns)
-            {
-                var stats = _session.GetStatistics(item);
-                results += "Column: " + item + " Unique: " + stats.Unique() + " Total: " + stats.Total() + " Avg Density: " + (double)stats.Total() / (double)stats.Unique() + "\n";
-            }
+            
+            var stats = _database.GetStatistics(_columns);
+			for (var i = 0; i < stats.Length; i++)
+				results += "Column: " + _columns[i].ToString() + " Unique: " + stats[i].Unique + " Total: " + stats[i].Total + " Avg Density: " + (double)stats[i].Total / (double)stats[i].Unique + "\n";
 
             return results;
         }
@@ -224,7 +228,7 @@ namespace Fastore.Core.Demo2
                 record[4] = record[4] ?? "";
                 record[5] = record[5] ?? "";
 
-                _session.Include(_ids, record, _columns);
+				_database.Include(_columns, _ids, record);
                 _ids++;
             }
         }
@@ -246,35 +250,18 @@ namespace Fastore.Core.Demo2
 
         private IEnumerable<string[]> SelectData()
         {
-            List<ManagedRange> ranges = new List<ManagedRange>();
-
-            ManagedRangeBound start = null;
+            RangeBound? start = null;
             if (!String.IsNullOrWhiteSpace(Search.Text))
-            {
-                start = new ManagedRangeBound(Search.Text, null, true);
-            }
-         
-            ranges.Add(new ManagedRange(comboBox1.SelectedIndex, 100, start, null));
+                start = new RangeBound { Bound = Search.Text, Inclusive = true };
 
-            List<ManagedOrder> orders = new List<ManagedOrder>();
-
-            //foreach (var item in _columns)
-            //{
-            //    if (item == comboBox1.SelectedItem.ToString())
-            //    {
-            //        //Force the selected Item into the range as the first item
-            //        //So that the data is ordered by it/
-            //        ranges.Insert(0, CreateRange(item, true));
-            //    }
-            //    else
-            //    {
-            //        var range = CreateRange(item, false);
-            //        if (range != null)
-            //            ranges.Add(range);
-            //    }
-            //}
-            
-            var set = _session.GetRange(_columns, orders.ToArray(), ranges.ToArray());
+			var orderColumn = comboBox1.SelectedIndex + 1000;
+            var set = 
+				_database.GetRange
+				(
+					_columns, 
+					new[] { new Order { ColumnID = orderColumn, Ascending = true } },
+					new[] { new Range { ColumnID = orderColumn, Start = start, Limit = 100 } }
+				);
 
             return ParseDataSet(set);
         }
@@ -341,11 +328,12 @@ namespace Fastore.Core.Demo2
         //    return range;
         //}
 
-		private IEnumerable<string[]> ParseDataSet(ManagedDataSet set)
+		// Convert each column to a string
+		private IEnumerable<string[]> ParseDataSet(Alphora.Fastore.Client.DataSet set)
 		{
-			for (int i = 0; i < set.Size(); i++)
+			foreach (var item in set)
 			{
-                yield return (from c in set.Row(i) select c.ToString()).ToArray();
+                yield return (from c in item select c.ToString()).ToArray();
 			}
 		}
 

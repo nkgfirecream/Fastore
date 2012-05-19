@@ -28,14 +28,14 @@ namespace Alphora.Fastore.Client
 
         public void Commit()
         {
-            throw new NotImplementedException();
 			_completed = true;
+			throw new NotImplementedException();
         }
 
 		public void Rollback()
 		{
-			throw new NotImplementedException();
 			_completed = true;
+			throw new NotImplementedException();
 		}
 
         public DataSet GetRange(int[] columnIds, Order[] orders, Range[] ranges, object startId = null)
@@ -53,7 +53,7 @@ namespace Alphora.Fastore.Client
             throw new NotImplementedException();
         }
 
-        public Statistics GetStatistics(int columnId)
+		public Statistic[] GetStatistics(int[] columnIds)
         {
             throw new NotImplementedException();
         }

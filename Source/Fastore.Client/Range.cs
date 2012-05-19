@@ -5,11 +5,12 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class Range
+    public struct Range
     {
         public int ColumnID;
 
-        public RangeBound Start;
-        public RangeBound End;
+        public RangeBound? Start;
+        public RangeBound? End;
+		public int Limit;
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
-    public class Order
+    public struct Order
     {
         public int ColumnID;
         public bool Ascending;
