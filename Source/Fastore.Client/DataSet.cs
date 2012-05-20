@@ -18,7 +18,6 @@ namespace Alphora.Fastore.Client
             _columns = columns;
         }       
 
-        //Clearly this makes our dataset mutable...
         public object[] this[int index]
         {
             get
@@ -28,6 +27,10 @@ namespace Alphora.Fastore.Client
 
                 return _data[index];
             }
+			set
+			{
+				_data[index] = value;
+			}
         }
 
         public int Count

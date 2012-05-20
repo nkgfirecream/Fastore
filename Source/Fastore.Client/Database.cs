@@ -47,106 +47,121 @@ namespace Alphora.Fastore.Client
 		//Hit the thrift API to build range.
 		public DataSet GetRange(int[] columnIds, Order[] orders, Range[] ranges, object startId = null)
 		{
+			// Validate arguments
             if (orders.Length > 1)
                 throw new NotSupportedException("Multiple orders not supported");
-
             if (ranges.Length > 1)
                 throw new NotSupportedException("Multiple ranges not supported");
-
             if (orders.Length == 1 && ranges.Length == 1 && orders[0].ColumnID != ranges[0].ColumnID)
                 throw new InvalidOperationException("Base order and range must have same column id");
 
+			// TODO: Only a unique column should be selected as a key column
+			int keyColumnId = ranges.Length > 0 ? ranges[0].ColumnID : orders.Length > 0 ? orders[0].ColumnID : columnIds[0];
 
-            //First, pull in the correct rowIds based on the range and order.
-            RangeRequest rangeRequest = new RangeRequest();
-            rangeRequest.Ascending = orders.Length > 0 ? orders[0].Ascending : true;
-            int rangeId = ranges.Length > 0 ? ranges[0].ColumnID : orders.Length > 0 ? orders[0].ColumnID : columnIds[0];
+            var rangeQueriesResult = 
+				Host.Query
+				(
+					CreateQueries(orders, ranges, startId, keyColumnId)
+				);
+            
+			return 
+				ResultToDataSet
+				(
+					columnIds, 
+					//We only sent one query, so we only care about one result...
+					rangeQueriesResult.Answers[keyColumnId].RangeValues[0]
+				);
+		}
 
-            if (ranges.Length > 0)
-            {
-                var clientrange = ranges[0];
+		private DataSet ResultToDataSet(int[] columnIds, RangeResult rangeResult)
+		{
+			//Put all the rowIds in a list, so we can either send them off again to fill the dataset.
+			//(I am filling the order column twice in the case that it is part of the selection,
+			//but I can add code to be smart enough to handle that in the future)
+			List<byte[]> rowIds = new List<byte[]>();
+			foreach (var valuerow in rangeResult.ValueRowsList)
+			{
+				foreach (var rowid in valuerow.RowIDs)
+				{
+					rowIds.Add(rowid);
+				}
+			}
 
-                //Some things to think about...
-                //Start always represents the Lowest value in the range requested (in whatever order the column is stored in),
-                //not the value you want actually want to start with (counterintuitive in the reverse order case).
-                //Since the start/end swap happens on the server, the startId needs to be associated with whatever bound
-                //actually is the start value. 
-                if (clientrange.Start.HasValue)
-                {
-                    Fastore.RangeBound bound = new Fastore.RangeBound();
-                    bound.Inclusive = clientrange.Start.Value.Inclusive;
-                    bound.Value = Fastore.Client.Encoder.Encode(clientrange.Start.Value.Bound);
+			//Create dataset to store result in....
+			DataSet ds = new DataSet(rowIds.Count, columnIds.Length);
+			ds.EndOfRange = rangeResult.EndOfRange;
 
-                    if (rangeRequest.Ascending && startId != null)
-                        bound.RowID = Fastore.Client.Encoder.Encode(startId);
+			Query rowIdQuery = new Query() { RowIDs = rowIds };
 
-                    rangeRequest.Start = bound;
-                }
+			for (int i = 0; i < columnIds.Length; i++)
+			{
+				//I'm doing this one at a time because it will eventually be parallelized. Some other logic will need to group columns by hosts and send them off
+				//in batches.
+				Dictionary<int, Query> queries = new Dictionary<int, Query>();
+				queries.Add(columnIds[i], rowIdQuery);
+				var idResult = Host.Query(queries);
 
-                if (clientrange.End.HasValue)
-                {
-                    Fastore.RangeBound bound = new Fastore.RangeBound();
-                    bound.Inclusive = clientrange.End.Value.Inclusive;
-                    bound.Value = Fastore.Client.Encoder.Encode(clientrange.End.Value.Bound);
+				var values = idResult.Answers[columnIds[i]].RowIDValues;
 
-                    if (!rangeRequest.Ascending && startId != null)
-                        bound.RowID = Fastore.Client.Encoder.Encode(startId);
+				for (int j = 0; j < values.Count; j++)
+				{
+					ds[j][i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
+				}
+			}
+			return ds;
+		}
 
-                    rangeRequest.End = bound;
-                }
+		private static Dictionary<int, Query> CreateQueries(Order[] orders, Range[] ranges, object startId, int rangeId)
+		{
+			//First, pull in the correct rowIds based on the range and order.
+			RangeRequest rangeRequest = new RangeRequest();
+			rangeRequest.Ascending = orders.Length > 0 ? orders[0].Ascending : true;
 
-                rangeRequest.Limit = ranges[0].Limit;
-            }
+			if (ranges.Length > 0)
+			{
+				var clientrange = ranges[0];
+
+				//Some things to think about...
+				//Start always represents the Lowest value in the range requested (in whatever order the column is stored in),
+				//not the value you want actually want to start with (counterintuitive in the reverse order case).
+				//Since the start/end swap happens on the server, the startId needs to be associated with whatever bound
+				//actually is the start value. 
+				if (clientrange.Start.HasValue)
+				{
+					Fastore.RangeBound bound = new Fastore.RangeBound();
+					bound.Inclusive = clientrange.Start.Value.Inclusive;
+					bound.Value = Fastore.Client.Encoder.Encode(clientrange.Start.Value.Bound);
+
+					if (rangeRequest.Ascending && startId != null)
+						bound.RowID = Fastore.Client.Encoder.Encode(startId);
+
+					rangeRequest.Start = bound;
+				}
+
+				if (clientrange.End.HasValue)
+				{
+					Fastore.RangeBound bound = new Fastore.RangeBound();
+					bound.Inclusive = clientrange.End.Value.Inclusive;
+					bound.Value = Fastore.Client.Encoder.Encode(clientrange.End.Value.Bound);
+
+					if (!rangeRequest.Ascending && startId != null)
+						bound.RowID = Fastore.Client.Encoder.Encode(startId);
+
+					rangeRequest.End = bound;
+				}
+
+				rangeRequest.Limit = ranges[0].Limit;
+			}
 
 			var rangeRequests = new List<RangeRequest>();
 			rangeRequests.Add(rangeRequest);
-			
+
 			Query rangeQuery = new Query();
-            rangeQuery.Ranges = rangeRequests;
+			rangeQuery.Ranges = rangeRequests;
 
-            Dictionary<int, Query> rangeQueries = new Dictionary<int, Query>();
-            rangeQueries.Add(rangeId, rangeQuery);
-
-            var rangeQueriesResult = Host.Query(rangeQueries);
-            
-            //We only sent one query, so we only care about one result...
-            var rangeResult = rangeQueriesResult.Answers[rangeId].RangeValues[0];         
-           
-            //Put all the rowIds in a list, so we can either send them off again to fill the dataset.
-            //(I am filling the order column twice in the case that it is part of the selection,
-            //but I can add code to be smart enough to handle that in the future)
-            List<byte[]> rowIds = new List<byte[]>();
-            foreach (var valuerow in rangeResult.ValueRowsList)
-            {
-                foreach (var rowid in valuerow.RowIDs)
-                {
-                    rowIds.Add(rowid);              
-                }
-            }           
-
-            //Create dataset to store result in....
-            DataSet ds = new DataSet(rowIds.Count, columnIds.Length);
-            ds.EndOfRange = rangeResult.EndOfRange;
-
-            Query rowIdQuery = new Query() { RowIDs = rowIds };
-
-            for (int i = 0; i < columnIds.Length; i++)
-            {
-                //I'm doing this one at a time because it will eventually be parallelized. Some other logic will need to group columns by hosts and send them off
-                //in batches.
-                Dictionary<int, Query> queries = new Dictionary<int,Query>();
-                queries.Add(columnIds[i], rowIdQuery);
-                var idResult = Host.Query(queries);
-
-                var values = idResult.Answers[columnIds[i]].RowIDValues;
-
-                for (int j = 0; j < values.Count; j++)
-                {
-                    ds[j][i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
-                }
-            }
-
-            return ds;
+			Dictionary<int, Query> rangeQueries = new Dictionary<int, Query>();
+			rangeQueries.Add(rangeId, rangeQuery);
+			return rangeQueries;
 		}
 
         public void Include(int[] columnIds, object rowId, object[] row)
