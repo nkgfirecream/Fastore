@@ -22,6 +22,8 @@ namespace Alphora.Fastore.Client
 			Database = database;
 			ReadIsolation = readIsolation;
 			WriteIsolation = writeIsolation;
+			_transactionId = new TransactionID();	// TODO: gen ID  - perhaps defer until needed; first read-write would obtain revision
+			_log = new Dictionary<int, LogColumn>();
 		}
 
         public void Dispose()
@@ -72,14 +74,12 @@ namespace Alphora.Fastore.Client
 
 			_log.Clear();
 			_completed = true;
-			throw new NotImplementedException();
         }
 
 		public void Rollback()
 		{
 			_log.Clear();
 			_completed = true;
-			throw new NotImplementedException();
 		}
 
         public DataSet GetRange(int[] columnIds, Order[] orders, Range[] ranges, object startId = null)

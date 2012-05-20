@@ -24,6 +24,7 @@ namespace Fastore.Core.Demo2
 		}
 
         private Database _database;
+		private Transaction _transaction;
         private int[] _columns;
         private int _ids = 0;
 		public bool Canceled { get; set; }
@@ -54,7 +55,7 @@ namespace Fastore.Core.Demo2
             _columns = new int[] {1000, 1001, 1002, 1003, 1004, 1005};
 
 
-			var fileName = @"e:\Ancestry\owt\owt.xml";
+			var fileName = @"e:\Ancestry\owt\owt.xml.gz";
 			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
 				var deflated = Path.GetExtension(fileName) == ".gz" 
@@ -64,6 +65,7 @@ namespace Fastore.Core.Demo2
                 var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
                 var xmlReader = XmlReader.Create(deflated, xrs);
 
+				_transaction = _database.Begin(true, true);
                
                 var count = 0;
 				long lastMilliseconds = 0;
@@ -117,8 +119,12 @@ namespace Fastore.Core.Demo2
 						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
-					if (count % 1000 == 0)
+					if (count % 500 == 0)
+					{
+						_transaction.Commit();
+						_transaction = _database.Begin(true, true);
 						Application.DoEvents();
+					}
 				}
                 watch.Stop();
 
@@ -156,7 +162,8 @@ namespace Fastore.Core.Demo2
                 record[4] = record[4] ?? "";
                 record[5] = record[5] ?? "";
 
-				_database.Include(_columns, _ids, record);
+				_transaction.Include(_columns, _ids, record);
+				//_database.Include(_columns, _ids, record);
                 _ids++;
             }
         }
