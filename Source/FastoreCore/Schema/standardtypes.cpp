@@ -3,6 +3,7 @@
 #include "..\Util\utilities.h"
 #include <sstream>
 #include <hash_set>
+#include "..\Encoder.h"
 
 using namespace std;
 
@@ -11,48 +12,66 @@ void standardtypes::IndirectDelete(void* item)
 	delete *(void**)item;
 }
 
-void* DecodeString(const std::string item)
+void DecodeString(const std::string& input, void*& output)
 {
-	return new std::string(readString(item));
+	Encoder::GetEncoder()->ReadString(input, *(string*)output);
 }
 
 
-void* DecodeBool(const std::string item)
+void DecodeBool(const std::string& input, void*& output)
 {
-	return new bool(readBool(item));
+	Encoder::GetEncoder()->ReadBool(input, *(bool*)output);
 }
 
 
-void* DecodeInt(const std::string item)
+void DecodeInt(const std::string& input, void*& output)
 {
-	return new int(readInt(item));
+	Encoder::GetEncoder()->ReadInt(input, *(int*)output);
 }
 
-
-void* DecodeLong(const std::string item)
+void DecodeLong(const std::string& input, void*& output)
 {
-	return new long long(readLong(item));
+	Encoder::GetEncoder()->ReadLong(input, *(long long*)output);
 }
 
-
-std::string EncodeString(const void* item)
+void EncodeString(const void* input, std::string& output)
 {
-	return writeString(*(std::string*)item);
+	Encoder::GetEncoder()->WriteString(*(std::string*)input, output);
 }
 
-std::string EncodeBool(const void* item)
+void EncodeBool(const void* input, std::string& output)
 {
-	return writeBool(*(bool*)item);
+	Encoder::GetEncoder()->WriteBool(*(bool*)input, output);
 }
 
-std::string EncodeInt(const void* item)
+void EncodeInt(const void* input, std::string& output)
 {
-	return writeInt(*(int*)item);
+	Encoder::GetEncoder()->WriteInt(*(int*)input, output);
 }
 
-std::string EncodeLong(const void* item)
+void EncodeLong(const void* input, std::string& output)
 {
-	return writeLong(*(long long*)item);
+	Encoder::GetEncoder()->WriteLong(*(long long*)input, output);
+}
+
+void* AllocateString()
+{
+	return new std::string();
+}
+
+void* AllocateBool()
+{
+	return new bool();
+}
+
+void* AllocateLong()
+{
+	return new long long();
+}
+
+void* AllocateInt()
+{
+	return new int();
 }
 
 
@@ -279,6 +298,7 @@ ScalarType standardtypes::GetStringType()
 	type.CopyIn = CopyToArray<fs::string>;
 	type.Encode = EncodeString;
 	type.Decode = DecodeString;
+	type.Allocate = AllocateString;
 	return type;
 }
 
@@ -314,6 +334,7 @@ ScalarType standardtypes::GetLongType()
 	type.CopyIn = CopyToArray<long long>;
 	type.Encode = EncodeLong;
 	type.Decode = DecodeLong;
+	type.Allocate = AllocateLong;
 	return type;
 }
 
@@ -343,6 +364,7 @@ ScalarType standardtypes::GetIntType()
 	type.Hash = IntHash;
 	type.Encode = EncodeInt;
 	type.Decode = DecodeInt;
+	type.Allocate = AllocateInt;
 	return type;
 }
 
@@ -390,6 +412,7 @@ ScalarType standardtypes::GetBoolType()
 	type.Hash = BoolHash;
 	type.Encode = EncodeBool;
 	type.Decode = DecodeBool;
+	type.Allocate = AllocateBool;
 	return type;
 }
 

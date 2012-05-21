@@ -1199,23 +1199,6 @@ void KeyTreeTest()
 	cout << "Stuff checks out...";
 }
 
-void EncodingDecoding()
-{
-	std::string start = "Start";
-	cout << start << "\n";
-	std::string encoded = writeString(start);
-	cout << encoded << "\n";
-	std::string decoded = readString(encoded);
-	cout << decoded << "\n";
-
-	long long longnum = 326;
-	cout << longnum << "\n";
-	std::string encodedlong = writeLong(longnum);
-	cout << encodedlong << "\n";
-	long long decodedlong = readLong(encodedlong);
-	cout << decodedlong << "\n";
-}
-
 void main()
 {
 	//BTreeIteratorTest();
@@ -1245,7 +1228,6 @@ void main()
 	//KeyTreeTest();
 	//TreeBufferTest();
 	//AbigailDebugging();
-	EncodingDecoding();
 	_getch();
 }
 

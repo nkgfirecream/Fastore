@@ -445,7 +445,7 @@ inline ValueKeysVector TreeBuffer::BuildData(BTree::iterator& first, BTree::iter
 			keys.push_back((*idStart).key);
 			idStart++;
 			num++;
-			if (num == limit)
+			if (num > limit)
 			{
 				limited = true; break;
 			}

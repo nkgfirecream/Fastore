@@ -22,9 +22,11 @@ namespace standardtypes
 	template <typename T>
 	void CopyToArray(const void* item, void* arrpointer);
 	template <typename T>
-	std::string Encode(const void* item);
+	void Encode(const void* input, std::string& output);
 	template <typename T>
-	void* Decode(const std::string item);
+	void Decode(const std::string& input, void*& output);
+	template <typename T>
+	void* Allocate();
 	
 	// WString type
 	int WStringCompare(const void*, const void*);

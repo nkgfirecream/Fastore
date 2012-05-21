@@ -328,7 +328,7 @@ inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::it
 		KeyVector keys;
 		keys.push_back(rowId);
 		num++;
-		if (num == limit)
+		if (num > limit)
 		{
 			limited = true; break;
 		}

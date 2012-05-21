@@ -171,6 +171,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
+    <ClCompile Include="Encoder.cpp" />
     <ClCompile Include="FastoreHost.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Column\ColumnManager.h" />
     <ClInclude Include="Column\TreeBuffer.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
+    <ClInclude Include="Encoder.h" />
     <ClInclude Include="FastoreHost.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />

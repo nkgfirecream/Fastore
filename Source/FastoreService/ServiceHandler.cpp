@@ -65,7 +65,8 @@ void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transact
 		while (exStart != writes.Excludes.end())
 		{
 			//TODO: Fix Leaks
-			void* rowIdp = pdp.second.RowIDType.Decode((*exStart).RowID);
+			void* rowIdp = pdp.second.RowIDType.Allocate();			
+			pdp.second.RowIDType.Decode((*exStart).RowID, rowIdp);
 			pdp.first->Exclude(rowIdp);
 
 			delete rowIdp;
@@ -75,8 +76,11 @@ void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transact
 		auto inStart = writes.Includes.begin();
 		while (inStart != writes.Includes.end())
 		{
-			void* rowIdp = pdp.second.RowIDType.Decode((*inStart).RowID);
-			void* valuep = pdp.second.ValueType.Decode((*inStart).Value);
+			void* rowIdp = pdp.second.RowIDType.Allocate();
+			void* valuep = pdp.second.ValueType.Allocate();
+
+			pdp.second.RowIDType.Decode((*inStart).RowID, rowIdp);
+			pdp.second.ValueType.Decode((*inStart).Value, valuep);
 
 			pdp.first->Include(valuep, rowIdp);
 
@@ -177,11 +181,13 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 				{
 					fs::RangeBound rb;
 					rb.Inclusive = range.Start.Inclusive;
-					rb.Value = pdp.second.ValueType.Decode(range.Start.Value);
+					rb.Value = pdp.second.ValueType.Allocate();
+					pdp.second.ValueType.Decode(range.Start.Value, rb.Value);
+
 					if (range.Start.__isset.RowID)
 					{
-						//TODO: Decoding is going to leak all over right now. After item is decoded, temp should be deleted.
-						ostartp = pdp.second.RowIDType.Decode(range.Start.RowID);
+						ostartp = pdp.second.RowIDType.Allocate();
+						pdp.second.RowIDType.Decode(range.Start.RowID, ostartp);
 						rb.RowId = Optional<void*>(ostartp);
 					}
 
@@ -192,10 +198,12 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 				{
 					fs::RangeBound rb;
 					rb.Inclusive = range.Start.Inclusive;
-					rb.Value = pdp.second.ValueType.Decode(range.Start.Value);
+					rb.Value = pdp.second.ValueType.Allocate();
+					pdp.second.ValueType.Decode(range.Start.Value, rb.Value);
 					if (range.Start.__isset.RowID)
 					{
-						oendp = pdp.second.RowIDType.Decode(range.Start.RowID);
+						oendp = pdp.second.RowIDType.Allocate();
+						pdp.second.RowIDType.Decode(range.Start.RowID, oendp);
 						rb.RowId = Optional<void*>(oendp);
 					}
 
@@ -211,7 +219,7 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 				if (oendp != NULL)
 					delete oendp;
 
-				fastore::ValueRowsList vrl;
+				fastore::ValueRowsList vrl(result.Data.size());
 				fastore::RangeResult rr;
 
 				rr.EndOfRange = !result.Limited;
@@ -221,14 +229,16 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 					fastore::ValueRows vr;
 					fs::ValueKeys vk = result.Data[j];
 
-					vr.Value = pdp.second.ValueType.Encode(vk.first);
+					pdp.second.ValueType.Encode(vk.first, vr.Value);
 
+					vr.RowIDs = std::vector<std::string>(vk.second.size());
 					for (int k = 0; k < vk.second.size(); k++)
 					{
-						vr.RowIDs.push_back(pdp.second.RowIDType.Encode(vk.second[k]));
+						std::string id;
+						pdp.second.RowIDType.Encode(vk.second[k], vr.RowIDs[k]);
 					}
 
-					vrl.push_back(vr);
+					vrl[j] = vr;
 				}
 
 				rr.valueRowsList = vrl;
@@ -236,20 +246,22 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 				ans.RangeValues.push_back(rr);
 			}
 		}
-		else
+
+		if (query.RowIDs.size() > 0)
 		{
-			fs::KeyVector kv;
+			fs::KeyVector kv(query.RowIDs.size());
 			for (int i = 0; i < query.RowIDs.size(); i++)
 			{
-				void* rid = pdp.second.RowIDType.Decode(query.RowIDs[i]);
-				kv.push_back(rid);
+				kv[i] = pdp.second.RowIDType.Allocate();
+				pdp.second.RowIDType.Decode(query.RowIDs[i], kv[i]);
 			}
 
 			auto result = pdp.first->GetValues(kv);
 
+			ans.RowIDValues = std::vector<std::string>(result.size());
 			for (int i = 0; i < result.size(); i++)
 			{
-				ans.RowIDValues.push_back(pdp.second.ValueType.Encode(result[i]));
+				pdp.second.ValueType.Encode(result[i], ans.RowIDValues[i]);
 			}
 
 			//Remove temporarily decoded rowIds.
