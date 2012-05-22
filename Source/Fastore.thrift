@@ -100,8 +100,8 @@ struct Exclude
  
 struct ColumnWrites
 {
-	1: set<Include> Includes,
-	2: set<Exclude> Excludes
+	1: list<Include> Includes,
+	2: list<Exclude> Excludes
 }
 
 typedef map<ColumnID, ColumnWrites> Writes

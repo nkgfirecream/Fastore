@@ -23,10 +23,10 @@ namespace Alphora.Fastore
   #endif
   public partial class ColumnWrites : TBase
   {
-    private THashSet<Include> _Includes;
-    private THashSet<Exclude> _Excludes;
+    private List<Include> _Includes;
+    private List<Exclude> _Excludes;
 
-    public THashSet<Include> Includes
+    public List<Include> Includes
     {
       get
       {
@@ -39,7 +39,7 @@ namespace Alphora.Fastore
       }
     }
 
-    public THashSet<Exclude> Excludes
+    public List<Exclude> Excludes
     {
       get
       {
@@ -78,36 +78,36 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.Set) {
+            if (field.Type == TType.List) {
               {
-                Includes = new THashSet<Include>();
-                TSet _set18 = iprot.ReadSetBegin();
-                for( int _i19 = 0; _i19 < _set18.Count; ++_i19)
+                Includes = new List<Include>();
+                TList _list18 = iprot.ReadListBegin();
+                for( int _i19 = 0; _i19 < _list18.Count; ++_i19)
                 {
                   Include _elem20 = new Include();
                   _elem20 = new Include();
                   _elem20.Read(iprot);
                   Includes.Add(_elem20);
                 }
-                iprot.ReadSetEnd();
+                iprot.ReadListEnd();
               }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
           case 2:
-            if (field.Type == TType.Set) {
+            if (field.Type == TType.List) {
               {
-                Excludes = new THashSet<Exclude>();
-                TSet _set21 = iprot.ReadSetBegin();
-                for( int _i22 = 0; _i22 < _set21.Count; ++_i22)
+                Excludes = new List<Exclude>();
+                TList _list21 = iprot.ReadListBegin();
+                for( int _i22 = 0; _i22 < _list21.Count; ++_i22)
                 {
                   Exclude _elem23 = new Exclude();
                   _elem23 = new Exclude();
                   _elem23.Read(iprot);
                   Excludes.Add(_elem23);
                 }
-                iprot.ReadSetEnd();
+                iprot.ReadListEnd();
               }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
@@ -128,31 +128,31 @@ namespace Alphora.Fastore
       TField field = new TField();
       if (Includes != null && __isset.Includes) {
         field.Name = "Includes";
-        field.Type = TType.Set;
+        field.Type = TType.List;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteSetBegin(new TSet(TType.Struct, Includes.Count));
+          oprot.WriteListBegin(new TList(TType.Struct, Includes.Count));
           foreach (Include _iter24 in Includes)
           {
             _iter24.Write(oprot);
           }
-          oprot.WriteSetEnd();
+          oprot.WriteListEnd();
         }
         oprot.WriteFieldEnd();
       }
       if (Excludes != null && __isset.Excludes) {
         field.Name = "Excludes";
-        field.Type = TType.Set;
+        field.Type = TType.List;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteSetBegin(new TSet(TType.Struct, Excludes.Count));
+          oprot.WriteListBegin(new TList(TType.Struct, Excludes.Count));
           foreach (Exclude _iter25 in Excludes)
           {
             _iter25.Write(oprot);
           }
-          oprot.WriteSetEnd();
+          oprot.WriteListEnd();
         }
         oprot.WriteFieldEnd();
       }

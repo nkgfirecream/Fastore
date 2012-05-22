@@ -47,7 +47,7 @@ namespace Alphora.Fastore.Client
 					if (wt == null)
 					{
 						wt = new ColumnWrites();
-						wt.Includes = new Thrift.Collections.THashSet<Fastore.Include>();
+						wt.Includes = new List<Fastore.Include>();
 					}
 					Include inc = new Fastore.Include();
 					inc.RowID = Fastore.Client.Encoder.Encode(include.Key);
@@ -61,7 +61,7 @@ namespace Alphora.Fastore.Client
 					if (wt == null)
 						wt = new ColumnWrites();
 					if (wt.Excludes == null)
-						wt.Excludes = new Thrift.Collections.THashSet<Fastore.Exclude>();
+                        wt.Excludes = new List<Fastore.Exclude>();
 					Exclude ex = new Fastore.Exclude { RowID = Fastore.Client.Encoder.Encode(exclude) };
 					wt.Excludes.Add(ex);
 				}

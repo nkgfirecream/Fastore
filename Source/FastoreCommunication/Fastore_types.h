@@ -548,24 +548,24 @@ typedef struct _ColumnWrites__isset {
 class ColumnWrites {
  public:
 
-  static const char* ascii_fingerprint; // = "DFEC8D8F713261375CCB5EAFB2655E05";
-  static const uint8_t binary_fingerprint[16]; // = {0xDF,0xEC,0x8D,0x8F,0x71,0x32,0x61,0x37,0x5C,0xCB,0x5E,0xAF,0xB2,0x65,0x5E,0x05};
+  static const char* ascii_fingerprint; // = "0A6B3139A69DBA9DBD4F4688E49423B6";
+  static const uint8_t binary_fingerprint[16]; // = {0x0A,0x6B,0x31,0x39,0xA6,0x9D,0xBA,0x9D,0xBD,0x4F,0x46,0x88,0xE4,0x94,0x23,0xB6};
 
   ColumnWrites() {
   }
 
   virtual ~ColumnWrites() throw() {}
 
-  std::set<Include>  Includes;
-  std::set<Exclude>  Excludes;
+  std::vector<Include>  Includes;
+  std::vector<Exclude>  Excludes;
 
   _ColumnWrites__isset __isset;
 
-  void __set_Includes(const std::set<Include> & val) {
+  void __set_Includes(const std::vector<Include> & val) {
     Includes = val;
   }
 
-  void __set_Excludes(const std::set<Exclude> & val) {
+  void __set_Excludes(const std::vector<Exclude> & val) {
     Excludes = val;
   }
 
