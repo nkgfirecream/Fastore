@@ -162,6 +162,11 @@ bool  BTree::iterator::Begin()
 	return _path.Leaf->BeginOfTree(_path);
 }
 
+bool BTree::iterator::TestPath()
+{
+	return _path.LeafIndex < (*(_path.Leaf))._count;
+}
+
 bool BTree::iterator::operator==(const BTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
 bool BTree::iterator::operator!=(const BTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
 TreeEntry BTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}

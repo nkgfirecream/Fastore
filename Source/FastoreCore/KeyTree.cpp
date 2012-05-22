@@ -158,6 +158,11 @@ bool  KeyTree::iterator::Begin()
 	return _path.Leaf->BeginOfTree(_path);
 }
 
+bool KeyTree::iterator::TestPath()
+{
+	return _path.LeafIndex < (*(_path.Leaf))._count;
+}
+
 bool KeyTree::iterator::operator==(const KeyTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
 bool KeyTree::iterator::operator!=(const KeyTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
 KeyTreeEntry KeyTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}

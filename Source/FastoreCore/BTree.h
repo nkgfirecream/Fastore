@@ -79,6 +79,7 @@ class BTree
 
 				bool MoveNext();
 				bool MovePrior();
+				bool TestPath();
 			
 				iterator& operator++();
 				iterator operator++(int);

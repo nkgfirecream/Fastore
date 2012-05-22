@@ -420,7 +420,15 @@ inline ValueKeysVector TreeBuffer::BuildData(BTree::iterator& first, BTree::iter
 	int num = 0;
 	bool foundCurrentId = startId == NULL;
     limited = false;
-	ValueKeysVector rows;	
+	ValueKeysVector rows;
+
+	if (!first.TestPath())
+	{
+		if (ascending)
+			first++;
+		else
+			first--;
+	}
 	
 	while (first != last && !limited)
 	{
