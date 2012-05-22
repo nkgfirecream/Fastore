@@ -119,7 +119,7 @@ namespace Fastore.Core.Demo2
 						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
-					if (count % 100 == 0)
+					if (count % 500 == 0)
 					{
 						_transaction.Commit();
 						_transaction = _database.Begin(true, true);
