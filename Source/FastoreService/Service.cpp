@@ -51,14 +51,17 @@ void __cdecl _tmain(int argc, _TCHAR* argv[])
 			{
 				// Wait for service to stop
 				WaitForSingleObject(ghSvcStopEvent, INFINITE);
-
+				FastoreCleanup();
 				printf("Service stopped.\n");
+				
 				return;
 			}
 		}
 		else
 		{
+			FastoreCleanup();
 			printf( "ERROR: Could not start Fastore server.\n");
+
 		}
 	}
 	else if (lstrcmpi( argv[1], TEXT("-install")) == 0 || lstrcmpi( argv[1], TEXT("-i")) == 0)
@@ -256,6 +259,8 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 	{
 		// Wait for the service to stop.
 		WaitForSingleObject(ghSvcStopEvent, INFINITE);
+
+		FastoreCleanup();
 
 		ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
 		return;

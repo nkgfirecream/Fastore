@@ -3,3 +3,4 @@
 
 void FastoreInit();
 int FastoreMain(HANDLE ghSvcStopEvent);
+void FastoreCleanup();

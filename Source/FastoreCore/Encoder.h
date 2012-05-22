@@ -7,23 +7,16 @@
 class Encoder
 {
 	public:
-		static Encoder* GetEncoder();
 
-		void ReadString(const std::string&, std::string&);
-		void WriteString(const std::string&, std::string&);
+		static void ReadString(const std::string&, std::string&);
+		static void WriteString(const std::string&, std::string&);
 
-		void ReadBool(const std::string&, bool&);
-		void WriteBool(const bool&, std::string&);
+		static void ReadBool(const std::string&, bool&);
+		static void WriteBool(const bool&, std::string&);
 
-		void ReadInt(const std::string&, int&);
-		void WriteInt(const int&, std::string&);
+		static void ReadInt(const std::string&, int&);
+		static void WriteInt(const int&, std::string&);
 
-		void ReadLong(const std::string&, long long&);
-		void WriteLong(const long long&, std::string&);
-
-	private:
-		static Encoder* _encoder;
-		char* _buffer;
-		
-		Encoder();
+		static void ReadLong(const std::string&, long long&);
+		static void WriteLong(const long long&, std::string&);
 };

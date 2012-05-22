@@ -10,20 +10,12 @@ namespace Alphora.Fastore.Client
         public static byte[] WriteString(string item)
         {
             byte[] s = Encoding.UTF8.GetBytes(item);
-            byte[] l = BitConverter.GetBytes(item.Length);
-
-            byte[] result = new byte[s.Length + l.Length];
-
-            Buffer.BlockCopy(l, 0, result, 0, 4);
-            Buffer.BlockCopy(s, 0, result, 4, s.Length);
-
-            return result;
+            return s;
         }
 
         public static string ReadString(byte[] item)
         {
-            int size = BitConverter.ToInt32(item, 0);
-            return Encoding.UTF8.GetString(item, 4, size); 
+            return Encoding.UTF8.GetString(item); 
         }
 
         public static byte[] WriteBool(bool item)

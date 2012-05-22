@@ -9,11 +9,7 @@
 
 void FastoreInit()
 {
-}
-
-int FastoreMain(HANDLE ghSvcStopEvent)
-{
-	//TODO: Run on own thread...
+	//Open windows sockets
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
@@ -25,8 +21,7 @@ int FastoreMain(HANDLE ghSvcStopEvent)
     if (err != 0) {
         /* Tell the user that we could not find a usable */
         /* Winsock DLL.                                  */
-        printf("WSAStartup failed with error: %d\n", err);
-        return 1;
+        throw exception("WSAStartup failed with error: %d\n", err);
     }
 
 	/* Confirm that the WinSock DLL supports 2.2.*/
@@ -38,14 +33,18 @@ int FastoreMain(HANDLE ghSvcStopEvent)
     if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
         /* Tell the user that we could not find a usable */
         /* WinSock DLL.                                  */
-        printf("Could not find a usable version of Winsock.dll\n");
         WSACleanup();
-        return 1;
+        throw exception("Could not find a usable version of Winsock.dll\n");
     }
     else
+	{
         printf("The Winsock 2.2 dll was found okay\n");
+		return;
+	}
+}
 
-
+int FastoreMain(HANDLE ghSvcStopEvent)
+{
 	int port = 8064;
 	boost::shared_ptr<ServiceHandler> handler(new ServiceHandler());
 	boost::shared_ptr<TProcessor> processor(new ServiceProcessor(handler));
@@ -56,8 +55,11 @@ int FastoreMain(HANDLE ghSvcStopEvent)
 	TSimpleServer server(processor, serverTransport, transportFactory, protocolFactory);
 	server.serve();
 
-	WSACleanup();
-
-	//TODO: This should return asynchronously on thread startup, returning an error if the thread failed to start.
+	//Return non-zero if threadstart fails
 	return 0;
+}
+
+void FastoreCleanup()
+{
+	WSACleanup();
 }

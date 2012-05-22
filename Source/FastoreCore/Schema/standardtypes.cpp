@@ -14,44 +14,42 @@ void standardtypes::IndirectDelete(void* item)
 
 void DecodeString(const std::string& input, void*& output)
 {
-	Encoder::GetEncoder()->ReadString(input, *(string*)output);
+	Encoder::ReadString(input, *(string*)output);
 }
-
 
 void DecodeBool(const std::string& input, void*& output)
 {
-	Encoder::GetEncoder()->ReadBool(input, *(bool*)output);
+	Encoder::ReadBool(input, *(bool*)output);
 }
-
 
 void DecodeInt(const std::string& input, void*& output)
 {
-	Encoder::GetEncoder()->ReadInt(input, *(int*)output);
+	Encoder::ReadInt(input, *(int*)output);
 }
 
 void DecodeLong(const std::string& input, void*& output)
 {
-	Encoder::GetEncoder()->ReadLong(input, *(long long*)output);
+	Encoder::ReadLong(input, *(long long*)output);
 }
 
 void EncodeString(const void* input, std::string& output)
 {
-	Encoder::GetEncoder()->WriteString(*(std::string*)input, output);
+	Encoder::WriteString(*(std::string*)input, output);
 }
 
 void EncodeBool(const void* input, std::string& output)
 {
-	Encoder::GetEncoder()->WriteBool(*(bool*)input, output);
+	Encoder::WriteBool(*(bool*)input, output);
 }
 
 void EncodeInt(const void* input, std::string& output)
 {
-	Encoder::GetEncoder()->WriteInt(*(int*)input, output);
+	Encoder::WriteInt(*(int*)input, output);
 }
 
 void EncodeLong(const void* input, std::string& output)
 {
-	Encoder::GetEncoder()->WriteLong(*(long long*)input, output);
+	Encoder::WriteLong(*(long long*)input, output);
 }
 
 void* AllocateString()
