@@ -197,17 +197,17 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 				if (range.__isset.End)
 				{
 					fs::RangeBound rb;
-					rb.Inclusive = range.Start.Inclusive;
+					rb.Inclusive = range.End.Inclusive;
 					rb.Value = pdp.second.ValueType.Allocate();
-					pdp.second.ValueType.Decode(range.Start.Value, rb.Value);
-					if (range.Start.__isset.RowID)
+					pdp.second.ValueType.Decode(range.End.Value, rb.Value);
+					if (range.End.__isset.RowID)
 					{
 						oendp = pdp.second.RowIDType.Allocate();
-						pdp.second.RowIDType.Decode(range.Start.RowID, oendp);
+						pdp.second.RowIDType.Decode(range.End.RowID, oendp);
 						rb.RowId = Optional<void*>(oendp);
 					}
 
-					starto = Optional<fs::RangeBound>(rb);
+					endo = Optional<fs::RangeBound>(rb);
 				}		
 
 				fs::Range frange(range.Limit, range.Ascending, starto, endo);				
