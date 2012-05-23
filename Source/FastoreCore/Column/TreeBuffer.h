@@ -387,7 +387,7 @@ inline ValueKeysVector TreeBuffer::BuildData(BTree::iterator& first, BTree::iter
     limited = false;
 	ValueKeysVector rows;
 
-	if (!first.TestPath())
+	if (!first.TestPath() && _total > 0)
 	{
 		if (ascending)
 			first++;

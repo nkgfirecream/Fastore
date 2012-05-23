@@ -321,7 +321,7 @@ inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::it
     limited = false;
 	ValueKeysVector rows;	
 
-	if (!first.TestPath())
+	if (!first.TestPath() && _count > 0)
 	{
 		if (ascending)
 			first++;

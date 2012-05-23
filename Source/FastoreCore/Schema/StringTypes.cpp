@@ -1,5 +1,4 @@
 #include "StringTypes.h"
-#include "..\Encoder.h"
 
 using namespace std;
 

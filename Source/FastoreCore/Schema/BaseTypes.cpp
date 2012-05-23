@@ -1,6 +1,5 @@
 #include "BaseTypes.h"
 #include "..\typedefs.h"
-#include "..\Encoder.h"
 #include "..\Util\utilities.h"
 #include <sstream>
 
