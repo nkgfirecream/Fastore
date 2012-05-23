@@ -31,7 +31,7 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.AddressBox = new System.Windows.Forms.TextBox();
 			this.OKButton = new System.Windows.Forms.Button();
-			this.CancelButton = new System.Windows.Forms.Button();
+			this.CancelBtn = new System.Windows.Forms.Button();
 			this.label2 = new System.Windows.Forms.Label();
 			this.PortBox = new System.Windows.Forms.NumericUpDown();
 			((System.ComponentModel.ISupportInitialize)(this.PortBox)).BeginInit();
@@ -65,16 +65,16 @@
 			this.OKButton.Text = "&OK";
 			this.OKButton.UseVisualStyleBackColor = true;
 			// 
-			// CancelButton
+			// CancelBtn
 			// 
-			this.CancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.CancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.CancelButton.Location = new System.Drawing.Point(281, 114);
-			this.CancelButton.Name = "CancelButton";
-			this.CancelButton.Size = new System.Drawing.Size(107, 24);
-			this.CancelButton.TabIndex = 5;
-			this.CancelButton.Text = "Cancel";
-			this.CancelButton.UseVisualStyleBackColor = true;
+			this.CancelBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.CancelBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+			this.CancelBtn.Location = new System.Drawing.Point(281, 114);
+			this.CancelBtn.Name = "CancelBtn";
+			this.CancelBtn.Size = new System.Drawing.Size(107, 24);
+			this.CancelBtn.TabIndex = 5;
+			this.CancelBtn.Text = "Cancel";
+			this.CancelBtn.UseVisualStyleBackColor = true;
 			// 
 			// label2
 			// 
@@ -107,11 +107,10 @@
 			this.AcceptButton = this.OKButton;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.CancelButton = this.CancelButton;
 			this.ClientSize = new System.Drawing.Size(407, 149);
 			this.Controls.Add(this.PortBox);
 			this.Controls.Add(this.label2);
-			this.Controls.Add(this.CancelButton);
+			this.Controls.Add(this.CancelBtn);
 			this.Controls.Add(this.OKButton);
 			this.Controls.Add(this.AddressBox);
 			this.Controls.Add(this.label1);
@@ -129,7 +128,7 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.TextBox AddressBox;
 		private System.Windows.Forms.Button OKButton;
-		private System.Windows.Forms.Button CancelButton;
+		private System.Windows.Forms.Button CancelBtn;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.NumericUpDown PortBox;
 	}

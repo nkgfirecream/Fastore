@@ -50,7 +50,7 @@ inline UniqueBuffer::UniqueBuffer(const int& columnId, const ScalarType& rowType
 	_valueType = valueType;
 	_nodeType = GetNodeType();
 	_rows = new BTree(_rowType, _nodeType);
-	_values = new BTree(_valueType, standardtypes::GetHashSetType());
+	_values = new BTree(_valueType, standardtypes::StandardHashSet);
 	_required = false;
 	_count = 0;
 	_values->setValuesMovedCallback
@@ -138,7 +138,7 @@ inline ValueKeysVectorVector UniqueBuffer::GetSorted(const KeyVectorVector& inpu
 	ValueKeysVectorVector result;
 	for (unsigned int i = 0; i < input.size(); i++)
 	{
-		BTree valueKeyTree(_valueType, standardtypes::GetKeyVectorType());
+		BTree valueKeyTree(_valueType, standardtypes::StandardKeyVector);
 		
 		KeyVector keys;
 		//insert each key into the hash for its correct value;

@@ -1,4 +1,7 @@
 #include "ServiceHandler.h"
+
+using namespace std;
+
 ServiceHandler::ServiceHandler() {
 // Your initialization goes here
 }

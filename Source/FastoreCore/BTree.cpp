@@ -11,7 +11,7 @@ using namespace std;
 	Assumtion: nodes will never be empty, except for a leaf when root.
 */
 
-template<> void standardtypes::CopyToArray<Node*>(const void* item, void* arrpointer)
+template<> void CopyToArray<Node*>(const void* item, void* arrpointer)
 {
 	memcpy(arrpointer, item, sizeof(Node*));
 }

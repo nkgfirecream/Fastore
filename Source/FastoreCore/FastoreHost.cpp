@@ -18,32 +18,32 @@ void FastoreHost::BootStrap()
 
 	id.ColumnID = 0;
 	id.Name = "ID";
-	id.ValueType = standardtypes::GetIntType();
-	id.RowIDType = standardtypes::GetIntType();
+	id.ValueType = standardtypes::Int;
+	id.RowIDType = standardtypes::Int;
 	id.IsUnique = true;
 
 	name.ColumnID = 1;
 	name.Name = "Name";
-	name.ValueType = standardtypes::GetStringType();
-	name.RowIDType = standardtypes::GetIntType();
+	name.ValueType = standardtypes::String;
+	name.RowIDType = standardtypes::Int;
 	name.IsUnique = false;
 
 	vt.ColumnID = 2;
 	vt.Name = "ValueType";
-	vt.ValueType = standardtypes::GetStringType();
-	vt.RowIDType = standardtypes::GetIntType();
+	vt.ValueType = standardtypes::String;
+	vt.RowIDType = standardtypes::Int;
 	vt.IsUnique = false;
 
 	idt.ColumnID = 3;
 	idt.Name = "RowIDType";
-	idt.ValueType = standardtypes::GetStringType();
-	idt.RowIDType = standardtypes::GetIntType();
+	idt.ValueType = standardtypes::String;
+	idt.RowIDType = standardtypes::Int;
 	idt.IsUnique = false;
 
 	unique.ColumnID = 4;
 	unique.Name = "IsUnique";
-	unique.ValueType = standardtypes::GetBoolType();
-	unique.RowIDType = standardtypes::GetIntType();
+	unique.ValueType = standardtypes::Bool;
+	unique.RowIDType = standardtypes::Int;
 	unique.IsUnique = false;	
 
 	IColumnBuffer* idp = InstantiateColumn(id);
@@ -184,23 +184,23 @@ ScalarType FastoreHost::GetScalarTypeFromString(std::string typestring)
 //TODO: Consider putting this into a hash to avoid branches.
 	if (typestring == "WString")
 	{
-		return standardtypes::GetWStringType();
+		return standardtypes::WString;
 	}
 	else if (typestring == "String")
 	{
-		return standardtypes::GetStringType();
+		return standardtypes::String;
 	}
 	else if (typestring == "Int")
 	{
-		return standardtypes::GetIntType();
+		return standardtypes::Int;
 	}
 	else if (typestring == "Long")
 	{
-		return standardtypes::GetLongType();
+		return standardtypes::Long;
 	}
 	else if (typestring == "Bool")
 	{
-		return standardtypes::GetBoolType();
+		return standardtypes::Bool;
 	}
 	else
 	{

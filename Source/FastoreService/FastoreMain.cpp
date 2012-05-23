@@ -5,7 +5,7 @@
 #include <ws2tcpip.h>
 #include <stdio.h>
 
-
+using namespace std;
 
 void FastoreInit()
 {

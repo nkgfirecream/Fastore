@@ -171,11 +171,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
-    <ClCompile Include="Encoder.cpp" />
     <ClCompile Include="FastoreHost.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Schema\BaseTypes.cpp" />
+    <ClCompile Include="Schema\InternalTypes.cpp" />
+    <ClCompile Include="Schema\scalar.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
+    <ClCompile Include="Schema\StringTypes.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
   </ItemGroup>
@@ -185,15 +188,17 @@
     <ClInclude Include="Column\ColumnManager.h" />
     <ClInclude Include="Column\TreeBuffer.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
-    <ClInclude Include="Encoder.h" />
     <ClInclude Include="FastoreHost.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="Range.h" />
+    <ClInclude Include="Schema\BaseTypes.h" />
     <ClInclude Include="schema\column.h" />
+    <ClInclude Include="Schema\InternalTypes.h" />
     <ClInclude Include="schema\scalar.h" />
     <ClInclude Include="schema\standardtypes.h" />
+    <ClInclude Include="Schema\StringTypes.h" />
     <ClInclude Include="schema\tuple.h" />
     <ClInclude Include="Storage\Schema\column.h" />
     <ClInclude Include="Storage\Schema\standardtypes.h" />

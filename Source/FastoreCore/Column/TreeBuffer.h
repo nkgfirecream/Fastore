@@ -6,41 +6,6 @@
 #include "..\KeyTree.h"
 #include "..\Column\IColumnBuffer.h"
 
-template<> void standardtypes::CopyToArray<KeyTree*>(const void* item, void* arrpointer)
-{
-	memcpy(arrpointer, item, sizeof(KeyTree*));
-}
-
-template<> void standardtypes::CopyToArray<BTree*>(const void* item, void* arrpointer)
-{
-	memcpy(arrpointer, item, sizeof(BTree*));
-}
-
-fs::wstring KeyTreeString(const void* item)
-{
-	wstringstream result;
-	result << (*(KeyTree**)item)->ToString();
-	return result.str();
-}
-
-ScalarType GetKeyTreeType()
-{
-	ScalarType type;
-	type.CopyIn = CopyToArray<KeyTree*>;
-	type.Size = sizeof(KeyTree*);
-	type.ToString = KeyTreeString;
-	return type;
-}
-
-ScalarType GetBTreeType()
-{
-	ScalarType type;
-	type.CopyIn = CopyToArray<BTree*>;
-	type.Size = sizeof(BTree*);
-	return type;
-}
-
-
 class TreeBuffer : public IColumnBuffer
 {
 	public:
@@ -88,7 +53,7 @@ inline TreeBuffer::TreeBuffer(const int& columnId, const ScalarType& rowType, co
 	_valueType = valueType;
 	_nodeType = GetNodeType();
 	_rows = new BTree(_rowType, _nodeType);
-	_values = new BTree(_valueType, GetKeyTreeType());
+	_values = new BTree(_valueType, standardtypes::StandardKeyTree);
 	_required = false;
 	_unique = 0;
 	_total = 0;
@@ -141,7 +106,7 @@ inline bool TreeBuffer::GetRequired()
 	return _required;
 }
 
-inline ValueVector TreeBuffer::GetValues(const KeyVector& rowIds)
+inline ValueVector TreeBuffer::GetValues(const fs::KeyVector& rowIds)
 {
 	ValueVector values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
@@ -179,7 +144,7 @@ inline ValueKeysVectorVector TreeBuffer::GetSorted(const KeyVectorVector& input)
 	ValueKeysVectorVector result;
 	for (unsigned int i = 0; i < input.size(); i++)
 	{
-		BTree valueKeyTree(_valueType, standardtypes::GetKeyVectorType());
+		BTree valueKeyTree(_valueType, standardtypes::StandardKeyVector);
 		
 		KeyVector keys;
 		//insert each key into the hash for its correct value;

@@ -107,7 +107,7 @@ void SequentialLongTest()
 	
 	long numrows = 1000000;
 
-	BTree tree(GetLongType(), GetLongType());	
+	BTree tree(standardtypes::Long, standardtypes::Long);	
 
 	Stopwatch watch;
 
@@ -132,7 +132,7 @@ void SequentialIntTest()
 	
 	long numrows = 1000000;
 
-	BTree tree(GetIntType(), GetIntType());	
+	BTree tree(standardtypes::Int, standardtypes::Int);	
 
 	Stopwatch watch;
 
@@ -184,7 +184,7 @@ void ReverseSequentialIntTest()
 	
 	long numrows = 1000000;
 
-	BTree tree(GetIntType(), GetIntType());	
+	BTree tree(standardtypes::Int, standardtypes::Int);	
 
 	Stopwatch watch;
 
@@ -210,8 +210,7 @@ void RandomIntTest()
 	
 	long numrows = 10000000;
 
-	auto intType = GetIntType();
-	BTree tree(intType, intType);	
+	BTree tree(standardtypes::Int, standardtypes::Int);	
 
 	Stopwatch watch;
 
@@ -259,8 +258,7 @@ void RandomLongTest()
 	
 	long numrows = 1000000;
 
-	auto longType = GetLongType();
-	BTree tree(longType, longType);	
+	BTree tree(standardtypes::Long, standardtypes::Long);	
 
 	Stopwatch watch;
 
@@ -941,7 +939,7 @@ void OutputResult(const GetResult& result, const ScalarType& keyType, const Scal
 void BTreePathTest()
 {
 	int numrows = 1000;
-	ScalarType t = GetIntType();
+	ScalarType t = standardtypes::Int;
 	BTree tree(t,t);	
 	wcout << L"Inserting:\n\r";
 	for (int i = 0; i < numrows; i++)
@@ -1142,8 +1140,8 @@ void HashTest()
 void KeyTreeTest()
 {
 	cout << "Checking trees for all values (forward)\n";
-	BTree btf(standardtypes::GetIntType(), standardtypes::GetIntType());
-	KeyTree ktf(standardtypes::GetIntType());
+	BTree btf(standardtypes::Int, standardtypes::Int);
+	KeyTree ktf(standardtypes::Int);
 
 	int numrows = 100000;	
 	for (int i = 0; i <=0; i++)
@@ -1170,8 +1168,8 @@ void KeyTreeTest()
 	}
 
 	cout << "Checking trees for all values (reverse)\n";
-	BTree bt(standardtypes::GetIntType(), standardtypes::GetIntType());
-	KeyTree kt(standardtypes::GetIntType());
+	BTree bt(standardtypes::Int, standardtypes::Int);
+	KeyTree kt(standardtypes::Int);
 
 	for (int i = numrows; i >= 0; i--)
 	{
