@@ -173,7 +173,8 @@ exception NotLatest
 
 exception Conflict
 {
-	1: string Details
+	1: string Details,
+	2: list<ColumnID> ColumnIDs
 }
 
 exception BeyondHistory

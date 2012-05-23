@@ -1032,15 +1032,16 @@ class ReadResults {
 void swap(ReadResults &a, ReadResults &b);
 
 typedef struct _NotLatest__isset {
-  _NotLatest__isset() : Latest(false) {}
+  _NotLatest__isset() : Latest(false), ColumnIDs(false) {}
   bool Latest;
+  bool ColumnIDs;
 } _NotLatest__isset;
 
 class NotLatest : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
-  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
+  static const char* ascii_fingerprint; // = "5DDE96F44B125BEA7379750973DE133C";
+  static const uint8_t binary_fingerprint[16]; // = {0x5D,0xDE,0x96,0xF4,0x4B,0x12,0x5B,0xEA,0x73,0x79,0x75,0x09,0x73,0xDE,0x13,0x3C};
 
   NotLatest() : Latest(0) {
   }
@@ -1048,6 +1049,7 @@ class NotLatest : public ::apache::thrift::TException {
   virtual ~NotLatest() throw() {}
 
   Revision Latest;
+  std::vector<ColumnID>  ColumnIDs;
 
   _NotLatest__isset __isset;
 
@@ -1055,9 +1057,15 @@ class NotLatest : public ::apache::thrift::TException {
     Latest = val;
   }
 
+  void __set_ColumnIDs(const std::vector<ColumnID> & val) {
+    ColumnIDs = val;
+  }
+
   bool operator == (const NotLatest & rhs) const
   {
     if (!(Latest == rhs.Latest))
+      return false;
+    if (!(ColumnIDs == rhs.ColumnIDs))
       return false;
     return true;
   }
@@ -1075,15 +1083,16 @@ class NotLatest : public ::apache::thrift::TException {
 void swap(NotLatest &a, NotLatest &b);
 
 typedef struct _Conflict__isset {
-  _Conflict__isset() : Details(false) {}
+  _Conflict__isset() : Details(false), ColumnIDs(false) {}
   bool Details;
+  bool ColumnIDs;
 } _Conflict__isset;
 
 class Conflict : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "EFB929595D312AC8F305D5A794CFEDA1";
-  static const uint8_t binary_fingerprint[16]; // = {0xEF,0xB9,0x29,0x59,0x5D,0x31,0x2A,0xC8,0xF3,0x05,0xD5,0xA7,0x94,0xCF,0xED,0xA1};
+  static const char* ascii_fingerprint; // = "920F6571EE6C0CF61556A788D6042213";
+  static const uint8_t binary_fingerprint[16]; // = {0x92,0x0F,0x65,0x71,0xEE,0x6C,0x0C,0xF6,0x15,0x56,0xA7,0x88,0xD6,0x04,0x22,0x13};
 
   Conflict() : Details() {
   }
@@ -1091,6 +1100,7 @@ class Conflict : public ::apache::thrift::TException {
   virtual ~Conflict() throw() {}
 
   std::string Details;
+  std::vector<ColumnID>  ColumnIDs;
 
   _Conflict__isset __isset;
 
@@ -1098,9 +1108,15 @@ class Conflict : public ::apache::thrift::TException {
     Details = val;
   }
 
+  void __set_ColumnIDs(const std::vector<ColumnID> & val) {
+    ColumnIDs = val;
+  }
+
   bool operator == (const Conflict & rhs) const
   {
     if (!(Details == rhs.Details))
+      return false;
+    if (!(ColumnIDs == rhs.ColumnIDs))
       return false;
     return true;
   }
@@ -1118,15 +1134,16 @@ class Conflict : public ::apache::thrift::TException {
 void swap(Conflict &a, Conflict &b);
 
 typedef struct _BeyondHistory__isset {
-  _BeyondHistory__isset() : MinHistory(false) {}
+  _BeyondHistory__isset() : MinHistory(false), ColumnIDs(false) {}
   bool MinHistory;
+  bool ColumnIDs;
 } _BeyondHistory__isset;
 
 class BeyondHistory : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
-  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
+  static const char* ascii_fingerprint; // = "5DDE96F44B125BEA7379750973DE133C";
+  static const uint8_t binary_fingerprint[16]; // = {0x5D,0xDE,0x96,0xF4,0x4B,0x12,0x5B,0xEA,0x73,0x79,0x75,0x09,0x73,0xDE,0x13,0x3C};
 
   BeyondHistory() : MinHistory(0) {
   }
@@ -1134,6 +1151,7 @@ class BeyondHistory : public ::apache::thrift::TException {
   virtual ~BeyondHistory() throw() {}
 
   Revision MinHistory;
+  std::vector<ColumnID>  ColumnIDs;
 
   _BeyondHistory__isset __isset;
 
@@ -1141,9 +1159,15 @@ class BeyondHistory : public ::apache::thrift::TException {
     MinHistory = val;
   }
 
+  void __set_ColumnIDs(const std::vector<ColumnID> & val) {
+    ColumnIDs = val;
+  }
+
   bool operator == (const BeyondHistory & rhs) const
   {
     if (!(MinHistory == rhs.MinHistory))
+      return false;
+    if (!(ColumnIDs == rhs.ColumnIDs))
       return false;
     return true;
   }

@@ -24,6 +24,7 @@ namespace Alphora.Fastore
   public partial class Conflict : Exception, TBase
   {
     private string _Details;
+    private List<int> _ColumnIDs;
 
     public string Details
     {
@@ -38,6 +39,19 @@ namespace Alphora.Fastore
       }
     }
 
+    public List<int> ColumnIDs
+    {
+      get
+      {
+        return _ColumnIDs;
+      }
+      set
+      {
+        __isset.ColumnIDs = true;
+        this._ColumnIDs = value;
+      }
+    }
+
 
     public Isset __isset;
     #if !SILVERLIGHT
@@ -45,6 +59,7 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool Details;
+      public bool ColumnIDs;
     }
 
     public Conflict() {
@@ -65,6 +80,23 @@ namespace Alphora.Fastore
           case 1:
             if (field.Type == TType.String) {
               Details = iprot.ReadString();
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
+          case 2:
+            if (field.Type == TType.List) {
+              {
+                ColumnIDs = new List<int>();
+                TList _list55 = iprot.ReadListBegin();
+                for( int _i56 = 0; _i56 < _list55.Count; ++_i56)
+                {
+                  int _elem57 = 0;
+                  _elem57 = iprot.ReadI32();
+                  ColumnIDs.Add(_elem57);
+                }
+                iprot.ReadListEnd();
+              }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -90,6 +122,21 @@ namespace Alphora.Fastore
         oprot.WriteString(Details);
         oprot.WriteFieldEnd();
       }
+      if (ColumnIDs != null && __isset.ColumnIDs) {
+        field.Name = "ColumnIDs";
+        field.Type = TType.List;
+        field.ID = 2;
+        oprot.WriteFieldBegin(field);
+        {
+          oprot.WriteListBegin(new TList(TType.I32, ColumnIDs.Count));
+          foreach (int _iter58 in ColumnIDs)
+          {
+            oprot.WriteI32(_iter58);
+          }
+          oprot.WriteListEnd();
+        }
+        oprot.WriteFieldEnd();
+      }
       oprot.WriteFieldStop();
       oprot.WriteStructEnd();
     }
@@ -98,6 +145,8 @@ namespace Alphora.Fastore
       StringBuilder sb = new StringBuilder("Conflict(");
       sb.Append("Details: ");
       sb.Append(Details);
+      sb.Append(",ColumnIDs: ");
+      sb.Append(ColumnIDs);
       sb.Append(")");
       return sb.ToString();
     }

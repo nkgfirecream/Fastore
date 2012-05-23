@@ -1729,8 +1729,8 @@ void swap(ReadResults &a, ReadResults &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* NotLatest::ascii_fingerprint = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
-const uint8_t NotLatest::binary_fingerprint[16] = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
+const char* NotLatest::ascii_fingerprint = "5DDE96F44B125BEA7379750973DE133C";
+const uint8_t NotLatest::binary_fingerprint[16] = {0x5D,0xDE,0x96,0xF4,0x4B,0x12,0x5B,0xEA,0x73,0x79,0x75,0x09,0x73,0xDE,0x13,0x3C};
 
 uint32_t NotLatest::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1760,6 +1760,26 @@ uint32_t NotLatest::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
+          {
+            this->ColumnIDs.clear();
+            uint32_t _size88;
+            ::apache::thrift::protocol::TType _etype91;
+            iprot->readListBegin(_etype91, _size88);
+            this->ColumnIDs.resize(_size88);
+            uint32_t _i92;
+            for (_i92 = 0; _i92 < _size88; ++_i92)
+            {
+              xfer += iprot->readI32(this->ColumnIDs[_i92]);
+            }
+            iprot->readListEnd();
+          }
+          this->__isset.ColumnIDs = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1780,6 +1800,18 @@ uint32_t NotLatest::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeI64(this->Latest);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("ColumnIDs", ::apache::thrift::protocol::T_LIST, 2);
+  {
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->ColumnIDs.size()));
+    std::vector<ColumnID> ::const_iterator _iter93;
+    for (_iter93 = this->ColumnIDs.begin(); _iter93 != this->ColumnIDs.end(); ++_iter93)
+    {
+      xfer += oprot->writeI32((*_iter93));
+    }
+    xfer += oprot->writeListEnd();
+  }
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -1788,11 +1820,12 @@ uint32_t NotLatest::write(::apache::thrift::protocol::TProtocol* oprot) const {
 void swap(NotLatest &a, NotLatest &b) {
   using ::std::swap;
   swap(a.Latest, b.Latest);
+  swap(a.ColumnIDs, b.ColumnIDs);
   swap(a.__isset, b.__isset);
 }
 
-const char* Conflict::ascii_fingerprint = "EFB929595D312AC8F305D5A794CFEDA1";
-const uint8_t Conflict::binary_fingerprint[16] = {0xEF,0xB9,0x29,0x59,0x5D,0x31,0x2A,0xC8,0xF3,0x05,0xD5,0xA7,0x94,0xCF,0xED,0xA1};
+const char* Conflict::ascii_fingerprint = "920F6571EE6C0CF61556A788D6042213";
+const uint8_t Conflict::binary_fingerprint[16] = {0x92,0x0F,0x65,0x71,0xEE,0x6C,0x0C,0xF6,0x15,0x56,0xA7,0x88,0xD6,0x04,0x22,0x13};
 
 uint32_t Conflict::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1822,6 +1855,26 @@ uint32_t Conflict::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
+          {
+            this->ColumnIDs.clear();
+            uint32_t _size94;
+            ::apache::thrift::protocol::TType _etype97;
+            iprot->readListBegin(_etype97, _size94);
+            this->ColumnIDs.resize(_size94);
+            uint32_t _i98;
+            for (_i98 = 0; _i98 < _size94; ++_i98)
+            {
+              xfer += iprot->readI32(this->ColumnIDs[_i98]);
+            }
+            iprot->readListEnd();
+          }
+          this->__isset.ColumnIDs = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1842,6 +1895,18 @@ uint32_t Conflict::write(::apache::thrift::protocol::TProtocol* oprot) const {
   xfer += oprot->writeString(this->Details);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("ColumnIDs", ::apache::thrift::protocol::T_LIST, 2);
+  {
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->ColumnIDs.size()));
+    std::vector<ColumnID> ::const_iterator _iter99;
+    for (_iter99 = this->ColumnIDs.begin(); _iter99 != this->ColumnIDs.end(); ++_iter99)
+    {
+      xfer += oprot->writeI32((*_iter99));
+    }
+    xfer += oprot->writeListEnd();
+  }
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -1850,11 +1915,12 @@ uint32_t Conflict::write(::apache::thrift::protocol::TProtocol* oprot) const {
 void swap(Conflict &a, Conflict &b) {
   using ::std::swap;
   swap(a.Details, b.Details);
+  swap(a.ColumnIDs, b.ColumnIDs);
   swap(a.__isset, b.__isset);
 }
 
-const char* BeyondHistory::ascii_fingerprint = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
-const uint8_t BeyondHistory::binary_fingerprint[16] = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
+const char* BeyondHistory::ascii_fingerprint = "5DDE96F44B125BEA7379750973DE133C";
+const uint8_t BeyondHistory::binary_fingerprint[16] = {0x5D,0xDE,0x96,0xF4,0x4B,0x12,0x5B,0xEA,0x73,0x79,0x75,0x09,0x73,0xDE,0x13,0x3C};
 
 uint32_t BeyondHistory::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1884,6 +1950,26 @@ uint32_t BeyondHistory::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
+          {
+            this->ColumnIDs.clear();
+            uint32_t _size100;
+            ::apache::thrift::protocol::TType _etype103;
+            iprot->readListBegin(_etype103, _size100);
+            this->ColumnIDs.resize(_size100);
+            uint32_t _i104;
+            for (_i104 = 0; _i104 < _size100; ++_i104)
+            {
+              xfer += iprot->readI32(this->ColumnIDs[_i104]);
+            }
+            iprot->readListEnd();
+          }
+          this->__isset.ColumnIDs = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1904,6 +1990,18 @@ uint32_t BeyondHistory::write(::apache::thrift::protocol::TProtocol* oprot) cons
   xfer += oprot->writeI64(this->MinHistory);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("ColumnIDs", ::apache::thrift::protocol::T_LIST, 2);
+  {
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->ColumnIDs.size()));
+    std::vector<ColumnID> ::const_iterator _iter105;
+    for (_iter105 = this->ColumnIDs.begin(); _iter105 != this->ColumnIDs.end(); ++_iter105)
+    {
+      xfer += oprot->writeI32((*_iter105));
+    }
+    xfer += oprot->writeListEnd();
+  }
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -1912,6 +2010,7 @@ uint32_t BeyondHistory::write(::apache::thrift::protocol::TProtocol* oprot) cons
 void swap(BeyondHistory &a, BeyondHistory &b) {
   using ::std::swap;
   swap(a.MinHistory, b.MinHistory);
+  swap(a.ColumnIDs, b.ColumnIDs);
   swap(a.__isset, b.__isset);
 }
 
