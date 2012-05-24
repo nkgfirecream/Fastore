@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(SolutionDir)..\External\Thrift\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -102,13 +102,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\boost_1_49_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Debug;$(SolutionDir)..\External\boost_1_49_0\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Debug;$(SolutionDir)..\External\boost_1_49_0\lib64;$(SolutionDir)..\External\tbb\lib\intel64\vc10;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,7 +119,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)FastoreCore\EASTL\include;$(SolutionDir)FastoreCore;$(SolutionDir)FastoreCore\TBB\include;$(SolutionDir)FastoreCore\EABase\local\include\Common;$(SolutionDir)..\External\Thrift\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,20 +137,20 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\boost_1_49_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Release;$(SolutionDir)..\External\boost_1_49_0\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Release;$(SolutionDir)..\External\boost_1_49_0\lib64;$(SolutionDir)..\External\tbb\lib\intel64\vc10;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="errors.h" />
-    <ClInclude Include="FastoreMain.h" />
+    <ClInclude Include="FastoreService.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
     <ClInclude Include="ServiceHandler.h" />
@@ -158,7 +158,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FastoreMain.cpp" />
+    <ClCompile Include="FastoreService.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
     <ClCompile Include="stdafx.cpp">

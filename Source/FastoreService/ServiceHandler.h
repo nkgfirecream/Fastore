@@ -2,10 +2,7 @@
 #include "stdafx.h"
 #include "..\FastoreCore\FastoreHost.h"
 #include "..\FastoreCommunication\Service.h"
-#include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/server/TSimpleServer.h>
-#include <thrift/transport/TServerSocket.h>
-#include <thrift/transport/TBufferTransports.h>
+#include <thrift/server/TServer.h>
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;

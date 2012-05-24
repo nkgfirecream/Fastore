@@ -3,8 +3,98 @@
 #include <tchar.h>
 #include <strsafe.h>
 #include "errors.h"
-#include "FastoreMain.h"
+#include "FastoreService.h"
 #include <exception>
+#include <boost/shared_ptr.hpp>
+#include <iostream>
+#include <sstream>
+
+using namespace std;
+
+boost::shared_ptr<FastoreService> service;
+
+typedef void (*ServiceEventCallback)();
+
+void RunService(ServiceEventCallback started, ServiceEventCallback stopping)
+{
+	try
+	{
+		service = boost::shared_ptr<FastoreService>(new FastoreService());
+	}
+	catch (exception& e)
+	{
+		cout << "Error starting service: " << e.what();
+		return;
+	}
+
+	if (started != NULL)
+		started();
+
+	// Start main execution
+	try
+	{
+		service->Run();
+	}
+	catch (exception& e)
+	{
+		cout << "Error during service execution: " << e.what();
+	}
+
+	if (stopping != NULL)
+		stopping();
+
+	// Stop the service
+	try
+	{
+		service.reset();			
+	}
+	catch (exception& e)
+	{
+		cout << "Error shutting down service: " << e.what();
+		return;
+	}
+}
+
+//
+// Purpose: 
+//   Handles Ctrl-C
+//
+BOOL CtrlCHandler(DWORD fdwCtrlType) 
+{ 
+	switch (fdwCtrlType) 
+	{ 
+		// Handle the CTRL-C signal. 
+	case CTRL_C_EVENT: 
+		cout << "Stop Request Received.\n";
+		if (service != NULL)
+			service->Stop();
+		return( TRUE );
+
+	default: 
+		return FALSE; 
+	} 
+} 
+
+void ConsoleStarted()
+{
+	// Report running status when initialization is complete.
+	cout << "Service started.\nPress Ctrl-C to stop...\n";
+
+	// Ctrl-C handling
+	if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE) ) 
+		cout << "ERROR: Could not set control handler.\n";
+}
+
+void ConsoleStopping()
+{
+	// Report running status when initialization is complete.
+	cout << "Stopping Service...\n";
+}
+
+void ConsoleError(string message)
+{
+	cout << message;
+}
 
 void __cdecl _tmain(int argc, _TCHAR* argv[])
 {
@@ -13,56 +103,10 @@ void __cdecl _tmain(int argc, _TCHAR* argv[])
 
 	if (lstrcmpi( argv[1], TEXT("-run")) == 0 || lstrcmpi( argv[1], TEXT("-r")) == 0)
 	{
-		printf("Service starting....\n");
-		try
-		{
-			FastoreInit();
-		}
-		catch (std::exception& e)
-		{
-			printf("Error starting service:  %s\n", e.what());
-			return;
-		}
-
-		ghSvcStopEvent = CreateEvent(
-			NULL,    // default security attributes
-			TRUE,    // manual reset event
-			FALSE,   // not signaled
-			NULL);   // no name
-
-		if (ghSvcStopEvent == NULL)
-		{
-			printf("Error creating event (%d)\n", GetLastError());
-			return;
-		}
-
-		// Report running status when initialization is complete.
-		printf("Service started.\n");
-
-		// Start async main
-		if(FastoreMain(ghSvcStopEvent) == 0)
-		{
-			// Ctrl-C handling
-			printf("Press Ctrl-C to stop...\n");
-			if (!SetConsoleCtrlHandler( (PHANDLER_ROUTINE)CtrlCHandler, TRUE ) ) 
-				printf( "ERROR: Could not set control handler.\n");
-
-			while(1)
-			{
-				// Wait for service to stop
-				WaitForSingleObject(ghSvcStopEvent, INFINITE);
-				FastoreCleanup();
-				printf("Service stopped.\n");
-				
-				return;
-			}
-		}
-		else
-		{
-			FastoreCleanup();
-			printf( "ERROR: Could not start Fastore server.\n");
-
-		}
+		cout << "Service starting....\n";
+		RunService(&ConsoleStarted, &ConsoleStopping);
+		cout << "Service stopped.\n";
+		return;
 	}
 	else if (lstrcmpi( argv[1], TEXT("-install")) == 0 || lstrcmpi( argv[1], TEXT("-i")) == 0)
 	{
@@ -85,25 +129,6 @@ void __cdecl _tmain(int argc, _TCHAR* argv[])
 
 //
 // Purpose: 
-//   Handles Ctrl-C
-//
-BOOL CtrlCHandler(DWORD fdwCtrlType) 
-{ 
-	switch (fdwCtrlType) 
-	{ 
-		// Handle the CTRL-C signal. 
-	case CTRL_C_EVENT: 
-		printf( "Stopping service...\n" );
-		SetEvent(ghSvcStopEvent);
-		return( TRUE );
-
-	default: 
-		return FALSE; 
-	} 
-} 
-
-//
-// Purpose: 
 //   Installs a service in the SCM database
 //
 // Parameters:
@@ -120,7 +145,7 @@ VOID SvcInstall()
 
 	if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
 	{
-		printf("Cannot install service (%d)\n", GetLastError());
+		cout << "Cannot install service (" << GetLastError() << ")\n";
 		return;
 	}
 
@@ -133,7 +158,7 @@ VOID SvcInstall()
 
 	if (NULL == schSCManager) 
 	{
-		printf("OpenSCManager failed (%d)\n", GetLastError());
+		cout << "OpenSCManager failed (" << GetLastError() << "%d)\n";
 		return;
 	}
 
@@ -156,14 +181,25 @@ VOID SvcInstall()
 
 	if (schService == NULL) 
 	{
-		printf("CreateService failed (%d)\n", GetLastError()); 
+		cout << "CreateService failed (" << GetLastError() << ")\n";
 		CloseServiceHandle(schSCManager);
 		return;
 	}
-	else printf("Service installed successfully\n"); 
+	else
+		cout << "Service installed successfully\n"; 
 
 	CloseServiceHandle(schService); 
 	CloseServiceHandle(schSCManager);
+}
+
+void ServiceStarted()
+{
+	ReportSvcStatus(SERVICE_RUNNING, NO_ERROR, 0);
+}
+
+void ServiceStopping()
+{
+	ReportSvcStatus(SERVICE_STOP_PENDING, NO_ERROR, 0);
 }
 
 //
@@ -182,89 +218,26 @@ VOID SvcInstall()
 VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 {
 	// Register the handler function for the service
+	gSvcStatusHandle = RegisterServiceCtrlHandler(SVCNAME, SvcCtrlHandler);
 
-	gSvcStatusHandle = RegisterServiceCtrlHandler( 
-		SVCNAME, 
-		SvcCtrlHandler);
-
-	if( !gSvcStatusHandle )
+	if (!gSvcStatusHandle)
 	{ 
-		SvcReportEvent(TEXT("RegisterServiceCtrlHandler"), NULL); 
+		SvcReportEvent(TEXT("SvcMain"), TEXT("Unable to obtain status handle.")); 
 		return; 
 	} 
 
 	// These SERVICE_STATUS members remain as set here
-
 	gSvcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS; 
 	gSvcStatus.dwServiceSpecificExitCode = 0;    
 
-	// Report initial status to the SCM
+	// Report starting status to the SCM
+	ReportSvcStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
 
-	ReportSvcStatus( SERVICE_START_PENDING, NO_ERROR, 3000 );
+	// Run the service
+	RunService(&ServiceStarted, &ServiceStopping);
 
-	// Perform service-specific initialization and work.
-
-	SvcInit( dwArgc, lpszArgv );
-}
-
-//
-// Purpose: 
-//   The service code
-//
-// Parameters:
-//   dwArgc - Number of arguments in the lpszArgv array
-//   lpszArgv - Array of strings. The first string is the name of
-//     the service and subsequent strings are passed by the process
-//     that called the StartService function to start the service.
-// 
-// Return value:
-//   None
-//
-VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
-{
-	ReportSvcStatus(SERVICE_START_PENDING, NO_ERROR, 0);
-	try
-	{
-		FastoreInit();
-	}
-	catch (std::exception& e)
-	{
-		SvcReportEvent(TEXT("SvcInit"), (LPTSTR)e.what());
-		ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
-		return;
-	}
-
-	// Create an event. The control handler function, SvcCtrlHandler,
-	// signals this event when it receives the stop control code.
-
-	ghSvcStopEvent = CreateEvent(
-		NULL,    // default security attributes
-		TRUE,    // manual reset event
-		FALSE,   // not signaled
-		NULL);   // no name
-
-	if (ghSvcStopEvent == NULL)
-	{
-		ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
-		return;
-	}
-
-	// Report running status when initialization is complete.
-	ReportSvcStatus( SERVICE_RUNNING, NO_ERROR, 0 );
-
-	// Start the async main routine
-	FastoreMain(ghSvcStopEvent);
-
-	while(1)
-	{
-		// Wait for the service to stop.
-		WaitForSingleObject(ghSvcStopEvent, INFINITE);
-
-		FastoreCleanup();
-
-		ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
-		return;
-	}
+	// Report stopped status to the SCM
+	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
 }
 
 //
@@ -327,7 +300,8 @@ VOID WINAPI SvcCtrlHandler( DWORD dwCtrl )
 
 		// Signal the service to stop.
 
-		SetEvent(ghSvcStopEvent);
+		if (service != NULL)
+			service->Stop();
 		ReportSvcStatus(gSvcStatus.dwCurrentState, NO_ERROR, 0);
 
 		return;

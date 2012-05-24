@@ -30,10 +30,10 @@
     <ClInclude Include="errors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FastoreMain.h">
+    <ClInclude Include="ServiceHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ServiceHandler.h">
+    <ClInclude Include="FastoreService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,10 +44,10 @@
     <ClCompile Include="Service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FastoreMain.cpp">
+    <ClCompile Include="ServiceHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ServiceHandler.cpp">
+    <ClCompile Include="FastoreService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

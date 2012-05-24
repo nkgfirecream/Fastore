@@ -43,7 +43,6 @@ class BTree
 		int getListCapacity();
 
 		const static short DefaultListCapacity = 128;
-		const static short DefaultBranchListSize = 8;
 
 		void setValuesMovedCallback(valuesMovedHandler callback);
 		valuesMovedHandler getValuesMovedCallback();
