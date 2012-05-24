@@ -56,7 +56,7 @@ namespace Alphora.Fastore.Client
                 throw new InvalidOperationException("Base order and range must have same column id");
 
 			// TODO: Only a unique column should be selected as a key column
-			int keyColumnId = ranges.Length > 0 ? ranges[0].ColumnID : orders.Length > 0 ? orders[0].ColumnID : columnIds[0];
+			int keyColumnId = orders.Length > 0 ? orders[0].ColumnID : ranges.Length > 0 ? ranges[0].ColumnID : columnIds[0];
 
             var rangeQueriesResult = 
 				Host.Query
@@ -88,26 +88,35 @@ namespace Alphora.Fastore.Client
 			}
 
 			//Create dataset to store result in....
-			DataSet ds = new DataSet(rowIds.Count, columnIds.Length);
+			DataSet ds = new DataSet(rowIds.Count, columnIds.Length + 1);
 			ds.EndOfRange = rangeResult.EndOfRange;
 
 			Query rowIdQuery = new Query() { RowIDs = rowIds };
+            Dictionary<int, Query> queries = new Dictionary<int, Query>();
 
 			for (int i = 0; i < columnIds.Length; i++)
 			{
-				//I'm doing this one at a time because it will eventually be parallelized. Some other logic will need to group columns by hosts and send them off
-				//in batches.
-				Dictionary<int, Query> queries = new Dictionary<int, Query>();
-				queries.Add(columnIds[i], rowIdQuery);
-				var idResult = Host.Query(queries);
+                queries.Add(columnIds[i], rowIdQuery);
+            }
 
-				var values = idResult.Answers[columnIds[i]].RowIDValues;
+			var idResult = Host.Query(queries);
 
-				for (int j = 0; j < values.Count; j++)
-				{
-					ds[j][i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
-				}
-			}
+            for (int i = 0; i < columnIds.Length; i++)
+            {
+                var values = idResult.Answers[columnIds[i]].RowIDValues;
+                for (int j = 0; j < values.Count; j++)
+                {
+                    ds[j][i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
+                }
+            }
+
+            for (int i = 0; i < rowIds.Count; i++)
+            {
+                //Tack rowID onto the end of each row... Assumption that all the rows in the group have the
+                //same type of rowID
+                ds[i][columnIds.Length] = Fastore.Client.Encoder.Decode(rowIds[i], _schema[columnIds[0]].Type);
+            }	
+
 			return ds;
 		}
 

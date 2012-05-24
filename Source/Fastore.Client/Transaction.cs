@@ -112,7 +112,7 @@ namespace Alphora.Fastore.Client
 			{
 				var newRow = new object[row.Length];
 				var allNull = true;
-				for (int i = 0; i < row.Length; i++)
+				for (int i = 0; i < row.Length - 1; i++)
 				{
 					LogColumn col = changeMap[i];
 					if (col != null)
@@ -135,7 +135,7 @@ namespace Alphora.Fastore.Client
 			// TODO: handle includes - probably need to keep a shadow of column buffers to do the merging with
 
 			// Turn the rows back into a dataset
-			var result = new DataSet(resultRows.Count, columnIds.Length);
+			var result = new DataSet(resultRows.Count, columnIds.Length + 1);
 			for (var i = 0; i < result.Count; i++)
 				result[i] = resultRows[i];
 			return result;
