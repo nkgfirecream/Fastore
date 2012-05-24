@@ -224,6 +224,7 @@
     <ClInclude Include="src\thrift\transport\TPipeServer.h">
       <Filter>transport</Filter>
     </ClInclude>
+    <ClInclude Include="src\thrift\concurrency\ThreadManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="protocal">
