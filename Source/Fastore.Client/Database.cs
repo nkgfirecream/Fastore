@@ -90,6 +90,7 @@ namespace Alphora.Fastore.Client
 			//Create dataset to store result in....
 			DataSet ds = new DataSet(rowIds.Count, columnIds.Length + 1);
 			ds.EndOfRange = rangeResult.EndOfRange;
+            ds.BeginOfRange = rangeResult.BeginOfRange;
 
 			Query rowIdQuery = new Query() { RowIDs = rowIds };
             Dictionary<int, Query> queries = new Dictionary<int, Query>();
@@ -106,16 +107,16 @@ namespace Alphora.Fastore.Client
                 var values = idResult.Answers[columnIds[i]].RowIDValues;
                 for (int j = 0; j < values.Count; j++)
                 {
-                    ds[j][i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
+                    ds[j].Values[i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
+                   
                 }
             }
 
             for (int i = 0; i < rowIds.Count; i++)
             {
-                //Tack rowID onto the end of each row... Assumption that all the rows in the group have the
-                //same type of rowID
-                ds[i][columnIds.Length] = Fastore.Client.Encoder.Decode(rowIds[i], _schema[columnIds[0]].Type);
-            }	
+                //Assumption... All columns have same ID type
+                ds[i].ID = Fastore.Client.Encoder.Decode(rowIds[i], _schema[columnIds[0]].IDType);
+            }
 
 			return ds;
 		}
@@ -250,11 +251,11 @@ namespace Alphora.Fastore.Client
 				var def =
 					new ColumnDef
 					{
-						ColumnID = (int)column[0],
-						Name = (string)column[1],
-						Type = (string)column[2],
-						IDType = (string)column[3],
-						IsUnique = (bool)column[4]
+						ColumnID = (int)column.Values[0],
+						Name = (string)column.Values[1],
+						Type = (string)column.Values[2],
+						IDType = (string)column.Values[3],
+						IsUnique = (bool)column.Values[4]
 					};
 				schema.Add(def.ColumnID, def);
 			}

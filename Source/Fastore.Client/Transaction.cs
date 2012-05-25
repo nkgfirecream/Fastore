@@ -107,26 +107,27 @@ namespace Alphora.Fastore.Client
 				return raw;
 
 			// Process excludes from results
-			var resultRows = new List<object[]>();
+            var resultRows = new List<DataSetRow>();
 			foreach (var row in raw)
 			{
-				var newRow = new object[row.Length];
+                var newRow = new DataSetRow(row.Values.Length);
+                newRow.ID = row.ID;
 				var allNull = true;
-				for (int i = 0; i < row.Length - 1; i++)
+                for (int i = 0; i < row.Values.Length; i++)
 				{
 					LogColumn col = changeMap[i];
 					if (col != null)
 					{
-						if (col.Excludes.Contains(row[i]))
-							newRow[i] = null;
+						if (col.Excludes.Contains(row.Values[i]))
+							newRow.Values[i] = null;
 						else
 						{
 							allNull = false;
-							newRow[i] = row[i];
+							newRow.Values[i] = row.Values[i];
 						}
 					}
 					else
-						newRow[i] = row[i];
+						newRow.Values[i] = row.Values[i];
 				}
 				if (!allNull)
 					resultRows.Add(newRow);
@@ -135,7 +136,7 @@ namespace Alphora.Fastore.Client
 			// TODO: handle includes - probably need to keep a shadow of column buffers to do the merging with
 
 			// Turn the rows back into a dataset
-			var result = new DataSet(resultRows.Count, columnIds.Length + 1);
+			var result = new DataSet(resultRows.Count, columnIds.Length);
 			for (var i = 0; i < result.Count; i++)
 				result[i] = resultRows[i];
 			return result;

@@ -25,6 +25,7 @@ namespace Alphora.Fastore
   {
     private List<ValueRows> _valueRowsList;
     private bool _EndOfRange;
+    private bool _BeginOfRange;
 
     public List<ValueRows> ValueRowsList
     {
@@ -52,6 +53,19 @@ namespace Alphora.Fastore
       }
     }
 
+    public bool BeginOfRange
+    {
+      get
+      {
+        return _BeginOfRange;
+      }
+      set
+      {
+        __isset.BeginOfRange = true;
+        this._BeginOfRange = value;
+      }
+    }
+
 
     public Isset __isset;
     #if !SILVERLIGHT
@@ -60,6 +74,7 @@ namespace Alphora.Fastore
     public struct Isset {
       public bool valueRowsList;
       public bool EndOfRange;
+      public bool BeginOfRange;
     }
 
     public RangeResult() {
@@ -102,6 +117,13 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
+          case 3:
+            if (field.Type == TType.Bool) {
+              BeginOfRange = iprot.ReadBool();
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
           default: 
             TProtocolUtil.Skip(iprot, field.Type);
             break;
@@ -138,6 +160,14 @@ namespace Alphora.Fastore
         oprot.WriteBool(EndOfRange);
         oprot.WriteFieldEnd();
       }
+      if (__isset.BeginOfRange) {
+        field.Name = "BeginOfRange";
+        field.Type = TType.Bool;
+        field.ID = 3;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteBool(BeginOfRange);
+        oprot.WriteFieldEnd();
+      }
       oprot.WriteFieldStop();
       oprot.WriteStructEnd();
     }
@@ -148,6 +178,8 @@ namespace Alphora.Fastore
       sb.Append(ValueRowsList);
       sb.Append(",EndOfRange: ");
       sb.Append(EndOfRange);
+      sb.Append(",BeginOfRange: ");
+      sb.Append(BeginOfRange);
       sb.Append(")");
       return sb.ToString();
     }

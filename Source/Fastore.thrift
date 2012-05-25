@@ -138,7 +138,8 @@ typedef list<ValueRows> ValueRowsList
 struct RangeResult
 {
 	1: ValueRowsList valueRowsList,
-	2: bool EndOfRange
+	2: bool EndOfRange,
+	3: bool BeginOfRange
 }
 
 struct Query

@@ -7,30 +7,31 @@ using System.Collections;
 namespace Alphora.Fastore.Client
 {
     //This class should probably be more strict about type enforcement.
-    public class DataSet : IEnumerable<object[]>
+    public class DataSet : IEnumerable<DataSetRow>
     {
-        private object[][] _data = null;
+        private DataSetRow[] _data = null;
         private int _columns;
 
         public DataSet(int rows, int columns)
         {
-            _data = new object[rows][];
+            _data = new DataSetRow[rows];
             _columns = columns;
-        }       
+        }
 
-        public object[] this[int index]
+        public DataSetRow this[int index]
         {
             get
             {
                 if (_data[index] == null)
-                    _data[index] = new object[_columns];
+                    _data[index] = new DataSetRow(_columns);
 
                 return _data[index];
             }
-			set
-			{
-				_data[index] = value;
-			}
+
+            set
+            {
+                _data[index] = value;
+            }
         }
 
         public int Count
@@ -41,7 +42,7 @@ namespace Alphora.Fastore.Client
             }
         }
 
-		public IEnumerator<object[]> GetEnumerator()
+        public IEnumerator<DataSetRow> GetEnumerator()
 		{
 			for (int i = 0; i < _data.Length; i++)
 				yield return this[i];
@@ -55,5 +56,17 @@ namespace Alphora.Fastore.Client
         //This is with regards to the range that was used to request the dataset.
         //We need a better way to tie the two together.
         public bool EndOfRange = false;
+        public bool BeginOfRange = false;
 	}
+
+    public class DataSetRow
+    {
+        public DataSetRow(int columns)
+        {
+            Values = new object[columns];
+        }
+
+        public object[] Values;
+        public object ID;
+    }
 }

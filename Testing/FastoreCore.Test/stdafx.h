@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include "targetver.h"
-#include "../../Source/FastoreCore/EASTL/include/EASTL/string.h"
-#include "../../Source/FastoreCore/typedefs.h"
+
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
+#include "targetver.h"
 #include <windows.h>
+#include <yvals.h>
 
 
 

@@ -828,24 +828,26 @@ class ValueRows {
 void swap(ValueRows &a, ValueRows &b);
 
 typedef struct _RangeResult__isset {
-  _RangeResult__isset() : valueRowsList(false), EndOfRange(false) {}
+  _RangeResult__isset() : valueRowsList(false), EndOfRange(false), BeginOfRange(false) {}
   bool valueRowsList;
   bool EndOfRange;
+  bool BeginOfRange;
 } _RangeResult__isset;
 
 class RangeResult {
  public:
 
-  static const char* ascii_fingerprint; // = "466F20C01BC68974A3A89E63D894331C";
-  static const uint8_t binary_fingerprint[16]; // = {0x46,0x6F,0x20,0xC0,0x1B,0xC6,0x89,0x74,0xA3,0xA8,0x9E,0x63,0xD8,0x94,0x33,0x1C};
+  static const char* ascii_fingerprint; // = "35701C18CAAD9A6D5379929C792CFFB9";
+  static const uint8_t binary_fingerprint[16]; // = {0x35,0x70,0x1C,0x18,0xCA,0xAD,0x9A,0x6D,0x53,0x79,0x92,0x9C,0x79,0x2C,0xFF,0xB9};
 
-  RangeResult() : EndOfRange(0) {
+  RangeResult() : EndOfRange(0), BeginOfRange(0) {
   }
 
   virtual ~RangeResult() throw() {}
 
   ValueRowsList valueRowsList;
   bool EndOfRange;
+  bool BeginOfRange;
 
   _RangeResult__isset __isset;
 
@@ -857,11 +859,17 @@ class RangeResult {
     EndOfRange = val;
   }
 
+  void __set_BeginOfRange(const bool val) {
+    BeginOfRange = val;
+  }
+
   bool operator == (const RangeResult & rhs) const
   {
     if (!(valueRowsList == rhs.valueRowsList))
       return false;
     if (!(EndOfRange == rhs.EndOfRange))
+      return false;
+    if (!(BeginOfRange == rhs.BeginOfRange))
       return false;
     return true;
   }
@@ -938,8 +946,8 @@ typedef struct _Answer__isset {
 class Answer {
  public:
 
-  static const char* ascii_fingerprint; // = "D36BF0BC25155834835044274D0ED190";
-  static const uint8_t binary_fingerprint[16]; // = {0xD3,0x6B,0xF0,0xBC,0x25,0x15,0x58,0x34,0x83,0x50,0x44,0x27,0x4D,0x0E,0xD1,0x90};
+  static const char* ascii_fingerprint; // = "0EF26ABE5434A4F3B55562D977866E0F";
+  static const uint8_t binary_fingerprint[16]; // = {0x0E,0xF2,0x6A,0xBE,0x54,0x34,0xA4,0xF3,0xB5,0x55,0x62,0xD9,0x77,0x86,0x6E,0x0F};
 
   Answer() {
   }
@@ -989,8 +997,8 @@ typedef struct _ReadResults__isset {
 class ReadResults {
  public:
 
-  static const char* ascii_fingerprint; // = "53FF50347BF983624C055D1DF3E8FA41";
-  static const uint8_t binary_fingerprint[16]; // = {0x53,0xFF,0x50,0x34,0x7B,0xF9,0x83,0x62,0x4C,0x05,0x5D,0x1D,0xF3,0xE8,0xFA,0x41};
+  static const char* ascii_fingerprint; // = "35E1DBCF381709B9ECBA674B21C87C14";
+  static const uint8_t binary_fingerprint[16]; // = {0x35,0xE1,0xDB,0xCF,0x38,0x17,0x09,0xB9,0xEC,0xBA,0x67,0x4B,0x21,0xC8,0x7C,0x14};
 
   ReadResults() : revision(0) {
   }
@@ -1032,16 +1040,15 @@ class ReadResults {
 void swap(ReadResults &a, ReadResults &b);
 
 typedef struct _NotLatest__isset {
-  _NotLatest__isset() : Latest(false), ColumnIDs(false) {}
+  _NotLatest__isset() : Latest(false) {}
   bool Latest;
-  bool ColumnIDs;
 } _NotLatest__isset;
 
 class NotLatest : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "5DDE96F44B125BEA7379750973DE133C";
-  static const uint8_t binary_fingerprint[16]; // = {0x5D,0xDE,0x96,0xF4,0x4B,0x12,0x5B,0xEA,0x73,0x79,0x75,0x09,0x73,0xDE,0x13,0x3C};
+  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
+  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 
   NotLatest() : Latest(0) {
   }
@@ -1049,7 +1056,6 @@ class NotLatest : public ::apache::thrift::TException {
   virtual ~NotLatest() throw() {}
 
   Revision Latest;
-  std::vector<ColumnID>  ColumnIDs;
 
   _NotLatest__isset __isset;
 
@@ -1057,15 +1063,9 @@ class NotLatest : public ::apache::thrift::TException {
     Latest = val;
   }
 
-  void __set_ColumnIDs(const std::vector<ColumnID> & val) {
-    ColumnIDs = val;
-  }
-
   bool operator == (const NotLatest & rhs) const
   {
     if (!(Latest == rhs.Latest))
-      return false;
-    if (!(ColumnIDs == rhs.ColumnIDs))
       return false;
     return true;
   }
@@ -1134,16 +1134,15 @@ class Conflict : public ::apache::thrift::TException {
 void swap(Conflict &a, Conflict &b);
 
 typedef struct _BeyondHistory__isset {
-  _BeyondHistory__isset() : MinHistory(false), ColumnIDs(false) {}
+  _BeyondHistory__isset() : MinHistory(false) {}
   bool MinHistory;
-  bool ColumnIDs;
 } _BeyondHistory__isset;
 
 class BeyondHistory : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "5DDE96F44B125BEA7379750973DE133C";
-  static const uint8_t binary_fingerprint[16]; // = {0x5D,0xDE,0x96,0xF4,0x4B,0x12,0x5B,0xEA,0x73,0x79,0x75,0x09,0x73,0xDE,0x13,0x3C};
+  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
+  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 
   BeyondHistory() : MinHistory(0) {
   }
@@ -1151,7 +1150,6 @@ class BeyondHistory : public ::apache::thrift::TException {
   virtual ~BeyondHistory() throw() {}
 
   Revision MinHistory;
-  std::vector<ColumnID>  ColumnIDs;
 
   _BeyondHistory__isset __isset;
 
@@ -1159,15 +1157,9 @@ class BeyondHistory : public ::apache::thrift::TException {
     MinHistory = val;
   }
 
-  void __set_ColumnIDs(const std::vector<ColumnID> & val) {
-    ColumnIDs = val;
-  }
-
   bool operator == (const BeyondHistory & rhs) const
   {
     if (!(MinHistory == rhs.MinHistory))
-      return false;
-    if (!(ColumnIDs == rhs.ColumnIDs))
       return false;
     return true;
   }
