@@ -275,7 +275,7 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	auto start = existingValues->begin();
 	auto end = existingValues->end();
 
-	while (!start.End())
+	while (start != end)
 	{
 		//TODO: Make Btree or iterator writeable
 		auto result = _rows->GetPath((*start).key);

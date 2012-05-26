@@ -127,8 +127,6 @@ BTree::iterator::iterator(const BTree::Path& path, bool eofOnEmpty = false)
 
 	if (eofOnEmpty && (_path.Branches.size() == 0 && _path.Leaf->_count == 0))
 		_eof = true;
-
-
 }
 
 void BTree::iterator::MoveNext()

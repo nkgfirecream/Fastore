@@ -60,8 +60,8 @@ class KeyTree
 		void Delete(Path& path);
 		//void Insert(Path& path, void* key, void* value);
 		void Insert(Path& path, void* key);
-		Path SeekToBegin();
-		Path SeekToEnd();
+		Path SeekToFirst();
+		Path SeekToLast();
 		int Count()
 		{
 			return _count;
@@ -70,12 +70,11 @@ class KeyTree
 		class iterator : public std::iterator<bidirectional_iterator_tag, void*>
 		{
 				KeyTree::Path _path;
-				iterator(const KeyTree::Path& path) : _path(path) {}
+				iterator(const KeyTree::Path& path, bool eofOnEmpty);
 			public:
-				iterator(const iterator& iter) : _path(iter._path) {}
+				iterator(const iterator& iter) : _path(iter._path), _eof(iter._eof) {}
 
-				bool MoveNext();
-				bool MovePrior();
+				
 				bool TestPath();
 			
 				iterator& operator++();
@@ -85,27 +84,42 @@ class KeyTree
 				bool operator==(const iterator& rhs);
 				bool operator!=(const iterator& rhs);
 				KeyTreeEntry operator*();
-				bool End();
-				bool Begin();
+
+			private:
+				bool MoveNext();
+				bool MovePrior();
+				bool _eof;
 
 			friend class KeyTree;
 		};
 
 		iterator begin()
 		{
-			return iterator(SeekToBegin());
+			return iterator(SeekToFirst(), true);
 		}
 
 		iterator end()
 		{
-			return iterator(SeekToEnd());
+			return ++iterator(SeekToLast(), false);
 		}
 
-		iterator find(void* key, bool& match)
+		iterator find(void* key)
+		{
+			Path p = GetPath(key);
+			if (p.Match)			
+				return iterator(p, false);
+			else
+				return end();
+		}
+
+		//find nearest points the to either the item, or the item direct AFTER it in the
+		//BTrees sort order.
+		iterator findNearest(void* key, bool& match)
 		{
 			Path p = GetPath(key);
 			match = p.Match;
-			return iterator(p);
+
+			return iterator(p, true);
 		}
 
 	private:
@@ -233,12 +247,12 @@ class KeyNode
 			}
 		}
 
-		void SeekToBegin(KeyTree::Path& path)
+		void SeekToFirst(KeyTree::Path& path)
 		{			
 			if (_type == 1)
 			{
 				path.Branches.push_back(KeyTree::PathNode(this, 0));
-				(*(KeyNode**)&_values[0])->SeekToBegin(path);
+				(*(KeyNode**)&_values[0])->SeekToFirst(path);
 			}
 			else
 			{
@@ -247,99 +261,18 @@ class KeyNode
 			}
 		}
 
-		void SeekToEnd(KeyTree::Path& path)
+		void SeekToLast(KeyTree::Path& path)
 		{
 			if (_type == 1)
 			{
 				path.Branches.push_back(KeyTree::PathNode(this, _count));
-				(*(KeyNode**)&_values[_count * _valueType.Size])->SeekToEnd(path);
+				(*(KeyNode**)&_values[_count * _valueType.Size])->SeekToLast(path);
 			}
 			else
 			{
 				path.Leaf = this;
-				//This is after the last valid item on purpose. Do not change (unless you're changing all the logic that depends on it being this way too).
-				path.LeafIndex = _count;
+				path.LeafIndex = _count > 0 ? _count - 1 : 0;
 			}
-		}
-
-		bool MoveNext(KeyTree::Path& path)
-		{
-			if (_type == 1)
-			{
-				KeyTree::PathNode& node = path.Branches.back();
-				if (node.Index < _count)
-				{
-					++node.Index;
-					(*(KeyNode**)(&node.Node->_values[node.Index * _valueType.Size]))->SeekToBegin(path);
-					return true;
-				}
-				return false;
-			}
-			else
-			{
-				++path.LeafIndex;
-				if (path.LeafIndex < _count)
-					return true;
-				else
-				{
-					// walk up until we are no longer at the end
-					while (path.Branches.size() > 0)
-					{
-						KeyTree::PathNode& node = path.Branches.back();
-
-						if (node.Node->MoveNext(path))
-							return true;
-						else
-							path.Branches.pop_back();
-					}
-					return false;
-				}
-			}
-		}
-
-		bool MovePrior(KeyTree::Path& path)
-		{
-			if (_type == 1)
-			{
-				KeyTree::PathNode& node = path.Branches.back();
-				if (node.Index > 0)
-				{
-					--node.Index;
-					(*(KeyNode**)(&node.Node->_values[node.Index * _valueType.Size]))->SeekToEnd(path);
-					return true;
-				}
-				return false;
-			}
-			else
-			{
-				--path.LeafIndex;
-				if (path.LeafIndex >= 0)
-					return true;
-				else
-				{
-					// walk up until we are no longer at the beginning
-					while (path.Branches.size() > 0)
-					{
-						KeyTree::PathNode& node = path.Branches.back();
-
-						if (node.Node->MovePrior(path))
-							return true;
-						else
-							path.Branches.pop_back();
-					}
-					return false;
-				}
-			}
-		}
-
-		bool EndOfTree(KeyTree::Path& path)
-		{
-			return path.LeafIndex == path.Leaf->_count && path.Branches.size() == 0;
-		}
-
-		bool BeginOfTree(KeyTree::Path& path)
-		{
-			return path.LeafIndex < 0 && path.Branches.size() == 0;
 		}
 
 		//Index operations (for path -- behavior undefined for invalid paths)

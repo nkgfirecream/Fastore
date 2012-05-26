@@ -96,30 +96,119 @@ void KeyTree::Insert(Path& path, void* key)
 	}
 }
 
-KeyTree::Path KeyTree::SeekToBegin()
+KeyTree::Path KeyTree::SeekToFirst()
 {
 	Path result;
-	_root->SeekToBegin(result);
+	_root->SeekToFirst(result);
 	return result;
 }
 
-KeyTree::Path KeyTree::SeekToEnd()
+KeyTree::Path KeyTree::SeekToLast()
 {
 	Path result;
-	_root->SeekToEnd(result);
+	_root->SeekToLast(result);
 	return result;
 }
 
 // KeyTree iterator
+KeyTree::iterator::iterator(const KeyTree::Path& path, bool eofOnEmpty = false)
+	: _path(path), _eof(false)
+{
+	//Validate path: Iterators can only ever point at the end of the BTree (one index past the end of the last leaf)
+	//or at an item in the tree. All other paths are invalid. (they may be valid for insertion, such as adding an item
+	//to the end of the Leaf, but insertion and iteration are different concepts).
+	//Don't validate on empty tree, because we'll throw an exception.
+	if ((_path.LeafIndex >= _path.Leaf->_count) && !(_path.Branches.size() == 0 && _path.Leaf->_count == 0))
+		MoveNext();
+
+	if (eofOnEmpty && (_path.Branches.size() == 0 && _path.Leaf->_count == 0))
+		_eof = true;
+}
 
 bool KeyTree::iterator::MoveNext()
 {
-	return _path.Leaf->MoveNext(_path);
+	if(_eof)
+		throw "Iteration past end of tree";
+
+	//If we are at the maximum for this leaf, search path for node with greater values
+	//If we find one, rebuild path
+	//If not, set pointer to one past end of tree and set eof flag.
+	if (_path.LeafIndex >= _path.Leaf->_count - 1)
+	{
+		int nummaxed = 0;
+		bool open = false;
+		int size = _path.Branches.size();
+		while (nummaxed < size && !open)
+		{
+			KeyTree::PathNode& pnode = _path.Branches.at(size - 1 - nummaxed);
+			if (pnode.Index == pnode.Node->_count)
+				++nummaxed;
+			else
+				open = true;
+		}
+
+		if (open == false)
+		{
+			_path.LeafIndex = _path.Leaf->_count;
+			_eof = true;
+		}
+		else
+		{
+			for(int i = 0; i < nummaxed; i++)
+			{
+				_path.Branches.pop_back();
+			}
+
+			KeyTree::PathNode& pnode = _path.Branches.back();
+			++pnode.Index;
+			int size = ((KeyNode*)pnode.Node)->_valueType.Size;
+			(*(KeyNode**)&(((KeyNode*)pnode.Node)->_values[pnode.Index * size]))->SeekToFirst(_path);
+		}
+	}
+	else
+		++_path.LeafIndex;
 }
 
 bool KeyTree::iterator::MovePrior()
 {
-	return _path.Leaf->MovePrior(_path);
+	if (_path.LeafIndex == 0)
+	{
+		//We are at the minimum for this leaf. Check the path for any nodes with lesser values
+		//If we find one, rebuild the path.
+		//If not, throw exception (iteration past beginning).
+		int nummin = 0;
+		bool open = false;
+		int size = _path.Branches.size();
+		while (nummin < size && !open)
+		{
+			KeyTree::PathNode& pnode = _path.Branches.at(size - 1 - nummin);
+			if (pnode.Index == 0)
+				++nummin;
+			else
+				open = true;
+		}
+
+		if (open == false)
+			throw "Iteration past start of tree";
+		else
+		{
+			for(int i = 0; i < nummin; i++)
+			{
+				_path.Branches.pop_back();
+			}
+
+			KeyTree::PathNode& pnode = _path.Branches.back();
+			--pnode.Index;
+			int size = ((KeyNode*)pnode.Node)->_valueType.Size;
+			(*(KeyNode**)&(((KeyNode*)pnode.Node)->_values[pnode.Index * size]))->SeekToLast(_path);
+			_eof = false;
+		}
+	}
+	else
+	{
+		--_path.LeafIndex;
+		_eof = false;
+	}
 }
 
 KeyTree::iterator& KeyTree::iterator::operator++() 
@@ -148,24 +237,15 @@ KeyTree::iterator KeyTree::iterator::operator--(int)
 	return tmp;
 }
 
-bool KeyTree::iterator::End()
+bool KeyTree::iterator::operator==(const KeyTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex) && _eof == rhs._eof;;}
+bool KeyTree::iterator::operator!=(const KeyTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex) || _eof != rhs._eof;}
+KeyTreeEntry KeyTree::iterator::operator*()
 {
-	return _path.Leaf->EndOfTree(_path);
-}
+	if (_path.LeafIndex >= _path.Leaf->_count)
+		throw "Iterator not dereferenceable";
 
-bool  KeyTree::iterator::Begin()
-{
-	return _path.Leaf->BeginOfTree(_path);
+	return (*(_path.Leaf))[_path.LeafIndex];
 }
-
-bool KeyTree::iterator::TestPath()
-{
-	return _path.LeafIndex < (*(_path.Leaf))._count;
-}
-
-bool KeyTree::iterator::operator==(const KeyTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex);}
-bool KeyTree::iterator::operator!=(const KeyTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex);}
-KeyTreeEntry KeyTree::iterator::operator*() { return (*(_path.Leaf))[_path.LeafIndex];}
 
 
 

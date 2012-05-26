@@ -456,7 +456,6 @@ class Node
 		}
 
 	friend class BTree::iterator;
-	friend class BTree;
 };
 
 
