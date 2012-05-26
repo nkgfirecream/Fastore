@@ -155,6 +155,10 @@ class KeyNode
 				{
 					_values = new char[(_tree->KeyDefaultListCapacity) *  _valueType.Size];	
 				}
+				else
+				{
+					_values = NULL;
+				}
 
 				if(left != NULL)
 				{
