@@ -949,7 +949,7 @@ void BTreePathTest()
 	}
 	wcout << L"Result of insert:\n\r";
 	auto it = tree.begin();
-	while (!it.End())
+	while (it != tree.end())
 	{		
 		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
@@ -966,7 +966,7 @@ void BTreePathTest()
 
 	it = tree.begin();
 	wcout << L"Result of deleting all from top:\n\r";
-	while (!it.End())
+	while (it != tree.end())
 	{		
 		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
@@ -982,7 +982,7 @@ void BTreePathTest()
 
 	wcout << L"Result of insert:\n\r";
 	it = tree.begin();
-	while(!it.End())
+	while(it != tree.end())
 	{		
 		wcout << t.ToString((*it).value) << "\n\r";
 		it++;
@@ -999,7 +999,7 @@ void BTreePathTest()
 
 	it = tree.begin();
 	wcout << L"Result of deleting all from 0:\n\r";
-	while(!it.End())
+	while(it != tree.end())
 	{		
 		wcout << t.ToString((*it).value) << "\n\r";
 		it++;

@@ -120,7 +120,7 @@ inline ValueVector TreeBuffer::GetValues(const fs::KeyVector& rowIds)
 inline Value TreeBuffer::GetValue(Key rowId)
 {
 	bool match;
-	auto iterator = _rows->find(rowId, match);
+	auto iterator = _rows->findNearest(rowId, match);
 	
 	if (match)
 	{
@@ -300,8 +300,8 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 
 	bool firstMatch = false; //Seeking to beginning or end
 	bool lastMatch = false;
-	BTree::iterator first = range.Start.HasValue() ? _values->find((*range.Start).Value, firstMatch) : _values->begin();
-	BTree::iterator last =  range.End.HasValue() ? _values->find((*range.End).Value, lastMatch) : _values->end();
+	BTree::iterator first = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, firstMatch) : _values->begin();
+	BTree::iterator last =  range.End.HasValue() ? _values->findNearest((*range.End).Value, lastMatch) : _values->end();
 
 	if (range.Start.HasValue() && range.End.HasValue())
 	{
@@ -387,14 +387,6 @@ inline ValueKeysVector TreeBuffer::BuildData(BTree::iterator& first, BTree::iter
     limited = false;
 	ValueKeysVector rows;
 
-	if (!first.TestPath() && _total > 0)
-	{
-		if (ascending)
-			first++;
-		else
-			first--;
-	}
-	
 	while (first != last && !limited)
 	{
 		auto rowIds = (KeyTree*)*(void**)((*first).value);
