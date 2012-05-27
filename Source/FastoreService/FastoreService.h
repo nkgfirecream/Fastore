@@ -1,5 +1,6 @@
 #pragma once
 #include <boost/shared_ptr.hpp>
+#include "ServiceConfig.h"
 
 class FastoreService
 {
@@ -7,7 +8,7 @@ class FastoreService
 	boost::shared_ptr<impl> _pimpl;
 
 public:
-	FastoreService();
+	FastoreService(const ServiceConfig& config);
 	void Run();
 	void Stop();
 };

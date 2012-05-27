@@ -2,8 +2,7 @@
 
 using namespace std;
 
-ServiceHandler::ServiceHandler() {
-// Your initialization goes here
+ServiceHandler::ServiceHandler(const ServiceConfig& config) : _host(config.coreConfig) {
 }
 
 void ServiceHandler::GetTopology(TopologyResult& _return) {
@@ -47,8 +46,6 @@ return 0;
 
 void ServiceHandler::Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) 
 {
-	//printf("Apply\n");
-
 	bool syncSchema = false;
 
 	auto start = writes.begin();
@@ -155,8 +152,6 @@ printf("ReleaseLock\n");
 
 void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 {
-	//printf("Query\n");
-
 	auto start = queries.begin();
 
 	while(start != queries.end())
@@ -281,8 +276,6 @@ void ServiceHandler::Query(ReadResults& _return, const Queries& queries)
 
 void ServiceHandler::GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)
 {	
-	//printf("GetStatistics\n");
-
 	for (int i = 0; i < columnIDs.size(); i++)
 	{
 		Statistic stat;

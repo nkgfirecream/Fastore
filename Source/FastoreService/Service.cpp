@@ -4,10 +4,13 @@
 #include <strsafe.h>
 #include "errors.h"
 #include "FastoreService.h"
+#include "ServiceConfig.h"
 #include <exception>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
 #include <sstream>
+#include <vector>
+#include <string>
 
 using namespace std;
 
@@ -15,11 +18,11 @@ boost::shared_ptr<FastoreService> service;
 
 typedef void (*ServiceEventCallback)();
 
-void RunService(ServiceEventCallback started, ServiceEventCallback stopping)
+void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const ServiceConfig& config)
 {
 	try
 	{
-		service = boost::shared_ptr<FastoreService>(new FastoreService());
+		service = boost::shared_ptr<FastoreService>(new FastoreService(config));
 	}
 	catch (exception& e)
 	{
@@ -96,6 +99,33 @@ void ConsoleError(string message)
 	cout << message;
 }
 
+vector<string> argsToVector(int argc, _TCHAR* argv[])
+{
+	vector<string> args;
+	for (int i = 1; i < argc; i++) 
+	{
+		wstring current(argv[i]);
+		args.push_back(string(current.begin(), current.end()));
+	}
+	return args;
+}
+
+ServiceConfig getConfig(vector<string>& args)
+{
+	ServiceConfig config;
+
+	// TODO: set configuration from arguments and/or from file...
+	for (int i = 0; i < args.size(); i++)
+	{
+		if (args[i] == "-p" && args.size() - 1 > i)
+			istringstream(args[i + 1]) >> config.port;
+		else if (args[i] == "-dp" && args.size() - 1 > i)
+			config.coreConfig.dataPath = args[i + 1];
+	}
+
+	return config;
+}
+
 void __cdecl _tmain(int argc, _TCHAR* argv[])
 {
 	// If command-line parameter is "install", install the service. 
@@ -103,8 +133,12 @@ void __cdecl _tmain(int argc, _TCHAR* argv[])
 
 	if (lstrcmpi( argv[1], TEXT("-run")) == 0 || lstrcmpi( argv[1], TEXT("-r")) == 0)
 	{
+		ServiceConfig config = getConfig(argsToVector(argc, argv));
+
+		cout << "Configuration: port = " << config.port << "	data path = '" << config.coreConfig.dataPath << "'\n";
+
 		cout << "Service starting....\n";
-		RunService(&ConsoleStarted, &ConsoleStopping);
+		RunService(&ConsoleStarted, &ConsoleStopping, config);
 		cout << "Service stopped.\n";
 		return;
 	}
@@ -215,7 +249,7 @@ void ServiceStopping()
 // Return value:
 //   None.
 //
-VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
+VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR* lpszArgv )
 {
 	// Register the handler function for the service
 	gSvcStatusHandle = RegisterServiceCtrlHandler(SVCNAME, SvcCtrlHandler);
@@ -226,6 +260,8 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 		return; 
 	} 
 
+	//TODO: redirect stdout to log
+
 	// These SERVICE_STATUS members remain as set here
 	gSvcStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS; 
 	gSvcStatus.dwServiceSpecificExitCode = 0;    
@@ -233,8 +269,11 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 	// Report starting status to the SCM
 	ReportSvcStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
 
+	// Get configuration
+	ServiceConfig config = getConfig(argsToVector(dwArgc, lpszArgv));
+
 	// Run the service
-	RunService(&ServiceStarted, &ServiceStopping);
+	RunService(&ServiceStarted, &ServiceStopping, config);
 
 	// Report stopped status to the SCM
 	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);

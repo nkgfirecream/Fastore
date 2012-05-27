@@ -26,7 +26,7 @@ class FastoreService::impl
 
 public:
 
-	impl()	
+	impl(const ServiceConfig& config)	
 	{
 		//Open windows sockets
 		WORD wVersionRequested;
@@ -58,17 +58,13 @@ public:
 			throw exception("Could not find a usable version (2.2) of Winsock.dll\n");
 		}
 
-		int port = 8064;		// TODO: read this from configuration, overridable from command-line
-		int threadCount = 8;	// TODO: dynamically set this to the number of cores
-		int pendingCount = 64;	// TODO: tune this
-
-		_handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler());
+		_handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(config));
 		_processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(_handler));
-		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(port));
+		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
 		_transportFactory = boost::shared_ptr<TTransportFactory>(new TBufferedTransportFactory());
 		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
 	
-		_threadManager = ThreadManager::newSimpleThreadManager(threadCount, pendingCount);
+		_threadManager = ThreadManager::newSimpleThreadManager(config.socketThreadCount, config.socketPendingCount);
 		_threadFactory = boost::shared_ptr<concurrency::PlatformThreadFactory>(new concurrency::PlatformThreadFactory());
 		_threadManager->threadFactory(_threadFactory);
 		_threadManager->start();
@@ -93,9 +89,8 @@ public:
 	}
 };
 
-FastoreService::FastoreService() : _pimpl(new impl())
-{
-}
+FastoreService::FastoreService(const ServiceConfig& config) : _pimpl(new impl(config))
+{ }
 
 void FastoreService::Run()
 {

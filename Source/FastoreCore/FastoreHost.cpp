@@ -3,9 +3,21 @@
 #include "Column\UniqueBuffer.h"
 #include <hash_set>
 
-FastoreHost::FastoreHost()
+FastoreHost::FastoreHost(const CoreConfig& config) : _config(config)
 {
+	//* Attempt to lock data directory - throw if ex can't be taken
+	//* Check data directory for improper shut down - see Recovery
+	//* If new instance, bootstrap
 	BootStrap();
+	//* Read topology columns into memory; play log files for the same
+	//* Apply any host address overrides
+	//* Determine host ID if by reversing host address - if fails throw with report of current host name
+	//* Mode: Initializing - Notify peers (hosts that share redundancy), storing which peers are reachable in Grid Health memory structures.
+	//* Initialize objects for this host (simultaneously unless it hurts)
+	//	* Column Buffer - Read data dump into memory; play log file
+	//	* Lock Manager - sync w/ peer(s)
+	//	* Transactor - sync w/ peer(s)
+	//* Mode: Online - Notify peers
 }
 
 void FastoreHost::BootStrap()

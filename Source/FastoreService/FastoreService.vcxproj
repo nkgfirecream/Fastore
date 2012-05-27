@@ -89,8 +89,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\boost_1_49_0\lib32;$(SolutionDir)..\External\Thrift\Win32\Debug;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;tbb_debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\boost_1_49_0\lib32;$(SolutionDir)..\External\Thrift\Win32\Debug;$(SolutionDir)..\External\tbb\lib\ia32\vc10</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -123,8 +123,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin;$(SolutionDir)..\External\boost_1_49_0\lib32;$(SolutionDir)..\External\Thrift\Win32\Release;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;tbb.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin;$(SolutionDir)..\External\boost_1_49_0\lib32;$(SolutionDir)..\External\Thrift\Win32\Release;$(SolutionDir)..\External\tbb\lib\ia32\vc10</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -151,6 +151,7 @@
     <ClInclude Include="FastoreService.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
+    <ClInclude Include="ServiceConfig.h" />
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
