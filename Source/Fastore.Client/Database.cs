@@ -59,7 +59,7 @@ namespace Alphora.Fastore.Client
 			int keyColumnId = orders.Length > 0 ? orders[0].ColumnID : ranges.Length > 0 ? ranges[0].ColumnID : columnIds[0];
 
             var rangeQueriesResult = 
-				Host.Query
+				Host.query
 				(
 					CreateQueries(orders, ranges, startId, keyColumnId)
 				);
@@ -69,7 +69,7 @@ namespace Alphora.Fastore.Client
 				(
 					columnIds, 
 					//We only sent one query, so we only care about one result...
-					rangeQueriesResult.Answers[keyColumnId].RangeValues[0]
+					rangeQueriesResult[keyColumnId].Answer.RangeValues[0]
 				);
 		}
 
@@ -100,11 +100,11 @@ namespace Alphora.Fastore.Client
                 queries.Add(columnIds[i], rowIdQuery);
             }
 
-			var idResult = Host.Query(queries);
+			var idResult = Host.query(queries);
 
             for (int i = 0; i < columnIds.Length; i++)
             {
-                var values = idResult.Answers[columnIds[i]].RowIDValues;
+                var values = idResult[columnIds[i]].Answer.RowIDValues;
                 for (int j = 0; j < values.Count; j++)
                 {
                     ds[j].Values[i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
@@ -145,7 +145,7 @@ namespace Alphora.Fastore.Client
 					if (rangeRequest.Ascending && startId != null)
 						bound.RowID = Fastore.Client.Encoder.Encode(startId);
 
-					rangeRequest.Start = bound;
+					rangeRequest.First = bound;
 				}
 
 				if (clientrange.End.HasValue)
@@ -157,7 +157,7 @@ namespace Alphora.Fastore.Client
 					if (!rangeRequest.Ascending && startId != null)
 						bound.RowID = Fastore.Client.Encoder.Encode(startId);
 
-					rangeRequest.End = bound;
+					rangeRequest.Last = bound;
 				}
 
 				rangeRequest.Limit = ranges[0].Limit;
@@ -191,7 +191,7 @@ namespace Alphora.Fastore.Client
                 writes.Add(columnIds[i], wt);
             }
 
-            Host.Apply(_defaultId, writes);
+            Host.apply(_defaultId, writes);
 
             if (columnIds[0] == 0)
                 RefreshSchema();
@@ -214,7 +214,7 @@ namespace Alphora.Fastore.Client
                 writes.Add(columnIds[i], wt);
             }
 
-            Host.Apply(_defaultId, writes);
+            Host.apply(_defaultId, writes);
 
             if (columnIds[0] == 0)
                 RefreshSchema();
@@ -224,7 +224,7 @@ namespace Alphora.Fastore.Client
 		{
 			return 
 			(
-				from s in Host.GetStatistics(columnIds.ToList()) 
+				from s in Host.getStatistics(columnIds.ToList()) 
 					select new Statistic { Total = s.Total, Unique = s.Unique }
 			).ToArray();
 		}

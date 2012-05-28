@@ -23,18 +23,18 @@ namespace Alphora.Fastore
   #endif
   public partial class Exclude : TBase
   {
-    private byte[] _RowID;
+    private byte[] _rowID;
 
     public byte[] RowID
     {
       get
       {
-        return _RowID;
+        return _rowID;
       }
       set
       {
-        __isset.RowID = true;
-        this._RowID = value;
+        __isset.rowID = true;
+        this._rowID = value;
       }
     }
 
@@ -44,7 +44,7 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool RowID;
+      public bool rowID;
     }
 
     public Exclude() {
@@ -82,8 +82,8 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Exclude");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (RowID != null && __isset.RowID) {
-        field.Name = "RowID";
+      if (RowID != null && __isset.rowID) {
+        field.Name = "rowID";
         field.Type = TType.String;
         field.ID = 1;
         oprot.WriteFieldBegin(field);

@@ -23,20 +23,20 @@ namespace Alphora.Fastore
   #endif
   public partial class RangeBound : TBase
   {
-    private byte[] _Value;
-    private bool _Inclusive;
-    private byte[] _RowID;
+    private byte[] _value;
+    private bool _inclusive;
+    private byte[] _rowID;
 
     public byte[] Value
     {
       get
       {
-        return _Value;
+        return _value;
       }
       set
       {
-        __isset.Value = true;
-        this._Value = value;
+        __isset.value = true;
+        this._value = value;
       }
     }
 
@@ -44,12 +44,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Inclusive;
+        return _inclusive;
       }
       set
       {
-        __isset.Inclusive = true;
-        this._Inclusive = value;
+        __isset.inclusive = true;
+        this._inclusive = value;
       }
     }
 
@@ -57,12 +57,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _RowID;
+        return _rowID;
       }
       set
       {
-        __isset.RowID = true;
-        this._RowID = value;
+        __isset.rowID = true;
+        this._rowID = value;
       }
     }
 
@@ -72,9 +72,9 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Value;
-      public bool Inclusive;
-      public bool RowID;
+      public bool value;
+      public bool inclusive;
+      public bool rowID;
     }
 
     public RangeBound() {
@@ -126,24 +126,24 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("RangeBound");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (Value != null && __isset.Value) {
-        field.Name = "Value";
+      if (Value != null && __isset.value) {
+        field.Name = "value";
         field.Type = TType.String;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteBinary(Value);
         oprot.WriteFieldEnd();
       }
-      if (__isset.Inclusive) {
-        field.Name = "Inclusive";
+      if (__isset.inclusive) {
+        field.Name = "inclusive";
         field.Type = TType.Bool;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         oprot.WriteBool(Inclusive);
         oprot.WriteFieldEnd();
       }
-      if (RowID != null && __isset.RowID) {
-        field.Name = "RowID";
+      if (RowID != null && __isset.rowID) {
+        field.Name = "rowID";
         field.Type = TType.String;
         field.ID = 3;
         oprot.WriteFieldBegin(field);

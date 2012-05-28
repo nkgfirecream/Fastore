@@ -1,4 +1,5 @@
 #pragma once
+
 #include "..\FastoreCore\CoreConfig.h";
 
 const int DefaultPort = 8064;

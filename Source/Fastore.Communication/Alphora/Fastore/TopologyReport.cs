@@ -24,7 +24,7 @@ namespace Alphora.Fastore
   public partial class TopologyReport : TBase
   {
     private int _topologyID;
-    private Dictionary<int, HostReport> _Hosts;
+    private Dictionary<int, HostReport> _hosts;
     private long _revision;
 
     public int TopologyID
@@ -44,12 +44,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Hosts;
+        return _hosts;
       }
       set
       {
-        __isset.Hosts = true;
-        this._Hosts = value;
+        __isset.hosts = true;
+        this._hosts = value;
       }
     }
 
@@ -73,7 +73,7 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool topologyID;
-      public bool Hosts;
+      public bool hosts;
       public bool revision;
     }
 
@@ -148,8 +148,8 @@ namespace Alphora.Fastore
         oprot.WriteI32(TopologyID);
         oprot.WriteFieldEnd();
       }
-      if (Hosts != null && __isset.Hosts) {
-        field.Name = "Hosts";
+      if (Hosts != null && __isset.hosts) {
+        field.Name = "hosts";
         field.Type = TType.Map;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

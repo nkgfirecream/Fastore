@@ -4,7 +4,7 @@
 
 bool fastore::Host::operator<(const fastore::Host& other) const
 {
-	return ID < other.ID;
+	return id < other.id;
 }
 
 bool fastore::Repository::operator<(const fastore::Repository& other) const
@@ -14,12 +14,12 @@ bool fastore::Repository::operator<(const fastore::Repository& other) const
 
 bool fastore::Include::operator<(const fastore::Include& other) const
 {
-	return Value.compare(other.Value) < 0 && RowID.compare(other.RowID) < 0;
+	return value.compare(other.value) < 0 && rowID.compare(other.rowID) < 0;
 }
 
 bool fastore::Exclude::operator<(const fastore::Exclude& other) const
 {
-	return RowID.compare(other.RowID) < 0;
+	return rowID.compare(other.rowID) < 0;
 }
 
 bool fastore::Query::operator<(const fastore::Query& other) const

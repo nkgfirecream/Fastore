@@ -23,21 +23,21 @@ namespace Alphora.Fastore
   #endif
   public partial class RangeRequest : TBase
   {
-    private int _Limit;
-    private bool _Ascending;
-    private RangeBound _Start;
-    private RangeBound _End;
+    private int _limit;
+    private bool _ascending;
+    private RangeBound _first;
+    private RangeBound _last;
 
     public int Limit
     {
       get
       {
-        return _Limit;
+        return _limit;
       }
       set
       {
-        __isset.Limit = true;
-        this._Limit = value;
+        __isset.limit = true;
+        this._limit = value;
       }
     }
 
@@ -45,38 +45,38 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Ascending;
+        return _ascending;
       }
       set
       {
-        __isset.Ascending = true;
-        this._Ascending = value;
+        __isset.ascending = true;
+        this._ascending = value;
       }
     }
 
-    public RangeBound Start
+    public RangeBound First
     {
       get
       {
-        return _Start;
+        return _first;
       }
       set
       {
-        __isset.Start = true;
-        this._Start = value;
+        __isset.first = true;
+        this._first = value;
       }
     }
 
-    public RangeBound End
+    public RangeBound Last
     {
       get
       {
-        return _End;
+        return _last;
       }
       set
       {
-        __isset.End = true;
-        this._End = value;
+        __isset.last = true;
+        this._last = value;
       }
     }
 
@@ -86,15 +86,15 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Limit;
-      public bool Ascending;
-      public bool Start;
-      public bool End;
+      public bool limit;
+      public bool ascending;
+      public bool first;
+      public bool last;
     }
 
     public RangeRequest() {
-      this._Limit = 500;
-      this._Ascending = true;
+      this._limit = 500;
+      this._ascending = true;
     }
 
     public void Read (TProtocol iprot)
@@ -125,16 +125,16 @@ namespace Alphora.Fastore
             break;
           case 3:
             if (field.Type == TType.Struct) {
-              Start = new RangeBound();
-              Start.Read(iprot);
+              First = new RangeBound();
+              First.Read(iprot);
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
           case 4:
             if (field.Type == TType.Struct) {
-              End = new RangeBound();
-              End.Read(iprot);
+              Last = new RangeBound();
+              Last.Read(iprot);
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -152,36 +152,36 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("RangeRequest");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.Limit) {
-        field.Name = "Limit";
+      if (__isset.limit) {
+        field.Name = "limit";
         field.Type = TType.I32;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteI32(Limit);
         oprot.WriteFieldEnd();
       }
-      if (__isset.Ascending) {
-        field.Name = "Ascending";
+      if (__isset.ascending) {
+        field.Name = "ascending";
         field.Type = TType.Bool;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         oprot.WriteBool(Ascending);
         oprot.WriteFieldEnd();
       }
-      if (Start != null && __isset.Start) {
-        field.Name = "Start";
+      if (First != null && __isset.first) {
+        field.Name = "first";
         field.Type = TType.Struct;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        Start.Write(oprot);
+        First.Write(oprot);
         oprot.WriteFieldEnd();
       }
-      if (End != null && __isset.End) {
-        field.Name = "End";
+      if (Last != null && __isset.last) {
+        field.Name = "last";
         field.Type = TType.Struct;
         field.ID = 4;
         oprot.WriteFieldBegin(field);
-        End.Write(oprot);
+        Last.Write(oprot);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -194,10 +194,10 @@ namespace Alphora.Fastore
       sb.Append(Limit);
       sb.Append(",Ascending: ");
       sb.Append(Ascending);
-      sb.Append(",Start: ");
-      sb.Append(Start== null ? "<null>" : Start.ToString());
-      sb.Append(",End: ");
-      sb.Append(End== null ? "<null>" : End.ToString());
+      sb.Append(",First: ");
+      sb.Append(First== null ? "<null>" : First.ToString());
+      sb.Append(",Last: ");
+      sb.Append(Last== null ? "<null>" : Last.ToString());
       sb.Append(")");
       return sb.ToString();
     }

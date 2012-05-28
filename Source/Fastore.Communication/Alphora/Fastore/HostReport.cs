@@ -23,8 +23,8 @@ namespace Alphora.Fastore
   #endif
   public partial class HostReport : TBase
   {
-    private HostStatus _Status;
-    private Dictionary<int, RepositoryStatus> _RepositoryStatus;
+    private HostStatus _status;
+    private Dictionary<int, RepositoryStatus> _repositoryStatus;
 
     /// <summary>
     /// 
@@ -34,12 +34,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Status;
+        return _status;
       }
       set
       {
-        __isset.Status = true;
-        this._Status = value;
+        __isset.status = true;
+        this._status = value;
       }
     }
 
@@ -47,12 +47,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _RepositoryStatus;
+        return _repositoryStatus;
       }
       set
       {
-        __isset.RepositoryStatus = true;
-        this._RepositoryStatus = value;
+        __isset.repositoryStatus = true;
+        this._repositoryStatus = value;
       }
     }
 
@@ -62,8 +62,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Status;
-      public bool RepositoryStatus;
+      public bool status;
+      public bool repositoryStatus;
     }
 
     public HostReport() {
@@ -120,16 +120,16 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("HostReport");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.Status) {
-        field.Name = "Status";
+      if (__isset.status) {
+        field.Name = "status";
         field.Type = TType.I32;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteI32((int)Status);
         oprot.WriteFieldEnd();
       }
-      if (RepositoryStatus != null && __isset.RepositoryStatus) {
-        field.Name = "RepositoryStatus";
+      if (RepositoryStatus != null && __isset.repositoryStatus) {
+        field.Name = "repositoryStatus";
         field.Type = TType.Map;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

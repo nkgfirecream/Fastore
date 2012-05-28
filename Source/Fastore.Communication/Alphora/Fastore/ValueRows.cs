@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class ValueRows : TBase
   {
-    private byte[] _Value;
-    private List<byte[]> _RowIDs;
+    private byte[] _value;
+    private List<byte[]> _rowIDs;
 
     public byte[] Value
     {
       get
       {
-        return _Value;
+        return _value;
       }
       set
       {
-        __isset.Value = true;
-        this._Value = value;
+        __isset.value = true;
+        this._value = value;
       }
     }
 
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _RowIDs;
+        return _rowIDs;
       }
       set
       {
-        __isset.RowIDs = true;
-        this._RowIDs = value;
+        __isset.rowIDs = true;
+        this._rowIDs = value;
       }
     }
 
@@ -58,8 +58,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Value;
-      public bool RowIDs;
+      public bool value;
+      public bool rowIDs;
     }
 
     public ValueRows() {
@@ -114,16 +114,16 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("ValueRows");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (Value != null && __isset.Value) {
-        field.Name = "Value";
+      if (Value != null && __isset.value) {
+        field.Name = "value";
         field.Type = TType.String;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteBinary(Value);
         oprot.WriteFieldEnd();
       }
-      if (RowIDs != null && __isset.RowIDs) {
-        field.Name = "RowIDs";
+      if (RowIDs != null && __isset.rowIDs) {
+        field.Name = "rowIDs";
         field.Type = TType.List;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

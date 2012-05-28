@@ -22,54 +22,54 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the target topology as this host presently understands it.
       /// </summary>
-      TopologyResult GetTopology();
+      TopologyResult getTopology();
       #if SILVERLIGHT
-      IAsyncResult Begin_GetTopology(AsyncCallback callback, object state, );
-      TopologyResult End_GetTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_getTopology(AsyncCallback callback, object state, );
+      TopologyResult End_getTopology(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Updates the topology and returns the new topology revision - GRID COORDINATED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="topology"></param>
-      long PrepareTopology(TransactionID transactionID, Topology topology);
+      long prepareTopology(TransactionID transactionID, Topology topology);
       #if SILVERLIGHT
-      IAsyncResult Begin_PrepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology);
-      long End_PrepareTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_prepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology);
+      long End_prepareTopology(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Informs that the prepare was successful, the change should be committed.
       /// </summary>
       /// <param name="transactionID"></param>
-      void CommitTopology(TransactionID transactionID);
+      void commitTopology(TransactionID transactionID);
       #if SILVERLIGHT
-      IAsyncResult Begin_CommitTopology(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_CommitTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_commitTopology(AsyncCallback callback, object state, TransactionID transactionID);
+      void End_commitTopology(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Informs that the prepare was unsuccessful, the change should be rolled back.
       /// </summary>
       /// <param name="transactionID"></param>
-      void RollbackTopology(TransactionID transactionID);
+      void rollbackTopology(TransactionID transactionID);
       #if SILVERLIGHT
-      IAsyncResult Begin_RollbackTopology(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_RollbackTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_rollbackTopology(AsyncCallback callback, object state, TransactionID transactionID);
+      void End_rollbackTopology(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Returns the current status of all hosts as this host understands it.
       /// </summary>
-      TopologyReport GetTopologyReport();
+      TopologyReport getTopologyReport();
       #if SILVERLIGHT
-      IAsyncResult Begin_GetTopologyReport(AsyncCallback callback, object state, );
-      TopologyReport End_GetTopologyReport(IAsyncResult asyncResult);
+      IAsyncResult Begin_getTopologyReport(AsyncCallback callback, object state, );
+      TopologyReport End_getTopologyReport(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Returns the current status of this host.
       /// </summary>
-      HostReport GetReport();
+      HostReport getReport();
       #if SILVERLIGHT
-      IAsyncResult Begin_GetReport(AsyncCallback callback, object state, );
-      HostReport End_GetReport(IAsyncResult asyncResult);
+      IAsyncResult Begin_getReport(AsyncCallback callback, object state, );
+      HostReport End_getReport(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Validates that the transaction ID is updated to the latest and then Applies all changes - GRID COORDINATED.
@@ -77,10 +77,10 @@ namespace Alphora.Fastore
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
       /// <param name="reads"></param>
-      long Prepare(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
+      long prepare(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
       #if SILVERLIGHT
-      IAsyncResult Begin_Prepare(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
-      long End_Prepare(IAsyncResult asyncResult);
+      IAsyncResult Begin_prepare(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
+      long End_prepare(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date),
@@ -88,37 +88,37 @@ namespace Alphora.Fastore
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
-      TransactionID Apply(TransactionID transactionID, Dictionary<int, ColumnWrites> writes);
+      TransactionID apply(TransactionID transactionID, Dictionary<int, ColumnWrites> writes);
       #if SILVERLIGHT
-      IAsyncResult Begin_Apply(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes);
-      TransactionID End_Apply(IAsyncResult asyncResult);
+      IAsyncResult Begin_apply(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes);
+      TransactionID End_apply(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Informs that the prepare was successful, the changes should be committed.
       /// </summary>
       /// <param name="transactionID"></param>
-      void Commit(TransactionID transactionID);
+      void commit(TransactionID transactionID);
       #if SILVERLIGHT
-      IAsyncResult Begin_Commit(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_Commit(IAsyncResult asyncResult);
+      IAsyncResult Begin_commit(AsyncCallback callback, object state, TransactionID transactionID);
+      void End_commit(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Informs that the prepare was unsuccessful, the changes should be rolled back.
       /// </summary>
       /// <param name="transactionID"></param>
-      void Rollback(TransactionID transactionID);
+      void rollback(TransactionID transactionID);
       #if SILVERLIGHT
-      IAsyncResult Begin_Rollback(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_Rollback(IAsyncResult asyncResult);
+      IAsyncResult Begin_rollback(AsyncCallback callback, object state, TransactionID transactionID);
+      void End_rollback(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Waits for the given transaction to be flushed to disk
       /// </summary>
       /// <param name="transactionID"></param>
-      void Flush(TransactionID transactionID);
+      void flush(TransactionID transactionID);
       #if SILVERLIGHT
-      IAsyncResult Begin_Flush(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_Flush(IAsyncResult asyncResult);
+      IAsyncResult Begin_flush(AsyncCallback callback, object state, TransactionID transactionID);
+      void End_flush(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Determines whether the given set of reads conflict with any intervening revisions.
@@ -126,10 +126,10 @@ namespace Alphora.Fastore
       /// <param name="reads"></param>
       /// <param name="source"></param>
       /// <param name="target"></param>
-      bool DoesConflict(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
+      bool doesConflict(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
       #if SILVERLIGHT
-      IAsyncResult Begin_DoesConflict(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
-      bool End_DoesConflict(IAsyncResult asyncResult);
+      IAsyncResult Begin_doesConflict(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
+      bool End_doesConflict(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Updates the given transaction to the latest by validating reads and writes for conflicts, and returns a new TransactionID.
@@ -137,10 +137,10 @@ namespace Alphora.Fastore
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
       /// <param name="reads"></param>
-      TransactionID Update(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
+      TransactionID update(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
       #if SILVERLIGHT
-      IAsyncResult Begin_Update(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
-      TransactionID End_Update(IAsyncResult asyncResult);
+      IAsyncResult Begin_update(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads);
+      TransactionID End_update(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Upgrades or downgrades the given reads to match the data as of a given revision.
@@ -148,10 +148,10 @@ namespace Alphora.Fastore
       /// <param name="reads"></param>
       /// <param name="source"></param>
       /// <param name="target"></param>
-      Dictionary<int, Dictionary<Query, Answer>> Transgrade(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
+      Dictionary<int, Dictionary<Query, Answer>> transgrade(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
       #if SILVERLIGHT
-      IAsyncResult Begin_Transgrade(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
-      Dictionary<int, Dictionary<Query, Answer>> End_Transgrade(IAsyncResult asyncResult);
+      IAsyncResult Begin_transgrade(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target);
+      Dictionary<int, Dictionary<Query, Answer>> End_transgrade(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Acquires a given named lock given a mode and timeout.
@@ -159,56 +159,56 @@ namespace Alphora.Fastore
       /// <param name="name"></param>
       /// <param name="mode"></param>
       /// <param name="timeout"></param>
-      long AcquireLock(string name, LockMode mode, int timeout);
+      long acquireLock(string name, LockMode mode, int timeout);
       #if SILVERLIGHT
-      IAsyncResult Begin_AcquireLock(AsyncCallback callback, object state, string name, LockMode mode, int timeout);
-      long End_AcquireLock(IAsyncResult asyncResult);
+      IAsyncResult Begin_acquireLock(AsyncCallback callback, object state, string name, LockMode mode, int timeout);
+      long End_acquireLock(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Keeps a given lock alive - locks automatically expire if not renewed.
       /// </summary>
       /// <param name="lockID"></param>
-      void KeepLock(long lockID);
+      void keepLock(long lockID);
       #if SILVERLIGHT
-      IAsyncResult Begin_KeepLock(AsyncCallback callback, object state, long lockID);
-      void End_KeepLock(IAsyncResult asyncResult);
+      IAsyncResult Begin_keepLock(AsyncCallback callback, object state, long lockID);
+      void End_keepLock(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Attempts to escalate the given lock to write mode
       /// </summary>
       /// <param name="lockID"></param>
       /// <param name="timeout"></param>
-      void EscalateLock(long lockID, int timeout);
+      void escalateLock(long lockID, int timeout);
       #if SILVERLIGHT
-      IAsyncResult Begin_EscalateLock(AsyncCallback callback, object state, long lockID, int timeout);
-      void End_EscalateLock(IAsyncResult asyncResult);
+      IAsyncResult Begin_escalateLock(AsyncCallback callback, object state, long lockID, int timeout);
+      void End_escalateLock(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Releases the given lock
       /// </summary>
       /// <param name="lockID"></param>
-      void ReleaseLock(long lockID);
+      void releaseLock(long lockID);
       #if SILVERLIGHT
-      IAsyncResult Begin_ReleaseLock(AsyncCallback callback, object state, long lockID);
-      void End_ReleaseLock(IAsyncResult asyncResult);
+      IAsyncResult Begin_releaseLock(AsyncCallback callback, object state, long lockID);
+      void End_releaseLock(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Retrieves data and the latest revision number corresponding to a given list of queries.
       /// </summary>
       /// <param name="queries"></param>
-      ReadResults Query(Dictionary<int, Query> queries);
+      Dictionary<int, ReadResult> query(Dictionary<int, Query> queries);
       #if SILVERLIGHT
-      IAsyncResult Begin_Query(AsyncCallback callback, object state, Dictionary<int, Query> queries);
-      ReadResults End_Query(IAsyncResult asyncResult);
+      IAsyncResult Begin_query(AsyncCallback callback, object state, Dictionary<int, Query> queries);
+      Dictionary<int, ReadResult> End_query(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Retrieves statistics for a given list of columns based on the latest committed revision.
       /// </summary>
       /// <param name="columnIDs"></param>
-      List<Statistic> GetStatistics(List<int> columnIDs);
+      List<Statistic> getStatistics(List<int> columnIDs);
       #if SILVERLIGHT
-      IAsyncResult Begin_GetStatistics(AsyncCallback callback, object state, List<int> columnIDs);
-      List<Statistic> End_GetStatistics(IAsyncResult asyncResult);
+      IAsyncResult Begin_getStatistics(AsyncCallback callback, object state, List<int> columnIDs);
+      List<Statistic> End_getStatistics(IAsyncResult asyncResult);
       #endif
     }
 
@@ -239,15 +239,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_GetTopology(AsyncCallback callback, object state, )
+      public IAsyncResult Begin_getTopology(AsyncCallback callback, object state, )
       {
-        return send_GetTopology(callback, state);
+        return send_getTopology(callback, state);
       }
 
-      public TopologyResult End_GetTopology(IAsyncResult asyncResult)
+      public TopologyResult End_getTopology(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_GetTopology();
+        return recv_getTopology();
       }
 
       #endif
@@ -255,26 +255,26 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the target topology as this host presently understands it.
       /// </summary>
-      public TopologyResult GetTopology()
+      public TopologyResult getTopology()
       {
         #if !SILVERLIGHT
-        send_GetTopology();
-        return recv_GetTopology();
+        send_getTopology();
+        return recv_getTopology();
 
         #else
-        var asyncResult = Begin_GetTopology(null, null, );
-        return End_GetTopology(asyncResult);
+        var asyncResult = Begin_getTopology(null, null, );
+        return End_getTopology(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_GetTopology(AsyncCallback callback, object state, )
+      public IAsyncResult send_getTopology(AsyncCallback callback, object state, )
       #else
-      public void send_GetTopology()
+      public void send_getTopology()
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("GetTopology", TMessageType.Call, seqid_));
-        GetTopology_args args = new GetTopology_args();
+        oprot_.WriteMessageBegin(new TMessage("getTopology", TMessageType.Call, seqid_));
+        getTopology_args args = new getTopology_args();
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -284,7 +284,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public TopologyResult recv_GetTopology()
+      public TopologyResult recv_getTopology()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -292,26 +292,26 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        GetTopology_result result = new GetTopology_result();
+        getTopology_result result = new getTopology_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "GetTopology failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getTopology failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_PrepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology)
+      public IAsyncResult Begin_prepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology)
       {
-        return send_PrepareTopology(callback, state, transactionID, topology);
+        return send_prepareTopology(callback, state, transactionID, topology);
       }
 
-      public long End_PrepareTopology(IAsyncResult asyncResult)
+      public long End_prepareTopology(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_PrepareTopology();
+        return recv_prepareTopology();
       }
 
       #endif
@@ -321,26 +321,26 @@ namespace Alphora.Fastore
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="topology"></param>
-      public long PrepareTopology(TransactionID transactionID, Topology topology)
+      public long prepareTopology(TransactionID transactionID, Topology topology)
       {
         #if !SILVERLIGHT
-        send_PrepareTopology(transactionID, topology);
-        return recv_PrepareTopology();
+        send_prepareTopology(transactionID, topology);
+        return recv_prepareTopology();
 
         #else
-        var asyncResult = Begin_PrepareTopology(null, null, transactionID, topology);
-        return End_PrepareTopology(asyncResult);
+        var asyncResult = Begin_prepareTopology(null, null, transactionID, topology);
+        return End_prepareTopology(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_PrepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology)
+      public IAsyncResult send_prepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology)
       #else
-      public void send_PrepareTopology(TransactionID transactionID, Topology topology)
+      public void send_prepareTopology(TransactionID transactionID, Topology topology)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("PrepareTopology", TMessageType.Call, seqid_));
-        PrepareTopology_args args = new PrepareTopology_args();
+        oprot_.WriteMessageBegin(new TMessage("prepareTopology", TMessageType.Call, seqid_));
+        prepareTopology_args args = new prepareTopology_args();
         args.TransactionID = transactionID;
         args.Topology = topology;
         args.Write(oprot_);
@@ -352,7 +352,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public long recv_PrepareTopology()
+      public long recv_prepareTopology()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -360,26 +360,26 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        PrepareTopology_result result = new PrepareTopology_result();
+        prepareTopology_result result = new prepareTopology_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "PrepareTopology failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "prepareTopology failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_CommitTopology(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult Begin_commitTopology(AsyncCallback callback, object state, TransactionID transactionID)
       {
-        return send_CommitTopology(callback, state, transactionID);
+        return send_commitTopology(callback, state, transactionID);
       }
 
-      public void End_CommitTopology(IAsyncResult asyncResult)
+      public void End_commitTopology(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_CommitTopology();
+        recv_commitTopology();
       }
 
       #endif
@@ -388,26 +388,26 @@ namespace Alphora.Fastore
       /// Informs that the prepare was successful, the change should be committed.
       /// </summary>
       /// <param name="transactionID"></param>
-      public void CommitTopology(TransactionID transactionID)
+      public void commitTopology(TransactionID transactionID)
       {
         #if !SILVERLIGHT
-        send_CommitTopology(transactionID);
-        recv_CommitTopology();
+        send_commitTopology(transactionID);
+        recv_commitTopology();
 
         #else
-        var asyncResult = Begin_CommitTopology(null, null, transactionID);
-        End_CommitTopology(asyncResult);
+        var asyncResult = Begin_commitTopology(null, null, transactionID);
+        End_commitTopology(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_CommitTopology(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult send_commitTopology(AsyncCallback callback, object state, TransactionID transactionID)
       #else
-      public void send_CommitTopology(TransactionID transactionID)
+      public void send_commitTopology(TransactionID transactionID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("CommitTopology", TMessageType.Call, seqid_));
-        CommitTopology_args args = new CommitTopology_args();
+        oprot_.WriteMessageBegin(new TMessage("commitTopology", TMessageType.Call, seqid_));
+        commitTopology_args args = new commitTopology_args();
         args.TransactionID = transactionID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -418,7 +418,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_CommitTopology()
+      public void recv_commitTopology()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -426,7 +426,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        CommitTopology_result result = new CommitTopology_result();
+        commitTopology_result result = new commitTopology_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         return;
@@ -434,15 +434,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_RollbackTopology(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult Begin_rollbackTopology(AsyncCallback callback, object state, TransactionID transactionID)
       {
-        return send_RollbackTopology(callback, state, transactionID);
+        return send_rollbackTopology(callback, state, transactionID);
       }
 
-      public void End_RollbackTopology(IAsyncResult asyncResult)
+      public void End_rollbackTopology(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_RollbackTopology();
+        recv_rollbackTopology();
       }
 
       #endif
@@ -451,26 +451,26 @@ namespace Alphora.Fastore
       /// Informs that the prepare was unsuccessful, the change should be rolled back.
       /// </summary>
       /// <param name="transactionID"></param>
-      public void RollbackTopology(TransactionID transactionID)
+      public void rollbackTopology(TransactionID transactionID)
       {
         #if !SILVERLIGHT
-        send_RollbackTopology(transactionID);
-        recv_RollbackTopology();
+        send_rollbackTopology(transactionID);
+        recv_rollbackTopology();
 
         #else
-        var asyncResult = Begin_RollbackTopology(null, null, transactionID);
-        End_RollbackTopology(asyncResult);
+        var asyncResult = Begin_rollbackTopology(null, null, transactionID);
+        End_rollbackTopology(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_RollbackTopology(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult send_rollbackTopology(AsyncCallback callback, object state, TransactionID transactionID)
       #else
-      public void send_RollbackTopology(TransactionID transactionID)
+      public void send_rollbackTopology(TransactionID transactionID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("RollbackTopology", TMessageType.Call, seqid_));
-        RollbackTopology_args args = new RollbackTopology_args();
+        oprot_.WriteMessageBegin(new TMessage("rollbackTopology", TMessageType.Call, seqid_));
+        rollbackTopology_args args = new rollbackTopology_args();
         args.TransactionID = transactionID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -481,7 +481,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_RollbackTopology()
+      public void recv_rollbackTopology()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -489,7 +489,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        RollbackTopology_result result = new RollbackTopology_result();
+        rollbackTopology_result result = new rollbackTopology_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         return;
@@ -497,15 +497,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_GetTopologyReport(AsyncCallback callback, object state, )
+      public IAsyncResult Begin_getTopologyReport(AsyncCallback callback, object state, )
       {
-        return send_GetTopologyReport(callback, state);
+        return send_getTopologyReport(callback, state);
       }
 
-      public TopologyReport End_GetTopologyReport(IAsyncResult asyncResult)
+      public TopologyReport End_getTopologyReport(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_GetTopologyReport();
+        return recv_getTopologyReport();
       }
 
       #endif
@@ -513,26 +513,26 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the current status of all hosts as this host understands it.
       /// </summary>
-      public TopologyReport GetTopologyReport()
+      public TopologyReport getTopologyReport()
       {
         #if !SILVERLIGHT
-        send_GetTopologyReport();
-        return recv_GetTopologyReport();
+        send_getTopologyReport();
+        return recv_getTopologyReport();
 
         #else
-        var asyncResult = Begin_GetTopologyReport(null, null, );
-        return End_GetTopologyReport(asyncResult);
+        var asyncResult = Begin_getTopologyReport(null, null, );
+        return End_getTopologyReport(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_GetTopologyReport(AsyncCallback callback, object state, )
+      public IAsyncResult send_getTopologyReport(AsyncCallback callback, object state, )
       #else
-      public void send_GetTopologyReport()
+      public void send_getTopologyReport()
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("GetTopologyReport", TMessageType.Call, seqid_));
-        GetTopologyReport_args args = new GetTopologyReport_args();
+        oprot_.WriteMessageBegin(new TMessage("getTopologyReport", TMessageType.Call, seqid_));
+        getTopologyReport_args args = new getTopologyReport_args();
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -542,7 +542,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public TopologyReport recv_GetTopologyReport()
+      public TopologyReport recv_getTopologyReport()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -550,26 +550,26 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        GetTopologyReport_result result = new GetTopologyReport_result();
+        getTopologyReport_result result = new getTopologyReport_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "GetTopologyReport failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getTopologyReport failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_GetReport(AsyncCallback callback, object state, )
+      public IAsyncResult Begin_getReport(AsyncCallback callback, object state, )
       {
-        return send_GetReport(callback, state);
+        return send_getReport(callback, state);
       }
 
-      public HostReport End_GetReport(IAsyncResult asyncResult)
+      public HostReport End_getReport(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_GetReport();
+        return recv_getReport();
       }
 
       #endif
@@ -577,26 +577,26 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the current status of this host.
       /// </summary>
-      public HostReport GetReport()
+      public HostReport getReport()
       {
         #if !SILVERLIGHT
-        send_GetReport();
-        return recv_GetReport();
+        send_getReport();
+        return recv_getReport();
 
         #else
-        var asyncResult = Begin_GetReport(null, null, );
-        return End_GetReport(asyncResult);
+        var asyncResult = Begin_getReport(null, null, );
+        return End_getReport(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_GetReport(AsyncCallback callback, object state, )
+      public IAsyncResult send_getReport(AsyncCallback callback, object state, )
       #else
-      public void send_GetReport()
+      public void send_getReport()
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("GetReport", TMessageType.Call, seqid_));
-        GetReport_args args = new GetReport_args();
+        oprot_.WriteMessageBegin(new TMessage("getReport", TMessageType.Call, seqid_));
+        getReport_args args = new getReport_args();
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -606,7 +606,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public HostReport recv_GetReport()
+      public HostReport recv_getReport()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -614,26 +614,26 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        GetReport_result result = new GetReport_result();
+        getReport_result result = new getReport_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "GetReport failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getReport failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Prepare(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public IAsyncResult Begin_prepare(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       {
-        return send_Prepare(callback, state, transactionID, writes, reads);
+        return send_prepare(callback, state, transactionID, writes, reads);
       }
 
-      public long End_Prepare(IAsyncResult asyncResult)
+      public long End_prepare(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_Prepare();
+        return recv_prepare();
       }
 
       #endif
@@ -644,26 +644,26 @@ namespace Alphora.Fastore
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
       /// <param name="reads"></param>
-      public long Prepare(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public long prepare(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       {
         #if !SILVERLIGHT
-        send_Prepare(transactionID, writes, reads);
-        return recv_Prepare();
+        send_prepare(transactionID, writes, reads);
+        return recv_prepare();
 
         #else
-        var asyncResult = Begin_Prepare(null, null, transactionID, writes, reads);
-        return End_Prepare(asyncResult);
+        var asyncResult = Begin_prepare(null, null, transactionID, writes, reads);
+        return End_prepare(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Prepare(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public IAsyncResult send_prepare(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       #else
-      public void send_Prepare(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public void send_prepare(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Prepare", TMessageType.Call, seqid_));
-        Prepare_args args = new Prepare_args();
+        oprot_.WriteMessageBegin(new TMessage("prepare", TMessageType.Call, seqid_));
+        prepare_args args = new prepare_args();
         args.TransactionID = transactionID;
         args.Writes = writes;
         args.Reads = reads;
@@ -676,7 +676,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public long recv_Prepare()
+      public long recv_prepare()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -684,7 +684,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Prepare_result result = new Prepare_result();
+        prepare_result result = new prepare_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
@@ -693,20 +693,20 @@ namespace Alphora.Fastore
         if (result.__isset.notLatest) {
           throw result.NotLatest;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "Prepare failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "prepare failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Apply(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
+      public IAsyncResult Begin_apply(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
       {
-        return send_Apply(callback, state, transactionID, writes);
+        return send_apply(callback, state, transactionID, writes);
       }
 
-      public TransactionID End_Apply(IAsyncResult asyncResult)
+      public TransactionID End_apply(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_Apply();
+        return recv_apply();
       }
 
       #endif
@@ -717,26 +717,26 @@ namespace Alphora.Fastore
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
-      public TransactionID Apply(TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
+      public TransactionID apply(TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
       {
         #if !SILVERLIGHT
-        send_Apply(transactionID, writes);
-        return recv_Apply();
+        send_apply(transactionID, writes);
+        return recv_apply();
 
         #else
-        var asyncResult = Begin_Apply(null, null, transactionID, writes);
-        return End_Apply(asyncResult);
+        var asyncResult = Begin_apply(null, null, transactionID, writes);
+        return End_apply(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Apply(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
+      public IAsyncResult send_apply(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
       #else
-      public void send_Apply(TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
+      public void send_apply(TransactionID transactionID, Dictionary<int, ColumnWrites> writes)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Apply", TMessageType.Call, seqid_));
-        Apply_args args = new Apply_args();
+        oprot_.WriteMessageBegin(new TMessage("apply", TMessageType.Call, seqid_));
+        apply_args args = new apply_args();
         args.TransactionID = transactionID;
         args.Writes = writes;
         args.Write(oprot_);
@@ -748,7 +748,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public TransactionID recv_Apply()
+      public TransactionID recv_apply()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -756,26 +756,26 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Apply_result result = new Apply_result();
+        apply_result result = new apply_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "Apply failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "apply failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Commit(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult Begin_commit(AsyncCallback callback, object state, TransactionID transactionID)
       {
-        return send_Commit(callback, state, transactionID);
+        return send_commit(callback, state, transactionID);
       }
 
-      public void End_Commit(IAsyncResult asyncResult)
+      public void End_commit(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_Commit();
+        recv_commit();
       }
 
       #endif
@@ -784,26 +784,26 @@ namespace Alphora.Fastore
       /// Informs that the prepare was successful, the changes should be committed.
       /// </summary>
       /// <param name="transactionID"></param>
-      public void Commit(TransactionID transactionID)
+      public void commit(TransactionID transactionID)
       {
         #if !SILVERLIGHT
-        send_Commit(transactionID);
-        recv_Commit();
+        send_commit(transactionID);
+        recv_commit();
 
         #else
-        var asyncResult = Begin_Commit(null, null, transactionID);
-        End_Commit(asyncResult);
+        var asyncResult = Begin_commit(null, null, transactionID);
+        End_commit(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Commit(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult send_commit(AsyncCallback callback, object state, TransactionID transactionID)
       #else
-      public void send_Commit(TransactionID transactionID)
+      public void send_commit(TransactionID transactionID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Commit", TMessageType.Call, seqid_));
-        Commit_args args = new Commit_args();
+        oprot_.WriteMessageBegin(new TMessage("commit", TMessageType.Call, seqid_));
+        commit_args args = new commit_args();
         args.TransactionID = transactionID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -814,7 +814,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_Commit()
+      public void recv_commit()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -822,7 +822,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Commit_result result = new Commit_result();
+        commit_result result = new commit_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         return;
@@ -830,15 +830,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Rollback(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult Begin_rollback(AsyncCallback callback, object state, TransactionID transactionID)
       {
-        return send_Rollback(callback, state, transactionID);
+        return send_rollback(callback, state, transactionID);
       }
 
-      public void End_Rollback(IAsyncResult asyncResult)
+      public void End_rollback(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_Rollback();
+        recv_rollback();
       }
 
       #endif
@@ -847,26 +847,26 @@ namespace Alphora.Fastore
       /// Informs that the prepare was unsuccessful, the changes should be rolled back.
       /// </summary>
       /// <param name="transactionID"></param>
-      public void Rollback(TransactionID transactionID)
+      public void rollback(TransactionID transactionID)
       {
         #if !SILVERLIGHT
-        send_Rollback(transactionID);
-        recv_Rollback();
+        send_rollback(transactionID);
+        recv_rollback();
 
         #else
-        var asyncResult = Begin_Rollback(null, null, transactionID);
-        End_Rollback(asyncResult);
+        var asyncResult = Begin_rollback(null, null, transactionID);
+        End_rollback(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Rollback(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult send_rollback(AsyncCallback callback, object state, TransactionID transactionID)
       #else
-      public void send_Rollback(TransactionID transactionID)
+      public void send_rollback(TransactionID transactionID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Rollback", TMessageType.Call, seqid_));
-        Rollback_args args = new Rollback_args();
+        oprot_.WriteMessageBegin(new TMessage("rollback", TMessageType.Call, seqid_));
+        rollback_args args = new rollback_args();
         args.TransactionID = transactionID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -877,7 +877,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_Rollback()
+      public void recv_rollback()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -885,7 +885,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Rollback_result result = new Rollback_result();
+        rollback_result result = new rollback_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         return;
@@ -893,15 +893,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Flush(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult Begin_flush(AsyncCallback callback, object state, TransactionID transactionID)
       {
-        return send_Flush(callback, state, transactionID);
+        return send_flush(callback, state, transactionID);
       }
 
-      public void End_Flush(IAsyncResult asyncResult)
+      public void End_flush(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_Flush();
+        recv_flush();
       }
 
       #endif
@@ -910,26 +910,26 @@ namespace Alphora.Fastore
       /// Waits for the given transaction to be flushed to disk
       /// </summary>
       /// <param name="transactionID"></param>
-      public void Flush(TransactionID transactionID)
+      public void flush(TransactionID transactionID)
       {
         #if !SILVERLIGHT
-        send_Flush(transactionID);
-        recv_Flush();
+        send_flush(transactionID);
+        recv_flush();
 
         #else
-        var asyncResult = Begin_Flush(null, null, transactionID);
-        End_Flush(asyncResult);
+        var asyncResult = Begin_flush(null, null, transactionID);
+        End_flush(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Flush(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult send_flush(AsyncCallback callback, object state, TransactionID transactionID)
       #else
-      public void send_Flush(TransactionID transactionID)
+      public void send_flush(TransactionID transactionID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Flush", TMessageType.Call, seqid_));
-        Flush_args args = new Flush_args();
+        oprot_.WriteMessageBegin(new TMessage("flush", TMessageType.Call, seqid_));
+        flush_args args = new flush_args();
         args.TransactionID = transactionID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -940,7 +940,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_Flush()
+      public void recv_flush()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -948,7 +948,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Flush_result result = new Flush_result();
+        flush_result result = new flush_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         return;
@@ -956,15 +956,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_DoesConflict(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public IAsyncResult Begin_doesConflict(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       {
-        return send_DoesConflict(callback, state, reads, source, target);
+        return send_doesConflict(callback, state, reads, source, target);
       }
 
-      public bool End_DoesConflict(IAsyncResult asyncResult)
+      public bool End_doesConflict(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_DoesConflict();
+        return recv_doesConflict();
       }
 
       #endif
@@ -975,26 +975,26 @@ namespace Alphora.Fastore
       /// <param name="reads"></param>
       /// <param name="source"></param>
       /// <param name="target"></param>
-      public bool DoesConflict(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public bool doesConflict(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       {
         #if !SILVERLIGHT
-        send_DoesConflict(reads, source, target);
-        return recv_DoesConflict();
+        send_doesConflict(reads, source, target);
+        return recv_doesConflict();
 
         #else
-        var asyncResult = Begin_DoesConflict(null, null, reads, source, target);
-        return End_DoesConflict(asyncResult);
+        var asyncResult = Begin_doesConflict(null, null, reads, source, target);
+        return End_doesConflict(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_DoesConflict(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public IAsyncResult send_doesConflict(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       #else
-      public void send_DoesConflict(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public void send_doesConflict(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("DoesConflict", TMessageType.Call, seqid_));
-        DoesConflict_args args = new DoesConflict_args();
+        oprot_.WriteMessageBegin(new TMessage("doesConflict", TMessageType.Call, seqid_));
+        doesConflict_args args = new doesConflict_args();
         args.Reads = reads;
         args.Source = source;
         args.Target = target;
@@ -1007,7 +1007,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public bool recv_DoesConflict()
+      public bool recv_doesConflict()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1015,7 +1015,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        DoesConflict_result result = new DoesConflict_result();
+        doesConflict_result result = new doesConflict_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
@@ -1024,20 +1024,20 @@ namespace Alphora.Fastore
         if (result.__isset.beyondHistory) {
           throw result.BeyondHistory;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "DoesConflict failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "doesConflict failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Update(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public IAsyncResult Begin_update(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       {
-        return send_Update(callback, state, transactionID, writes, reads);
+        return send_update(callback, state, transactionID, writes, reads);
       }
 
-      public TransactionID End_Update(IAsyncResult asyncResult)
+      public TransactionID End_update(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_Update();
+        return recv_update();
       }
 
       #endif
@@ -1048,26 +1048,26 @@ namespace Alphora.Fastore
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
       /// <param name="reads"></param>
-      public TransactionID Update(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public TransactionID update(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       {
         #if !SILVERLIGHT
-        send_Update(transactionID, writes, reads);
-        return recv_Update();
+        send_update(transactionID, writes, reads);
+        return recv_update();
 
         #else
-        var asyncResult = Begin_Update(null, null, transactionID, writes, reads);
-        return End_Update(asyncResult);
+        var asyncResult = Begin_update(null, null, transactionID, writes, reads);
+        return End_update(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Update(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public IAsyncResult send_update(AsyncCallback callback, object state, TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       #else
-      public void send_Update(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
+      public void send_update(TransactionID transactionID, Dictionary<int, ColumnWrites> writes, Dictionary<int, Dictionary<Query, Answer>> reads)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Update", TMessageType.Call, seqid_));
-        Update_args args = new Update_args();
+        oprot_.WriteMessageBegin(new TMessage("update", TMessageType.Call, seqid_));
+        update_args args = new update_args();
         args.TransactionID = transactionID;
         args.Writes = writes;
         args.Reads = reads;
@@ -1080,7 +1080,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public TransactionID recv_Update()
+      public TransactionID recv_update()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1088,7 +1088,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Update_result result = new Update_result();
+        update_result result = new update_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
@@ -1097,20 +1097,20 @@ namespace Alphora.Fastore
         if (result.__isset.conflict) {
           throw result.Conflict;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "Update failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "update failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Transgrade(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public IAsyncResult Begin_transgrade(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       {
-        return send_Transgrade(callback, state, reads, source, target);
+        return send_transgrade(callback, state, reads, source, target);
       }
 
-      public Dictionary<int, Dictionary<Query, Answer>> End_Transgrade(IAsyncResult asyncResult)
+      public Dictionary<int, Dictionary<Query, Answer>> End_transgrade(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_Transgrade();
+        return recv_transgrade();
       }
 
       #endif
@@ -1121,26 +1121,26 @@ namespace Alphora.Fastore
       /// <param name="reads"></param>
       /// <param name="source"></param>
       /// <param name="target"></param>
-      public Dictionary<int, Dictionary<Query, Answer>> Transgrade(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public Dictionary<int, Dictionary<Query, Answer>> transgrade(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       {
         #if !SILVERLIGHT
-        send_Transgrade(reads, source, target);
-        return recv_Transgrade();
+        send_transgrade(reads, source, target);
+        return recv_transgrade();
 
         #else
-        var asyncResult = Begin_Transgrade(null, null, reads, source, target);
-        return End_Transgrade(asyncResult);
+        var asyncResult = Begin_transgrade(null, null, reads, source, target);
+        return End_transgrade(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Transgrade(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public IAsyncResult send_transgrade(AsyncCallback callback, object state, Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       #else
-      public void send_Transgrade(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
+      public void send_transgrade(Dictionary<int, Dictionary<Query, Answer>> reads, long source, long target)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Transgrade", TMessageType.Call, seqid_));
-        Transgrade_args args = new Transgrade_args();
+        oprot_.WriteMessageBegin(new TMessage("transgrade", TMessageType.Call, seqid_));
+        transgrade_args args = new transgrade_args();
         args.Reads = reads;
         args.Source = source;
         args.Target = target;
@@ -1153,7 +1153,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public Dictionary<int, Dictionary<Query, Answer>> recv_Transgrade()
+      public Dictionary<int, Dictionary<Query, Answer>> recv_transgrade()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1161,7 +1161,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Transgrade_result result = new Transgrade_result();
+        transgrade_result result = new transgrade_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
@@ -1170,20 +1170,20 @@ namespace Alphora.Fastore
         if (result.__isset.beyondHistory) {
           throw result.BeyondHistory;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "Transgrade failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "transgrade failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_AcquireLock(AsyncCallback callback, object state, string name, LockMode mode, int timeout)
+      public IAsyncResult Begin_acquireLock(AsyncCallback callback, object state, string name, LockMode mode, int timeout)
       {
-        return send_AcquireLock(callback, state, name, mode, timeout);
+        return send_acquireLock(callback, state, name, mode, timeout);
       }
 
-      public long End_AcquireLock(IAsyncResult asyncResult)
+      public long End_acquireLock(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_AcquireLock();
+        return recv_acquireLock();
       }
 
       #endif
@@ -1194,26 +1194,26 @@ namespace Alphora.Fastore
       /// <param name="name"></param>
       /// <param name="mode"></param>
       /// <param name="timeout"></param>
-      public long AcquireLock(string name, LockMode mode, int timeout)
+      public long acquireLock(string name, LockMode mode, int timeout)
       {
         #if !SILVERLIGHT
-        send_AcquireLock(name, mode, timeout);
-        return recv_AcquireLock();
+        send_acquireLock(name, mode, timeout);
+        return recv_acquireLock();
 
         #else
-        var asyncResult = Begin_AcquireLock(null, null, name, mode, timeout);
-        return End_AcquireLock(asyncResult);
+        var asyncResult = Begin_acquireLock(null, null, name, mode, timeout);
+        return End_acquireLock(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_AcquireLock(AsyncCallback callback, object state, string name, LockMode mode, int timeout)
+      public IAsyncResult send_acquireLock(AsyncCallback callback, object state, string name, LockMode mode, int timeout)
       #else
-      public void send_AcquireLock(string name, LockMode mode, int timeout)
+      public void send_acquireLock(string name, LockMode mode, int timeout)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("AcquireLock", TMessageType.Call, seqid_));
-        AcquireLock_args args = new AcquireLock_args();
+        oprot_.WriteMessageBegin(new TMessage("acquireLock", TMessageType.Call, seqid_));
+        acquireLock_args args = new acquireLock_args();
         args.Name = name;
         args.Mode = mode;
         args.Timeout = timeout;
@@ -1226,7 +1226,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public long recv_AcquireLock()
+      public long recv_acquireLock()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1234,7 +1234,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        AcquireLock_result result = new AcquireLock_result();
+        acquireLock_result result = new acquireLock_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
@@ -1243,20 +1243,20 @@ namespace Alphora.Fastore
         if (result.__isset.timeout) {
           throw result.Timeout;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "AcquireLock failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "acquireLock failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_KeepLock(AsyncCallback callback, object state, long lockID)
+      public IAsyncResult Begin_keepLock(AsyncCallback callback, object state, long lockID)
       {
-        return send_KeepLock(callback, state, lockID);
+        return send_keepLock(callback, state, lockID);
       }
 
-      public void End_KeepLock(IAsyncResult asyncResult)
+      public void End_keepLock(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_KeepLock();
+        recv_keepLock();
       }
 
       #endif
@@ -1265,26 +1265,26 @@ namespace Alphora.Fastore
       /// Keeps a given lock alive - locks automatically expire if not renewed.
       /// </summary>
       /// <param name="lockID"></param>
-      public void KeepLock(long lockID)
+      public void keepLock(long lockID)
       {
         #if !SILVERLIGHT
-        send_KeepLock(lockID);
-        recv_KeepLock();
+        send_keepLock(lockID);
+        recv_keepLock();
 
         #else
-        var asyncResult = Begin_KeepLock(null, null, lockID);
-        End_KeepLock(asyncResult);
+        var asyncResult = Begin_keepLock(null, null, lockID);
+        End_keepLock(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_KeepLock(AsyncCallback callback, object state, long lockID)
+      public IAsyncResult send_keepLock(AsyncCallback callback, object state, long lockID)
       #else
-      public void send_KeepLock(long lockID)
+      public void send_keepLock(long lockID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("KeepLock", TMessageType.Call, seqid_));
-        KeepLock_args args = new KeepLock_args();
+        oprot_.WriteMessageBegin(new TMessage("keepLock", TMessageType.Call, seqid_));
+        keepLock_args args = new keepLock_args();
         args.LockID = lockID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -1295,7 +1295,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_KeepLock()
+      public void recv_keepLock()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1303,7 +1303,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        KeepLock_result result = new KeepLock_result();
+        keepLock_result result = new keepLock_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.expired) {
@@ -1314,15 +1314,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_EscalateLock(AsyncCallback callback, object state, long lockID, int timeout)
+      public IAsyncResult Begin_escalateLock(AsyncCallback callback, object state, long lockID, int timeout)
       {
-        return send_EscalateLock(callback, state, lockID, timeout);
+        return send_escalateLock(callback, state, lockID, timeout);
       }
 
-      public void End_EscalateLock(IAsyncResult asyncResult)
+      public void End_escalateLock(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_EscalateLock();
+        recv_escalateLock();
       }
 
       #endif
@@ -1332,26 +1332,26 @@ namespace Alphora.Fastore
       /// </summary>
       /// <param name="lockID"></param>
       /// <param name="timeout"></param>
-      public void EscalateLock(long lockID, int timeout)
+      public void escalateLock(long lockID, int timeout)
       {
         #if !SILVERLIGHT
-        send_EscalateLock(lockID, timeout);
-        recv_EscalateLock();
+        send_escalateLock(lockID, timeout);
+        recv_escalateLock();
 
         #else
-        var asyncResult = Begin_EscalateLock(null, null, lockID, timeout);
-        End_EscalateLock(asyncResult);
+        var asyncResult = Begin_escalateLock(null, null, lockID, timeout);
+        End_escalateLock(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_EscalateLock(AsyncCallback callback, object state, long lockID, int timeout)
+      public IAsyncResult send_escalateLock(AsyncCallback callback, object state, long lockID, int timeout)
       #else
-      public void send_EscalateLock(long lockID, int timeout)
+      public void send_escalateLock(long lockID, int timeout)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("EscalateLock", TMessageType.Call, seqid_));
-        EscalateLock_args args = new EscalateLock_args();
+        oprot_.WriteMessageBegin(new TMessage("escalateLock", TMessageType.Call, seqid_));
+        escalateLock_args args = new escalateLock_args();
         args.LockID = lockID;
         args.Timeout = timeout;
         args.Write(oprot_);
@@ -1363,7 +1363,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_EscalateLock()
+      public void recv_escalateLock()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1371,7 +1371,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        EscalateLock_result result = new EscalateLock_result();
+        escalateLock_result result = new escalateLock_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.timeout) {
@@ -1385,15 +1385,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_ReleaseLock(AsyncCallback callback, object state, long lockID)
+      public IAsyncResult Begin_releaseLock(AsyncCallback callback, object state, long lockID)
       {
-        return send_ReleaseLock(callback, state, lockID);
+        return send_releaseLock(callback, state, lockID);
       }
 
-      public void End_ReleaseLock(IAsyncResult asyncResult)
+      public void End_releaseLock(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_ReleaseLock();
+        recv_releaseLock();
       }
 
       #endif
@@ -1402,26 +1402,26 @@ namespace Alphora.Fastore
       /// Releases the given lock
       /// </summary>
       /// <param name="lockID"></param>
-      public void ReleaseLock(long lockID)
+      public void releaseLock(long lockID)
       {
         #if !SILVERLIGHT
-        send_ReleaseLock(lockID);
-        recv_ReleaseLock();
+        send_releaseLock(lockID);
+        recv_releaseLock();
 
         #else
-        var asyncResult = Begin_ReleaseLock(null, null, lockID);
-        End_ReleaseLock(asyncResult);
+        var asyncResult = Begin_releaseLock(null, null, lockID);
+        End_releaseLock(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_ReleaseLock(AsyncCallback callback, object state, long lockID)
+      public IAsyncResult send_releaseLock(AsyncCallback callback, object state, long lockID)
       #else
-      public void send_ReleaseLock(long lockID)
+      public void send_releaseLock(long lockID)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("ReleaseLock", TMessageType.Call, seqid_));
-        ReleaseLock_args args = new ReleaseLock_args();
+        oprot_.WriteMessageBegin(new TMessage("releaseLock", TMessageType.Call, seqid_));
+        releaseLock_args args = new releaseLock_args();
         args.LockID = lockID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -1432,7 +1432,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_ReleaseLock()
+      public void recv_releaseLock()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1440,7 +1440,7 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        ReleaseLock_result result = new ReleaseLock_result();
+        releaseLock_result result = new releaseLock_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.expired) {
@@ -1451,15 +1451,15 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_Query(AsyncCallback callback, object state, Dictionary<int, Query> queries)
+      public IAsyncResult Begin_query(AsyncCallback callback, object state, Dictionary<int, Query> queries)
       {
-        return send_Query(callback, state, queries);
+        return send_query(callback, state, queries);
       }
 
-      public ReadResults End_Query(IAsyncResult asyncResult)
+      public Dictionary<int, ReadResult> End_query(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_Query();
+        return recv_query();
       }
 
       #endif
@@ -1468,26 +1468,26 @@ namespace Alphora.Fastore
       /// Retrieves data and the latest revision number corresponding to a given list of queries.
       /// </summary>
       /// <param name="queries"></param>
-      public ReadResults Query(Dictionary<int, Query> queries)
+      public Dictionary<int, ReadResult> query(Dictionary<int, Query> queries)
       {
         #if !SILVERLIGHT
-        send_Query(queries);
-        return recv_Query();
+        send_query(queries);
+        return recv_query();
 
         #else
-        var asyncResult = Begin_Query(null, null, queries);
-        return End_Query(asyncResult);
+        var asyncResult = Begin_query(null, null, queries);
+        return End_query(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_Query(AsyncCallback callback, object state, Dictionary<int, Query> queries)
+      public IAsyncResult send_query(AsyncCallback callback, object state, Dictionary<int, Query> queries)
       #else
-      public void send_Query(Dictionary<int, Query> queries)
+      public void send_query(Dictionary<int, Query> queries)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("Query", TMessageType.Call, seqid_));
-        Query_args args = new Query_args();
+        oprot_.WriteMessageBegin(new TMessage("query", TMessageType.Call, seqid_));
+        query_args args = new query_args();
         args.Queries = queries;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -1498,7 +1498,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public ReadResults recv_Query()
+      public Dictionary<int, ReadResult> recv_query()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1506,26 +1506,26 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        Query_result result = new Query_result();
+        query_result result = new query_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "Query failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "query failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_GetStatistics(AsyncCallback callback, object state, List<int> columnIDs)
+      public IAsyncResult Begin_getStatistics(AsyncCallback callback, object state, List<int> columnIDs)
       {
-        return send_GetStatistics(callback, state, columnIDs);
+        return send_getStatistics(callback, state, columnIDs);
       }
 
-      public List<Statistic> End_GetStatistics(IAsyncResult asyncResult)
+      public List<Statistic> End_getStatistics(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_GetStatistics();
+        return recv_getStatistics();
       }
 
       #endif
@@ -1534,26 +1534,26 @@ namespace Alphora.Fastore
       /// Retrieves statistics for a given list of columns based on the latest committed revision.
       /// </summary>
       /// <param name="columnIDs"></param>
-      public List<Statistic> GetStatistics(List<int> columnIDs)
+      public List<Statistic> getStatistics(List<int> columnIDs)
       {
         #if !SILVERLIGHT
-        send_GetStatistics(columnIDs);
-        return recv_GetStatistics();
+        send_getStatistics(columnIDs);
+        return recv_getStatistics();
 
         #else
-        var asyncResult = Begin_GetStatistics(null, null, columnIDs);
-        return End_GetStatistics(asyncResult);
+        var asyncResult = Begin_getStatistics(null, null, columnIDs);
+        return End_getStatistics(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_GetStatistics(AsyncCallback callback, object state, List<int> columnIDs)
+      public IAsyncResult send_getStatistics(AsyncCallback callback, object state, List<int> columnIDs)
       #else
-      public void send_GetStatistics(List<int> columnIDs)
+      public void send_getStatistics(List<int> columnIDs)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("GetStatistics", TMessageType.Call, seqid_));
-        GetStatistics_args args = new GetStatistics_args();
+        oprot_.WriteMessageBegin(new TMessage("getStatistics", TMessageType.Call, seqid_));
+        getStatistics_args args = new getStatistics_args();
         args.ColumnIDs = columnIDs;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
@@ -1564,7 +1564,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public List<Statistic> recv_GetStatistics()
+      public List<Statistic> recv_getStatistics()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -1572,13 +1572,13 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        GetStatistics_result result = new GetStatistics_result();
+        getStatistics_result result = new getStatistics_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "GetStatistics failed: unknown result");
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getStatistics failed: unknown result");
       }
 
     }
@@ -1586,26 +1586,26 @@ namespace Alphora.Fastore
       public Processor(Iface iface)
       {
         iface_ = iface;
-        processMap_["GetTopology"] = GetTopology_Process;
-        processMap_["PrepareTopology"] = PrepareTopology_Process;
-        processMap_["CommitTopology"] = CommitTopology_Process;
-        processMap_["RollbackTopology"] = RollbackTopology_Process;
-        processMap_["GetTopologyReport"] = GetTopologyReport_Process;
-        processMap_["GetReport"] = GetReport_Process;
-        processMap_["Prepare"] = Prepare_Process;
-        processMap_["Apply"] = Apply_Process;
-        processMap_["Commit"] = Commit_Process;
-        processMap_["Rollback"] = Rollback_Process;
-        processMap_["Flush"] = Flush_Process;
-        processMap_["DoesConflict"] = DoesConflict_Process;
-        processMap_["Update"] = Update_Process;
-        processMap_["Transgrade"] = Transgrade_Process;
-        processMap_["AcquireLock"] = AcquireLock_Process;
-        processMap_["KeepLock"] = KeepLock_Process;
-        processMap_["EscalateLock"] = EscalateLock_Process;
-        processMap_["ReleaseLock"] = ReleaseLock_Process;
-        processMap_["Query"] = Query_Process;
-        processMap_["GetStatistics"] = GetStatistics_Process;
+        processMap_["getTopology"] = getTopology_Process;
+        processMap_["prepareTopology"] = prepareTopology_Process;
+        processMap_["commitTopology"] = commitTopology_Process;
+        processMap_["rollbackTopology"] = rollbackTopology_Process;
+        processMap_["getTopologyReport"] = getTopologyReport_Process;
+        processMap_["getReport"] = getReport_Process;
+        processMap_["prepare"] = prepare_Process;
+        processMap_["apply"] = apply_Process;
+        processMap_["commit"] = commit_Process;
+        processMap_["rollback"] = rollback_Process;
+        processMap_["flush"] = flush_Process;
+        processMap_["doesConflict"] = doesConflict_Process;
+        processMap_["update"] = update_Process;
+        processMap_["transgrade"] = transgrade_Process;
+        processMap_["acquireLock"] = acquireLock_Process;
+        processMap_["keepLock"] = keepLock_Process;
+        processMap_["escalateLock"] = escalateLock_Process;
+        processMap_["releaseLock"] = releaseLock_Process;
+        processMap_["query"] = query_Process;
+        processMap_["getStatistics"] = getStatistics_Process;
       }
 
       protected delegate void ProcessFunction(int seqid, TProtocol iprot, TProtocol oprot);
@@ -1638,295 +1638,295 @@ namespace Alphora.Fastore
         return true;
       }
 
-      public void GetTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void getTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        GetTopology_args args = new GetTopology_args();
+        getTopology_args args = new getTopology_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        GetTopology_result result = new GetTopology_result();
-        result.Success = iface_.GetTopology();
-        oprot.WriteMessageBegin(new TMessage("GetTopology", TMessageType.Reply, seqid)); 
+        getTopology_result result = new getTopology_result();
+        result.Success = iface_.getTopology();
+        oprot.WriteMessageBegin(new TMessage("getTopology", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void PrepareTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void prepareTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        PrepareTopology_args args = new PrepareTopology_args();
+        prepareTopology_args args = new prepareTopology_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        PrepareTopology_result result = new PrepareTopology_result();
-        result.Success = iface_.PrepareTopology(args.TransactionID, args.Topology);
-        oprot.WriteMessageBegin(new TMessage("PrepareTopology", TMessageType.Reply, seqid)); 
+        prepareTopology_result result = new prepareTopology_result();
+        result.Success = iface_.prepareTopology(args.TransactionID, args.Topology);
+        oprot.WriteMessageBegin(new TMessage("prepareTopology", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void CommitTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void commitTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        CommitTopology_args args = new CommitTopology_args();
+        commitTopology_args args = new commitTopology_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        CommitTopology_result result = new CommitTopology_result();
-        iface_.CommitTopology(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("CommitTopology", TMessageType.Reply, seqid)); 
+        commitTopology_result result = new commitTopology_result();
+        iface_.commitTopology(args.TransactionID);
+        oprot.WriteMessageBegin(new TMessage("commitTopology", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void RollbackTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void rollbackTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        RollbackTopology_args args = new RollbackTopology_args();
+        rollbackTopology_args args = new rollbackTopology_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        RollbackTopology_result result = new RollbackTopology_result();
-        iface_.RollbackTopology(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("RollbackTopology", TMessageType.Reply, seqid)); 
+        rollbackTopology_result result = new rollbackTopology_result();
+        iface_.rollbackTopology(args.TransactionID);
+        oprot.WriteMessageBegin(new TMessage("rollbackTopology", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void GetTopologyReport_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void getTopologyReport_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        GetTopologyReport_args args = new GetTopologyReport_args();
+        getTopologyReport_args args = new getTopologyReport_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        GetTopologyReport_result result = new GetTopologyReport_result();
-        result.Success = iface_.GetTopologyReport();
-        oprot.WriteMessageBegin(new TMessage("GetTopologyReport", TMessageType.Reply, seqid)); 
+        getTopologyReport_result result = new getTopologyReport_result();
+        result.Success = iface_.getTopologyReport();
+        oprot.WriteMessageBegin(new TMessage("getTopologyReport", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void GetReport_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void getReport_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        GetReport_args args = new GetReport_args();
+        getReport_args args = new getReport_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        GetReport_result result = new GetReport_result();
-        result.Success = iface_.GetReport();
-        oprot.WriteMessageBegin(new TMessage("GetReport", TMessageType.Reply, seqid)); 
+        getReport_result result = new getReport_result();
+        result.Success = iface_.getReport();
+        oprot.WriteMessageBegin(new TMessage("getReport", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Prepare_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void prepare_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Prepare_args args = new Prepare_args();
+        prepare_args args = new prepare_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Prepare_result result = new Prepare_result();
+        prepare_result result = new prepare_result();
         try {
-          result.Success = iface_.Prepare(args.TransactionID, args.Writes, args.Reads);
+          result.Success = iface_.prepare(args.TransactionID, args.Writes, args.Reads);
         } catch (NotLatest notLatest) {
           result.NotLatest = notLatest;
         }
-        oprot.WriteMessageBegin(new TMessage("Prepare", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("prepare", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Apply_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void apply_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Apply_args args = new Apply_args();
+        apply_args args = new apply_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Apply_result result = new Apply_result();
-        result.Success = iface_.Apply(args.TransactionID, args.Writes);
-        oprot.WriteMessageBegin(new TMessage("Apply", TMessageType.Reply, seqid)); 
+        apply_result result = new apply_result();
+        result.Success = iface_.apply(args.TransactionID, args.Writes);
+        oprot.WriteMessageBegin(new TMessage("apply", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Commit_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void commit_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Commit_args args = new Commit_args();
+        commit_args args = new commit_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Commit_result result = new Commit_result();
-        iface_.Commit(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("Commit", TMessageType.Reply, seqid)); 
+        commit_result result = new commit_result();
+        iface_.commit(args.TransactionID);
+        oprot.WriteMessageBegin(new TMessage("commit", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Rollback_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void rollback_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Rollback_args args = new Rollback_args();
+        rollback_args args = new rollback_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Rollback_result result = new Rollback_result();
-        iface_.Rollback(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("Rollback", TMessageType.Reply, seqid)); 
+        rollback_result result = new rollback_result();
+        iface_.rollback(args.TransactionID);
+        oprot.WriteMessageBegin(new TMessage("rollback", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Flush_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void flush_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Flush_args args = new Flush_args();
+        flush_args args = new flush_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Flush_result result = new Flush_result();
-        iface_.Flush(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("Flush", TMessageType.Reply, seqid)); 
+        flush_result result = new flush_result();
+        iface_.flush(args.TransactionID);
+        oprot.WriteMessageBegin(new TMessage("flush", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void DoesConflict_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void doesConflict_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        DoesConflict_args args = new DoesConflict_args();
+        doesConflict_args args = new doesConflict_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        DoesConflict_result result = new DoesConflict_result();
+        doesConflict_result result = new doesConflict_result();
         try {
-          result.Success = iface_.DoesConflict(args.Reads, args.Source, args.Target);
+          result.Success = iface_.doesConflict(args.Reads, args.Source, args.Target);
         } catch (BeyondHistory beyondHistory) {
           result.BeyondHistory = beyondHistory;
         }
-        oprot.WriteMessageBegin(new TMessage("DoesConflict", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("doesConflict", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Update_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void update_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Update_args args = new Update_args();
+        update_args args = new update_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Update_result result = new Update_result();
+        update_result result = new update_result();
         try {
-          result.Success = iface_.Update(args.TransactionID, args.Writes, args.Reads);
+          result.Success = iface_.update(args.TransactionID, args.Writes, args.Reads);
         } catch (Conflict conflict) {
           result.Conflict = conflict;
         }
-        oprot.WriteMessageBegin(new TMessage("Update", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("update", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Transgrade_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void transgrade_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Transgrade_args args = new Transgrade_args();
+        transgrade_args args = new transgrade_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Transgrade_result result = new Transgrade_result();
+        transgrade_result result = new transgrade_result();
         try {
-          result.Success = iface_.Transgrade(args.Reads, args.Source, args.Target);
+          result.Success = iface_.transgrade(args.Reads, args.Source, args.Target);
         } catch (BeyondHistory beyondHistory) {
           result.BeyondHistory = beyondHistory;
         }
-        oprot.WriteMessageBegin(new TMessage("Transgrade", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("transgrade", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void AcquireLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void acquireLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        AcquireLock_args args = new AcquireLock_args();
+        acquireLock_args args = new acquireLock_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        AcquireLock_result result = new AcquireLock_result();
+        acquireLock_result result = new acquireLock_result();
         try {
-          result.Success = iface_.AcquireLock(args.Name, args.Mode, args.Timeout);
+          result.Success = iface_.acquireLock(args.Name, args.Mode, args.Timeout);
         } catch (LockTimedOut timeout) {
           result.Timeout = timeout;
         }
-        oprot.WriteMessageBegin(new TMessage("AcquireLock", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("acquireLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void KeepLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void keepLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        KeepLock_args args = new KeepLock_args();
+        keepLock_args args = new keepLock_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        KeepLock_result result = new KeepLock_result();
+        keepLock_result result = new keepLock_result();
         try {
-          iface_.KeepLock(args.LockID);
+          iface_.keepLock(args.LockID);
         } catch (LockExpired expired) {
           result.Expired = expired;
         }
-        oprot.WriteMessageBegin(new TMessage("KeepLock", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("keepLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void EscalateLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void escalateLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        EscalateLock_args args = new EscalateLock_args();
+        escalateLock_args args = new escalateLock_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        EscalateLock_result result = new EscalateLock_result();
+        escalateLock_result result = new escalateLock_result();
         try {
-          iface_.EscalateLock(args.LockID, args.Timeout);
+          iface_.escalateLock(args.LockID, args.Timeout);
         } catch (LockTimedOut timeout) {
           result.Timeout = timeout;
         } catch (LockExpired expired) {
           result.Expired = expired;
         }
-        oprot.WriteMessageBegin(new TMessage("EscalateLock", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("escalateLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void ReleaseLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void releaseLock_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        ReleaseLock_args args = new ReleaseLock_args();
+        releaseLock_args args = new releaseLock_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        ReleaseLock_result result = new ReleaseLock_result();
+        releaseLock_result result = new releaseLock_result();
         try {
-          iface_.ReleaseLock(args.LockID);
+          iface_.releaseLock(args.LockID);
         } catch (LockExpired expired) {
           result.Expired = expired;
         }
-        oprot.WriteMessageBegin(new TMessage("ReleaseLock", TMessageType.Reply, seqid)); 
+        oprot.WriteMessageBegin(new TMessage("releaseLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void Query_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void query_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        Query_args args = new Query_args();
+        query_args args = new query_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        Query_result result = new Query_result();
-        result.Success = iface_.Query(args.Queries);
-        oprot.WriteMessageBegin(new TMessage("Query", TMessageType.Reply, seqid)); 
+        query_result result = new query_result();
+        result.Success = iface_.query(args.Queries);
+        oprot.WriteMessageBegin(new TMessage("query", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void GetStatistics_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void getStatistics_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        GetStatistics_args args = new GetStatistics_args();
+        getStatistics_args args = new getStatistics_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        GetStatistics_result result = new GetStatistics_result();
-        result.Success = iface_.GetStatistics(args.ColumnIDs);
-        oprot.WriteMessageBegin(new TMessage("GetStatistics", TMessageType.Reply, seqid)); 
+        getStatistics_result result = new getStatistics_result();
+        result.Success = iface_.getStatistics(args.ColumnIDs);
+        oprot.WriteMessageBegin(new TMessage("getStatistics", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
@@ -1938,10 +1938,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetTopology_args : TBase
+    public partial class getTopology_args : TBase
     {
 
-      public GetTopology_args() {
+      public getTopology_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -1966,14 +1966,14 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetTopology_args");
+        TStruct struc = new TStruct("getTopology_args");
         oprot.WriteStructBegin(struc);
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetTopology_args(");
+        StringBuilder sb = new StringBuilder("getTopology_args(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -1984,7 +1984,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetTopology_result : TBase
+    public partial class getTopology_result : TBase
     {
       private TopologyResult _success;
 
@@ -2010,7 +2010,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public GetTopology_result() {
+      public getTopology_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -2043,7 +2043,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetTopology_result");
+        TStruct struc = new TStruct("getTopology_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -2062,7 +2062,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetTopology_result(");
+        StringBuilder sb = new StringBuilder("getTopology_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
         sb.Append(")");
@@ -2075,7 +2075,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class PrepareTopology_args : TBase
+    public partial class prepareTopology_args : TBase
     {
       private TransactionID _transactionID;
       private Topology _topology;
@@ -2116,7 +2116,7 @@ namespace Alphora.Fastore
         public bool topology;
       }
 
-      public PrepareTopology_args() {
+      public prepareTopology_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -2157,7 +2157,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("PrepareTopology_args");
+        TStruct struc = new TStruct("prepareTopology_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -2181,7 +2181,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("PrepareTopology_args(");
+        StringBuilder sb = new StringBuilder("prepareTopology_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(",Topology: ");
@@ -2196,7 +2196,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class PrepareTopology_result : TBase
+    public partial class prepareTopology_result : TBase
     {
       private long _success;
 
@@ -2222,7 +2222,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public PrepareTopology_result() {
+      public prepareTopology_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -2254,7 +2254,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("PrepareTopology_result");
+        TStruct struc = new TStruct("prepareTopology_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -2271,7 +2271,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("PrepareTopology_result(");
+        StringBuilder sb = new StringBuilder("prepareTopology_result(");
         sb.Append("Success: ");
         sb.Append(Success);
         sb.Append(")");
@@ -2284,7 +2284,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class CommitTopology_args : TBase
+    public partial class commitTopology_args : TBase
     {
       private TransactionID _transactionID;
 
@@ -2310,7 +2310,7 @@ namespace Alphora.Fastore
         public bool transactionID;
       }
 
-      public CommitTopology_args() {
+      public commitTopology_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -2343,7 +2343,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("CommitTopology_args");
+        TStruct struc = new TStruct("commitTopology_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -2359,7 +2359,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("CommitTopology_args(");
+        StringBuilder sb = new StringBuilder("commitTopology_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(")");
@@ -2372,10 +2372,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class CommitTopology_result : TBase
+    public partial class commitTopology_result : TBase
     {
 
-      public CommitTopology_result() {
+      public commitTopology_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -2400,7 +2400,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("CommitTopology_result");
+        TStruct struc = new TStruct("commitTopology_result");
         oprot.WriteStructBegin(struc);
 
         oprot.WriteFieldStop();
@@ -2408,7 +2408,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("CommitTopology_result(");
+        StringBuilder sb = new StringBuilder("commitTopology_result(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -2419,7 +2419,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class RollbackTopology_args : TBase
+    public partial class rollbackTopology_args : TBase
     {
       private TransactionID _transactionID;
 
@@ -2445,7 +2445,7 @@ namespace Alphora.Fastore
         public bool transactionID;
       }
 
-      public RollbackTopology_args() {
+      public rollbackTopology_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -2478,7 +2478,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("RollbackTopology_args");
+        TStruct struc = new TStruct("rollbackTopology_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -2494,7 +2494,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("RollbackTopology_args(");
+        StringBuilder sb = new StringBuilder("rollbackTopology_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(")");
@@ -2507,10 +2507,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class RollbackTopology_result : TBase
+    public partial class rollbackTopology_result : TBase
     {
 
-      public RollbackTopology_result() {
+      public rollbackTopology_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -2535,7 +2535,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("RollbackTopology_result");
+        TStruct struc = new TStruct("rollbackTopology_result");
         oprot.WriteStructBegin(struc);
 
         oprot.WriteFieldStop();
@@ -2543,7 +2543,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("RollbackTopology_result(");
+        StringBuilder sb = new StringBuilder("rollbackTopology_result(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -2554,10 +2554,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetTopologyReport_args : TBase
+    public partial class getTopologyReport_args : TBase
     {
 
-      public GetTopologyReport_args() {
+      public getTopologyReport_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -2582,14 +2582,14 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetTopologyReport_args");
+        TStruct struc = new TStruct("getTopologyReport_args");
         oprot.WriteStructBegin(struc);
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetTopologyReport_args(");
+        StringBuilder sb = new StringBuilder("getTopologyReport_args(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -2600,7 +2600,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetTopologyReport_result : TBase
+    public partial class getTopologyReport_result : TBase
     {
       private TopologyReport _success;
 
@@ -2626,7 +2626,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public GetTopologyReport_result() {
+      public getTopologyReport_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -2659,7 +2659,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetTopologyReport_result");
+        TStruct struc = new TStruct("getTopologyReport_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -2678,7 +2678,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetTopologyReport_result(");
+        StringBuilder sb = new StringBuilder("getTopologyReport_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
         sb.Append(")");
@@ -2691,10 +2691,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetReport_args : TBase
+    public partial class getReport_args : TBase
     {
 
-      public GetReport_args() {
+      public getReport_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -2719,14 +2719,14 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetReport_args");
+        TStruct struc = new TStruct("getReport_args");
         oprot.WriteStructBegin(struc);
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetReport_args(");
+        StringBuilder sb = new StringBuilder("getReport_args(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -2737,7 +2737,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetReport_result : TBase
+    public partial class getReport_result : TBase
     {
       private HostReport _success;
 
@@ -2763,7 +2763,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public GetReport_result() {
+      public getReport_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -2796,7 +2796,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetReport_result");
+        TStruct struc = new TStruct("getReport_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -2815,7 +2815,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetReport_result(");
+        StringBuilder sb = new StringBuilder("getReport_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
         sb.Append(")");
@@ -2828,7 +2828,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Prepare_args : TBase
+    public partial class prepare_args : TBase
     {
       private TransactionID _transactionID;
       private Dictionary<int, ColumnWrites> _writes;
@@ -2884,7 +2884,7 @@ namespace Alphora.Fastore
         public bool reads;
       }
 
-      public Prepare_args() {
+      public prepare_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -2911,15 +2911,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Writes = new Dictionary<int, ColumnWrites>();
-                  TMap _map59 = iprot.ReadMapBegin();
-                  for( int _i60 = 0; _i60 < _map59.Count; ++_i60)
+                  TMap _map54 = iprot.ReadMapBegin();
+                  for( int _i55 = 0; _i55 < _map54.Count; ++_i55)
                   {
-                    int _key61;
-                    ColumnWrites _val62;
-                    _key61 = iprot.ReadI32();
-                    _val62 = new ColumnWrites();
-                    _val62.Read(iprot);
-                    Writes[_key61] = _val62;
+                    int _key56;
+                    ColumnWrites _val57;
+                    _key56 = iprot.ReadI32();
+                    _val57 = new ColumnWrites();
+                    _val57.Read(iprot);
+                    Writes[_key56] = _val57;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2931,28 +2931,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map63 = iprot.ReadMapBegin();
-                  for( int _i64 = 0; _i64 < _map63.Count; ++_i64)
+                  TMap _map58 = iprot.ReadMapBegin();
+                  for( int _i59 = 0; _i59 < _map58.Count; ++_i59)
                   {
-                    int _key65;
-                    Dictionary<Query, Answer> _val66;
-                    _key65 = iprot.ReadI32();
+                    int _key60;
+                    Dictionary<Query, Answer> _val61;
+                    _key60 = iprot.ReadI32();
                     {
-                      _val66 = new Dictionary<Query, Answer>();
-                      TMap _map67 = iprot.ReadMapBegin();
-                      for( int _i68 = 0; _i68 < _map67.Count; ++_i68)
+                      _val61 = new Dictionary<Query, Answer>();
+                      TMap _map62 = iprot.ReadMapBegin();
+                      for( int _i63 = 0; _i63 < _map62.Count; ++_i63)
                       {
-                        Query _key69;
-                        Answer _val70;
-                        _key69 = new Query();
-                        _key69.Read(iprot);
-                        _val70 = new Answer();
-                        _val70.Read(iprot);
-                        _val66[_key69] = _val70;
+                        Query _key64;
+                        Answer _val65;
+                        _key64 = new Query();
+                        _key64.Read(iprot);
+                        _val65 = new Answer();
+                        _val65.Read(iprot);
+                        _val61[_key64] = _val65;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key65] = _val66;
+                    Reads[_key60] = _val61;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2970,7 +2970,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Prepare_args");
+        TStruct struc = new TStruct("prepare_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -2988,10 +2988,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Writes.Count));
-            foreach (int _iter71 in Writes.Keys)
+            foreach (int _iter66 in Writes.Keys)
             {
-              oprot.WriteI32(_iter71);
-              Writes[_iter71].Write(oprot);
+              oprot.WriteI32(_iter66);
+              Writes[_iter66].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -3004,15 +3004,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter72 in Reads.Keys)
+            foreach (int _iter67 in Reads.Keys)
             {
-              oprot.WriteI32(_iter72);
+              oprot.WriteI32(_iter67);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter72].Count));
-                foreach (Query _iter73 in Reads[_iter72].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter67].Count));
+                foreach (Query _iter68 in Reads[_iter67].Keys)
                 {
-                  _iter73.Write(oprot);
-                  Reads[_iter72][_iter73].Write(oprot);
+                  _iter68.Write(oprot);
+                  Reads[_iter67][_iter68].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -3026,7 +3026,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Prepare_args(");
+        StringBuilder sb = new StringBuilder("prepare_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(",Writes: ");
@@ -3043,7 +3043,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Prepare_result : TBase
+    public partial class prepare_result : TBase
     {
       private long _success;
       private NotLatest _notLatest;
@@ -3084,7 +3084,7 @@ namespace Alphora.Fastore
         public bool notLatest;
       }
 
-      public Prepare_result() {
+      public prepare_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -3124,7 +3124,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Prepare_result");
+        TStruct struc = new TStruct("prepare_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -3150,7 +3150,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Prepare_result(");
+        StringBuilder sb = new StringBuilder("prepare_result(");
         sb.Append("Success: ");
         sb.Append(Success);
         sb.Append(",NotLatest: ");
@@ -3165,7 +3165,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Apply_args : TBase
+    public partial class apply_args : TBase
     {
       private TransactionID _transactionID;
       private Dictionary<int, ColumnWrites> _writes;
@@ -3206,7 +3206,7 @@ namespace Alphora.Fastore
         public bool writes;
       }
 
-      public Apply_args() {
+      public apply_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -3233,15 +3233,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Writes = new Dictionary<int, ColumnWrites>();
-                  TMap _map74 = iprot.ReadMapBegin();
-                  for( int _i75 = 0; _i75 < _map74.Count; ++_i75)
+                  TMap _map69 = iprot.ReadMapBegin();
+                  for( int _i70 = 0; _i70 < _map69.Count; ++_i70)
                   {
-                    int _key76;
-                    ColumnWrites _val77;
-                    _key76 = iprot.ReadI32();
-                    _val77 = new ColumnWrites();
-                    _val77.Read(iprot);
-                    Writes[_key76] = _val77;
+                    int _key71;
+                    ColumnWrites _val72;
+                    _key71 = iprot.ReadI32();
+                    _val72 = new ColumnWrites();
+                    _val72.Read(iprot);
+                    Writes[_key71] = _val72;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -3259,7 +3259,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Apply_args");
+        TStruct struc = new TStruct("apply_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -3277,10 +3277,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Writes.Count));
-            foreach (int _iter78 in Writes.Keys)
+            foreach (int _iter73 in Writes.Keys)
             {
-              oprot.WriteI32(_iter78);
-              Writes[_iter78].Write(oprot);
+              oprot.WriteI32(_iter73);
+              Writes[_iter73].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -3291,7 +3291,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Apply_args(");
+        StringBuilder sb = new StringBuilder("apply_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(",Writes: ");
@@ -3306,7 +3306,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Apply_result : TBase
+    public partial class apply_result : TBase
     {
       private TransactionID _success;
 
@@ -3332,7 +3332,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public Apply_result() {
+      public apply_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -3365,7 +3365,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Apply_result");
+        TStruct struc = new TStruct("apply_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -3384,7 +3384,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Apply_result(");
+        StringBuilder sb = new StringBuilder("apply_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
         sb.Append(")");
@@ -3397,7 +3397,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Commit_args : TBase
+    public partial class commit_args : TBase
     {
       private TransactionID _transactionID;
 
@@ -3423,7 +3423,7 @@ namespace Alphora.Fastore
         public bool transactionID;
       }
 
-      public Commit_args() {
+      public commit_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -3456,7 +3456,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Commit_args");
+        TStruct struc = new TStruct("commit_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -3472,7 +3472,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Commit_args(");
+        StringBuilder sb = new StringBuilder("commit_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(")");
@@ -3485,10 +3485,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Commit_result : TBase
+    public partial class commit_result : TBase
     {
 
-      public Commit_result() {
+      public commit_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -3513,7 +3513,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Commit_result");
+        TStruct struc = new TStruct("commit_result");
         oprot.WriteStructBegin(struc);
 
         oprot.WriteFieldStop();
@@ -3521,7 +3521,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Commit_result(");
+        StringBuilder sb = new StringBuilder("commit_result(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -3532,7 +3532,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Rollback_args : TBase
+    public partial class rollback_args : TBase
     {
       private TransactionID _transactionID;
 
@@ -3558,7 +3558,7 @@ namespace Alphora.Fastore
         public bool transactionID;
       }
 
-      public Rollback_args() {
+      public rollback_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -3591,7 +3591,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Rollback_args");
+        TStruct struc = new TStruct("rollback_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -3607,7 +3607,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Rollback_args(");
+        StringBuilder sb = new StringBuilder("rollback_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(")");
@@ -3620,10 +3620,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Rollback_result : TBase
+    public partial class rollback_result : TBase
     {
 
-      public Rollback_result() {
+      public rollback_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -3648,7 +3648,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Rollback_result");
+        TStruct struc = new TStruct("rollback_result");
         oprot.WriteStructBegin(struc);
 
         oprot.WriteFieldStop();
@@ -3656,7 +3656,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Rollback_result(");
+        StringBuilder sb = new StringBuilder("rollback_result(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -3667,7 +3667,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Flush_args : TBase
+    public partial class flush_args : TBase
     {
       private TransactionID _transactionID;
 
@@ -3693,7 +3693,7 @@ namespace Alphora.Fastore
         public bool transactionID;
       }
 
-      public Flush_args() {
+      public flush_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -3726,7 +3726,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Flush_args");
+        TStruct struc = new TStruct("flush_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -3742,7 +3742,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Flush_args(");
+        StringBuilder sb = new StringBuilder("flush_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(")");
@@ -3755,10 +3755,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Flush_result : TBase
+    public partial class flush_result : TBase
     {
 
-      public Flush_result() {
+      public flush_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -3783,7 +3783,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Flush_result");
+        TStruct struc = new TStruct("flush_result");
         oprot.WriteStructBegin(struc);
 
         oprot.WriteFieldStop();
@@ -3791,7 +3791,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Flush_result(");
+        StringBuilder sb = new StringBuilder("flush_result(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -3802,7 +3802,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class DoesConflict_args : TBase
+    public partial class doesConflict_args : TBase
     {
       private Dictionary<int, Dictionary<Query, Answer>> _reads;
       private long _source;
@@ -3858,7 +3858,7 @@ namespace Alphora.Fastore
         public bool target;
       }
 
-      public DoesConflict_args() {
+      public doesConflict_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -3877,28 +3877,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map79 = iprot.ReadMapBegin();
-                  for( int _i80 = 0; _i80 < _map79.Count; ++_i80)
+                  TMap _map74 = iprot.ReadMapBegin();
+                  for( int _i75 = 0; _i75 < _map74.Count; ++_i75)
                   {
-                    int _key81;
-                    Dictionary<Query, Answer> _val82;
-                    _key81 = iprot.ReadI32();
+                    int _key76;
+                    Dictionary<Query, Answer> _val77;
+                    _key76 = iprot.ReadI32();
                     {
-                      _val82 = new Dictionary<Query, Answer>();
-                      TMap _map83 = iprot.ReadMapBegin();
-                      for( int _i84 = 0; _i84 < _map83.Count; ++_i84)
+                      _val77 = new Dictionary<Query, Answer>();
+                      TMap _map78 = iprot.ReadMapBegin();
+                      for( int _i79 = 0; _i79 < _map78.Count; ++_i79)
                       {
-                        Query _key85;
-                        Answer _val86;
-                        _key85 = new Query();
-                        _key85.Read(iprot);
-                        _val86 = new Answer();
-                        _val86.Read(iprot);
-                        _val82[_key85] = _val86;
+                        Query _key80;
+                        Answer _val81;
+                        _key80 = new Query();
+                        _key80.Read(iprot);
+                        _val81 = new Answer();
+                        _val81.Read(iprot);
+                        _val77[_key80] = _val81;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key81] = _val82;
+                    Reads[_key76] = _val77;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -3930,7 +3930,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("DoesConflict_args");
+        TStruct struc = new TStruct("doesConflict_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (Reads != null && __isset.reads) {
@@ -3940,15 +3940,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter87 in Reads.Keys)
+            foreach (int _iter82 in Reads.Keys)
             {
-              oprot.WriteI32(_iter87);
+              oprot.WriteI32(_iter82);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter87].Count));
-                foreach (Query _iter88 in Reads[_iter87].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter82].Count));
+                foreach (Query _iter83 in Reads[_iter82].Keys)
                 {
-                  _iter88.Write(oprot);
-                  Reads[_iter87][_iter88].Write(oprot);
+                  _iter83.Write(oprot);
+                  Reads[_iter82][_iter83].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -3978,7 +3978,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("DoesConflict_args(");
+        StringBuilder sb = new StringBuilder("doesConflict_args(");
         sb.Append("Reads: ");
         sb.Append(Reads);
         sb.Append(",Source: ");
@@ -3995,7 +3995,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class DoesConflict_result : TBase
+    public partial class doesConflict_result : TBase
     {
       private bool _success;
       private BeyondHistory _beyondHistory;
@@ -4036,7 +4036,7 @@ namespace Alphora.Fastore
         public bool beyondHistory;
       }
 
-      public DoesConflict_result() {
+      public doesConflict_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -4076,7 +4076,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("DoesConflict_result");
+        TStruct struc = new TStruct("doesConflict_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -4102,7 +4102,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("DoesConflict_result(");
+        StringBuilder sb = new StringBuilder("doesConflict_result(");
         sb.Append("Success: ");
         sb.Append(Success);
         sb.Append(",BeyondHistory: ");
@@ -4117,7 +4117,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Update_args : TBase
+    public partial class update_args : TBase
     {
       private TransactionID _transactionID;
       private Dictionary<int, ColumnWrites> _writes;
@@ -4173,7 +4173,7 @@ namespace Alphora.Fastore
         public bool reads;
       }
 
-      public Update_args() {
+      public update_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -4200,15 +4200,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Writes = new Dictionary<int, ColumnWrites>();
-                  TMap _map89 = iprot.ReadMapBegin();
-                  for( int _i90 = 0; _i90 < _map89.Count; ++_i90)
+                  TMap _map84 = iprot.ReadMapBegin();
+                  for( int _i85 = 0; _i85 < _map84.Count; ++_i85)
                   {
-                    int _key91;
-                    ColumnWrites _val92;
-                    _key91 = iprot.ReadI32();
-                    _val92 = new ColumnWrites();
-                    _val92.Read(iprot);
-                    Writes[_key91] = _val92;
+                    int _key86;
+                    ColumnWrites _val87;
+                    _key86 = iprot.ReadI32();
+                    _val87 = new ColumnWrites();
+                    _val87.Read(iprot);
+                    Writes[_key86] = _val87;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -4220,28 +4220,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map93 = iprot.ReadMapBegin();
-                  for( int _i94 = 0; _i94 < _map93.Count; ++_i94)
+                  TMap _map88 = iprot.ReadMapBegin();
+                  for( int _i89 = 0; _i89 < _map88.Count; ++_i89)
                   {
-                    int _key95;
-                    Dictionary<Query, Answer> _val96;
-                    _key95 = iprot.ReadI32();
+                    int _key90;
+                    Dictionary<Query, Answer> _val91;
+                    _key90 = iprot.ReadI32();
                     {
-                      _val96 = new Dictionary<Query, Answer>();
-                      TMap _map97 = iprot.ReadMapBegin();
-                      for( int _i98 = 0; _i98 < _map97.Count; ++_i98)
+                      _val91 = new Dictionary<Query, Answer>();
+                      TMap _map92 = iprot.ReadMapBegin();
+                      for( int _i93 = 0; _i93 < _map92.Count; ++_i93)
                       {
-                        Query _key99;
-                        Answer _val100;
-                        _key99 = new Query();
-                        _key99.Read(iprot);
-                        _val100 = new Answer();
-                        _val100.Read(iprot);
-                        _val96[_key99] = _val100;
+                        Query _key94;
+                        Answer _val95;
+                        _key94 = new Query();
+                        _key94.Read(iprot);
+                        _val95 = new Answer();
+                        _val95.Read(iprot);
+                        _val91[_key94] = _val95;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key95] = _val96;
+                    Reads[_key90] = _val91;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -4259,7 +4259,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Update_args");
+        TStruct struc = new TStruct("update_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (TransactionID != null && __isset.transactionID) {
@@ -4277,10 +4277,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Writes.Count));
-            foreach (int _iter101 in Writes.Keys)
+            foreach (int _iter96 in Writes.Keys)
             {
-              oprot.WriteI32(_iter101);
-              Writes[_iter101].Write(oprot);
+              oprot.WriteI32(_iter96);
+              Writes[_iter96].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -4293,15 +4293,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter102 in Reads.Keys)
+            foreach (int _iter97 in Reads.Keys)
             {
-              oprot.WriteI32(_iter102);
+              oprot.WriteI32(_iter97);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter102].Count));
-                foreach (Query _iter103 in Reads[_iter102].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter97].Count));
+                foreach (Query _iter98 in Reads[_iter97].Keys)
                 {
-                  _iter103.Write(oprot);
-                  Reads[_iter102][_iter103].Write(oprot);
+                  _iter98.Write(oprot);
+                  Reads[_iter97][_iter98].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -4315,7 +4315,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Update_args(");
+        StringBuilder sb = new StringBuilder("update_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
         sb.Append(",Writes: ");
@@ -4332,7 +4332,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Update_result : TBase
+    public partial class update_result : TBase
     {
       private TransactionID _success;
       private Conflict _conflict;
@@ -4373,7 +4373,7 @@ namespace Alphora.Fastore
         public bool conflict;
       }
 
-      public Update_result() {
+      public update_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -4414,7 +4414,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Update_result");
+        TStruct struc = new TStruct("update_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -4442,7 +4442,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Update_result(");
+        StringBuilder sb = new StringBuilder("update_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
         sb.Append(",Conflict: ");
@@ -4457,7 +4457,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Transgrade_args : TBase
+    public partial class transgrade_args : TBase
     {
       private Dictionary<int, Dictionary<Query, Answer>> _reads;
       private long _source;
@@ -4513,7 +4513,7 @@ namespace Alphora.Fastore
         public bool target;
       }
 
-      public Transgrade_args() {
+      public transgrade_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -4532,28 +4532,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map104 = iprot.ReadMapBegin();
-                  for( int _i105 = 0; _i105 < _map104.Count; ++_i105)
+                  TMap _map99 = iprot.ReadMapBegin();
+                  for( int _i100 = 0; _i100 < _map99.Count; ++_i100)
                   {
-                    int _key106;
-                    Dictionary<Query, Answer> _val107;
-                    _key106 = iprot.ReadI32();
+                    int _key101;
+                    Dictionary<Query, Answer> _val102;
+                    _key101 = iprot.ReadI32();
                     {
-                      _val107 = new Dictionary<Query, Answer>();
-                      TMap _map108 = iprot.ReadMapBegin();
-                      for( int _i109 = 0; _i109 < _map108.Count; ++_i109)
+                      _val102 = new Dictionary<Query, Answer>();
+                      TMap _map103 = iprot.ReadMapBegin();
+                      for( int _i104 = 0; _i104 < _map103.Count; ++_i104)
                       {
-                        Query _key110;
-                        Answer _val111;
-                        _key110 = new Query();
-                        _key110.Read(iprot);
-                        _val111 = new Answer();
-                        _val111.Read(iprot);
-                        _val107[_key110] = _val111;
+                        Query _key105;
+                        Answer _val106;
+                        _key105 = new Query();
+                        _key105.Read(iprot);
+                        _val106 = new Answer();
+                        _val106.Read(iprot);
+                        _val102[_key105] = _val106;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key106] = _val107;
+                    Reads[_key101] = _val102;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -4585,7 +4585,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Transgrade_args");
+        TStruct struc = new TStruct("transgrade_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (Reads != null && __isset.reads) {
@@ -4595,15 +4595,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter112 in Reads.Keys)
+            foreach (int _iter107 in Reads.Keys)
             {
-              oprot.WriteI32(_iter112);
+              oprot.WriteI32(_iter107);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter112].Count));
-                foreach (Query _iter113 in Reads[_iter112].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter107].Count));
+                foreach (Query _iter108 in Reads[_iter107].Keys)
                 {
-                  _iter113.Write(oprot);
-                  Reads[_iter112][_iter113].Write(oprot);
+                  _iter108.Write(oprot);
+                  Reads[_iter107][_iter108].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -4633,7 +4633,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Transgrade_args(");
+        StringBuilder sb = new StringBuilder("transgrade_args(");
         sb.Append("Reads: ");
         sb.Append(Reads);
         sb.Append(",Source: ");
@@ -4650,7 +4650,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Transgrade_result : TBase
+    public partial class transgrade_result : TBase
     {
       private Dictionary<int, Dictionary<Query, Answer>> _success;
       private BeyondHistory _beyondHistory;
@@ -4691,7 +4691,7 @@ namespace Alphora.Fastore
         public bool beyondHistory;
       }
 
-      public Transgrade_result() {
+      public transgrade_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -4710,28 +4710,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Success = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map114 = iprot.ReadMapBegin();
-                  for( int _i115 = 0; _i115 < _map114.Count; ++_i115)
+                  TMap _map109 = iprot.ReadMapBegin();
+                  for( int _i110 = 0; _i110 < _map109.Count; ++_i110)
                   {
-                    int _key116;
-                    Dictionary<Query, Answer> _val117;
-                    _key116 = iprot.ReadI32();
+                    int _key111;
+                    Dictionary<Query, Answer> _val112;
+                    _key111 = iprot.ReadI32();
                     {
-                      _val117 = new Dictionary<Query, Answer>();
-                      TMap _map118 = iprot.ReadMapBegin();
-                      for( int _i119 = 0; _i119 < _map118.Count; ++_i119)
+                      _val112 = new Dictionary<Query, Answer>();
+                      TMap _map113 = iprot.ReadMapBegin();
+                      for( int _i114 = 0; _i114 < _map113.Count; ++_i114)
                       {
-                        Query _key120;
-                        Answer _val121;
-                        _key120 = new Query();
-                        _key120.Read(iprot);
-                        _val121 = new Answer();
-                        _val121.Read(iprot);
-                        _val117[_key120] = _val121;
+                        Query _key115;
+                        Answer _val116;
+                        _key115 = new Query();
+                        _key115.Read(iprot);
+                        _val116 = new Answer();
+                        _val116.Read(iprot);
+                        _val112[_key115] = _val116;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Success[_key116] = _val117;
+                    Success[_key111] = _val112;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -4757,7 +4757,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Transgrade_result");
+        TStruct struc = new TStruct("transgrade_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -4769,15 +4769,15 @@ namespace Alphora.Fastore
             oprot.WriteFieldBegin(field);
             {
               oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Success.Count));
-              foreach (int _iter122 in Success.Keys)
+              foreach (int _iter117 in Success.Keys)
               {
-                oprot.WriteI32(_iter122);
+                oprot.WriteI32(_iter117);
                 {
-                  oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Success[_iter122].Count));
-                  foreach (Query _iter123 in Success[_iter122].Keys)
+                  oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Success[_iter117].Count));
+                  foreach (Query _iter118 in Success[_iter117].Keys)
                   {
-                    _iter123.Write(oprot);
-                    Success[_iter122][_iter123].Write(oprot);
+                    _iter118.Write(oprot);
+                    Success[_iter117][_iter118].Write(oprot);
                   }
                   oprot.WriteMapEnd();
                 }
@@ -4801,7 +4801,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Transgrade_result(");
+        StringBuilder sb = new StringBuilder("transgrade_result(");
         sb.Append("Success: ");
         sb.Append(Success);
         sb.Append(",BeyondHistory: ");
@@ -4816,7 +4816,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class AcquireLock_args : TBase
+    public partial class acquireLock_args : TBase
     {
       private string _name;
       private LockMode _mode;
@@ -4876,7 +4876,7 @@ namespace Alphora.Fastore
         public bool timeout;
       }
 
-      public AcquireLock_args() {
+      public acquireLock_args() {
         this._timeout = 1000;
       }
 
@@ -4923,7 +4923,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("AcquireLock_args");
+        TStruct struc = new TStruct("acquireLock_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (Name != null && __isset.name) {
@@ -4955,7 +4955,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("AcquireLock_args(");
+        StringBuilder sb = new StringBuilder("acquireLock_args(");
         sb.Append("Name: ");
         sb.Append(Name);
         sb.Append(",Mode: ");
@@ -4972,7 +4972,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class AcquireLock_result : TBase
+    public partial class acquireLock_result : TBase
     {
       private long _success;
       private LockTimedOut _timeout;
@@ -5013,7 +5013,7 @@ namespace Alphora.Fastore
         public bool timeout;
       }
 
-      public AcquireLock_result() {
+      public acquireLock_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -5053,7 +5053,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("AcquireLock_result");
+        TStruct struc = new TStruct("acquireLock_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -5079,7 +5079,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("AcquireLock_result(");
+        StringBuilder sb = new StringBuilder("acquireLock_result(");
         sb.Append("Success: ");
         sb.Append(Success);
         sb.Append(",Timeout: ");
@@ -5094,7 +5094,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class KeepLock_args : TBase
+    public partial class keepLock_args : TBase
     {
       private long _lockID;
 
@@ -5120,7 +5120,7 @@ namespace Alphora.Fastore
         public bool lockID;
       }
 
-      public KeepLock_args() {
+      public keepLock_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -5152,7 +5152,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("KeepLock_args");
+        TStruct struc = new TStruct("keepLock_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (__isset.lockID) {
@@ -5168,7 +5168,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("KeepLock_args(");
+        StringBuilder sb = new StringBuilder("keepLock_args(");
         sb.Append("LockID: ");
         sb.Append(LockID);
         sb.Append(")");
@@ -5181,7 +5181,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class KeepLock_result : TBase
+    public partial class keepLock_result : TBase
     {
       private LockExpired _expired;
 
@@ -5207,7 +5207,7 @@ namespace Alphora.Fastore
         public bool expired;
       }
 
-      public KeepLock_result() {
+      public keepLock_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -5240,7 +5240,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("KeepLock_result");
+        TStruct struc = new TStruct("keepLock_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -5259,7 +5259,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("KeepLock_result(");
+        StringBuilder sb = new StringBuilder("keepLock_result(");
         sb.Append("Expired: ");
         sb.Append(Expired== null ? "<null>" : Expired.ToString());
         sb.Append(")");
@@ -5272,7 +5272,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class EscalateLock_args : TBase
+    public partial class escalateLock_args : TBase
     {
       private long _lockID;
       private int _timeout;
@@ -5313,7 +5313,7 @@ namespace Alphora.Fastore
         public bool timeout;
       }
 
-      public EscalateLock_args() {
+      public escalateLock_args() {
         this._timeout = -1;
       }
 
@@ -5353,7 +5353,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("EscalateLock_args");
+        TStruct struc = new TStruct("escalateLock_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (__isset.lockID) {
@@ -5377,7 +5377,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("EscalateLock_args(");
+        StringBuilder sb = new StringBuilder("escalateLock_args(");
         sb.Append("LockID: ");
         sb.Append(LockID);
         sb.Append(",Timeout: ");
@@ -5392,7 +5392,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class EscalateLock_result : TBase
+    public partial class escalateLock_result : TBase
     {
       private LockTimedOut _timeout;
       private LockExpired _expired;
@@ -5433,7 +5433,7 @@ namespace Alphora.Fastore
         public bool expired;
       }
 
-      public EscalateLock_result() {
+      public escalateLock_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -5474,7 +5474,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("EscalateLock_result");
+        TStruct struc = new TStruct("escalateLock_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -5502,7 +5502,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("EscalateLock_result(");
+        StringBuilder sb = new StringBuilder("escalateLock_result(");
         sb.Append("Timeout: ");
         sb.Append(Timeout== null ? "<null>" : Timeout.ToString());
         sb.Append(",Expired: ");
@@ -5517,7 +5517,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class ReleaseLock_args : TBase
+    public partial class releaseLock_args : TBase
     {
       private long _lockID;
 
@@ -5543,7 +5543,7 @@ namespace Alphora.Fastore
         public bool lockID;
       }
 
-      public ReleaseLock_args() {
+      public releaseLock_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -5575,7 +5575,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("ReleaseLock_args");
+        TStruct struc = new TStruct("releaseLock_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (__isset.lockID) {
@@ -5591,7 +5591,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("ReleaseLock_args(");
+        StringBuilder sb = new StringBuilder("releaseLock_args(");
         sb.Append("LockID: ");
         sb.Append(LockID);
         sb.Append(")");
@@ -5604,7 +5604,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class ReleaseLock_result : TBase
+    public partial class releaseLock_result : TBase
     {
       private LockExpired _expired;
 
@@ -5630,7 +5630,7 @@ namespace Alphora.Fastore
         public bool expired;
       }
 
-      public ReleaseLock_result() {
+      public releaseLock_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -5663,7 +5663,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("ReleaseLock_result");
+        TStruct struc = new TStruct("releaseLock_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -5682,7 +5682,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("ReleaseLock_result(");
+        StringBuilder sb = new StringBuilder("releaseLock_result(");
         sb.Append("Expired: ");
         sb.Append(Expired== null ? "<null>" : Expired.ToString());
         sb.Append(")");
@@ -5695,7 +5695,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Query_args : TBase
+    public partial class query_args : TBase
     {
       private Dictionary<int, Query> _queries;
 
@@ -5721,7 +5721,7 @@ namespace Alphora.Fastore
         public bool queries;
       }
 
-      public Query_args() {
+      public query_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -5740,15 +5740,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Queries = new Dictionary<int, Query>();
-                  TMap _map124 = iprot.ReadMapBegin();
-                  for( int _i125 = 0; _i125 < _map124.Count; ++_i125)
+                  TMap _map119 = iprot.ReadMapBegin();
+                  for( int _i120 = 0; _i120 < _map119.Count; ++_i120)
                   {
-                    int _key126;
-                    Query _val127;
-                    _key126 = iprot.ReadI32();
-                    _val127 = new Query();
-                    _val127.Read(iprot);
-                    Queries[_key126] = _val127;
+                    int _key121;
+                    Query _val122;
+                    _key121 = iprot.ReadI32();
+                    _val122 = new Query();
+                    _val122.Read(iprot);
+                    Queries[_key121] = _val122;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -5766,7 +5766,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Query_args");
+        TStruct struc = new TStruct("query_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (Queries != null && __isset.queries) {
@@ -5776,10 +5776,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Queries.Count));
-            foreach (int _iter128 in Queries.Keys)
+            foreach (int _iter123 in Queries.Keys)
             {
-              oprot.WriteI32(_iter128);
-              Queries[_iter128].Write(oprot);
+              oprot.WriteI32(_iter123);
+              Queries[_iter123].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -5790,7 +5790,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Query_args(");
+        StringBuilder sb = new StringBuilder("query_args(");
         sb.Append("Queries: ");
         sb.Append(Queries);
         sb.Append(")");
@@ -5803,11 +5803,11 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class Query_result : TBase
+    public partial class query_result : TBase
     {
-      private ReadResults _success;
+      private Dictionary<int, ReadResult> _success;
 
-      public ReadResults Success
+      public Dictionary<int, ReadResult> Success
       {
         get
         {
@@ -5829,7 +5829,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public Query_result() {
+      public query_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -5845,9 +5845,21 @@ namespace Alphora.Fastore
           switch (field.ID)
           {
             case 0:
-              if (field.Type == TType.Struct) {
-                Success = new ReadResults();
-                Success.Read(iprot);
+              if (field.Type == TType.Map) {
+                {
+                  Success = new Dictionary<int, ReadResult>();
+                  TMap _map124 = iprot.ReadMapBegin();
+                  for( int _i125 = 0; _i125 < _map124.Count; ++_i125)
+                  {
+                    int _key126;
+                    ReadResult _val127;
+                    _key126 = iprot.ReadI32();
+                    _val127 = new ReadResult();
+                    _val127.Read(iprot);
+                    Success[_key126] = _val127;
+                  }
+                  iprot.ReadMapEnd();
+                }
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -5862,17 +5874,25 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("Query_result");
+        TStruct struc = new TStruct("query_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
         if (this.__isset.success) {
           if (Success != null) {
             field.Name = "Success";
-            field.Type = TType.Struct;
+            field.Type = TType.Map;
             field.ID = 0;
             oprot.WriteFieldBegin(field);
-            Success.Write(oprot);
+            {
+              oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Success.Count));
+              foreach (int _iter128 in Success.Keys)
+              {
+                oprot.WriteI32(_iter128);
+                Success[_iter128].Write(oprot);
+              }
+              oprot.WriteMapEnd();
+            }
             oprot.WriteFieldEnd();
           }
         }
@@ -5881,9 +5901,9 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("Query_result(");
+        StringBuilder sb = new StringBuilder("query_result(");
         sb.Append("Success: ");
-        sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(Success);
         sb.Append(")");
         return sb.ToString();
       }
@@ -5894,7 +5914,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetStatistics_args : TBase
+    public partial class getStatistics_args : TBase
     {
       private List<int> _columnIDs;
 
@@ -5920,7 +5940,7 @@ namespace Alphora.Fastore
         public bool columnIDs;
       }
 
-      public GetStatistics_args() {
+      public getStatistics_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -5962,7 +5982,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetStatistics_args");
+        TStruct struc = new TStruct("getStatistics_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
         if (ColumnIDs != null && __isset.columnIDs) {
@@ -5985,7 +6005,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetStatistics_args(");
+        StringBuilder sb = new StringBuilder("getStatistics_args(");
         sb.Append("ColumnIDs: ");
         sb.Append(ColumnIDs);
         sb.Append(")");
@@ -5998,7 +6018,7 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class GetStatistics_result : TBase
+    public partial class getStatistics_result : TBase
     {
       private List<Statistic> _success;
 
@@ -6024,7 +6044,7 @@ namespace Alphora.Fastore
         public bool success;
       }
 
-      public GetStatistics_result() {
+      public getStatistics_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -6067,7 +6087,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("GetStatistics_result");
+        TStruct struc = new TStruct("getStatistics_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -6093,7 +6113,7 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("GetStatistics_result(");
+        StringBuilder sb = new StringBuilder("getStatistics_result(");
         sb.Append("Success: ");
         sb.Append(Success);
         sb.Append(")");

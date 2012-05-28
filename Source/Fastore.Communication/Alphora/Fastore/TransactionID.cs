@@ -24,7 +24,7 @@ namespace Alphora.Fastore
   public partial class TransactionID : TBase
   {
     private long _revision;
-    private long _Key;
+    private long _key;
 
     public long Revision
     {
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Key;
+        return _key;
       }
       set
       {
-        __isset.Key = true;
-        this._Key = value;
+        __isset.key = true;
+        this._key = value;
       }
     }
 
@@ -59,7 +59,7 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool revision;
-      public bool Key;
+      public bool key;
     }
 
     public TransactionID() {
@@ -112,8 +112,8 @@ namespace Alphora.Fastore
         oprot.WriteI64(Revision);
         oprot.WriteFieldEnd();
       }
-      if (__isset.Key) {
-        field.Name = "Key";
+      if (__isset.key) {
+        field.Name = "key";
         field.Type = TType.I64;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

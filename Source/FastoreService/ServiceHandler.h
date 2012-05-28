@@ -23,25 +23,25 @@ class ServiceHandler : virtual public ServiceIf {
 
  public:
   ServiceHandler(const ServiceConfig& config);
-  void GetTopology(TopologyResult& _return);
-  Revision PrepareTopology(const TransactionID& transactionID, const Topology& topology);
-  void CommitTopology(const TransactionID& transactionID);
-  void RollbackTopology(const TransactionID& transactionID);
-  void GetTopologyReport(TopologyReport& _return);
-  void GetReport(HostReport& _return);
-  Revision Prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);
-  void Commit(const TransactionID& transactionID);
-  void Rollback(const TransactionID& transactionID);
-  void Flush(const TransactionID& transactionID);
-  bool DoesConflict(const Reads& reads, const Revision source, const Revision target);
-  void Update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void Transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target);
-  LockID AcquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
-  void KeepLock(const LockID lockID);
-  void EscalateLock(const LockID lockID, const LockTimeout timeout);
-  void ReleaseLock(const LockID lockID);
-  void Query(ReadResults& _return, const Queries& queries);
-  void GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
+  void getTopology(TopologyResult& _return);
+  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology);
+  void commitTopology(const TransactionID& transactionID);
+  void rollbackTopology(const TransactionID& transactionID);
+  void getTopologyReport(TopologyReport& _return);
+  void getReport(HostReport& _return);
+  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
+  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);
+  void commit(const TransactionID& transactionID);
+  void rollback(const TransactionID& transactionID);
+  void flush(const TransactionID& transactionID);
+  bool doesConflict(const Reads& reads, const Revision source, const Revision target);
+  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads);
+  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target);
+  LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
+  void keepLock(const LockID lockID);
+  void escalateLock(const LockID lockID, const LockTimeout timeout);
+  void releaseLock(const LockID lockID);
+  void query(ReadResults& _return, const Queries& queries);
+  void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
 
 };

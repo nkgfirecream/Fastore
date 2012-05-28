@@ -23,20 +23,20 @@ namespace Alphora.Fastore
   #endif
   public partial class Topology : TBase
   {
-    private int _ID;
-    private THashSet<Host> _Hosts;
-    private THashSet<Repository> _Repositories;
+    private int _id;
+    private THashSet<Host> _hosts;
+    private THashSet<Repository> _repositories;
 
-    public int ID
+    public int Id
     {
       get
       {
-        return _ID;
+        return _id;
       }
       set
       {
-        __isset.ID = true;
-        this._ID = value;
+        __isset.id = true;
+        this._id = value;
       }
     }
 
@@ -44,12 +44,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Hosts;
+        return _hosts;
       }
       set
       {
-        __isset.Hosts = true;
-        this._Hosts = value;
+        __isset.hosts = true;
+        this._hosts = value;
       }
     }
 
@@ -57,12 +57,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Repositories;
+        return _repositories;
       }
       set
       {
-        __isset.Repositories = true;
-        this._Repositories = value;
+        __isset.repositories = true;
+        this._repositories = value;
       }
     }
 
@@ -72,9 +72,9 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool ID;
-      public bool Hosts;
-      public bool Repositories;
+      public bool id;
+      public bool hosts;
+      public bool repositories;
     }
 
     public Topology() {
@@ -94,7 +94,7 @@ namespace Alphora.Fastore
         {
           case 1:
             if (field.Type == TType.I32) {
-              ID = iprot.ReadI32();
+              Id = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -148,16 +148,16 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Topology");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.ID) {
-        field.Name = "ID";
+      if (__isset.id) {
+        field.Name = "id";
         field.Type = TType.I32;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI32(ID);
+        oprot.WriteI32(Id);
         oprot.WriteFieldEnd();
       }
-      if (Hosts != null && __isset.Hosts) {
-        field.Name = "Hosts";
+      if (Hosts != null && __isset.hosts) {
+        field.Name = "hosts";
         field.Type = TType.Set;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
@@ -171,8 +171,8 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (Repositories != null && __isset.Repositories) {
-        field.Name = "Repositories";
+      if (Repositories != null && __isset.repositories) {
+        field.Name = "repositories";
         field.Type = TType.Set;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
@@ -192,8 +192,8 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("Topology(");
-      sb.Append("ID: ");
-      sb.Append(ID);
+      sb.Append("Id: ");
+      sb.Append(Id);
       sb.Append(",Hosts: ");
       sb.Append(Hosts);
       sb.Append(",Repositories: ");

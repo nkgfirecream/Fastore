@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class Statistic : TBase
   {
-    private long _Total;
-    private long _Unique;
+    private long _total;
+    private long _unique;
 
     public long Total
     {
       get
       {
-        return _Total;
+        return _total;
       }
       set
       {
-        __isset.Total = true;
-        this._Total = value;
+        __isset.total = true;
+        this._total = value;
       }
     }
 
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Unique;
+        return _unique;
       }
       set
       {
-        __isset.Unique = true;
-        this._Unique = value;
+        __isset.unique = true;
+        this._unique = value;
       }
     }
 
@@ -58,8 +58,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Total;
-      public bool Unique;
+      public bool total;
+      public bool unique;
     }
 
     public Statistic() {
@@ -104,16 +104,16 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Statistic");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.Total) {
-        field.Name = "Total";
+      if (__isset.total) {
+        field.Name = "total";
         field.Type = TType.I64;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteI64(Total);
         oprot.WriteFieldEnd();
       }
-      if (__isset.Unique) {
-        field.Name = "Unique";
+      if (__isset.unique) {
+        field.Name = "unique";
         field.Type = TType.I64;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

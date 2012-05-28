@@ -23,18 +23,18 @@ namespace Alphora.Fastore
   #endif
   public partial class NotLatest : Exception, TBase
   {
-    private long _Latest;
+    private long _latest;
 
     public long Latest
     {
       get
       {
-        return _Latest;
+        return _latest;
       }
       set
       {
-        __isset.Latest = true;
-        this._Latest = value;
+        __isset.latest = true;
+        this._latest = value;
       }
     }
 
@@ -44,7 +44,7 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Latest;
+      public bool latest;
     }
 
     public NotLatest() {
@@ -82,8 +82,8 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("NotLatest");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.Latest) {
-        field.Name = "Latest";
+      if (__isset.latest) {
+        field.Name = "latest";
         field.Type = TType.I64;
         field.ID = 1;
         oprot.WriteFieldBegin(field);

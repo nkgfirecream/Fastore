@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class Host : TBase
   {
-    private int _ID;
-    private string _Address;
+    private int _id;
+    private string _address;
 
-    public int ID
+    public int Id
     {
       get
       {
-        return _ID;
+        return _id;
       }
       set
       {
-        __isset.ID = true;
-        this._ID = value;
+        __isset.id = true;
+        this._id = value;
       }
     }
 
@@ -46,12 +46,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Address;
+        return _address;
       }
       set
       {
-        __isset.Address = true;
-        this._Address = value;
+        __isset.address = true;
+        this._address = value;
       }
     }
 
@@ -61,8 +61,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool ID;
-      public bool Address;
+      public bool id;
+      public bool address;
     }
 
     public Host() {
@@ -82,7 +82,7 @@ namespace Alphora.Fastore
         {
           case 1:
             if (field.Type == TType.I32) {
-              ID = iprot.ReadI32();
+              Id = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -107,16 +107,16 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Host");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.ID) {
-        field.Name = "ID";
+      if (__isset.id) {
+        field.Name = "id";
         field.Type = TType.I32;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI32(ID);
+        oprot.WriteI32(Id);
         oprot.WriteFieldEnd();
       }
-      if (Address != null && __isset.Address) {
-        field.Name = "Address";
+      if (Address != null && __isset.address) {
+        field.Name = "address";
         field.Type = TType.String;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
@@ -129,8 +129,8 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("Host(");
-      sb.Append("ID: ");
-      sb.Append(ID);
+      sb.Append("Id: ");
+      sb.Append(Id);
       sb.Append(",Address: ");
       sb.Append(Address);
       sb.Append(")");

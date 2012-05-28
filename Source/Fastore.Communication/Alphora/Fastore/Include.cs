@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class Include : TBase
   {
-    private byte[] _RowID;
-    private byte[] _Value;
+    private byte[] _rowID;
+    private byte[] _value;
 
     public byte[] RowID
     {
       get
       {
-        return _RowID;
+        return _rowID;
       }
       set
       {
-        __isset.RowID = true;
-        this._RowID = value;
+        __isset.rowID = true;
+        this._rowID = value;
       }
     }
 
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Value;
+        return _value;
       }
       set
       {
-        __isset.Value = true;
-        this._Value = value;
+        __isset.value = true;
+        this._value = value;
       }
     }
 
@@ -58,8 +58,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool RowID;
-      public bool Value;
+      public bool rowID;
+      public bool value;
     }
 
     public Include() {
@@ -104,16 +104,16 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Include");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (RowID != null && __isset.RowID) {
-        field.Name = "RowID";
+      if (RowID != null && __isset.rowID) {
+        field.Name = "rowID";
         field.Type = TType.String;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteBinary(RowID);
         oprot.WriteFieldEnd();
       }
-      if (Value != null && __isset.Value) {
-        field.Name = "Value";
+      if (Value != null && __isset.value) {
+        field.Name = "value";
         field.Type = TType.String;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

@@ -70,7 +70,7 @@ namespace Alphora.Fastore.Client
 					writes.Add(entry.Key, wt);
             }
 
-            Database.Host.Apply(_transactionId, writes);
+            Database.Host.apply(_transactionId, writes);
 
 			_log.Clear();
 			_completed = true;

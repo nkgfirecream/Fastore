@@ -24,8 +24,8 @@ namespace Alphora.Fastore
   public partial class RangeResult : TBase
   {
     private List<ValueRows> _valueRowsList;
-    private bool _EndOfRange;
-    private bool _BeginOfRange;
+    private bool _endOfRange;
+    private bool _beginOfRange;
 
     public List<ValueRows> ValueRowsList
     {
@@ -44,12 +44,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _EndOfRange;
+        return _endOfRange;
       }
       set
       {
-        __isset.EndOfRange = true;
-        this._EndOfRange = value;
+        __isset.endOfRange = true;
+        this._endOfRange = value;
       }
     }
 
@@ -57,12 +57,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _BeginOfRange;
+        return _beginOfRange;
       }
       set
       {
-        __isset.BeginOfRange = true;
-        this._BeginOfRange = value;
+        __isset.beginOfRange = true;
+        this._beginOfRange = value;
       }
     }
 
@@ -73,8 +73,8 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool valueRowsList;
-      public bool EndOfRange;
-      public bool BeginOfRange;
+      public bool endOfRange;
+      public bool beginOfRange;
     }
 
     public RangeResult() {
@@ -152,16 +152,16 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.EndOfRange) {
-        field.Name = "EndOfRange";
+      if (__isset.endOfRange) {
+        field.Name = "endOfRange";
         field.Type = TType.Bool;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         oprot.WriteBool(EndOfRange);
         oprot.WriteFieldEnd();
       }
-      if (__isset.BeginOfRange) {
-        field.Name = "BeginOfRange";
+      if (__isset.beginOfRange) {
+        field.Name = "beginOfRange";
         field.Type = TType.Bool;
         field.ID = 3;
         oprot.WriteFieldBegin(field);

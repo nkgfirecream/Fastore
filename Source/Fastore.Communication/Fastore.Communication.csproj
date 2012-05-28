@@ -64,6 +64,7 @@
     <Compile Include="Alphora\Fastore\RangeBound.cs" />
     <Compile Include="Alphora\Fastore\RangeRequest.cs" />
     <Compile Include="Alphora\Fastore\RangeResult.cs" />
+    <Compile Include="Alphora\Fastore\ReadResult.cs" />
     <Compile Include="Alphora\Fastore\ReadResults.cs" />
     <Compile Include="Alphora\Fastore\Repository.cs" />
     <Compile Include="Alphora\Fastore\RepositoryStatus.cs" />

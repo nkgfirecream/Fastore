@@ -21,20 +21,34 @@ namespace Alphora.Fastore
   #if !SILVERLIGHT
   [Serializable]
   #endif
-  public partial class BeyondHistory : Exception, TBase
+  public partial class ReadResult : TBase
   {
-    private long _minHistory;
+    private Answer _answer;
+    private long _revision;
 
-    public long MinHistory
+    public Answer Answer
     {
       get
       {
-        return _minHistory;
+        return _answer;
       }
       set
       {
-        __isset.minHistory = true;
-        this._minHistory = value;
+        __isset.answer = true;
+        this._answer = value;
+      }
+    }
+
+    public long Revision
+    {
+      get
+      {
+        return _revision;
+      }
+      set
+      {
+        __isset.revision = true;
+        this._revision = value;
       }
     }
 
@@ -44,10 +58,11 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool minHistory;
+      public bool answer;
+      public bool revision;
     }
 
-    public BeyondHistory() {
+    public ReadResult() {
     }
 
     public void Read (TProtocol iprot)
@@ -63,8 +78,16 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
+            if (field.Type == TType.Struct) {
+              Answer = new Answer();
+              Answer.Read(iprot);
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
+          case 2:
             if (field.Type == TType.I64) {
-              MinHistory = iprot.ReadI64();
+              Revision = iprot.ReadI64();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -79,15 +102,23 @@ namespace Alphora.Fastore
     }
 
     public void Write(TProtocol oprot) {
-      TStruct struc = new TStruct("BeyondHistory");
+      TStruct struc = new TStruct("ReadResult");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.minHistory) {
-        field.Name = "minHistory";
-        field.Type = TType.I64;
+      if (Answer != null && __isset.answer) {
+        field.Name = "answer";
+        field.Type = TType.Struct;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI64(MinHistory);
+        Answer.Write(oprot);
+        oprot.WriteFieldEnd();
+      }
+      if (__isset.revision) {
+        field.Name = "revision";
+        field.Type = TType.I64;
+        field.ID = 2;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteI64(Revision);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -95,9 +126,11 @@ namespace Alphora.Fastore
     }
 
     public override string ToString() {
-      StringBuilder sb = new StringBuilder("BeyondHistory(");
-      sb.Append("MinHistory: ");
-      sb.Append(MinHistory);
+      StringBuilder sb = new StringBuilder("ReadResult(");
+      sb.Append("Answer: ");
+      sb.Append(Answer== null ? "<null>" : Answer.ToString());
+      sb.Append(",Revision: ");
+      sb.Append(Revision);
       sb.Append(")");
       return sb.ToString();
     }

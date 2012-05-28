@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class Conflict : Exception, TBase
   {
-    private string _Details;
-    private List<int> _ColumnIDs;
+    private string _details;
+    private List<int> _columnIDs;
 
     public string Details
     {
       get
       {
-        return _Details;
+        return _details;
       }
       set
       {
-        __isset.Details = true;
-        this._Details = value;
+        __isset.details = true;
+        this._details = value;
       }
     }
 
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _ColumnIDs;
+        return _columnIDs;
       }
       set
       {
-        __isset.ColumnIDs = true;
-        this._ColumnIDs = value;
+        __isset.columnIDs = true;
+        this._columnIDs = value;
       }
     }
 
@@ -58,8 +58,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Details;
-      public bool ColumnIDs;
+      public bool details;
+      public bool columnIDs;
     }
 
     public Conflict() {
@@ -88,12 +88,12 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 ColumnIDs = new List<int>();
-                TList _list55 = iprot.ReadListBegin();
-                for( int _i56 = 0; _i56 < _list55.Count; ++_i56)
+                TList _list50 = iprot.ReadListBegin();
+                for( int _i51 = 0; _i51 < _list50.Count; ++_i51)
                 {
-                  int _elem57 = 0;
-                  _elem57 = iprot.ReadI32();
-                  ColumnIDs.Add(_elem57);
+                  int _elem52 = 0;
+                  _elem52 = iprot.ReadI32();
+                  ColumnIDs.Add(_elem52);
                 }
                 iprot.ReadListEnd();
               }
@@ -114,24 +114,24 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Conflict");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (Details != null && __isset.Details) {
-        field.Name = "Details";
+      if (Details != null && __isset.details) {
+        field.Name = "details";
         field.Type = TType.String;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteString(Details);
         oprot.WriteFieldEnd();
       }
-      if (ColumnIDs != null && __isset.ColumnIDs) {
-        field.Name = "ColumnIDs";
+      if (ColumnIDs != null && __isset.columnIDs) {
+        field.Name = "columnIDs";
         field.Type = TType.List;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.I32, ColumnIDs.Count));
-          foreach (int _iter58 in ColumnIDs)
+          foreach (int _iter53 in ColumnIDs)
           {
-            oprot.WriteI32(_iter58);
+            oprot.WriteI32(_iter53);
           }
           oprot.WriteListEnd();
         }

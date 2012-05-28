@@ -14,29 +14,29 @@ typedef string HostAddress
 
 struct Host
 {
-	1: HostID ID,
+	1: required HostID id,
 
 	/** Host name and optional port (e.g. "myserver:1234") */
-	2: HostAddress Address,
+	2: required HostAddress address,
 }
 
 struct Repository
 {
-	1: ColumnID columnID,
-	2: HostID hostID,
+	1: required ColumnID columnID,
+	2: required HostID hostID,
 }
 
 struct Topology
 {
-	1: TopologyID ID,
-	2: set<Host> Hosts,
-	3: set<Repository> Repositories
+	1: required TopologyID id,
+	2: required set<Host> hosts,
+	3: required set<Repository> repositories
 }
 
 struct TopologyResult
 {
-	1: Topology topology,
-	2: Revision revision
+	1: required Topology topology,
+	2: required Revision revision
 }
 
 // Topology Reporting
@@ -62,15 +62,15 @@ enum HostStatus
 
 struct HostReport
 {
-	1: HostStatus Status,
-	2: map<ColumnID, RepositoryStatus> RepositoryStatus
+	1: required HostStatus status,
+	2: required map<ColumnID, RepositoryStatus> repositoryStatus
 }
 
 struct TopologyReport
 {
-	1: TopologyID topologyID,
-	2: map<HostID, HostReport> Hosts,
-	3: Revision revision = 1
+	1: required TopologyID topologyID,
+	2: required map<HostID, HostReport> hosts,
+	3: required Revision revision = 1
 }
 
 // Host
@@ -83,104 +83,105 @@ typedef i32 LockTimeout
 
 struct TransactionID
 {
-	1: Revision revision,
-	2: i64 Key
+	1: required Revision revision,
+	2: required i64 key
 }
 
 struct Include
 {
-	1: binary RowID,
-	2: binary Value
+	1: required binary rowID,
+	2: required binary value
 }
 
 struct Exclude
 {
-	1: binary RowID
+	1: required binary rowID
 }
  
 struct ColumnWrites
 {
-	1: list<Include> Includes,
-	2: list<Exclude> Excludes
+	1: required list<Include> includes,
+	2: required list<Exclude> excludes
 }
 
 typedef map<ColumnID, ColumnWrites> Writes
 
 struct Statistic
 {
-	1: i64 Total,
-	2: i64 Unique
+	1: required i64 total,
+	2: required i64 unique
 }
 
 struct RangeBound
 {
-	1: binary Value,
-	2: bool Inclusive,
-	3: optional binary RowID
+	1: required binary value,
+	2: required bool inclusive,
+	3: optional binary rowID
 }
 
 struct RangeRequest
 {
-	1: i32 Limit = 500,
-	2: bool Ascending = true,
-	3: optional RangeBound Start,
-	4: optional RangeBound End
+	1: required i32 limit = 500,
+	2: required bool ascending = true,
+	3: optional RangeBound first,
+	4: optional RangeBound last
 }
 
 struct ValueRows
 {
-	1: binary Value,
-	2: list<binary> RowIDs
+	1: required binary value,
+	2: required list<binary> rowIDs
 }
 
 typedef list<ValueRows> ValueRowsList
 
 struct RangeResult
 {
-	1: ValueRowsList valueRowsList,
-	2: bool EndOfRange,
-	3: bool BeginOfRange
+	1: required ValueRowsList valueRowsList,
+	2: required bool endOfRange,
+	3: required bool beginOfRange
 }
 
 struct Query
 {
-	1: list<binary> RowIDs,
-	2: list<RangeRequest> Ranges
+	1: optional list<binary> rowIDs,
+	2: optional list<RangeRequest> ranges
 }
 
 typedef map<ColumnID, Query> Queries
 
 struct Answer
 {
-	1: list<binary> RowIDValues,
-	2: list<RangeResult> RangeValues
+	1: optional list<binary> rowIDValues,
+	2: optional list<RangeResult> rangeValues
 }
 
-struct ReadResults
+struct ReadResult
 {
-	1:map<ColumnID, Answer> Answers,
-	2:Revision revision
+	1: required Answer answer,
+	2: required Revision revision
 }
+
+typedef map<ColumnID, ReadResult> ReadResults
 
 typedef map<Query, Answer> Read
 
 typedef map<ColumnID, Read> Reads
-	
 
 exception NotLatest
 {
-	1: Revision Latest
+	1: Revision latest
 }
 
 exception Conflict
 {
-	1: string Details,
-	2: list<ColumnID> ColumnIDs
+	1: string details,
+	2: list<ColumnID> columnIDs
 }
 
 exception BeyondHistory
 {
-	1: Revision MinHistory
+	1: Revision minHistory
 }
 
 exception LockExpired
@@ -193,75 +194,75 @@ exception LockTimedOut {}
 service Service
 {
 	/** Returns the target topology as this host presently understands it. */
-	TopologyResult GetTopology(),
+	TopologyResult getTopology(),
 
 	/** Updates the topology and returns the new topology revision - GRID COORDINATED. */
-	Revision PrepareTopology(1:TransactionID transactionID, 2:Topology topology),
+	Revision prepareTopology(1:TransactionID transactionID, 2:Topology topology),
 
 	/** Informs that the prepare was successful, the change should be committed. */
-	void CommitTopology(1:TransactionID transactionID),
+	void commitTopology(1:TransactionID transactionID),
 
 	/** Informs that the prepare was unsuccessful, the change should be rolled back. */
-	void RollbackTopology(1:TransactionID transactionID),
+	void rollbackTopology(1:TransactionID transactionID),
 
 	/** Returns the current status of all hosts as this host understands it. */
-	TopologyReport GetTopologyReport(),
+	TopologyReport getTopologyReport(),
 
 	/** Returns the current status of this host. */
-	HostReport GetReport(),
+	HostReport getReport(),
 
 
 	/** Validates that the transaction ID is updated to the latest and then Applies all changes - GRID COORDINATED. */
-	Revision Prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 
+	Revision prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 
 		throws (1:NotLatest notLatest),
 	
 	/** Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date), 
 		returns an updated Transaction ID - GRID COORDINATED. */
-	TransactionID Apply(1:TransactionID transactionID, 2:Writes writes),
+	TransactionID apply(1:TransactionID transactionID, 2:Writes writes),
 
 	/** Informs that the prepare was successful, the changes should be committed. */
-	void Commit(1:TransactionID transactionID),
+	void commit(1:TransactionID transactionID),
 
 	/** Informs that the prepare was unsuccessful, the changes should be rolled back. */
-	void Rollback(1:TransactionID transactionID),
+	void rollback(1:TransactionID transactionID),
 
 	/** Waits for the given transaction to be flushed to disk */
-	void Flush(1:TransactionID transactionID),
+	void flush(1:TransactionID transactionID),
 
 
 	/** Determines whether the given set of reads conflict with any intervening revisions. */
-	bool DoesConflict(1:Reads reads, 2:Revision source, 3:Revision target)
+	bool doesConflict(1:Reads reads, 2:Revision source, 3:Revision target)
 		throws (1:BeyondHistory beyondHistory),
 
 	/** Updates the given transaction to the latest by validating reads and writes for conflicts, and returns a new TransactionID. */
-	TransactionID Update(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads)
+	TransactionID update(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads)
 		throws (1:Conflict conflict),
 	
 	/** Upgrades or downgrades the given reads to match the data as of a given revision. */
-	Reads Transgrade(1:Reads reads, 2:Revision source, 3:Revision target)
+	Reads transgrade(1:Reads reads, 2:Revision source, 3:Revision target)
 		throws (1:BeyondHistory beyondHistory),
 
 	
 	/** Acquires a given named lock given a mode and timeout. */
-	LockID AcquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
+	LockID acquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
 		throws (1:LockTimedOut timeout),
 
 	/** Keeps a given lock alive - locks automatically expire if not renewed. */
-	void KeepLock(1:LockID lockID)
+	void keepLock(1:LockID lockID)
 		throws (1:LockExpired expired),
 	
 	/** Attempts to escalate the given lock to write mode */
-	void EscalateLock(1:LockID lockID, 2:LockTimeout timeout = -1)
+	void escalateLock(1:LockID lockID, 2:LockTimeout timeout = -1)
 		throws (1:LockTimedOut timeout, 2:LockExpired expired),
 
 	/** Releases the given lock */
-	void ReleaseLock(1:LockID lockID)
+	void releaseLock(1:LockID lockID)
 		throws (1:LockExpired expired),
 
 	/** Retrieves data and the latest revision number corresponding to a given list of queries. */
-	ReadResults Query(1:Queries queries),
+	ReadResults query(1:Queries queries),
 	
 	/** Retrieves statistics for a given list of columns based on the latest committed revision. */
-	list<Statistic> GetStatistics(1:list<ColumnID> columnIDs)
+	list<Statistic> getStatistics(1:list<ColumnID> columnIDs)
 }
 

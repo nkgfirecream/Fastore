@@ -15,26 +15,26 @@ namespace fastore {
 class ServiceIf {
  public:
   virtual ~ServiceIf() {}
-  virtual void GetTopology(TopologyResult& _return) = 0;
-  virtual Revision PrepareTopology(const TransactionID& transactionID, const Topology& topology) = 0;
-  virtual void CommitTopology(const TransactionID& transactionID) = 0;
-  virtual void RollbackTopology(const TransactionID& transactionID) = 0;
-  virtual void GetTopologyReport(TopologyReport& _return) = 0;
-  virtual void GetReport(HostReport& _return) = 0;
-  virtual Revision Prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
-  virtual void Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) = 0;
-  virtual void Commit(const TransactionID& transactionID) = 0;
-  virtual void Rollback(const TransactionID& transactionID) = 0;
-  virtual void Flush(const TransactionID& transactionID) = 0;
-  virtual bool DoesConflict(const Reads& reads, const Revision source, const Revision target) = 0;
-  virtual void Update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
-  virtual void Transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) = 0;
-  virtual LockID AcquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) = 0;
-  virtual void KeepLock(const LockID lockID) = 0;
-  virtual void EscalateLock(const LockID lockID, const LockTimeout timeout) = 0;
-  virtual void ReleaseLock(const LockID lockID) = 0;
-  virtual void Query(ReadResults& _return, const Queries& queries) = 0;
-  virtual void GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) = 0;
+  virtual void getTopology(TopologyResult& _return) = 0;
+  virtual Revision prepareTopology(const TransactionID& transactionID, const Topology& topology) = 0;
+  virtual void commitTopology(const TransactionID& transactionID) = 0;
+  virtual void rollbackTopology(const TransactionID& transactionID) = 0;
+  virtual void getTopologyReport(TopologyReport& _return) = 0;
+  virtual void getReport(HostReport& _return) = 0;
+  virtual Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
+  virtual void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) = 0;
+  virtual void commit(const TransactionID& transactionID) = 0;
+  virtual void rollback(const TransactionID& transactionID) = 0;
+  virtual void flush(const TransactionID& transactionID) = 0;
+  virtual bool doesConflict(const Reads& reads, const Revision source, const Revision target) = 0;
+  virtual void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
+  virtual void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) = 0;
+  virtual LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) = 0;
+  virtual void keepLock(const LockID lockID) = 0;
+  virtual void escalateLock(const LockID lockID, const LockTimeout timeout) = 0;
+  virtual void releaseLock(const LockID lockID) = 0;
+  virtual void query(ReadResults& _return, const Queries& queries) = 0;
+  virtual void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) = 0;
 };
 
 class ServiceIfFactory {
@@ -64,91 +64,91 @@ class ServiceIfSingletonFactory : virtual public ServiceIfFactory {
 class ServiceNull : virtual public ServiceIf {
  public:
   virtual ~ServiceNull() {}
-  void GetTopology(TopologyResult& /* _return */) {
+  void getTopology(TopologyResult& /* _return */) {
     return;
   }
-  Revision PrepareTopology(const TransactionID& /* transactionID */, const Topology& /* topology */) {
+  Revision prepareTopology(const TransactionID& /* transactionID */, const Topology& /* topology */) {
     Revision _return = 0;
     return _return;
   }
-  void CommitTopology(const TransactionID& /* transactionID */) {
+  void commitTopology(const TransactionID& /* transactionID */) {
     return;
   }
-  void RollbackTopology(const TransactionID& /* transactionID */) {
+  void rollbackTopology(const TransactionID& /* transactionID */) {
     return;
   }
-  void GetTopologyReport(TopologyReport& /* _return */) {
+  void getTopologyReport(TopologyReport& /* _return */) {
     return;
   }
-  void GetReport(HostReport& /* _return */) {
+  void getReport(HostReport& /* _return */) {
     return;
   }
-  Revision Prepare(const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
+  Revision prepare(const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
     Revision _return = 0;
     return _return;
   }
-  void Apply(TransactionID& /* _return */, const TransactionID& /* transactionID */, const Writes& /* writes */) {
+  void apply(TransactionID& /* _return */, const TransactionID& /* transactionID */, const Writes& /* writes */) {
     return;
   }
-  void Commit(const TransactionID& /* transactionID */) {
+  void commit(const TransactionID& /* transactionID */) {
     return;
   }
-  void Rollback(const TransactionID& /* transactionID */) {
+  void rollback(const TransactionID& /* transactionID */) {
     return;
   }
-  void Flush(const TransactionID& /* transactionID */) {
+  void flush(const TransactionID& /* transactionID */) {
     return;
   }
-  bool DoesConflict(const Reads& /* reads */, const Revision /* source */, const Revision /* target */) {
+  bool doesConflict(const Reads& /* reads */, const Revision /* source */, const Revision /* target */) {
     bool _return = false;
     return _return;
   }
-  void Update(TransactionID& /* _return */, const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
+  void update(TransactionID& /* _return */, const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
     return;
   }
-  void Transgrade(Reads& /* _return */, const Reads& /* reads */, const Revision /* source */, const Revision /* target */) {
+  void transgrade(Reads& /* _return */, const Reads& /* reads */, const Revision /* source */, const Revision /* target */) {
     return;
   }
-  LockID AcquireLock(const LockName& /* name */, const LockMode::type /* mode */, const LockTimeout /* timeout */) {
+  LockID acquireLock(const LockName& /* name */, const LockMode::type /* mode */, const LockTimeout /* timeout */) {
     LockID _return = 0;
     return _return;
   }
-  void KeepLock(const LockID /* lockID */) {
+  void keepLock(const LockID /* lockID */) {
     return;
   }
-  void EscalateLock(const LockID /* lockID */, const LockTimeout /* timeout */) {
+  void escalateLock(const LockID /* lockID */, const LockTimeout /* timeout */) {
     return;
   }
-  void ReleaseLock(const LockID /* lockID */) {
+  void releaseLock(const LockID /* lockID */) {
     return;
   }
-  void Query(ReadResults& /* _return */, const Queries& /* queries */) {
+  void query(ReadResults& /* _return */, const Queries& /* queries */) {
     return;
   }
-  void GetStatistics(std::vector<Statistic> & /* _return */, const std::vector<ColumnID> & /* columnIDs */) {
+  void getStatistics(std::vector<Statistic> & /* _return */, const std::vector<ColumnID> & /* columnIDs */) {
     return;
   }
 };
 
 
-class Service_GetTopology_args {
+class Service_getTopology_args {
  public:
 
-  Service_GetTopology_args() {
+  Service_getTopology_args() {
   }
 
-  virtual ~Service_GetTopology_args() throw() {}
+  virtual ~Service_getTopology_args() throw() {}
 
 
-  bool operator == (const Service_GetTopology_args & /* rhs */) const
+  bool operator == (const Service_getTopology_args & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_GetTopology_args &rhs) const {
+  bool operator != (const Service_getTopology_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetTopology_args & ) const;
+  bool operator < (const Service_getTopology_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -156,92 +156,92 @@ class Service_GetTopology_args {
 };
 
 
-class Service_GetTopology_pargs {
+class Service_getTopology_pargs {
  public:
 
 
-  virtual ~Service_GetTopology_pargs() throw() {}
+  virtual ~Service_getTopology_pargs() throw() {}
 
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetTopology_result__isset {
-  _Service_GetTopology_result__isset() : success(false) {}
+typedef struct _Service_getTopology_result__isset {
+  _Service_getTopology_result__isset() : success(false) {}
   bool success;
-} _Service_GetTopology_result__isset;
+} _Service_getTopology_result__isset;
 
-class Service_GetTopology_result {
+class Service_getTopology_result {
  public:
 
-  Service_GetTopology_result() {
+  Service_getTopology_result() {
   }
 
-  virtual ~Service_GetTopology_result() throw() {}
+  virtual ~Service_getTopology_result() throw() {}
 
   TopologyResult success;
 
-  _Service_GetTopology_result__isset __isset;
+  _Service_getTopology_result__isset __isset;
 
   void __set_success(const TopologyResult& val) {
     success = val;
   }
 
-  bool operator == (const Service_GetTopology_result & rhs) const
+  bool operator == (const Service_getTopology_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_GetTopology_result &rhs) const {
+  bool operator != (const Service_getTopology_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetTopology_result & ) const;
+  bool operator < (const Service_getTopology_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetTopology_presult__isset {
-  _Service_GetTopology_presult__isset() : success(false) {}
+typedef struct _Service_getTopology_presult__isset {
+  _Service_getTopology_presult__isset() : success(false) {}
   bool success;
-} _Service_GetTopology_presult__isset;
+} _Service_getTopology_presult__isset;
 
-class Service_GetTopology_presult {
+class Service_getTopology_presult {
  public:
 
 
-  virtual ~Service_GetTopology_presult() throw() {}
+  virtual ~Service_getTopology_presult() throw() {}
 
   TopologyResult* success;
 
-  _Service_GetTopology_presult__isset __isset;
+  _Service_getTopology_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_PrepareTopology_args__isset {
-  _Service_PrepareTopology_args__isset() : transactionID(false), topology(false) {}
+typedef struct _Service_prepareTopology_args__isset {
+  _Service_prepareTopology_args__isset() : transactionID(false), topology(false) {}
   bool transactionID;
   bool topology;
-} _Service_PrepareTopology_args__isset;
+} _Service_prepareTopology_args__isset;
 
-class Service_PrepareTopology_args {
+class Service_prepareTopology_args {
  public:
 
-  Service_PrepareTopology_args() {
+  Service_prepareTopology_args() {
   }
 
-  virtual ~Service_PrepareTopology_args() throw() {}
+  virtual ~Service_prepareTopology_args() throw() {}
 
   TransactionID transactionID;
   Topology topology;
 
-  _Service_PrepareTopology_args__isset __isset;
+  _Service_prepareTopology_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
@@ -251,7 +251,7 @@ class Service_PrepareTopology_args {
     topology = val;
   }
 
-  bool operator == (const Service_PrepareTopology_args & rhs) const
+  bool operator == (const Service_prepareTopology_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
@@ -259,11 +259,11 @@ class Service_PrepareTopology_args {
       return false;
     return true;
   }
-  bool operator != (const Service_PrepareTopology_args &rhs) const {
+  bool operator != (const Service_prepareTopology_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_PrepareTopology_args & ) const;
+  bool operator < (const Service_prepareTopology_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -271,11 +271,11 @@ class Service_PrepareTopology_args {
 };
 
 
-class Service_PrepareTopology_pargs {
+class Service_prepareTopology_pargs {
  public:
 
 
-  virtual ~Service_PrepareTopology_pargs() throw() {}
+  virtual ~Service_prepareTopology_pargs() throw() {}
 
   const TransactionID* transactionID;
   const Topology* topology;
@@ -284,95 +284,95 @@ class Service_PrepareTopology_pargs {
 
 };
 
-typedef struct _Service_PrepareTopology_result__isset {
-  _Service_PrepareTopology_result__isset() : success(false) {}
+typedef struct _Service_prepareTopology_result__isset {
+  _Service_prepareTopology_result__isset() : success(false) {}
   bool success;
-} _Service_PrepareTopology_result__isset;
+} _Service_prepareTopology_result__isset;
 
-class Service_PrepareTopology_result {
+class Service_prepareTopology_result {
  public:
 
-  Service_PrepareTopology_result() : success(0) {
+  Service_prepareTopology_result() : success(0) {
   }
 
-  virtual ~Service_PrepareTopology_result() throw() {}
+  virtual ~Service_prepareTopology_result() throw() {}
 
   Revision success;
 
-  _Service_PrepareTopology_result__isset __isset;
+  _Service_prepareTopology_result__isset __isset;
 
   void __set_success(const Revision val) {
     success = val;
   }
 
-  bool operator == (const Service_PrepareTopology_result & rhs) const
+  bool operator == (const Service_prepareTopology_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_PrepareTopology_result &rhs) const {
+  bool operator != (const Service_prepareTopology_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_PrepareTopology_result & ) const;
+  bool operator < (const Service_prepareTopology_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_PrepareTopology_presult__isset {
-  _Service_PrepareTopology_presult__isset() : success(false) {}
+typedef struct _Service_prepareTopology_presult__isset {
+  _Service_prepareTopology_presult__isset() : success(false) {}
   bool success;
-} _Service_PrepareTopology_presult__isset;
+} _Service_prepareTopology_presult__isset;
 
-class Service_PrepareTopology_presult {
+class Service_prepareTopology_presult {
  public:
 
 
-  virtual ~Service_PrepareTopology_presult() throw() {}
+  virtual ~Service_prepareTopology_presult() throw() {}
 
   Revision* success;
 
-  _Service_PrepareTopology_presult__isset __isset;
+  _Service_prepareTopology_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_CommitTopology_args__isset {
-  _Service_CommitTopology_args__isset() : transactionID(false) {}
+typedef struct _Service_commitTopology_args__isset {
+  _Service_commitTopology_args__isset() : transactionID(false) {}
   bool transactionID;
-} _Service_CommitTopology_args__isset;
+} _Service_commitTopology_args__isset;
 
-class Service_CommitTopology_args {
+class Service_commitTopology_args {
  public:
 
-  Service_CommitTopology_args() {
+  Service_commitTopology_args() {
   }
 
-  virtual ~Service_CommitTopology_args() throw() {}
+  virtual ~Service_commitTopology_args() throw() {}
 
   TransactionID transactionID;
 
-  _Service_CommitTopology_args__isset __isset;
+  _Service_commitTopology_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
   }
 
-  bool operator == (const Service_CommitTopology_args & rhs) const
+  bool operator == (const Service_commitTopology_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
     return true;
   }
-  bool operator != (const Service_CommitTopology_args &rhs) const {
+  bool operator != (const Service_commitTopology_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_CommitTopology_args & ) const;
+  bool operator < (const Service_commitTopology_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -380,11 +380,11 @@ class Service_CommitTopology_args {
 };
 
 
-class Service_CommitTopology_pargs {
+class Service_commitTopology_pargs {
  public:
 
 
-  virtual ~Service_CommitTopology_pargs() throw() {}
+  virtual ~Service_commitTopology_pargs() throw() {}
 
   const TransactionID* transactionID;
 
@@ -393,24 +393,24 @@ class Service_CommitTopology_pargs {
 };
 
 
-class Service_CommitTopology_result {
+class Service_commitTopology_result {
  public:
 
-  Service_CommitTopology_result() {
+  Service_commitTopology_result() {
   }
 
-  virtual ~Service_CommitTopology_result() throw() {}
+  virtual ~Service_commitTopology_result() throw() {}
 
 
-  bool operator == (const Service_CommitTopology_result & /* rhs */) const
+  bool operator == (const Service_commitTopology_result & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_CommitTopology_result &rhs) const {
+  bool operator != (const Service_commitTopology_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_CommitTopology_result & ) const;
+  bool operator < (const Service_commitTopology_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -418,49 +418,49 @@ class Service_CommitTopology_result {
 };
 
 
-class Service_CommitTopology_presult {
+class Service_commitTopology_presult {
  public:
 
 
-  virtual ~Service_CommitTopology_presult() throw() {}
+  virtual ~Service_commitTopology_presult() throw() {}
 
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_RollbackTopology_args__isset {
-  _Service_RollbackTopology_args__isset() : transactionID(false) {}
+typedef struct _Service_rollbackTopology_args__isset {
+  _Service_rollbackTopology_args__isset() : transactionID(false) {}
   bool transactionID;
-} _Service_RollbackTopology_args__isset;
+} _Service_rollbackTopology_args__isset;
 
-class Service_RollbackTopology_args {
+class Service_rollbackTopology_args {
  public:
 
-  Service_RollbackTopology_args() {
+  Service_rollbackTopology_args() {
   }
 
-  virtual ~Service_RollbackTopology_args() throw() {}
+  virtual ~Service_rollbackTopology_args() throw() {}
 
   TransactionID transactionID;
 
-  _Service_RollbackTopology_args__isset __isset;
+  _Service_rollbackTopology_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
   }
 
-  bool operator == (const Service_RollbackTopology_args & rhs) const
+  bool operator == (const Service_rollbackTopology_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
     return true;
   }
-  bool operator != (const Service_RollbackTopology_args &rhs) const {
+  bool operator != (const Service_rollbackTopology_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_RollbackTopology_args & ) const;
+  bool operator < (const Service_rollbackTopology_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -468,11 +468,11 @@ class Service_RollbackTopology_args {
 };
 
 
-class Service_RollbackTopology_pargs {
+class Service_rollbackTopology_pargs {
  public:
 
 
-  virtual ~Service_RollbackTopology_pargs() throw() {}
+  virtual ~Service_rollbackTopology_pargs() throw() {}
 
   const TransactionID* transactionID;
 
@@ -481,24 +481,24 @@ class Service_RollbackTopology_pargs {
 };
 
 
-class Service_RollbackTopology_result {
+class Service_rollbackTopology_result {
  public:
 
-  Service_RollbackTopology_result() {
+  Service_rollbackTopology_result() {
   }
 
-  virtual ~Service_RollbackTopology_result() throw() {}
+  virtual ~Service_rollbackTopology_result() throw() {}
 
 
-  bool operator == (const Service_RollbackTopology_result & /* rhs */) const
+  bool operator == (const Service_rollbackTopology_result & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_RollbackTopology_result &rhs) const {
+  bool operator != (const Service_rollbackTopology_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_RollbackTopology_result & ) const;
+  bool operator < (const Service_rollbackTopology_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -506,11 +506,11 @@ class Service_RollbackTopology_result {
 };
 
 
-class Service_RollbackTopology_presult {
+class Service_rollbackTopology_presult {
  public:
 
 
-  virtual ~Service_RollbackTopology_presult() throw() {}
+  virtual ~Service_rollbackTopology_presult() throw() {}
 
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
@@ -518,24 +518,24 @@ class Service_RollbackTopology_presult {
 };
 
 
-class Service_GetTopologyReport_args {
+class Service_getTopologyReport_args {
  public:
 
-  Service_GetTopologyReport_args() {
+  Service_getTopologyReport_args() {
   }
 
-  virtual ~Service_GetTopologyReport_args() throw() {}
+  virtual ~Service_getTopologyReport_args() throw() {}
 
 
-  bool operator == (const Service_GetTopologyReport_args & /* rhs */) const
+  bool operator == (const Service_getTopologyReport_args & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_GetTopologyReport_args &rhs) const {
+  bool operator != (const Service_getTopologyReport_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetTopologyReport_args & ) const;
+  bool operator < (const Service_getTopologyReport_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -543,93 +543,93 @@ class Service_GetTopologyReport_args {
 };
 
 
-class Service_GetTopologyReport_pargs {
+class Service_getTopologyReport_pargs {
  public:
 
 
-  virtual ~Service_GetTopologyReport_pargs() throw() {}
+  virtual ~Service_getTopologyReport_pargs() throw() {}
 
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetTopologyReport_result__isset {
-  _Service_GetTopologyReport_result__isset() : success(false) {}
+typedef struct _Service_getTopologyReport_result__isset {
+  _Service_getTopologyReport_result__isset() : success(false) {}
   bool success;
-} _Service_GetTopologyReport_result__isset;
+} _Service_getTopologyReport_result__isset;
 
-class Service_GetTopologyReport_result {
+class Service_getTopologyReport_result {
  public:
 
-  Service_GetTopologyReport_result() {
+  Service_getTopologyReport_result() {
   }
 
-  virtual ~Service_GetTopologyReport_result() throw() {}
+  virtual ~Service_getTopologyReport_result() throw() {}
 
   TopologyReport success;
 
-  _Service_GetTopologyReport_result__isset __isset;
+  _Service_getTopologyReport_result__isset __isset;
 
   void __set_success(const TopologyReport& val) {
     success = val;
   }
 
-  bool operator == (const Service_GetTopologyReport_result & rhs) const
+  bool operator == (const Service_getTopologyReport_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_GetTopologyReport_result &rhs) const {
+  bool operator != (const Service_getTopologyReport_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetTopologyReport_result & ) const;
+  bool operator < (const Service_getTopologyReport_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetTopologyReport_presult__isset {
-  _Service_GetTopologyReport_presult__isset() : success(false) {}
+typedef struct _Service_getTopologyReport_presult__isset {
+  _Service_getTopologyReport_presult__isset() : success(false) {}
   bool success;
-} _Service_GetTopologyReport_presult__isset;
+} _Service_getTopologyReport_presult__isset;
 
-class Service_GetTopologyReport_presult {
+class Service_getTopologyReport_presult {
  public:
 
 
-  virtual ~Service_GetTopologyReport_presult() throw() {}
+  virtual ~Service_getTopologyReport_presult() throw() {}
 
   TopologyReport* success;
 
-  _Service_GetTopologyReport_presult__isset __isset;
+  _Service_getTopologyReport_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
 
-class Service_GetReport_args {
+class Service_getReport_args {
  public:
 
-  Service_GetReport_args() {
+  Service_getReport_args() {
   }
 
-  virtual ~Service_GetReport_args() throw() {}
+  virtual ~Service_getReport_args() throw() {}
 
 
-  bool operator == (const Service_GetReport_args & /* rhs */) const
+  bool operator == (const Service_getReport_args & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_GetReport_args &rhs) const {
+  bool operator != (const Service_getReport_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetReport_args & ) const;
+  bool operator < (const Service_getReport_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -637,94 +637,94 @@ class Service_GetReport_args {
 };
 
 
-class Service_GetReport_pargs {
+class Service_getReport_pargs {
  public:
 
 
-  virtual ~Service_GetReport_pargs() throw() {}
+  virtual ~Service_getReport_pargs() throw() {}
 
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetReport_result__isset {
-  _Service_GetReport_result__isset() : success(false) {}
+typedef struct _Service_getReport_result__isset {
+  _Service_getReport_result__isset() : success(false) {}
   bool success;
-} _Service_GetReport_result__isset;
+} _Service_getReport_result__isset;
 
-class Service_GetReport_result {
+class Service_getReport_result {
  public:
 
-  Service_GetReport_result() {
+  Service_getReport_result() {
   }
 
-  virtual ~Service_GetReport_result() throw() {}
+  virtual ~Service_getReport_result() throw() {}
 
   HostReport success;
 
-  _Service_GetReport_result__isset __isset;
+  _Service_getReport_result__isset __isset;
 
   void __set_success(const HostReport& val) {
     success = val;
   }
 
-  bool operator == (const Service_GetReport_result & rhs) const
+  bool operator == (const Service_getReport_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_GetReport_result &rhs) const {
+  bool operator != (const Service_getReport_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetReport_result & ) const;
+  bool operator < (const Service_getReport_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetReport_presult__isset {
-  _Service_GetReport_presult__isset() : success(false) {}
+typedef struct _Service_getReport_presult__isset {
+  _Service_getReport_presult__isset() : success(false) {}
   bool success;
-} _Service_GetReport_presult__isset;
+} _Service_getReport_presult__isset;
 
-class Service_GetReport_presult {
+class Service_getReport_presult {
  public:
 
 
-  virtual ~Service_GetReport_presult() throw() {}
+  virtual ~Service_getReport_presult() throw() {}
 
   HostReport* success;
 
-  _Service_GetReport_presult__isset __isset;
+  _Service_getReport_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Prepare_args__isset {
-  _Service_Prepare_args__isset() : transactionID(false), writes(false), reads(false) {}
+typedef struct _Service_prepare_args__isset {
+  _Service_prepare_args__isset() : transactionID(false), writes(false), reads(false) {}
   bool transactionID;
   bool writes;
   bool reads;
-} _Service_Prepare_args__isset;
+} _Service_prepare_args__isset;
 
-class Service_Prepare_args {
+class Service_prepare_args {
  public:
 
-  Service_Prepare_args() {
+  Service_prepare_args() {
   }
 
-  virtual ~Service_Prepare_args() throw() {}
+  virtual ~Service_prepare_args() throw() {}
 
   TransactionID transactionID;
   Writes writes;
   Reads reads;
 
-  _Service_Prepare_args__isset __isset;
+  _Service_prepare_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
@@ -738,7 +738,7 @@ class Service_Prepare_args {
     reads = val;
   }
 
-  bool operator == (const Service_Prepare_args & rhs) const
+  bool operator == (const Service_prepare_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
@@ -748,11 +748,11 @@ class Service_Prepare_args {
       return false;
     return true;
   }
-  bool operator != (const Service_Prepare_args &rhs) const {
+  bool operator != (const Service_prepare_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Prepare_args & ) const;
+  bool operator < (const Service_prepare_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -760,11 +760,11 @@ class Service_Prepare_args {
 };
 
 
-class Service_Prepare_pargs {
+class Service_prepare_pargs {
  public:
 
 
-  virtual ~Service_Prepare_pargs() throw() {}
+  virtual ~Service_prepare_pargs() throw() {}
 
   const TransactionID* transactionID;
   const Writes* writes;
@@ -774,24 +774,24 @@ class Service_Prepare_pargs {
 
 };
 
-typedef struct _Service_Prepare_result__isset {
-  _Service_Prepare_result__isset() : success(false), notLatest(false) {}
+typedef struct _Service_prepare_result__isset {
+  _Service_prepare_result__isset() : success(false), notLatest(false) {}
   bool success;
   bool notLatest;
-} _Service_Prepare_result__isset;
+} _Service_prepare_result__isset;
 
-class Service_Prepare_result {
+class Service_prepare_result {
  public:
 
-  Service_Prepare_result() : success(0) {
+  Service_prepare_result() : success(0) {
   }
 
-  virtual ~Service_Prepare_result() throw() {}
+  virtual ~Service_prepare_result() throw() {}
 
   Revision success;
   NotLatest notLatest;
 
-  _Service_Prepare_result__isset __isset;
+  _Service_prepare_result__isset __isset;
 
   void __set_success(const Revision val) {
     success = val;
@@ -801,7 +801,7 @@ class Service_Prepare_result {
     notLatest = val;
   }
 
-  bool operator == (const Service_Prepare_result & rhs) const
+  bool operator == (const Service_prepare_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -809,56 +809,56 @@ class Service_Prepare_result {
       return false;
     return true;
   }
-  bool operator != (const Service_Prepare_result &rhs) const {
+  bool operator != (const Service_prepare_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Prepare_result & ) const;
+  bool operator < (const Service_prepare_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_Prepare_presult__isset {
-  _Service_Prepare_presult__isset() : success(false), notLatest(false) {}
+typedef struct _Service_prepare_presult__isset {
+  _Service_prepare_presult__isset() : success(false), notLatest(false) {}
   bool success;
   bool notLatest;
-} _Service_Prepare_presult__isset;
+} _Service_prepare_presult__isset;
 
-class Service_Prepare_presult {
+class Service_prepare_presult {
  public:
 
 
-  virtual ~Service_Prepare_presult() throw() {}
+  virtual ~Service_prepare_presult() throw() {}
 
   Revision* success;
   NotLatest notLatest;
 
-  _Service_Prepare_presult__isset __isset;
+  _Service_prepare_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Apply_args__isset {
-  _Service_Apply_args__isset() : transactionID(false), writes(false) {}
+typedef struct _Service_apply_args__isset {
+  _Service_apply_args__isset() : transactionID(false), writes(false) {}
   bool transactionID;
   bool writes;
-} _Service_Apply_args__isset;
+} _Service_apply_args__isset;
 
-class Service_Apply_args {
+class Service_apply_args {
  public:
 
-  Service_Apply_args() {
+  Service_apply_args() {
   }
 
-  virtual ~Service_Apply_args() throw() {}
+  virtual ~Service_apply_args() throw() {}
 
   TransactionID transactionID;
   Writes writes;
 
-  _Service_Apply_args__isset __isset;
+  _Service_apply_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
@@ -868,7 +868,7 @@ class Service_Apply_args {
     writes = val;
   }
 
-  bool operator == (const Service_Apply_args & rhs) const
+  bool operator == (const Service_apply_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
@@ -876,11 +876,11 @@ class Service_Apply_args {
       return false;
     return true;
   }
-  bool operator != (const Service_Apply_args &rhs) const {
+  bool operator != (const Service_apply_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Apply_args & ) const;
+  bool operator < (const Service_apply_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -888,11 +888,11 @@ class Service_Apply_args {
 };
 
 
-class Service_Apply_pargs {
+class Service_apply_pargs {
  public:
 
 
-  virtual ~Service_Apply_pargs() throw() {}
+  virtual ~Service_apply_pargs() throw() {}
 
   const TransactionID* transactionID;
   const Writes* writes;
@@ -901,95 +901,95 @@ class Service_Apply_pargs {
 
 };
 
-typedef struct _Service_Apply_result__isset {
-  _Service_Apply_result__isset() : success(false) {}
+typedef struct _Service_apply_result__isset {
+  _Service_apply_result__isset() : success(false) {}
   bool success;
-} _Service_Apply_result__isset;
+} _Service_apply_result__isset;
 
-class Service_Apply_result {
+class Service_apply_result {
  public:
 
-  Service_Apply_result() {
+  Service_apply_result() {
   }
 
-  virtual ~Service_Apply_result() throw() {}
+  virtual ~Service_apply_result() throw() {}
 
   TransactionID success;
 
-  _Service_Apply_result__isset __isset;
+  _Service_apply_result__isset __isset;
 
   void __set_success(const TransactionID& val) {
     success = val;
   }
 
-  bool operator == (const Service_Apply_result & rhs) const
+  bool operator == (const Service_apply_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_Apply_result &rhs) const {
+  bool operator != (const Service_apply_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Apply_result & ) const;
+  bool operator < (const Service_apply_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_Apply_presult__isset {
-  _Service_Apply_presult__isset() : success(false) {}
+typedef struct _Service_apply_presult__isset {
+  _Service_apply_presult__isset() : success(false) {}
   bool success;
-} _Service_Apply_presult__isset;
+} _Service_apply_presult__isset;
 
-class Service_Apply_presult {
+class Service_apply_presult {
  public:
 
 
-  virtual ~Service_Apply_presult() throw() {}
+  virtual ~Service_apply_presult() throw() {}
 
   TransactionID* success;
 
-  _Service_Apply_presult__isset __isset;
+  _Service_apply_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Commit_args__isset {
-  _Service_Commit_args__isset() : transactionID(false) {}
+typedef struct _Service_commit_args__isset {
+  _Service_commit_args__isset() : transactionID(false) {}
   bool transactionID;
-} _Service_Commit_args__isset;
+} _Service_commit_args__isset;
 
-class Service_Commit_args {
+class Service_commit_args {
  public:
 
-  Service_Commit_args() {
+  Service_commit_args() {
   }
 
-  virtual ~Service_Commit_args() throw() {}
+  virtual ~Service_commit_args() throw() {}
 
   TransactionID transactionID;
 
-  _Service_Commit_args__isset __isset;
+  _Service_commit_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
   }
 
-  bool operator == (const Service_Commit_args & rhs) const
+  bool operator == (const Service_commit_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
     return true;
   }
-  bool operator != (const Service_Commit_args &rhs) const {
+  bool operator != (const Service_commit_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Commit_args & ) const;
+  bool operator < (const Service_commit_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -997,11 +997,11 @@ class Service_Commit_args {
 };
 
 
-class Service_Commit_pargs {
+class Service_commit_pargs {
  public:
 
 
-  virtual ~Service_Commit_pargs() throw() {}
+  virtual ~Service_commit_pargs() throw() {}
 
   const TransactionID* transactionID;
 
@@ -1010,24 +1010,24 @@ class Service_Commit_pargs {
 };
 
 
-class Service_Commit_result {
+class Service_commit_result {
  public:
 
-  Service_Commit_result() {
+  Service_commit_result() {
   }
 
-  virtual ~Service_Commit_result() throw() {}
+  virtual ~Service_commit_result() throw() {}
 
 
-  bool operator == (const Service_Commit_result & /* rhs */) const
+  bool operator == (const Service_commit_result & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_Commit_result &rhs) const {
+  bool operator != (const Service_commit_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Commit_result & ) const;
+  bool operator < (const Service_commit_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1035,49 +1035,49 @@ class Service_Commit_result {
 };
 
 
-class Service_Commit_presult {
+class Service_commit_presult {
  public:
 
 
-  virtual ~Service_Commit_presult() throw() {}
+  virtual ~Service_commit_presult() throw() {}
 
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Rollback_args__isset {
-  _Service_Rollback_args__isset() : transactionID(false) {}
+typedef struct _Service_rollback_args__isset {
+  _Service_rollback_args__isset() : transactionID(false) {}
   bool transactionID;
-} _Service_Rollback_args__isset;
+} _Service_rollback_args__isset;
 
-class Service_Rollback_args {
+class Service_rollback_args {
  public:
 
-  Service_Rollback_args() {
+  Service_rollback_args() {
   }
 
-  virtual ~Service_Rollback_args() throw() {}
+  virtual ~Service_rollback_args() throw() {}
 
   TransactionID transactionID;
 
-  _Service_Rollback_args__isset __isset;
+  _Service_rollback_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
   }
 
-  bool operator == (const Service_Rollback_args & rhs) const
+  bool operator == (const Service_rollback_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
     return true;
   }
-  bool operator != (const Service_Rollback_args &rhs) const {
+  bool operator != (const Service_rollback_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Rollback_args & ) const;
+  bool operator < (const Service_rollback_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1085,11 +1085,11 @@ class Service_Rollback_args {
 };
 
 
-class Service_Rollback_pargs {
+class Service_rollback_pargs {
  public:
 
 
-  virtual ~Service_Rollback_pargs() throw() {}
+  virtual ~Service_rollback_pargs() throw() {}
 
   const TransactionID* transactionID;
 
@@ -1098,24 +1098,24 @@ class Service_Rollback_pargs {
 };
 
 
-class Service_Rollback_result {
+class Service_rollback_result {
  public:
 
-  Service_Rollback_result() {
+  Service_rollback_result() {
   }
 
-  virtual ~Service_Rollback_result() throw() {}
+  virtual ~Service_rollback_result() throw() {}
 
 
-  bool operator == (const Service_Rollback_result & /* rhs */) const
+  bool operator == (const Service_rollback_result & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_Rollback_result &rhs) const {
+  bool operator != (const Service_rollback_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Rollback_result & ) const;
+  bool operator < (const Service_rollback_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1123,49 +1123,49 @@ class Service_Rollback_result {
 };
 
 
-class Service_Rollback_presult {
+class Service_rollback_presult {
  public:
 
 
-  virtual ~Service_Rollback_presult() throw() {}
+  virtual ~Service_rollback_presult() throw() {}
 
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Flush_args__isset {
-  _Service_Flush_args__isset() : transactionID(false) {}
+typedef struct _Service_flush_args__isset {
+  _Service_flush_args__isset() : transactionID(false) {}
   bool transactionID;
-} _Service_Flush_args__isset;
+} _Service_flush_args__isset;
 
-class Service_Flush_args {
+class Service_flush_args {
  public:
 
-  Service_Flush_args() {
+  Service_flush_args() {
   }
 
-  virtual ~Service_Flush_args() throw() {}
+  virtual ~Service_flush_args() throw() {}
 
   TransactionID transactionID;
 
-  _Service_Flush_args__isset __isset;
+  _Service_flush_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
   }
 
-  bool operator == (const Service_Flush_args & rhs) const
+  bool operator == (const Service_flush_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
     return true;
   }
-  bool operator != (const Service_Flush_args &rhs) const {
+  bool operator != (const Service_flush_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Flush_args & ) const;
+  bool operator < (const Service_flush_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1173,11 +1173,11 @@ class Service_Flush_args {
 };
 
 
-class Service_Flush_pargs {
+class Service_flush_pargs {
  public:
 
 
-  virtual ~Service_Flush_pargs() throw() {}
+  virtual ~Service_flush_pargs() throw() {}
 
   const TransactionID* transactionID;
 
@@ -1186,24 +1186,24 @@ class Service_Flush_pargs {
 };
 
 
-class Service_Flush_result {
+class Service_flush_result {
  public:
 
-  Service_Flush_result() {
+  Service_flush_result() {
   }
 
-  virtual ~Service_Flush_result() throw() {}
+  virtual ~Service_flush_result() throw() {}
 
 
-  bool operator == (const Service_Flush_result & /* rhs */) const
+  bool operator == (const Service_flush_result & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_Flush_result &rhs) const {
+  bool operator != (const Service_flush_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Flush_result & ) const;
+  bool operator < (const Service_flush_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1211,37 +1211,37 @@ class Service_Flush_result {
 };
 
 
-class Service_Flush_presult {
+class Service_flush_presult {
  public:
 
 
-  virtual ~Service_Flush_presult() throw() {}
+  virtual ~Service_flush_presult() throw() {}
 
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_DoesConflict_args__isset {
-  _Service_DoesConflict_args__isset() : reads(false), source(false), target(false) {}
+typedef struct _Service_doesConflict_args__isset {
+  _Service_doesConflict_args__isset() : reads(false), source(false), target(false) {}
   bool reads;
   bool source;
   bool target;
-} _Service_DoesConflict_args__isset;
+} _Service_doesConflict_args__isset;
 
-class Service_DoesConflict_args {
+class Service_doesConflict_args {
  public:
 
-  Service_DoesConflict_args() : source(0), target(0) {
+  Service_doesConflict_args() : source(0), target(0) {
   }
 
-  virtual ~Service_DoesConflict_args() throw() {}
+  virtual ~Service_doesConflict_args() throw() {}
 
   Reads reads;
   Revision source;
   Revision target;
 
-  _Service_DoesConflict_args__isset __isset;
+  _Service_doesConflict_args__isset __isset;
 
   void __set_reads(const Reads& val) {
     reads = val;
@@ -1255,7 +1255,7 @@ class Service_DoesConflict_args {
     target = val;
   }
 
-  bool operator == (const Service_DoesConflict_args & rhs) const
+  bool operator == (const Service_doesConflict_args & rhs) const
   {
     if (!(reads == rhs.reads))
       return false;
@@ -1265,11 +1265,11 @@ class Service_DoesConflict_args {
       return false;
     return true;
   }
-  bool operator != (const Service_DoesConflict_args &rhs) const {
+  bool operator != (const Service_doesConflict_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_DoesConflict_args & ) const;
+  bool operator < (const Service_doesConflict_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1277,11 +1277,11 @@ class Service_DoesConflict_args {
 };
 
 
-class Service_DoesConflict_pargs {
+class Service_doesConflict_pargs {
  public:
 
 
-  virtual ~Service_DoesConflict_pargs() throw() {}
+  virtual ~Service_doesConflict_pargs() throw() {}
 
   const Reads* reads;
   const Revision* source;
@@ -1291,24 +1291,24 @@ class Service_DoesConflict_pargs {
 
 };
 
-typedef struct _Service_DoesConflict_result__isset {
-  _Service_DoesConflict_result__isset() : success(false), beyondHistory(false) {}
+typedef struct _Service_doesConflict_result__isset {
+  _Service_doesConflict_result__isset() : success(false), beyondHistory(false) {}
   bool success;
   bool beyondHistory;
-} _Service_DoesConflict_result__isset;
+} _Service_doesConflict_result__isset;
 
-class Service_DoesConflict_result {
+class Service_doesConflict_result {
  public:
 
-  Service_DoesConflict_result() : success(0) {
+  Service_doesConflict_result() : success(0) {
   }
 
-  virtual ~Service_DoesConflict_result() throw() {}
+  virtual ~Service_doesConflict_result() throw() {}
 
   bool success;
   BeyondHistory beyondHistory;
 
-  _Service_DoesConflict_result__isset __isset;
+  _Service_doesConflict_result__isset __isset;
 
   void __set_success(const bool val) {
     success = val;
@@ -1318,7 +1318,7 @@ class Service_DoesConflict_result {
     beyondHistory = val;
   }
 
-  bool operator == (const Service_DoesConflict_result & rhs) const
+  bool operator == (const Service_doesConflict_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -1326,58 +1326,58 @@ class Service_DoesConflict_result {
       return false;
     return true;
   }
-  bool operator != (const Service_DoesConflict_result &rhs) const {
+  bool operator != (const Service_doesConflict_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_DoesConflict_result & ) const;
+  bool operator < (const Service_doesConflict_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_DoesConflict_presult__isset {
-  _Service_DoesConflict_presult__isset() : success(false), beyondHistory(false) {}
+typedef struct _Service_doesConflict_presult__isset {
+  _Service_doesConflict_presult__isset() : success(false), beyondHistory(false) {}
   bool success;
   bool beyondHistory;
-} _Service_DoesConflict_presult__isset;
+} _Service_doesConflict_presult__isset;
 
-class Service_DoesConflict_presult {
+class Service_doesConflict_presult {
  public:
 
 
-  virtual ~Service_DoesConflict_presult() throw() {}
+  virtual ~Service_doesConflict_presult() throw() {}
 
   bool* success;
   BeyondHistory beyondHistory;
 
-  _Service_DoesConflict_presult__isset __isset;
+  _Service_doesConflict_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Update_args__isset {
-  _Service_Update_args__isset() : transactionID(false), writes(false), reads(false) {}
+typedef struct _Service_update_args__isset {
+  _Service_update_args__isset() : transactionID(false), writes(false), reads(false) {}
   bool transactionID;
   bool writes;
   bool reads;
-} _Service_Update_args__isset;
+} _Service_update_args__isset;
 
-class Service_Update_args {
+class Service_update_args {
  public:
 
-  Service_Update_args() {
+  Service_update_args() {
   }
 
-  virtual ~Service_Update_args() throw() {}
+  virtual ~Service_update_args() throw() {}
 
   TransactionID transactionID;
   Writes writes;
   Reads reads;
 
-  _Service_Update_args__isset __isset;
+  _Service_update_args__isset __isset;
 
   void __set_transactionID(const TransactionID& val) {
     transactionID = val;
@@ -1391,7 +1391,7 @@ class Service_Update_args {
     reads = val;
   }
 
-  bool operator == (const Service_Update_args & rhs) const
+  bool operator == (const Service_update_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
@@ -1401,11 +1401,11 @@ class Service_Update_args {
       return false;
     return true;
   }
-  bool operator != (const Service_Update_args &rhs) const {
+  bool operator != (const Service_update_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Update_args & ) const;
+  bool operator < (const Service_update_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1413,11 +1413,11 @@ class Service_Update_args {
 };
 
 
-class Service_Update_pargs {
+class Service_update_pargs {
  public:
 
 
-  virtual ~Service_Update_pargs() throw() {}
+  virtual ~Service_update_pargs() throw() {}
 
   const TransactionID* transactionID;
   const Writes* writes;
@@ -1427,24 +1427,24 @@ class Service_Update_pargs {
 
 };
 
-typedef struct _Service_Update_result__isset {
-  _Service_Update_result__isset() : success(false), conflict(false) {}
+typedef struct _Service_update_result__isset {
+  _Service_update_result__isset() : success(false), conflict(false) {}
   bool success;
   bool conflict;
-} _Service_Update_result__isset;
+} _Service_update_result__isset;
 
-class Service_Update_result {
+class Service_update_result {
  public:
 
-  Service_Update_result() {
+  Service_update_result() {
   }
 
-  virtual ~Service_Update_result() throw() {}
+  virtual ~Service_update_result() throw() {}
 
   TransactionID success;
   Conflict conflict;
 
-  _Service_Update_result__isset __isset;
+  _Service_update_result__isset __isset;
 
   void __set_success(const TransactionID& val) {
     success = val;
@@ -1454,7 +1454,7 @@ class Service_Update_result {
     conflict = val;
   }
 
-  bool operator == (const Service_Update_result & rhs) const
+  bool operator == (const Service_update_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -1462,58 +1462,58 @@ class Service_Update_result {
       return false;
     return true;
   }
-  bool operator != (const Service_Update_result &rhs) const {
+  bool operator != (const Service_update_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Update_result & ) const;
+  bool operator < (const Service_update_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_Update_presult__isset {
-  _Service_Update_presult__isset() : success(false), conflict(false) {}
+typedef struct _Service_update_presult__isset {
+  _Service_update_presult__isset() : success(false), conflict(false) {}
   bool success;
   bool conflict;
-} _Service_Update_presult__isset;
+} _Service_update_presult__isset;
 
-class Service_Update_presult {
+class Service_update_presult {
  public:
 
 
-  virtual ~Service_Update_presult() throw() {}
+  virtual ~Service_update_presult() throw() {}
 
   TransactionID* success;
   Conflict conflict;
 
-  _Service_Update_presult__isset __isset;
+  _Service_update_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Transgrade_args__isset {
-  _Service_Transgrade_args__isset() : reads(false), source(false), target(false) {}
+typedef struct _Service_transgrade_args__isset {
+  _Service_transgrade_args__isset() : reads(false), source(false), target(false) {}
   bool reads;
   bool source;
   bool target;
-} _Service_Transgrade_args__isset;
+} _Service_transgrade_args__isset;
 
-class Service_Transgrade_args {
+class Service_transgrade_args {
  public:
 
-  Service_Transgrade_args() : source(0), target(0) {
+  Service_transgrade_args() : source(0), target(0) {
   }
 
-  virtual ~Service_Transgrade_args() throw() {}
+  virtual ~Service_transgrade_args() throw() {}
 
   Reads reads;
   Revision source;
   Revision target;
 
-  _Service_Transgrade_args__isset __isset;
+  _Service_transgrade_args__isset __isset;
 
   void __set_reads(const Reads& val) {
     reads = val;
@@ -1527,7 +1527,7 @@ class Service_Transgrade_args {
     target = val;
   }
 
-  bool operator == (const Service_Transgrade_args & rhs) const
+  bool operator == (const Service_transgrade_args & rhs) const
   {
     if (!(reads == rhs.reads))
       return false;
@@ -1537,11 +1537,11 @@ class Service_Transgrade_args {
       return false;
     return true;
   }
-  bool operator != (const Service_Transgrade_args &rhs) const {
+  bool operator != (const Service_transgrade_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Transgrade_args & ) const;
+  bool operator < (const Service_transgrade_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1549,11 +1549,11 @@ class Service_Transgrade_args {
 };
 
 
-class Service_Transgrade_pargs {
+class Service_transgrade_pargs {
  public:
 
 
-  virtual ~Service_Transgrade_pargs() throw() {}
+  virtual ~Service_transgrade_pargs() throw() {}
 
   const Reads* reads;
   const Revision* source;
@@ -1563,24 +1563,24 @@ class Service_Transgrade_pargs {
 
 };
 
-typedef struct _Service_Transgrade_result__isset {
-  _Service_Transgrade_result__isset() : success(false), beyondHistory(false) {}
+typedef struct _Service_transgrade_result__isset {
+  _Service_transgrade_result__isset() : success(false), beyondHistory(false) {}
   bool success;
   bool beyondHistory;
-} _Service_Transgrade_result__isset;
+} _Service_transgrade_result__isset;
 
-class Service_Transgrade_result {
+class Service_transgrade_result {
  public:
 
-  Service_Transgrade_result() {
+  Service_transgrade_result() {
   }
 
-  virtual ~Service_Transgrade_result() throw() {}
+  virtual ~Service_transgrade_result() throw() {}
 
   Reads success;
   BeyondHistory beyondHistory;
 
-  _Service_Transgrade_result__isset __isset;
+  _Service_transgrade_result__isset __isset;
 
   void __set_success(const Reads& val) {
     success = val;
@@ -1590,7 +1590,7 @@ class Service_Transgrade_result {
     beyondHistory = val;
   }
 
-  bool operator == (const Service_Transgrade_result & rhs) const
+  bool operator == (const Service_transgrade_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -1598,58 +1598,58 @@ class Service_Transgrade_result {
       return false;
     return true;
   }
-  bool operator != (const Service_Transgrade_result &rhs) const {
+  bool operator != (const Service_transgrade_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Transgrade_result & ) const;
+  bool operator < (const Service_transgrade_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_Transgrade_presult__isset {
-  _Service_Transgrade_presult__isset() : success(false), beyondHistory(false) {}
+typedef struct _Service_transgrade_presult__isset {
+  _Service_transgrade_presult__isset() : success(false), beyondHistory(false) {}
   bool success;
   bool beyondHistory;
-} _Service_Transgrade_presult__isset;
+} _Service_transgrade_presult__isset;
 
-class Service_Transgrade_presult {
+class Service_transgrade_presult {
  public:
 
 
-  virtual ~Service_Transgrade_presult() throw() {}
+  virtual ~Service_transgrade_presult() throw() {}
 
   Reads* success;
   BeyondHistory beyondHistory;
 
-  _Service_Transgrade_presult__isset __isset;
+  _Service_transgrade_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_AcquireLock_args__isset {
-  _Service_AcquireLock_args__isset() : name(false), mode(false), timeout(true) {}
+typedef struct _Service_acquireLock_args__isset {
+  _Service_acquireLock_args__isset() : name(false), mode(false), timeout(true) {}
   bool name;
   bool mode;
   bool timeout;
-} _Service_AcquireLock_args__isset;
+} _Service_acquireLock_args__isset;
 
-class Service_AcquireLock_args {
+class Service_acquireLock_args {
  public:
 
-  Service_AcquireLock_args() : name(), mode((LockMode::type)0), timeout(1000) {
+  Service_acquireLock_args() : name(), mode((LockMode::type)0), timeout(1000) {
   }
 
-  virtual ~Service_AcquireLock_args() throw() {}
+  virtual ~Service_acquireLock_args() throw() {}
 
   LockName name;
   LockMode::type mode;
   LockTimeout timeout;
 
-  _Service_AcquireLock_args__isset __isset;
+  _Service_acquireLock_args__isset __isset;
 
   void __set_name(const LockName& val) {
     name = val;
@@ -1663,7 +1663,7 @@ class Service_AcquireLock_args {
     timeout = val;
   }
 
-  bool operator == (const Service_AcquireLock_args & rhs) const
+  bool operator == (const Service_acquireLock_args & rhs) const
   {
     if (!(name == rhs.name))
       return false;
@@ -1673,11 +1673,11 @@ class Service_AcquireLock_args {
       return false;
     return true;
   }
-  bool operator != (const Service_AcquireLock_args &rhs) const {
+  bool operator != (const Service_acquireLock_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_AcquireLock_args & ) const;
+  bool operator < (const Service_acquireLock_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1685,11 +1685,11 @@ class Service_AcquireLock_args {
 };
 
 
-class Service_AcquireLock_pargs {
+class Service_acquireLock_pargs {
  public:
 
 
-  virtual ~Service_AcquireLock_pargs() throw() {}
+  virtual ~Service_acquireLock_pargs() throw() {}
 
   const LockName* name;
   const LockMode::type* mode;
@@ -1699,24 +1699,24 @@ class Service_AcquireLock_pargs {
 
 };
 
-typedef struct _Service_AcquireLock_result__isset {
-  _Service_AcquireLock_result__isset() : success(false), timeout(false) {}
+typedef struct _Service_acquireLock_result__isset {
+  _Service_acquireLock_result__isset() : success(false), timeout(false) {}
   bool success;
   bool timeout;
-} _Service_AcquireLock_result__isset;
+} _Service_acquireLock_result__isset;
 
-class Service_AcquireLock_result {
+class Service_acquireLock_result {
  public:
 
-  Service_AcquireLock_result() : success(0) {
+  Service_acquireLock_result() : success(0) {
   }
 
-  virtual ~Service_AcquireLock_result() throw() {}
+  virtual ~Service_acquireLock_result() throw() {}
 
   LockID success;
   LockTimedOut timeout;
 
-  _Service_AcquireLock_result__isset __isset;
+  _Service_acquireLock_result__isset __isset;
 
   void __set_success(const LockID val) {
     success = val;
@@ -1726,7 +1726,7 @@ class Service_AcquireLock_result {
     timeout = val;
   }
 
-  bool operator == (const Service_AcquireLock_result & rhs) const
+  bool operator == (const Service_acquireLock_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
@@ -1734,70 +1734,70 @@ class Service_AcquireLock_result {
       return false;
     return true;
   }
-  bool operator != (const Service_AcquireLock_result &rhs) const {
+  bool operator != (const Service_acquireLock_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_AcquireLock_result & ) const;
+  bool operator < (const Service_acquireLock_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_AcquireLock_presult__isset {
-  _Service_AcquireLock_presult__isset() : success(false), timeout(false) {}
+typedef struct _Service_acquireLock_presult__isset {
+  _Service_acquireLock_presult__isset() : success(false), timeout(false) {}
   bool success;
   bool timeout;
-} _Service_AcquireLock_presult__isset;
+} _Service_acquireLock_presult__isset;
 
-class Service_AcquireLock_presult {
+class Service_acquireLock_presult {
  public:
 
 
-  virtual ~Service_AcquireLock_presult() throw() {}
+  virtual ~Service_acquireLock_presult() throw() {}
 
   LockID* success;
   LockTimedOut timeout;
 
-  _Service_AcquireLock_presult__isset __isset;
+  _Service_acquireLock_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_KeepLock_args__isset {
-  _Service_KeepLock_args__isset() : lockID(false) {}
+typedef struct _Service_keepLock_args__isset {
+  _Service_keepLock_args__isset() : lockID(false) {}
   bool lockID;
-} _Service_KeepLock_args__isset;
+} _Service_keepLock_args__isset;
 
-class Service_KeepLock_args {
+class Service_keepLock_args {
  public:
 
-  Service_KeepLock_args() : lockID(0) {
+  Service_keepLock_args() : lockID(0) {
   }
 
-  virtual ~Service_KeepLock_args() throw() {}
+  virtual ~Service_keepLock_args() throw() {}
 
   LockID lockID;
 
-  _Service_KeepLock_args__isset __isset;
+  _Service_keepLock_args__isset __isset;
 
   void __set_lockID(const LockID val) {
     lockID = val;
   }
 
-  bool operator == (const Service_KeepLock_args & rhs) const
+  bool operator == (const Service_keepLock_args & rhs) const
   {
     if (!(lockID == rhs.lockID))
       return false;
     return true;
   }
-  bool operator != (const Service_KeepLock_args &rhs) const {
+  bool operator != (const Service_keepLock_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_KeepLock_args & ) const;
+  bool operator < (const Service_keepLock_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1805,11 +1805,11 @@ class Service_KeepLock_args {
 };
 
 
-class Service_KeepLock_pargs {
+class Service_keepLock_pargs {
  public:
 
 
-  virtual ~Service_KeepLock_pargs() throw() {}
+  virtual ~Service_keepLock_pargs() throw() {}
 
   const LockID* lockID;
 
@@ -1817,81 +1817,81 @@ class Service_KeepLock_pargs {
 
 };
 
-typedef struct _Service_KeepLock_result__isset {
-  _Service_KeepLock_result__isset() : expired(false) {}
+typedef struct _Service_keepLock_result__isset {
+  _Service_keepLock_result__isset() : expired(false) {}
   bool expired;
-} _Service_KeepLock_result__isset;
+} _Service_keepLock_result__isset;
 
-class Service_KeepLock_result {
+class Service_keepLock_result {
  public:
 
-  Service_KeepLock_result() {
+  Service_keepLock_result() {
   }
 
-  virtual ~Service_KeepLock_result() throw() {}
+  virtual ~Service_keepLock_result() throw() {}
 
   LockExpired expired;
 
-  _Service_KeepLock_result__isset __isset;
+  _Service_keepLock_result__isset __isset;
 
   void __set_expired(const LockExpired& val) {
     expired = val;
   }
 
-  bool operator == (const Service_KeepLock_result & rhs) const
+  bool operator == (const Service_keepLock_result & rhs) const
   {
     if (!(expired == rhs.expired))
       return false;
     return true;
   }
-  bool operator != (const Service_KeepLock_result &rhs) const {
+  bool operator != (const Service_keepLock_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_KeepLock_result & ) const;
+  bool operator < (const Service_keepLock_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_KeepLock_presult__isset {
-  _Service_KeepLock_presult__isset() : expired(false) {}
+typedef struct _Service_keepLock_presult__isset {
+  _Service_keepLock_presult__isset() : expired(false) {}
   bool expired;
-} _Service_KeepLock_presult__isset;
+} _Service_keepLock_presult__isset;
 
-class Service_KeepLock_presult {
+class Service_keepLock_presult {
  public:
 
 
-  virtual ~Service_KeepLock_presult() throw() {}
+  virtual ~Service_keepLock_presult() throw() {}
 
   LockExpired expired;
 
-  _Service_KeepLock_presult__isset __isset;
+  _Service_keepLock_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_EscalateLock_args__isset {
-  _Service_EscalateLock_args__isset() : lockID(false), timeout(true) {}
+typedef struct _Service_escalateLock_args__isset {
+  _Service_escalateLock_args__isset() : lockID(false), timeout(true) {}
   bool lockID;
   bool timeout;
-} _Service_EscalateLock_args__isset;
+} _Service_escalateLock_args__isset;
 
-class Service_EscalateLock_args {
+class Service_escalateLock_args {
  public:
 
-  Service_EscalateLock_args() : lockID(0), timeout(-1) {
+  Service_escalateLock_args() : lockID(0), timeout(-1) {
   }
 
-  virtual ~Service_EscalateLock_args() throw() {}
+  virtual ~Service_escalateLock_args() throw() {}
 
   LockID lockID;
   LockTimeout timeout;
 
-  _Service_EscalateLock_args__isset __isset;
+  _Service_escalateLock_args__isset __isset;
 
   void __set_lockID(const LockID val) {
     lockID = val;
@@ -1901,7 +1901,7 @@ class Service_EscalateLock_args {
     timeout = val;
   }
 
-  bool operator == (const Service_EscalateLock_args & rhs) const
+  bool operator == (const Service_escalateLock_args & rhs) const
   {
     if (!(lockID == rhs.lockID))
       return false;
@@ -1909,11 +1909,11 @@ class Service_EscalateLock_args {
       return false;
     return true;
   }
-  bool operator != (const Service_EscalateLock_args &rhs) const {
+  bool operator != (const Service_escalateLock_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_EscalateLock_args & ) const;
+  bool operator < (const Service_escalateLock_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -1921,11 +1921,11 @@ class Service_EscalateLock_args {
 };
 
 
-class Service_EscalateLock_pargs {
+class Service_escalateLock_pargs {
  public:
 
 
-  virtual ~Service_EscalateLock_pargs() throw() {}
+  virtual ~Service_escalateLock_pargs() throw() {}
 
   const LockID* lockID;
   const LockTimeout* timeout;
@@ -1934,24 +1934,24 @@ class Service_EscalateLock_pargs {
 
 };
 
-typedef struct _Service_EscalateLock_result__isset {
-  _Service_EscalateLock_result__isset() : timeout(false), expired(false) {}
+typedef struct _Service_escalateLock_result__isset {
+  _Service_escalateLock_result__isset() : timeout(false), expired(false) {}
   bool timeout;
   bool expired;
-} _Service_EscalateLock_result__isset;
+} _Service_escalateLock_result__isset;
 
-class Service_EscalateLock_result {
+class Service_escalateLock_result {
  public:
 
-  Service_EscalateLock_result() {
+  Service_escalateLock_result() {
   }
 
-  virtual ~Service_EscalateLock_result() throw() {}
+  virtual ~Service_escalateLock_result() throw() {}
 
   LockTimedOut timeout;
   LockExpired expired;
 
-  _Service_EscalateLock_result__isset __isset;
+  _Service_escalateLock_result__isset __isset;
 
   void __set_timeout(const LockTimedOut& val) {
     timeout = val;
@@ -1961,7 +1961,7 @@ class Service_EscalateLock_result {
     expired = val;
   }
 
-  bool operator == (const Service_EscalateLock_result & rhs) const
+  bool operator == (const Service_escalateLock_result & rhs) const
   {
     if (!(timeout == rhs.timeout))
       return false;
@@ -1969,70 +1969,70 @@ class Service_EscalateLock_result {
       return false;
     return true;
   }
-  bool operator != (const Service_EscalateLock_result &rhs) const {
+  bool operator != (const Service_escalateLock_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_EscalateLock_result & ) const;
+  bool operator < (const Service_escalateLock_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_EscalateLock_presult__isset {
-  _Service_EscalateLock_presult__isset() : timeout(false), expired(false) {}
+typedef struct _Service_escalateLock_presult__isset {
+  _Service_escalateLock_presult__isset() : timeout(false), expired(false) {}
   bool timeout;
   bool expired;
-} _Service_EscalateLock_presult__isset;
+} _Service_escalateLock_presult__isset;
 
-class Service_EscalateLock_presult {
+class Service_escalateLock_presult {
  public:
 
 
-  virtual ~Service_EscalateLock_presult() throw() {}
+  virtual ~Service_escalateLock_presult() throw() {}
 
   LockTimedOut timeout;
   LockExpired expired;
 
-  _Service_EscalateLock_presult__isset __isset;
+  _Service_escalateLock_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_ReleaseLock_args__isset {
-  _Service_ReleaseLock_args__isset() : lockID(false) {}
+typedef struct _Service_releaseLock_args__isset {
+  _Service_releaseLock_args__isset() : lockID(false) {}
   bool lockID;
-} _Service_ReleaseLock_args__isset;
+} _Service_releaseLock_args__isset;
 
-class Service_ReleaseLock_args {
+class Service_releaseLock_args {
  public:
 
-  Service_ReleaseLock_args() : lockID(0) {
+  Service_releaseLock_args() : lockID(0) {
   }
 
-  virtual ~Service_ReleaseLock_args() throw() {}
+  virtual ~Service_releaseLock_args() throw() {}
 
   LockID lockID;
 
-  _Service_ReleaseLock_args__isset __isset;
+  _Service_releaseLock_args__isset __isset;
 
   void __set_lockID(const LockID val) {
     lockID = val;
   }
 
-  bool operator == (const Service_ReleaseLock_args & rhs) const
+  bool operator == (const Service_releaseLock_args & rhs) const
   {
     if (!(lockID == rhs.lockID))
       return false;
     return true;
   }
-  bool operator != (const Service_ReleaseLock_args &rhs) const {
+  bool operator != (const Service_releaseLock_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_ReleaseLock_args & ) const;
+  bool operator < (const Service_releaseLock_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -2040,11 +2040,11 @@ class Service_ReleaseLock_args {
 };
 
 
-class Service_ReleaseLock_pargs {
+class Service_releaseLock_pargs {
  public:
 
 
-  virtual ~Service_ReleaseLock_pargs() throw() {}
+  virtual ~Service_releaseLock_pargs() throw() {}
 
   const LockID* lockID;
 
@@ -2052,95 +2052,95 @@ class Service_ReleaseLock_pargs {
 
 };
 
-typedef struct _Service_ReleaseLock_result__isset {
-  _Service_ReleaseLock_result__isset() : expired(false) {}
+typedef struct _Service_releaseLock_result__isset {
+  _Service_releaseLock_result__isset() : expired(false) {}
   bool expired;
-} _Service_ReleaseLock_result__isset;
+} _Service_releaseLock_result__isset;
 
-class Service_ReleaseLock_result {
+class Service_releaseLock_result {
  public:
 
-  Service_ReleaseLock_result() {
+  Service_releaseLock_result() {
   }
 
-  virtual ~Service_ReleaseLock_result() throw() {}
+  virtual ~Service_releaseLock_result() throw() {}
 
   LockExpired expired;
 
-  _Service_ReleaseLock_result__isset __isset;
+  _Service_releaseLock_result__isset __isset;
 
   void __set_expired(const LockExpired& val) {
     expired = val;
   }
 
-  bool operator == (const Service_ReleaseLock_result & rhs) const
+  bool operator == (const Service_releaseLock_result & rhs) const
   {
     if (!(expired == rhs.expired))
       return false;
     return true;
   }
-  bool operator != (const Service_ReleaseLock_result &rhs) const {
+  bool operator != (const Service_releaseLock_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_ReleaseLock_result & ) const;
+  bool operator < (const Service_releaseLock_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_ReleaseLock_presult__isset {
-  _Service_ReleaseLock_presult__isset() : expired(false) {}
+typedef struct _Service_releaseLock_presult__isset {
+  _Service_releaseLock_presult__isset() : expired(false) {}
   bool expired;
-} _Service_ReleaseLock_presult__isset;
+} _Service_releaseLock_presult__isset;
 
-class Service_ReleaseLock_presult {
+class Service_releaseLock_presult {
  public:
 
 
-  virtual ~Service_ReleaseLock_presult() throw() {}
+  virtual ~Service_releaseLock_presult() throw() {}
 
   LockExpired expired;
 
-  _Service_ReleaseLock_presult__isset __isset;
+  _Service_releaseLock_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_Query_args__isset {
-  _Service_Query_args__isset() : queries(false) {}
+typedef struct _Service_query_args__isset {
+  _Service_query_args__isset() : queries(false) {}
   bool queries;
-} _Service_Query_args__isset;
+} _Service_query_args__isset;
 
-class Service_Query_args {
+class Service_query_args {
  public:
 
-  Service_Query_args() {
+  Service_query_args() {
   }
 
-  virtual ~Service_Query_args() throw() {}
+  virtual ~Service_query_args() throw() {}
 
   Queries queries;
 
-  _Service_Query_args__isset __isset;
+  _Service_query_args__isset __isset;
 
   void __set_queries(const Queries& val) {
     queries = val;
   }
 
-  bool operator == (const Service_Query_args & rhs) const
+  bool operator == (const Service_query_args & rhs) const
   {
     if (!(queries == rhs.queries))
       return false;
     return true;
   }
-  bool operator != (const Service_Query_args &rhs) const {
+  bool operator != (const Service_query_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Query_args & ) const;
+  bool operator < (const Service_query_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -2148,11 +2148,11 @@ class Service_Query_args {
 };
 
 
-class Service_Query_pargs {
+class Service_query_pargs {
  public:
 
 
-  virtual ~Service_Query_pargs() throw() {}
+  virtual ~Service_query_pargs() throw() {}
 
   const Queries* queries;
 
@@ -2160,95 +2160,95 @@ class Service_Query_pargs {
 
 };
 
-typedef struct _Service_Query_result__isset {
-  _Service_Query_result__isset() : success(false) {}
+typedef struct _Service_query_result__isset {
+  _Service_query_result__isset() : success(false) {}
   bool success;
-} _Service_Query_result__isset;
+} _Service_query_result__isset;
 
-class Service_Query_result {
+class Service_query_result {
  public:
 
-  Service_Query_result() {
+  Service_query_result() {
   }
 
-  virtual ~Service_Query_result() throw() {}
+  virtual ~Service_query_result() throw() {}
 
   ReadResults success;
 
-  _Service_Query_result__isset __isset;
+  _Service_query_result__isset __isset;
 
   void __set_success(const ReadResults& val) {
     success = val;
   }
 
-  bool operator == (const Service_Query_result & rhs) const
+  bool operator == (const Service_query_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_Query_result &rhs) const {
+  bool operator != (const Service_query_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_Query_result & ) const;
+  bool operator < (const Service_query_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_Query_presult__isset {
-  _Service_Query_presult__isset() : success(false) {}
+typedef struct _Service_query_presult__isset {
+  _Service_query_presult__isset() : success(false) {}
   bool success;
-} _Service_Query_presult__isset;
+} _Service_query_presult__isset;
 
-class Service_Query_presult {
+class Service_query_presult {
  public:
 
 
-  virtual ~Service_Query_presult() throw() {}
+  virtual ~Service_query_presult() throw() {}
 
   ReadResults* success;
 
-  _Service_Query_presult__isset __isset;
+  _Service_query_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_GetStatistics_args__isset {
-  _Service_GetStatistics_args__isset() : columnIDs(false) {}
+typedef struct _Service_getStatistics_args__isset {
+  _Service_getStatistics_args__isset() : columnIDs(false) {}
   bool columnIDs;
-} _Service_GetStatistics_args__isset;
+} _Service_getStatistics_args__isset;
 
-class Service_GetStatistics_args {
+class Service_getStatistics_args {
  public:
 
-  Service_GetStatistics_args() {
+  Service_getStatistics_args() {
   }
 
-  virtual ~Service_GetStatistics_args() throw() {}
+  virtual ~Service_getStatistics_args() throw() {}
 
   std::vector<ColumnID>  columnIDs;
 
-  _Service_GetStatistics_args__isset __isset;
+  _Service_getStatistics_args__isset __isset;
 
   void __set_columnIDs(const std::vector<ColumnID> & val) {
     columnIDs = val;
   }
 
-  bool operator == (const Service_GetStatistics_args & rhs) const
+  bool operator == (const Service_getStatistics_args & rhs) const
   {
     if (!(columnIDs == rhs.columnIDs))
       return false;
     return true;
   }
-  bool operator != (const Service_GetStatistics_args &rhs) const {
+  bool operator != (const Service_getStatistics_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetStatistics_args & ) const;
+  bool operator < (const Service_getStatistics_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -2256,11 +2256,11 @@ class Service_GetStatistics_args {
 };
 
 
-class Service_GetStatistics_pargs {
+class Service_getStatistics_pargs {
  public:
 
 
-  virtual ~Service_GetStatistics_pargs() throw() {}
+  virtual ~Service_getStatistics_pargs() throw() {}
 
   const std::vector<ColumnID> * columnIDs;
 
@@ -2268,58 +2268,58 @@ class Service_GetStatistics_pargs {
 
 };
 
-typedef struct _Service_GetStatistics_result__isset {
-  _Service_GetStatistics_result__isset() : success(false) {}
+typedef struct _Service_getStatistics_result__isset {
+  _Service_getStatistics_result__isset() : success(false) {}
   bool success;
-} _Service_GetStatistics_result__isset;
+} _Service_getStatistics_result__isset;
 
-class Service_GetStatistics_result {
+class Service_getStatistics_result {
  public:
 
-  Service_GetStatistics_result() {
+  Service_getStatistics_result() {
   }
 
-  virtual ~Service_GetStatistics_result() throw() {}
+  virtual ~Service_getStatistics_result() throw() {}
 
   std::vector<Statistic>  success;
 
-  _Service_GetStatistics_result__isset __isset;
+  _Service_getStatistics_result__isset __isset;
 
   void __set_success(const std::vector<Statistic> & val) {
     success = val;
   }
 
-  bool operator == (const Service_GetStatistics_result & rhs) const
+  bool operator == (const Service_getStatistics_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     return true;
   }
-  bool operator != (const Service_GetStatistics_result &rhs) const {
+  bool operator != (const Service_getStatistics_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_GetStatistics_result & ) const;
+  bool operator < (const Service_getStatistics_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_GetStatistics_presult__isset {
-  _Service_GetStatistics_presult__isset() : success(false) {}
+typedef struct _Service_getStatistics_presult__isset {
+  _Service_getStatistics_presult__isset() : success(false) {}
   bool success;
-} _Service_GetStatistics_presult__isset;
+} _Service_getStatistics_presult__isset;
 
-class Service_GetStatistics_presult {
+class Service_getStatistics_presult {
  public:
 
 
-  virtual ~Service_GetStatistics_presult() throw() {}
+  virtual ~Service_getStatistics_presult() throw() {}
 
   std::vector<Statistic> * success;
 
-  _Service_GetStatistics_presult__isset __isset;
+  _Service_getStatistics_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -2345,66 +2345,66 @@ class ServiceClient : virtual public ServiceIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  void GetTopology(TopologyResult& _return);
-  void send_GetTopology();
-  void recv_GetTopology(TopologyResult& _return);
-  Revision PrepareTopology(const TransactionID& transactionID, const Topology& topology);
-  void send_PrepareTopology(const TransactionID& transactionID, const Topology& topology);
-  Revision recv_PrepareTopology();
-  void CommitTopology(const TransactionID& transactionID);
-  void send_CommitTopology(const TransactionID& transactionID);
-  void recv_CommitTopology();
-  void RollbackTopology(const TransactionID& transactionID);
-  void send_RollbackTopology(const TransactionID& transactionID);
-  void recv_RollbackTopology();
-  void GetTopologyReport(TopologyReport& _return);
-  void send_GetTopologyReport();
-  void recv_GetTopologyReport(TopologyReport& _return);
-  void GetReport(HostReport& _return);
-  void send_GetReport();
-  void recv_GetReport(HostReport& _return);
-  Revision Prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void send_Prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  Revision recv_Prepare();
-  void Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);
-  void send_Apply(const TransactionID& transactionID, const Writes& writes);
-  void recv_Apply(TransactionID& _return);
-  void Commit(const TransactionID& transactionID);
-  void send_Commit(const TransactionID& transactionID);
-  void recv_Commit();
-  void Rollback(const TransactionID& transactionID);
-  void send_Rollback(const TransactionID& transactionID);
-  void recv_Rollback();
-  void Flush(const TransactionID& transactionID);
-  void send_Flush(const TransactionID& transactionID);
-  void recv_Flush();
-  bool DoesConflict(const Reads& reads, const Revision source, const Revision target);
-  void send_DoesConflict(const Reads& reads, const Revision source, const Revision target);
-  bool recv_DoesConflict();
-  void Update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void send_Update(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void recv_Update(TransactionID& _return);
-  void Transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target);
-  void send_Transgrade(const Reads& reads, const Revision source, const Revision target);
-  void recv_Transgrade(Reads& _return);
-  LockID AcquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
-  void send_AcquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
-  LockID recv_AcquireLock();
-  void KeepLock(const LockID lockID);
-  void send_KeepLock(const LockID lockID);
-  void recv_KeepLock();
-  void EscalateLock(const LockID lockID, const LockTimeout timeout);
-  void send_EscalateLock(const LockID lockID, const LockTimeout timeout);
-  void recv_EscalateLock();
-  void ReleaseLock(const LockID lockID);
-  void send_ReleaseLock(const LockID lockID);
-  void recv_ReleaseLock();
-  void Query(ReadResults& _return, const Queries& queries);
-  void send_Query(const Queries& queries);
-  void recv_Query(ReadResults& _return);
-  void GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
-  void send_GetStatistics(const std::vector<ColumnID> & columnIDs);
-  void recv_GetStatistics(std::vector<Statistic> & _return);
+  void getTopology(TopologyResult& _return);
+  void send_getTopology();
+  void recv_getTopology(TopologyResult& _return);
+  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology);
+  void send_prepareTopology(const TransactionID& transactionID, const Topology& topology);
+  Revision recv_prepareTopology();
+  void commitTopology(const TransactionID& transactionID);
+  void send_commitTopology(const TransactionID& transactionID);
+  void recv_commitTopology();
+  void rollbackTopology(const TransactionID& transactionID);
+  void send_rollbackTopology(const TransactionID& transactionID);
+  void recv_rollbackTopology();
+  void getTopologyReport(TopologyReport& _return);
+  void send_getTopologyReport();
+  void recv_getTopologyReport(TopologyReport& _return);
+  void getReport(HostReport& _return);
+  void send_getReport();
+  void recv_getReport(HostReport& _return);
+  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
+  void send_prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
+  Revision recv_prepare();
+  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);
+  void send_apply(const TransactionID& transactionID, const Writes& writes);
+  void recv_apply(TransactionID& _return);
+  void commit(const TransactionID& transactionID);
+  void send_commit(const TransactionID& transactionID);
+  void recv_commit();
+  void rollback(const TransactionID& transactionID);
+  void send_rollback(const TransactionID& transactionID);
+  void recv_rollback();
+  void flush(const TransactionID& transactionID);
+  void send_flush(const TransactionID& transactionID);
+  void recv_flush();
+  bool doesConflict(const Reads& reads, const Revision source, const Revision target);
+  void send_doesConflict(const Reads& reads, const Revision source, const Revision target);
+  bool recv_doesConflict();
+  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads);
+  void send_update(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
+  void recv_update(TransactionID& _return);
+  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target);
+  void send_transgrade(const Reads& reads, const Revision source, const Revision target);
+  void recv_transgrade(Reads& _return);
+  LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
+  void send_acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
+  LockID recv_acquireLock();
+  void keepLock(const LockID lockID);
+  void send_keepLock(const LockID lockID);
+  void recv_keepLock();
+  void escalateLock(const LockID lockID, const LockTimeout timeout);
+  void send_escalateLock(const LockID lockID, const LockTimeout timeout);
+  void recv_escalateLock();
+  void releaseLock(const LockID lockID);
+  void send_releaseLock(const LockID lockID);
+  void recv_releaseLock();
+  void query(ReadResults& _return, const Queries& queries);
+  void send_query(const Queries& queries);
+  void recv_query(ReadResults& _return);
+  void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
+  void send_getStatistics(const std::vector<ColumnID> & columnIDs);
+  void recv_getStatistics(std::vector<Statistic> & _return);
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -2420,49 +2420,49 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef  void (ServiceProcessor::*ProcessFunction)(int32_t, apache::thrift::protocol::TProtocol*, apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
-  void process_GetTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_PrepareTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_CommitTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_RollbackTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_GetTopologyReport(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_GetReport(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Prepare(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Apply(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Commit(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Rollback(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Flush(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_DoesConflict(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Update(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Transgrade(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_AcquireLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_KeepLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_EscalateLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_ReleaseLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_Query(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_GetStatistics(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_prepareTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_commitTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_rollbackTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getTopologyReport(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getReport(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_prepare(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_apply(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_commit(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_rollback(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_flush(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_doesConflict(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_update(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_transgrade(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_acquireLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_keepLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_escalateLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_releaseLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_query(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_getStatistics(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ServiceProcessor(boost::shared_ptr<ServiceIf> iface) :
     iface_(iface) {
-    processMap_["GetTopology"] = &ServiceProcessor::process_GetTopology;
-    processMap_["PrepareTopology"] = &ServiceProcessor::process_PrepareTopology;
-    processMap_["CommitTopology"] = &ServiceProcessor::process_CommitTopology;
-    processMap_["RollbackTopology"] = &ServiceProcessor::process_RollbackTopology;
-    processMap_["GetTopologyReport"] = &ServiceProcessor::process_GetTopologyReport;
-    processMap_["GetReport"] = &ServiceProcessor::process_GetReport;
-    processMap_["Prepare"] = &ServiceProcessor::process_Prepare;
-    processMap_["Apply"] = &ServiceProcessor::process_Apply;
-    processMap_["Commit"] = &ServiceProcessor::process_Commit;
-    processMap_["Rollback"] = &ServiceProcessor::process_Rollback;
-    processMap_["Flush"] = &ServiceProcessor::process_Flush;
-    processMap_["DoesConflict"] = &ServiceProcessor::process_DoesConflict;
-    processMap_["Update"] = &ServiceProcessor::process_Update;
-    processMap_["Transgrade"] = &ServiceProcessor::process_Transgrade;
-    processMap_["AcquireLock"] = &ServiceProcessor::process_AcquireLock;
-    processMap_["KeepLock"] = &ServiceProcessor::process_KeepLock;
-    processMap_["EscalateLock"] = &ServiceProcessor::process_EscalateLock;
-    processMap_["ReleaseLock"] = &ServiceProcessor::process_ReleaseLock;
-    processMap_["Query"] = &ServiceProcessor::process_Query;
-    processMap_["GetStatistics"] = &ServiceProcessor::process_GetStatistics;
+    processMap_["getTopology"] = &ServiceProcessor::process_getTopology;
+    processMap_["prepareTopology"] = &ServiceProcessor::process_prepareTopology;
+    processMap_["commitTopology"] = &ServiceProcessor::process_commitTopology;
+    processMap_["rollbackTopology"] = &ServiceProcessor::process_rollbackTopology;
+    processMap_["getTopologyReport"] = &ServiceProcessor::process_getTopologyReport;
+    processMap_["getReport"] = &ServiceProcessor::process_getReport;
+    processMap_["prepare"] = &ServiceProcessor::process_prepare;
+    processMap_["apply"] = &ServiceProcessor::process_apply;
+    processMap_["commit"] = &ServiceProcessor::process_commit;
+    processMap_["rollback"] = &ServiceProcessor::process_rollback;
+    processMap_["flush"] = &ServiceProcessor::process_flush;
+    processMap_["doesConflict"] = &ServiceProcessor::process_doesConflict;
+    processMap_["update"] = &ServiceProcessor::process_update;
+    processMap_["transgrade"] = &ServiceProcessor::process_transgrade;
+    processMap_["acquireLock"] = &ServiceProcessor::process_acquireLock;
+    processMap_["keepLock"] = &ServiceProcessor::process_keepLock;
+    processMap_["escalateLock"] = &ServiceProcessor::process_escalateLock;
+    processMap_["releaseLock"] = &ServiceProcessor::process_releaseLock;
+    processMap_["query"] = &ServiceProcessor::process_query;
+    processMap_["getStatistics"] = &ServiceProcessor::process_getStatistics;
   }
 
   virtual ~ServiceProcessor() {}
@@ -2491,191 +2491,191 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_.push_back(iface);
   }
  public:
-  void GetTopology(TopologyResult& _return) {
+  void getTopology(TopologyResult& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->GetTopology(_return);
+      ifaces_[i]->getTopology(_return);
     }
-    ifaces_[i]->GetTopology(_return);
+    ifaces_[i]->getTopology(_return);
     return;
   }
 
-  Revision PrepareTopology(const TransactionID& transactionID, const Topology& topology) {
+  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->PrepareTopology(transactionID, topology);
+      ifaces_[i]->prepareTopology(transactionID, topology);
     }
-    return ifaces_[i]->PrepareTopology(transactionID, topology);
+    return ifaces_[i]->prepareTopology(transactionID, topology);
   }
 
-  void CommitTopology(const TransactionID& transactionID) {
+  void commitTopology(const TransactionID& transactionID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->CommitTopology(transactionID);
+      ifaces_[i]->commitTopology(transactionID);
     }
-    ifaces_[i]->CommitTopology(transactionID);
+    ifaces_[i]->commitTopology(transactionID);
   }
 
-  void RollbackTopology(const TransactionID& transactionID) {
+  void rollbackTopology(const TransactionID& transactionID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->RollbackTopology(transactionID);
+      ifaces_[i]->rollbackTopology(transactionID);
     }
-    ifaces_[i]->RollbackTopology(transactionID);
+    ifaces_[i]->rollbackTopology(transactionID);
   }
 
-  void GetTopologyReport(TopologyReport& _return) {
+  void getTopologyReport(TopologyReport& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->GetTopologyReport(_return);
+      ifaces_[i]->getTopologyReport(_return);
     }
-    ifaces_[i]->GetTopologyReport(_return);
+    ifaces_[i]->getTopologyReport(_return);
     return;
   }
 
-  void GetReport(HostReport& _return) {
+  void getReport(HostReport& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->GetReport(_return);
+      ifaces_[i]->getReport(_return);
     }
-    ifaces_[i]->GetReport(_return);
+    ifaces_[i]->getReport(_return);
     return;
   }
 
-  Revision Prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
+  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Prepare(transactionID, writes, reads);
+      ifaces_[i]->prepare(transactionID, writes, reads);
     }
-    return ifaces_[i]->Prepare(transactionID, writes, reads);
+    return ifaces_[i]->prepare(transactionID, writes, reads);
   }
 
-  void Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
+  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Apply(_return, transactionID, writes);
+      ifaces_[i]->apply(_return, transactionID, writes);
     }
-    ifaces_[i]->Apply(_return, transactionID, writes);
+    ifaces_[i]->apply(_return, transactionID, writes);
     return;
   }
 
-  void Commit(const TransactionID& transactionID) {
+  void commit(const TransactionID& transactionID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Commit(transactionID);
+      ifaces_[i]->commit(transactionID);
     }
-    ifaces_[i]->Commit(transactionID);
+    ifaces_[i]->commit(transactionID);
   }
 
-  void Rollback(const TransactionID& transactionID) {
+  void rollback(const TransactionID& transactionID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Rollback(transactionID);
+      ifaces_[i]->rollback(transactionID);
     }
-    ifaces_[i]->Rollback(transactionID);
+    ifaces_[i]->rollback(transactionID);
   }
 
-  void Flush(const TransactionID& transactionID) {
+  void flush(const TransactionID& transactionID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Flush(transactionID);
+      ifaces_[i]->flush(transactionID);
     }
-    ifaces_[i]->Flush(transactionID);
+    ifaces_[i]->flush(transactionID);
   }
 
-  bool DoesConflict(const Reads& reads, const Revision source, const Revision target) {
+  bool doesConflict(const Reads& reads, const Revision source, const Revision target) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->DoesConflict(reads, source, target);
+      ifaces_[i]->doesConflict(reads, source, target);
     }
-    return ifaces_[i]->DoesConflict(reads, source, target);
+    return ifaces_[i]->doesConflict(reads, source, target);
   }
 
-  void Update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
+  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Update(_return, transactionID, writes, reads);
+      ifaces_[i]->update(_return, transactionID, writes, reads);
     }
-    ifaces_[i]->Update(_return, transactionID, writes, reads);
+    ifaces_[i]->update(_return, transactionID, writes, reads);
     return;
   }
 
-  void Transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
+  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Transgrade(_return, reads, source, target);
+      ifaces_[i]->transgrade(_return, reads, source, target);
     }
-    ifaces_[i]->Transgrade(_return, reads, source, target);
+    ifaces_[i]->transgrade(_return, reads, source, target);
     return;
   }
 
-  LockID AcquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) {
+  LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->AcquireLock(name, mode, timeout);
+      ifaces_[i]->acquireLock(name, mode, timeout);
     }
-    return ifaces_[i]->AcquireLock(name, mode, timeout);
+    return ifaces_[i]->acquireLock(name, mode, timeout);
   }
 
-  void KeepLock(const LockID lockID) {
+  void keepLock(const LockID lockID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->KeepLock(lockID);
+      ifaces_[i]->keepLock(lockID);
     }
-    ifaces_[i]->KeepLock(lockID);
+    ifaces_[i]->keepLock(lockID);
   }
 
-  void EscalateLock(const LockID lockID, const LockTimeout timeout) {
+  void escalateLock(const LockID lockID, const LockTimeout timeout) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->EscalateLock(lockID, timeout);
+      ifaces_[i]->escalateLock(lockID, timeout);
     }
-    ifaces_[i]->EscalateLock(lockID, timeout);
+    ifaces_[i]->escalateLock(lockID, timeout);
   }
 
-  void ReleaseLock(const LockID lockID) {
+  void releaseLock(const LockID lockID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->ReleaseLock(lockID);
+      ifaces_[i]->releaseLock(lockID);
     }
-    ifaces_[i]->ReleaseLock(lockID);
+    ifaces_[i]->releaseLock(lockID);
   }
 
-  void Query(ReadResults& _return, const Queries& queries) {
+  void query(ReadResults& _return, const Queries& queries) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->Query(_return, queries);
+      ifaces_[i]->query(_return, queries);
     }
-    ifaces_[i]->Query(_return, queries);
+    ifaces_[i]->query(_return, queries);
     return;
   }
 
-  void GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) {
+  void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->GetStatistics(_return, columnIDs);
+      ifaces_[i]->getStatistics(_return, columnIDs);
     }
-    ifaces_[i]->GetStatistics(_return, columnIDs);
+    ifaces_[i]->getStatistics(_return, columnIDs);
     return;
   }
 

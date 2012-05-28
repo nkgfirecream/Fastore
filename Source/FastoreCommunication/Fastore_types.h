@@ -68,15 +68,12 @@ typedef std::vector<class ValueRows>  ValueRowsList;
 
 typedef std::map<ColumnID, class Query>  Queries;
 
+typedef std::map<ColumnID, class ReadResult>  ReadResults;
+
 typedef std::map<class Query, class Answer>  Read;
 
 typedef std::map<ColumnID, Read>  Reads;
 
-typedef struct _Host__isset {
-  _Host__isset() : ID(false), Address(false) {}
-  bool ID;
-  bool Address;
-} _Host__isset;
 
 class Host {
  public:
@@ -84,29 +81,27 @@ class Host {
   static const char* ascii_fingerprint; // = "3F5FC93B338687BC7235B1AB103F47B3";
   static const uint8_t binary_fingerprint[16]; // = {0x3F,0x5F,0xC9,0x3B,0x33,0x86,0x87,0xBC,0x72,0x35,0xB1,0xAB,0x10,0x3F,0x47,0xB3};
 
-  Host() : ID(0), Address() {
+  Host() : id(0), address() {
   }
 
   virtual ~Host() throw() {}
 
-  HostID ID;
-  HostAddress Address;
+  HostID id;
+  HostAddress address;
 
-  _Host__isset __isset;
-
-  void __set_ID(const HostID val) {
-    ID = val;
+  void __set_id(const HostID val) {
+    id = val;
   }
 
-  void __set_Address(const HostAddress& val) {
-    Address = val;
+  void __set_address(const HostAddress& val) {
+    address = val;
   }
 
   bool operator == (const Host & rhs) const
   {
-    if (!(ID == rhs.ID))
+    if (!(id == rhs.id))
       return false;
-    if (!(Address == rhs.Address))
+    if (!(address == rhs.address))
       return false;
     return true;
   }
@@ -123,11 +118,6 @@ class Host {
 
 void swap(Host &a, Host &b);
 
-typedef struct _Repository__isset {
-  _Repository__isset() : columnID(false), hostID(false) {}
-  bool columnID;
-  bool hostID;
-} _Repository__isset;
 
 class Repository {
  public:
@@ -142,8 +132,6 @@ class Repository {
 
   ColumnID columnID;
   HostID hostID;
-
-  _Repository__isset __isset;
 
   void __set_columnID(const ColumnID val) {
     columnID = val;
@@ -174,12 +162,6 @@ class Repository {
 
 void swap(Repository &a, Repository &b);
 
-typedef struct _Topology__isset {
-  _Topology__isset() : ID(false), Hosts(false), Repositories(false) {}
-  bool ID;
-  bool Hosts;
-  bool Repositories;
-} _Topology__isset;
 
 class Topology {
  public:
@@ -187,36 +169,34 @@ class Topology {
   static const char* ascii_fingerprint; // = "D087BB3015A7C1BA44729FFF8D9C4426";
   static const uint8_t binary_fingerprint[16]; // = {0xD0,0x87,0xBB,0x30,0x15,0xA7,0xC1,0xBA,0x44,0x72,0x9F,0xFF,0x8D,0x9C,0x44,0x26};
 
-  Topology() : ID(0) {
+  Topology() : id(0) {
   }
 
   virtual ~Topology() throw() {}
 
-  TopologyID ID;
-  std::set<Host>  Hosts;
-  std::set<Repository>  Repositories;
+  TopologyID id;
+  std::set<Host>  hosts;
+  std::set<Repository>  repositories;
 
-  _Topology__isset __isset;
-
-  void __set_ID(const TopologyID val) {
-    ID = val;
+  void __set_id(const TopologyID val) {
+    id = val;
   }
 
-  void __set_Hosts(const std::set<Host> & val) {
-    Hosts = val;
+  void __set_hosts(const std::set<Host> & val) {
+    hosts = val;
   }
 
-  void __set_Repositories(const std::set<Repository> & val) {
-    Repositories = val;
+  void __set_repositories(const std::set<Repository> & val) {
+    repositories = val;
   }
 
   bool operator == (const Topology & rhs) const
   {
-    if (!(ID == rhs.ID))
+    if (!(id == rhs.id))
       return false;
-    if (!(Hosts == rhs.Hosts))
+    if (!(hosts == rhs.hosts))
       return false;
-    if (!(Repositories == rhs.Repositories))
+    if (!(repositories == rhs.repositories))
       return false;
     return true;
   }
@@ -233,11 +213,6 @@ class Topology {
 
 void swap(Topology &a, Topology &b);
 
-typedef struct _TopologyResult__isset {
-  _TopologyResult__isset() : topology(false), revision(false) {}
-  bool topology;
-  bool revision;
-} _TopologyResult__isset;
 
 class TopologyResult {
  public:
@@ -252,8 +227,6 @@ class TopologyResult {
 
   Topology topology;
   Revision revision;
-
-  _TopologyResult__isset __isset;
 
   void __set_topology(const Topology& val) {
     topology = val;
@@ -284,11 +257,6 @@ class TopologyResult {
 
 void swap(TopologyResult &a, TopologyResult &b);
 
-typedef struct _HostReport__isset {
-  _HostReport__isset() : Status(false), RepositoryStatus(false) {}
-  bool Status;
-  bool RepositoryStatus;
-} _HostReport__isset;
 
 class HostReport {
  public:
@@ -296,29 +264,27 @@ class HostReport {
   static const char* ascii_fingerprint; // = "7402C27C789620E471CF3FE2CB95E6AF";
   static const uint8_t binary_fingerprint[16]; // = {0x74,0x02,0xC2,0x7C,0x78,0x96,0x20,0xE4,0x71,0xCF,0x3F,0xE2,0xCB,0x95,0xE6,0xAF};
 
-  HostReport() : Status((HostStatus::type)0) {
+  HostReport() : status((HostStatus::type)0) {
   }
 
   virtual ~HostReport() throw() {}
 
-  HostStatus::type Status;
-  std::map<ColumnID, RepositoryStatus::type>  RepositoryStatus;
+  HostStatus::type status;
+  std::map<ColumnID, RepositoryStatus::type>  repositoryStatus;
 
-  _HostReport__isset __isset;
-
-  void __set_Status(const HostStatus::type val) {
-    Status = val;
+  void __set_status(const HostStatus::type val) {
+    status = val;
   }
 
-  void __set_RepositoryStatus(const std::map<ColumnID, RepositoryStatus::type> & val) {
-    RepositoryStatus = val;
+  void __set_repositoryStatus(const std::map<ColumnID, RepositoryStatus::type> & val) {
+    repositoryStatus = val;
   }
 
   bool operator == (const HostReport & rhs) const
   {
-    if (!(Status == rhs.Status))
+    if (!(status == rhs.status))
       return false;
-    if (!(RepositoryStatus == rhs.RepositoryStatus))
+    if (!(repositoryStatus == rhs.repositoryStatus))
       return false;
     return true;
   }
@@ -335,12 +301,6 @@ class HostReport {
 
 void swap(HostReport &a, HostReport &b);
 
-typedef struct _TopologyReport__isset {
-  _TopologyReport__isset() : topologyID(false), Hosts(false), revision(true) {}
-  bool topologyID;
-  bool Hosts;
-  bool revision;
-} _TopologyReport__isset;
 
 class TopologyReport {
  public:
@@ -354,17 +314,15 @@ class TopologyReport {
   virtual ~TopologyReport() throw() {}
 
   TopologyID topologyID;
-  std::map<HostID, HostReport>  Hosts;
+  std::map<HostID, HostReport>  hosts;
   Revision revision;
-
-  _TopologyReport__isset __isset;
 
   void __set_topologyID(const TopologyID val) {
     topologyID = val;
   }
 
-  void __set_Hosts(const std::map<HostID, HostReport> & val) {
-    Hosts = val;
+  void __set_hosts(const std::map<HostID, HostReport> & val) {
+    hosts = val;
   }
 
   void __set_revision(const Revision val) {
@@ -375,7 +333,7 @@ class TopologyReport {
   {
     if (!(topologyID == rhs.topologyID))
       return false;
-    if (!(Hosts == rhs.Hosts))
+    if (!(hosts == rhs.hosts))
       return false;
     if (!(revision == rhs.revision))
       return false;
@@ -394,11 +352,6 @@ class TopologyReport {
 
 void swap(TopologyReport &a, TopologyReport &b);
 
-typedef struct _TransactionID__isset {
-  _TransactionID__isset() : revision(false), Key(false) {}
-  bool revision;
-  bool Key;
-} _TransactionID__isset;
 
 class TransactionID {
  public:
@@ -406,29 +359,27 @@ class TransactionID {
   static const char* ascii_fingerprint; // = "F33135321253DAEB67B0E79E416CA831";
   static const uint8_t binary_fingerprint[16]; // = {0xF3,0x31,0x35,0x32,0x12,0x53,0xDA,0xEB,0x67,0xB0,0xE7,0x9E,0x41,0x6C,0xA8,0x31};
 
-  TransactionID() : revision(0), Key(0) {
+  TransactionID() : revision(0), key(0) {
   }
 
   virtual ~TransactionID() throw() {}
 
   Revision revision;
-  int64_t Key;
-
-  _TransactionID__isset __isset;
+  int64_t key;
 
   void __set_revision(const Revision val) {
     revision = val;
   }
 
-  void __set_Key(const int64_t val) {
-    Key = val;
+  void __set_key(const int64_t val) {
+    key = val;
   }
 
   bool operator == (const TransactionID & rhs) const
   {
     if (!(revision == rhs.revision))
       return false;
-    if (!(Key == rhs.Key))
+    if (!(key == rhs.key))
       return false;
     return true;
   }
@@ -445,11 +396,6 @@ class TransactionID {
 
 void swap(TransactionID &a, TransactionID &b);
 
-typedef struct _Include__isset {
-  _Include__isset() : RowID(false), Value(false) {}
-  bool RowID;
-  bool Value;
-} _Include__isset;
 
 class Include {
  public:
@@ -457,29 +403,27 @@ class Include {
   static const char* ascii_fingerprint; // = "07A9615F837F7D0A952B595DD3020972";
   static const uint8_t binary_fingerprint[16]; // = {0x07,0xA9,0x61,0x5F,0x83,0x7F,0x7D,0x0A,0x95,0x2B,0x59,0x5D,0xD3,0x02,0x09,0x72};
 
-  Include() : RowID(), Value() {
+  Include() : rowID(), value() {
   }
 
   virtual ~Include() throw() {}
 
-  std::string RowID;
-  std::string Value;
+  std::string rowID;
+  std::string value;
 
-  _Include__isset __isset;
-
-  void __set_RowID(const std::string& val) {
-    RowID = val;
+  void __set_rowID(const std::string& val) {
+    rowID = val;
   }
 
-  void __set_Value(const std::string& val) {
-    Value = val;
+  void __set_value(const std::string& val) {
+    value = val;
   }
 
   bool operator == (const Include & rhs) const
   {
-    if (!(RowID == rhs.RowID))
+    if (!(rowID == rhs.rowID))
       return false;
-    if (!(Value == rhs.Value))
+    if (!(value == rhs.value))
       return false;
     return true;
   }
@@ -496,10 +440,6 @@ class Include {
 
 void swap(Include &a, Include &b);
 
-typedef struct _Exclude__isset {
-  _Exclude__isset() : RowID(false) {}
-  bool RowID;
-} _Exclude__isset;
 
 class Exclude {
  public:
@@ -507,22 +447,20 @@ class Exclude {
   static const char* ascii_fingerprint; // = "EFB929595D312AC8F305D5A794CFEDA1";
   static const uint8_t binary_fingerprint[16]; // = {0xEF,0xB9,0x29,0x59,0x5D,0x31,0x2A,0xC8,0xF3,0x05,0xD5,0xA7,0x94,0xCF,0xED,0xA1};
 
-  Exclude() : RowID() {
+  Exclude() : rowID() {
   }
 
   virtual ~Exclude() throw() {}
 
-  std::string RowID;
+  std::string rowID;
 
-  _Exclude__isset __isset;
-
-  void __set_RowID(const std::string& val) {
-    RowID = val;
+  void __set_rowID(const std::string& val) {
+    rowID = val;
   }
 
   bool operator == (const Exclude & rhs) const
   {
-    if (!(RowID == rhs.RowID))
+    if (!(rowID == rhs.rowID))
       return false;
     return true;
   }
@@ -539,11 +477,6 @@ class Exclude {
 
 void swap(Exclude &a, Exclude &b);
 
-typedef struct _ColumnWrites__isset {
-  _ColumnWrites__isset() : Includes(false), Excludes(false) {}
-  bool Includes;
-  bool Excludes;
-} _ColumnWrites__isset;
 
 class ColumnWrites {
  public:
@@ -556,24 +489,22 @@ class ColumnWrites {
 
   virtual ~ColumnWrites() throw() {}
 
-  std::vector<Include>  Includes;
-  std::vector<Exclude>  Excludes;
+  std::vector<Include>  includes;
+  std::vector<Exclude>  excludes;
 
-  _ColumnWrites__isset __isset;
-
-  void __set_Includes(const std::vector<Include> & val) {
-    Includes = val;
+  void __set_includes(const std::vector<Include> & val) {
+    includes = val;
   }
 
-  void __set_Excludes(const std::vector<Exclude> & val) {
-    Excludes = val;
+  void __set_excludes(const std::vector<Exclude> & val) {
+    excludes = val;
   }
 
   bool operator == (const ColumnWrites & rhs) const
   {
-    if (!(Includes == rhs.Includes))
+    if (!(includes == rhs.includes))
       return false;
-    if (!(Excludes == rhs.Excludes))
+    if (!(excludes == rhs.excludes))
       return false;
     return true;
   }
@@ -590,11 +521,6 @@ class ColumnWrites {
 
 void swap(ColumnWrites &a, ColumnWrites &b);
 
-typedef struct _Statistic__isset {
-  _Statistic__isset() : Total(false), Unique(false) {}
-  bool Total;
-  bool Unique;
-} _Statistic__isset;
 
 class Statistic {
  public:
@@ -602,29 +528,27 @@ class Statistic {
   static const char* ascii_fingerprint; // = "F33135321253DAEB67B0E79E416CA831";
   static const uint8_t binary_fingerprint[16]; // = {0xF3,0x31,0x35,0x32,0x12,0x53,0xDA,0xEB,0x67,0xB0,0xE7,0x9E,0x41,0x6C,0xA8,0x31};
 
-  Statistic() : Total(0), Unique(0) {
+  Statistic() : total(0), unique(0) {
   }
 
   virtual ~Statistic() throw() {}
 
-  int64_t Total;
-  int64_t Unique;
+  int64_t total;
+  int64_t unique;
 
-  _Statistic__isset __isset;
-
-  void __set_Total(const int64_t val) {
-    Total = val;
+  void __set_total(const int64_t val) {
+    total = val;
   }
 
-  void __set_Unique(const int64_t val) {
-    Unique = val;
+  void __set_unique(const int64_t val) {
+    unique = val;
   }
 
   bool operator == (const Statistic & rhs) const
   {
-    if (!(Total == rhs.Total))
+    if (!(total == rhs.total))
       return false;
-    if (!(Unique == rhs.Unique))
+    if (!(unique == rhs.unique))
       return false;
     return true;
   }
@@ -642,10 +566,8 @@ class Statistic {
 void swap(Statistic &a, Statistic &b);
 
 typedef struct _RangeBound__isset {
-  _RangeBound__isset() : Value(false), Inclusive(false), RowID(false) {}
-  bool Value;
-  bool Inclusive;
-  bool RowID;
+  _RangeBound__isset() : rowID(false) {}
+  bool rowID;
 } _RangeBound__isset;
 
 class RangeBound {
@@ -654,39 +576,39 @@ class RangeBound {
   static const char* ascii_fingerprint; // = "9D71179D9CC54C80954B5F64B2A9E947";
   static const uint8_t binary_fingerprint[16]; // = {0x9D,0x71,0x17,0x9D,0x9C,0xC5,0x4C,0x80,0x95,0x4B,0x5F,0x64,0xB2,0xA9,0xE9,0x47};
 
-  RangeBound() : Value(), Inclusive(0), RowID() {
+  RangeBound() : value(), inclusive(0), rowID() {
   }
 
   virtual ~RangeBound() throw() {}
 
-  std::string Value;
-  bool Inclusive;
-  std::string RowID;
+  std::string value;
+  bool inclusive;
+  std::string rowID;
 
   _RangeBound__isset __isset;
 
-  void __set_Value(const std::string& val) {
-    Value = val;
+  void __set_value(const std::string& val) {
+    value = val;
   }
 
-  void __set_Inclusive(const bool val) {
-    Inclusive = val;
+  void __set_inclusive(const bool val) {
+    inclusive = val;
   }
 
-  void __set_RowID(const std::string& val) {
-    RowID = val;
-    __isset.RowID = true;
+  void __set_rowID(const std::string& val) {
+    rowID = val;
+    __isset.rowID = true;
   }
 
   bool operator == (const RangeBound & rhs) const
   {
-    if (!(Value == rhs.Value))
+    if (!(value == rhs.value))
       return false;
-    if (!(Inclusive == rhs.Inclusive))
+    if (!(inclusive == rhs.inclusive))
       return false;
-    if (__isset.RowID != rhs.__isset.RowID)
+    if (__isset.rowID != rhs.__isset.rowID)
       return false;
-    else if (__isset.RowID && !(RowID == rhs.RowID))
+    else if (__isset.rowID && !(rowID == rhs.rowID))
       return false;
     return true;
   }
@@ -704,11 +626,9 @@ class RangeBound {
 void swap(RangeBound &a, RangeBound &b);
 
 typedef struct _RangeRequest__isset {
-  _RangeRequest__isset() : Limit(true), Ascending(true), Start(false), End(false) {}
-  bool Limit;
-  bool Ascending;
-  bool Start;
-  bool End;
+  _RangeRequest__isset() : first(false), last(false) {}
+  bool first;
+  bool last;
 } _RangeRequest__isset;
 
 class RangeRequest {
@@ -717,49 +637,49 @@ class RangeRequest {
   static const char* ascii_fingerprint; // = "6DA53D6AD417E92FAC26EBB9A3A4F5BB";
   static const uint8_t binary_fingerprint[16]; // = {0x6D,0xA5,0x3D,0x6A,0xD4,0x17,0xE9,0x2F,0xAC,0x26,0xEB,0xB9,0xA3,0xA4,0xF5,0xBB};
 
-  RangeRequest() : Limit(500), Ascending(true) {
+  RangeRequest() : limit(500), ascending(true) {
   }
 
   virtual ~RangeRequest() throw() {}
 
-  int32_t Limit;
-  bool Ascending;
-  RangeBound Start;
-  RangeBound End;
+  int32_t limit;
+  bool ascending;
+  RangeBound first;
+  RangeBound last;
 
   _RangeRequest__isset __isset;
 
-  void __set_Limit(const int32_t val) {
-    Limit = val;
+  void __set_limit(const int32_t val) {
+    limit = val;
   }
 
-  void __set_Ascending(const bool val) {
-    Ascending = val;
+  void __set_ascending(const bool val) {
+    ascending = val;
   }
 
-  void __set_Start(const RangeBound& val) {
-    Start = val;
-    __isset.Start = true;
+  void __set_first(const RangeBound& val) {
+    first = val;
+    __isset.first = true;
   }
 
-  void __set_End(const RangeBound& val) {
-    End = val;
-    __isset.End = true;
+  void __set_last(const RangeBound& val) {
+    last = val;
+    __isset.last = true;
   }
 
   bool operator == (const RangeRequest & rhs) const
   {
-    if (!(Limit == rhs.Limit))
+    if (!(limit == rhs.limit))
       return false;
-    if (!(Ascending == rhs.Ascending))
+    if (!(ascending == rhs.ascending))
       return false;
-    if (__isset.Start != rhs.__isset.Start)
+    if (__isset.first != rhs.__isset.first)
       return false;
-    else if (__isset.Start && !(Start == rhs.Start))
+    else if (__isset.first && !(first == rhs.first))
       return false;
-    if (__isset.End != rhs.__isset.End)
+    if (__isset.last != rhs.__isset.last)
       return false;
-    else if (__isset.End && !(End == rhs.End))
+    else if (__isset.last && !(last == rhs.last))
       return false;
     return true;
   }
@@ -776,11 +696,6 @@ class RangeRequest {
 
 void swap(RangeRequest &a, RangeRequest &b);
 
-typedef struct _ValueRows__isset {
-  _ValueRows__isset() : Value(false), RowIDs(false) {}
-  bool Value;
-  bool RowIDs;
-} _ValueRows__isset;
 
 class ValueRows {
  public:
@@ -788,29 +703,27 @@ class ValueRows {
   static const char* ascii_fingerprint; // = "25702B8D5E28AA39160F267DABBC8446";
   static const uint8_t binary_fingerprint[16]; // = {0x25,0x70,0x2B,0x8D,0x5E,0x28,0xAA,0x39,0x16,0x0F,0x26,0x7D,0xAB,0xBC,0x84,0x46};
 
-  ValueRows() : Value() {
+  ValueRows() : value() {
   }
 
   virtual ~ValueRows() throw() {}
 
-  std::string Value;
-  std::vector<std::string>  RowIDs;
+  std::string value;
+  std::vector<std::string>  rowIDs;
 
-  _ValueRows__isset __isset;
-
-  void __set_Value(const std::string& val) {
-    Value = val;
+  void __set_value(const std::string& val) {
+    value = val;
   }
 
-  void __set_RowIDs(const std::vector<std::string> & val) {
-    RowIDs = val;
+  void __set_rowIDs(const std::vector<std::string> & val) {
+    rowIDs = val;
   }
 
   bool operator == (const ValueRows & rhs) const
   {
-    if (!(Value == rhs.Value))
+    if (!(value == rhs.value))
       return false;
-    if (!(RowIDs == rhs.RowIDs))
+    if (!(rowIDs == rhs.rowIDs))
       return false;
     return true;
   }
@@ -827,12 +740,6 @@ class ValueRows {
 
 void swap(ValueRows &a, ValueRows &b);
 
-typedef struct _RangeResult__isset {
-  _RangeResult__isset() : valueRowsList(false), EndOfRange(false), BeginOfRange(false) {}
-  bool valueRowsList;
-  bool EndOfRange;
-  bool BeginOfRange;
-} _RangeResult__isset;
 
 class RangeResult {
  public:
@@ -840,36 +747,34 @@ class RangeResult {
   static const char* ascii_fingerprint; // = "35701C18CAAD9A6D5379929C792CFFB9";
   static const uint8_t binary_fingerprint[16]; // = {0x35,0x70,0x1C,0x18,0xCA,0xAD,0x9A,0x6D,0x53,0x79,0x92,0x9C,0x79,0x2C,0xFF,0xB9};
 
-  RangeResult() : EndOfRange(0), BeginOfRange(0) {
+  RangeResult() : endOfRange(0), beginOfRange(0) {
   }
 
   virtual ~RangeResult() throw() {}
 
   ValueRowsList valueRowsList;
-  bool EndOfRange;
-  bool BeginOfRange;
-
-  _RangeResult__isset __isset;
+  bool endOfRange;
+  bool beginOfRange;
 
   void __set_valueRowsList(const ValueRowsList& val) {
     valueRowsList = val;
   }
 
-  void __set_EndOfRange(const bool val) {
-    EndOfRange = val;
+  void __set_endOfRange(const bool val) {
+    endOfRange = val;
   }
 
-  void __set_BeginOfRange(const bool val) {
-    BeginOfRange = val;
+  void __set_beginOfRange(const bool val) {
+    beginOfRange = val;
   }
 
   bool operator == (const RangeResult & rhs) const
   {
     if (!(valueRowsList == rhs.valueRowsList))
       return false;
-    if (!(EndOfRange == rhs.EndOfRange))
+    if (!(endOfRange == rhs.endOfRange))
       return false;
-    if (!(BeginOfRange == rhs.BeginOfRange))
+    if (!(beginOfRange == rhs.beginOfRange))
       return false;
     return true;
   }
@@ -887,40 +792,46 @@ class RangeResult {
 void swap(RangeResult &a, RangeResult &b);
 
 typedef struct _Query__isset {
-  _Query__isset() : RowIDs(false), Ranges(false) {}
-  bool RowIDs;
-  bool Ranges;
+  _Query__isset() : rowIDs(false), ranges(false) {}
+  bool rowIDs;
+  bool ranges;
 } _Query__isset;
 
 class Query {
  public:
 
-  static const char* ascii_fingerprint; // = "EC0678E28E5088F474E56302FF4C2884";
-  static const uint8_t binary_fingerprint[16]; // = {0xEC,0x06,0x78,0xE2,0x8E,0x50,0x88,0xF4,0x74,0xE5,0x63,0x02,0xFF,0x4C,0x28,0x84};
+  static const char* ascii_fingerprint; // = "ACBB8261FB1752FEC255951E77ADC28F";
+  static const uint8_t binary_fingerprint[16]; // = {0xAC,0xBB,0x82,0x61,0xFB,0x17,0x52,0xFE,0xC2,0x55,0x95,0x1E,0x77,0xAD,0xC2,0x8F};
 
   Query() {
   }
 
   virtual ~Query() throw() {}
 
-  std::vector<std::string>  RowIDs;
-  std::vector<RangeRequest>  Ranges;
+  std::vector<std::string>  rowIDs;
+  std::vector<RangeRequest>  ranges;
 
   _Query__isset __isset;
 
-  void __set_RowIDs(const std::vector<std::string> & val) {
-    RowIDs = val;
+  void __set_rowIDs(const std::vector<std::string> & val) {
+    rowIDs = val;
+    __isset.rowIDs = true;
   }
 
-  void __set_Ranges(const std::vector<RangeRequest> & val) {
-    Ranges = val;
+  void __set_ranges(const std::vector<RangeRequest> & val) {
+    ranges = val;
+    __isset.ranges = true;
   }
 
   bool operator == (const Query & rhs) const
   {
-    if (!(RowIDs == rhs.RowIDs))
+    if (__isset.rowIDs != rhs.__isset.rowIDs)
       return false;
-    if (!(Ranges == rhs.Ranges))
+    else if (__isset.rowIDs && !(rowIDs == rhs.rowIDs))
+      return false;
+    if (__isset.ranges != rhs.__isset.ranges)
+      return false;
+    else if (__isset.ranges && !(ranges == rhs.ranges))
       return false;
     return true;
   }
@@ -938,40 +849,46 @@ class Query {
 void swap(Query &a, Query &b);
 
 typedef struct _Answer__isset {
-  _Answer__isset() : RowIDValues(false), RangeValues(false) {}
-  bool RowIDValues;
-  bool RangeValues;
+  _Answer__isset() : rowIDValues(false), rangeValues(false) {}
+  bool rowIDValues;
+  bool rangeValues;
 } _Answer__isset;
 
 class Answer {
  public:
 
-  static const char* ascii_fingerprint; // = "0EF26ABE5434A4F3B55562D977866E0F";
-  static const uint8_t binary_fingerprint[16]; // = {0x0E,0xF2,0x6A,0xBE,0x54,0x34,0xA4,0xF3,0xB5,0x55,0x62,0xD9,0x77,0x86,0x6E,0x0F};
+  static const char* ascii_fingerprint; // = "07913048224474EEEB5D341EE66ECC37";
+  static const uint8_t binary_fingerprint[16]; // = {0x07,0x91,0x30,0x48,0x22,0x44,0x74,0xEE,0xEB,0x5D,0x34,0x1E,0xE6,0x6E,0xCC,0x37};
 
   Answer() {
   }
 
   virtual ~Answer() throw() {}
 
-  std::vector<std::string>  RowIDValues;
-  std::vector<RangeResult>  RangeValues;
+  std::vector<std::string>  rowIDValues;
+  std::vector<RangeResult>  rangeValues;
 
   _Answer__isset __isset;
 
-  void __set_RowIDValues(const std::vector<std::string> & val) {
-    RowIDValues = val;
+  void __set_rowIDValues(const std::vector<std::string> & val) {
+    rowIDValues = val;
+    __isset.rowIDValues = true;
   }
 
-  void __set_RangeValues(const std::vector<RangeResult> & val) {
-    RangeValues = val;
+  void __set_rangeValues(const std::vector<RangeResult> & val) {
+    rangeValues = val;
+    __isset.rangeValues = true;
   }
 
   bool operator == (const Answer & rhs) const
   {
-    if (!(RowIDValues == rhs.RowIDValues))
+    if (__isset.rowIDValues != rhs.__isset.rowIDValues)
       return false;
-    if (!(RangeValues == rhs.RangeValues))
+    else if (__isset.rowIDValues && !(rowIDValues == rhs.rowIDValues))
+      return false;
+    if (__isset.rangeValues != rhs.__isset.rangeValues)
+      return false;
+    else if (__isset.rangeValues && !(rangeValues == rhs.rangeValues))
       return false;
     return true;
   }
@@ -988,60 +905,53 @@ class Answer {
 
 void swap(Answer &a, Answer &b);
 
-typedef struct _ReadResults__isset {
-  _ReadResults__isset() : Answers(false), revision(false) {}
-  bool Answers;
-  bool revision;
-} _ReadResults__isset;
 
-class ReadResults {
+class ReadResult {
  public:
 
-  static const char* ascii_fingerprint; // = "35E1DBCF381709B9ECBA674B21C87C14";
-  static const uint8_t binary_fingerprint[16]; // = {0x35,0xE1,0xDB,0xCF,0x38,0x17,0x09,0xB9,0xEC,0xBA,0x67,0x4B,0x21,0xC8,0x7C,0x14};
+  static const char* ascii_fingerprint; // = "E0979AC14FF7FD491002565C55191622";
+  static const uint8_t binary_fingerprint[16]; // = {0xE0,0x97,0x9A,0xC1,0x4F,0xF7,0xFD,0x49,0x10,0x02,0x56,0x5C,0x55,0x19,0x16,0x22};
 
-  ReadResults() : revision(0) {
+  ReadResult() : revision(0) {
   }
 
-  virtual ~ReadResults() throw() {}
+  virtual ~ReadResult() throw() {}
 
-  std::map<ColumnID, Answer>  Answers;
+  Answer answer;
   Revision revision;
 
-  _ReadResults__isset __isset;
-
-  void __set_Answers(const std::map<ColumnID, Answer> & val) {
-    Answers = val;
+  void __set_answer(const Answer& val) {
+    answer = val;
   }
 
   void __set_revision(const Revision val) {
     revision = val;
   }
 
-  bool operator == (const ReadResults & rhs) const
+  bool operator == (const ReadResult & rhs) const
   {
-    if (!(Answers == rhs.Answers))
+    if (!(answer == rhs.answer))
       return false;
     if (!(revision == rhs.revision))
       return false;
     return true;
   }
-  bool operator != (const ReadResults &rhs) const {
+  bool operator != (const ReadResult &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const ReadResults & ) const;
+  bool operator < (const ReadResult & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-void swap(ReadResults &a, ReadResults &b);
+void swap(ReadResult &a, ReadResult &b);
 
 typedef struct _NotLatest__isset {
-  _NotLatest__isset() : Latest(false) {}
-  bool Latest;
+  _NotLatest__isset() : latest(false) {}
+  bool latest;
 } _NotLatest__isset;
 
 class NotLatest : public ::apache::thrift::TException {
@@ -1050,22 +960,22 @@ class NotLatest : public ::apache::thrift::TException {
   static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
   static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 
-  NotLatest() : Latest(0) {
+  NotLatest() : latest(0) {
   }
 
   virtual ~NotLatest() throw() {}
 
-  Revision Latest;
+  Revision latest;
 
   _NotLatest__isset __isset;
 
-  void __set_Latest(const Revision val) {
-    Latest = val;
+  void __set_latest(const Revision val) {
+    latest = val;
   }
 
   bool operator == (const NotLatest & rhs) const
   {
-    if (!(Latest == rhs.Latest))
+    if (!(latest == rhs.latest))
       return false;
     return true;
   }
@@ -1083,9 +993,9 @@ class NotLatest : public ::apache::thrift::TException {
 void swap(NotLatest &a, NotLatest &b);
 
 typedef struct _Conflict__isset {
-  _Conflict__isset() : Details(false), ColumnIDs(false) {}
-  bool Details;
-  bool ColumnIDs;
+  _Conflict__isset() : details(false), columnIDs(false) {}
+  bool details;
+  bool columnIDs;
 } _Conflict__isset;
 
 class Conflict : public ::apache::thrift::TException {
@@ -1094,29 +1004,29 @@ class Conflict : public ::apache::thrift::TException {
   static const char* ascii_fingerprint; // = "920F6571EE6C0CF61556A788D6042213";
   static const uint8_t binary_fingerprint[16]; // = {0x92,0x0F,0x65,0x71,0xEE,0x6C,0x0C,0xF6,0x15,0x56,0xA7,0x88,0xD6,0x04,0x22,0x13};
 
-  Conflict() : Details() {
+  Conflict() : details() {
   }
 
   virtual ~Conflict() throw() {}
 
-  std::string Details;
-  std::vector<ColumnID>  ColumnIDs;
+  std::string details;
+  std::vector<ColumnID>  columnIDs;
 
   _Conflict__isset __isset;
 
-  void __set_Details(const std::string& val) {
-    Details = val;
+  void __set_details(const std::string& val) {
+    details = val;
   }
 
-  void __set_ColumnIDs(const std::vector<ColumnID> & val) {
-    ColumnIDs = val;
+  void __set_columnIDs(const std::vector<ColumnID> & val) {
+    columnIDs = val;
   }
 
   bool operator == (const Conflict & rhs) const
   {
-    if (!(Details == rhs.Details))
+    if (!(details == rhs.details))
       return false;
-    if (!(ColumnIDs == rhs.ColumnIDs))
+    if (!(columnIDs == rhs.columnIDs))
       return false;
     return true;
   }
@@ -1134,8 +1044,8 @@ class Conflict : public ::apache::thrift::TException {
 void swap(Conflict &a, Conflict &b);
 
 typedef struct _BeyondHistory__isset {
-  _BeyondHistory__isset() : MinHistory(false) {}
-  bool MinHistory;
+  _BeyondHistory__isset() : minHistory(false) {}
+  bool minHistory;
 } _BeyondHistory__isset;
 
 class BeyondHistory : public ::apache::thrift::TException {
@@ -1144,22 +1054,22 @@ class BeyondHistory : public ::apache::thrift::TException {
   static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
   static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 
-  BeyondHistory() : MinHistory(0) {
+  BeyondHistory() : minHistory(0) {
   }
 
   virtual ~BeyondHistory() throw() {}
 
-  Revision MinHistory;
+  Revision minHistory;
 
   _BeyondHistory__isset __isset;
 
-  void __set_MinHistory(const Revision val) {
-    MinHistory = val;
+  void __set_minHistory(const Revision val) {
+    minHistory = val;
   }
 
   bool operator == (const BeyondHistory & rhs) const
   {
-    if (!(MinHistory == rhs.MinHistory))
+    if (!(minHistory == rhs.minHistory))
       return false;
     return true;
   }

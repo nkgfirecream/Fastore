@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class ColumnWrites : TBase
   {
-    private List<Include> _Includes;
-    private List<Exclude> _Excludes;
+    private List<Include> _includes;
+    private List<Exclude> _excludes;
 
     public List<Include> Includes
     {
       get
       {
-        return _Includes;
+        return _includes;
       }
       set
       {
-        __isset.Includes = true;
-        this._Includes = value;
+        __isset.includes = true;
+        this._includes = value;
       }
     }
 
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _Excludes;
+        return _excludes;
       }
       set
       {
-        __isset.Excludes = true;
-        this._Excludes = value;
+        __isset.excludes = true;
+        this._excludes = value;
       }
     }
 
@@ -58,8 +58,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool Includes;
-      public bool Excludes;
+      public bool includes;
+      public bool excludes;
     }
 
     public ColumnWrites() {
@@ -126,8 +126,8 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("ColumnWrites");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (Includes != null && __isset.Includes) {
-        field.Name = "Includes";
+      if (Includes != null && __isset.includes) {
+        field.Name = "includes";
         field.Type = TType.List;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
@@ -141,8 +141,8 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (Excludes != null && __isset.Excludes) {
-        field.Name = "Excludes";
+      if (Excludes != null && __isset.excludes) {
+        field.Name = "excludes";
         field.Type = TType.List;
         field.ID = 2;
         oprot.WriteFieldBegin(field);

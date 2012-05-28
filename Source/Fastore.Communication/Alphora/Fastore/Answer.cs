@@ -23,19 +23,19 @@ namespace Alphora.Fastore
   #endif
   public partial class Answer : TBase
   {
-    private List<byte[]> _RowIDValues;
-    private List<RangeResult> _RangeValues;
+    private List<byte[]> _rowIDValues;
+    private List<RangeResult> _rangeValues;
 
     public List<byte[]> RowIDValues
     {
       get
       {
-        return _RowIDValues;
+        return _rowIDValues;
       }
       set
       {
-        __isset.RowIDValues = true;
-        this._RowIDValues = value;
+        __isset.rowIDValues = true;
+        this._rowIDValues = value;
       }
     }
 
@@ -43,12 +43,12 @@ namespace Alphora.Fastore
     {
       get
       {
-        return _RangeValues;
+        return _rangeValues;
       }
       set
       {
-        __isset.RangeValues = true;
-        this._RangeValues = value;
+        __isset.rangeValues = true;
+        this._rangeValues = value;
       }
     }
 
@@ -58,8 +58,8 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool RowIDValues;
-      public bool RangeValues;
+      public bool rowIDValues;
+      public bool rangeValues;
     }
 
     public Answer() {
@@ -125,8 +125,8 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Answer");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (RowIDValues != null && __isset.RowIDValues) {
-        field.Name = "RowIDValues";
+      if (RowIDValues != null && __isset.rowIDValues) {
+        field.Name = "rowIDValues";
         field.Type = TType.List;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
@@ -140,8 +140,8 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (RangeValues != null && __isset.RangeValues) {
-        field.Name = "RangeValues";
+      if (RangeValues != null && __isset.rangeValues) {
+        field.Name = "rangeValues";
         field.Type = TType.List;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
