@@ -876,8 +876,8 @@ void swap(Exclude &a, Exclude &b) {
   swap(a.rowID, b.rowID);
 }
 
-const char* ColumnWrites::ascii_fingerprint = "0A6B3139A69DBA9DBD4F4688E49423B6";
-const uint8_t ColumnWrites::binary_fingerprint[16] = {0x0A,0x6B,0x31,0x39,0xA6,0x9D,0xBA,0x9D,0xBD,0x4F,0x46,0x88,0xE4,0x94,0x23,0xB6};
+const char* ColumnWrites::ascii_fingerprint = "7B474451502DF848AF475006A25AB746";
+const uint8_t ColumnWrites::binary_fingerprint[16] = {0x7B,0x47,0x44,0x51,0x50,0x2D,0xF8,0x48,0xAF,0x47,0x50,0x06,0xA2,0x5A,0xB7,0x46};
 
 uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -890,8 +890,6 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   using ::apache::thrift::protocol::TProtocolException;
 
-  bool isset_includes = false;
-  bool isset_excludes = false;
 
   while (true)
   {
@@ -916,7 +914,7 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
             }
             iprot->readListEnd();
           }
-          isset_includes = true;
+          this->__isset.includes = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -936,7 +934,7 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
             }
             iprot->readListEnd();
           }
-          isset_excludes = true;
+          this->__isset.excludes = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -950,10 +948,6 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_includes)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_excludes)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
 
@@ -961,30 +955,32 @@ uint32_t ColumnWrites::write(::apache::thrift::protocol::TProtocol* oprot) const
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("ColumnWrites");
 
-  xfer += oprot->writeFieldBegin("includes", ::apache::thrift::protocol::T_LIST, 1);
-  {
-    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->includes.size()));
-    std::vector<Include> ::const_iterator _iter42;
-    for (_iter42 = this->includes.begin(); _iter42 != this->includes.end(); ++_iter42)
+  if (this->__isset.includes) {
+    xfer += oprot->writeFieldBegin("includes", ::apache::thrift::protocol::T_LIST, 1);
     {
-      xfer += (*_iter42).write(oprot);
+      xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->includes.size()));
+      std::vector<Include> ::const_iterator _iter42;
+      for (_iter42 = this->includes.begin(); _iter42 != this->includes.end(); ++_iter42)
+      {
+        xfer += (*_iter42).write(oprot);
+      }
+      xfer += oprot->writeListEnd();
     }
-    xfer += oprot->writeListEnd();
+    xfer += oprot->writeFieldEnd();
   }
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("excludes", ::apache::thrift::protocol::T_LIST, 2);
-  {
-    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->excludes.size()));
-    std::vector<Exclude> ::const_iterator _iter43;
-    for (_iter43 = this->excludes.begin(); _iter43 != this->excludes.end(); ++_iter43)
+  if (this->__isset.excludes) {
+    xfer += oprot->writeFieldBegin("excludes", ::apache::thrift::protocol::T_LIST, 2);
     {
-      xfer += (*_iter43).write(oprot);
+      xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->excludes.size()));
+      std::vector<Exclude> ::const_iterator _iter43;
+      for (_iter43 = this->excludes.begin(); _iter43 != this->excludes.end(); ++_iter43)
+      {
+        xfer += (*_iter43).write(oprot);
+      }
+      xfer += oprot->writeListEnd();
     }
-    xfer += oprot->writeListEnd();
+    xfer += oprot->writeFieldEnd();
   }
-  xfer += oprot->writeFieldEnd();
-
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -994,6 +990,7 @@ void swap(ColumnWrites &a, ColumnWrites &b) {
   using ::std::swap;
   swap(a.includes, b.includes);
   swap(a.excludes, b.excludes);
+  swap(a.__isset, b.__isset);
 }
 
 const char* Statistic::ascii_fingerprint = "F33135321253DAEB67B0E79E416CA831";

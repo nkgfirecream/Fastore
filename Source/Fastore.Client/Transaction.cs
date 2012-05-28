@@ -22,7 +22,8 @@ namespace Alphora.Fastore.Client
 			Database = database;
 			ReadIsolation = readIsolation;
 			WriteIsolation = writeIsolation;
-			_transactionId = new TransactionID();	// TODO: gen ID  - perhaps defer until needed; first read-write would obtain revision
+			// TODO: gen ID  - perhaps defer until needed; first read-write would obtain revision
+			_transactionId = new TransactionID { Key = 0, Revision = 0 };	
 			_log = new Dictionary<int, LogColumn>();
 		}
 

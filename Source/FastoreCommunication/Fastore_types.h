@@ -477,12 +477,17 @@ class Exclude {
 
 void swap(Exclude &a, Exclude &b);
 
+typedef struct _ColumnWrites__isset {
+  _ColumnWrites__isset() : includes(false), excludes(false) {}
+  bool includes;
+  bool excludes;
+} _ColumnWrites__isset;
 
 class ColumnWrites {
  public:
 
-  static const char* ascii_fingerprint; // = "0A6B3139A69DBA9DBD4F4688E49423B6";
-  static const uint8_t binary_fingerprint[16]; // = {0x0A,0x6B,0x31,0x39,0xA6,0x9D,0xBA,0x9D,0xBD,0x4F,0x46,0x88,0xE4,0x94,0x23,0xB6};
+  static const char* ascii_fingerprint; // = "7B474451502DF848AF475006A25AB746";
+  static const uint8_t binary_fingerprint[16]; // = {0x7B,0x47,0x44,0x51,0x50,0x2D,0xF8,0x48,0xAF,0x47,0x50,0x06,0xA2,0x5A,0xB7,0x46};
 
   ColumnWrites() {
   }
@@ -492,19 +497,27 @@ class ColumnWrites {
   std::vector<Include>  includes;
   std::vector<Exclude>  excludes;
 
+  _ColumnWrites__isset __isset;
+
   void __set_includes(const std::vector<Include> & val) {
     includes = val;
+    __isset.includes = true;
   }
 
   void __set_excludes(const std::vector<Exclude> & val) {
     excludes = val;
+    __isset.excludes = true;
   }
 
   bool operator == (const ColumnWrites & rhs) const
   {
-    if (!(includes == rhs.includes))
+    if (__isset.includes != rhs.__isset.includes)
       return false;
-    if (!(excludes == rhs.excludes))
+    else if (__isset.includes && !(includes == rhs.includes))
+      return false;
+    if (__isset.excludes != rhs.__isset.excludes)
+      return false;
+    else if (__isset.excludes && !(excludes == rhs.excludes))
       return false;
     return true;
   }

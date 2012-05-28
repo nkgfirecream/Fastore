@@ -241,6 +241,7 @@ void ServiceHandler::query(ReadResults& _return, const Queries& queries)
 
 				rr.valueRowsList = vrl;
 
+				res.answer.__isset.rangeValues = true;
 				res.answer.rangeValues.push_back(rr);
 			}
 		}
@@ -256,7 +257,7 @@ void ServiceHandler::query(ReadResults& _return, const Queries& queries)
 
 			auto result = pdp.first->GetValues(kv);
 
-			res.answer.rowIDValues = std::vector<std::string>(result.size());
+			res.answer.__set_rowIDValues(std::vector<std::string>(result.size()));
 			for (int i = 0; i < result.size(); i++)
 			{
 				pdp.second.ValueType.Encode(result[i], res.answer.rowIDValues[i]);

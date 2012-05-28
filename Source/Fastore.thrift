@@ -100,8 +100,8 @@ struct Exclude
  
 struct ColumnWrites
 {
-	1: required list<Include> includes,
-	2: required list<Exclude> excludes
+	1: optional list<Include> includes,
+	2: optional list<Exclude> excludes
 }
 
 typedef map<ColumnID, ColumnWrites> Writes
