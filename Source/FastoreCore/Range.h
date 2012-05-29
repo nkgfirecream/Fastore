@@ -9,7 +9,7 @@ namespace fs
 	{
 		RangeBound() : Value(NULL), Inclusive(true) {}
 
-		RangeBound(void* value, Optional<void*> rowId = NULL, bool inclusive = true) :
+		RangeBound(void* value,  bool inclusive = true, Optional<void*> rowId = Optional<void*>()) :
 			Value(value), RowId(rowId), Inclusive(inclusive) {}
 		
 		void* Value;

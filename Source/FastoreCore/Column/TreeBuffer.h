@@ -9,7 +9,7 @@
 class TreeBuffer : public IColumnBuffer
 {
 	public:
-		TreeBuffer(const int& columnId, const ScalarType& rowType, const ScalarType &valueType, const fs::string& name);
+		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
@@ -18,13 +18,6 @@ class TreeBuffer : public IColumnBuffer
 		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
-
-		ScalarType GetRowIDType();
-		ScalarType GetValueType();
-		fs::string GetName();
-		bool GetUnique();
-		bool GetRequired();
-		int GetID();
 
 		Value GetValue(Key rowId);
 		fs::wstring ToString();
@@ -37,24 +30,19 @@ class TreeBuffer : public IColumnBuffer
 		ScalarType _valueType;
 		ScalarType _nodeType;
 		BTree* _rows;
-		BTree* _values;
-		fs::string _name;
-		bool _required;
+		BTree* _values;	
 		long long _unique;
 		long long _total;
-		int _id;
+
 };
 
-inline TreeBuffer::TreeBuffer(const int& columnId, const ScalarType& rowType, const ScalarType &valueType, const fs::string& name)
+inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &valueType)
 {
-	_id = columnId;
-	_name = name;
 	_rowType = rowType;
 	_valueType = valueType;
 	_nodeType = GetNodeType();
 	_rows = new BTree(_rowType, _nodeType);
 	_values = new BTree(_valueType, standardtypes::StandardKeyTree);
-	_required = false;
 	_unique = 0;
 	_total = 0;
 	_values->setValuesMovedCallback
@@ -66,44 +54,9 @@ inline TreeBuffer::TreeBuffer(const int& columnId, const ScalarType& rowType, co
 	);
 }
 
-inline int TreeBuffer::GetID()
-{
-	return _id;
-}
-
 inline Statistics TreeBuffer::GetStatistics()
 {
 	return Statistics(_total, _unique);
-}
-
-inline fs::wstring TreeBuffer::ToString()
-{
-	return _values->ToString();
-}
-
-inline fs::string TreeBuffer::GetName()
-{
-	return _name;
-}
-
-inline ScalarType TreeBuffer::GetValueType()
-{
-	return _valueType;
-}
-
-inline ScalarType TreeBuffer::GetRowIDType()
-{
-	return _rowType;
-}
-
-inline bool TreeBuffer::GetUnique()
-{
-	return false;
-}
-
-inline bool TreeBuffer::GetRequired()
-{
-	return _required;
 }
 
 inline ValueVector TreeBuffer::GetValues(const fs::KeyVector& rowIds)

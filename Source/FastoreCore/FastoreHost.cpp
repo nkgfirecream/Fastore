@@ -86,11 +86,11 @@ IColumnBuffer* FastoreHost::InstantiateColumn(ColumnDef def)
 	//Maybe I should just pass in the entire column def...
 	if (def.IsUnique)
 	{
-		newbuffer = new UniqueBuffer(def.ColumnID, def.RowIDType, def.ValueType, def.Name);
+		newbuffer = new UniqueBuffer(def.RowIDType, def.ValueType);
 	}
 	else
 	{
-		newbuffer = new TreeBuffer(def.ColumnID, def.RowIDType, def.ValueType, def.Name);
+		newbuffer = new TreeBuffer(def.RowIDType, def.ValueType);
 	}
 
 	return newbuffer;

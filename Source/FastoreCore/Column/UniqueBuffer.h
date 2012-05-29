@@ -10,7 +10,7 @@ const int UniqueBufferRowMapInitialSize = 32;
 class UniqueBuffer : public IColumnBuffer
 {
 	public:
-		UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::string& name);
+		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType);
 		ValueVector GetValues(const KeyVector& rowId);
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
@@ -19,13 +19,6 @@ class UniqueBuffer : public IColumnBuffer
 		GetResult GetRows(Range& range);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
 		Statistics GetStatistics();
-
-		ScalarType GetRowIDType();
-		ScalarType GetValueType();
-		fs::string GetName();
-		bool GetUnique();
-		bool GetRequired();
-		int GetID();
 
 	private:
 		void ValuesMoved(void*, Node*);
@@ -37,21 +30,15 @@ class UniqueBuffer : public IColumnBuffer
 		BTree* _rows;
 		BTree* _values;
 		long long _count;
-		fs::string _name;
-		bool _required;
-		int _id;
 };
 
-inline UniqueBuffer::UniqueBuffer(const int& columnId, const ScalarType& rowType, const ScalarType& valueType, const fs::string& name)
+inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType)
 {
-	_id = columnId;
-	_name = name;
 	_rowType = rowType;
 	_valueType = valueType;
 	_nodeType = GetNodeType();
 	_rows = new BTree(_rowType, _nodeType);
 	_values = new BTree(_valueType, standardtypes::StandardHashSet);
-	_required = false;
 	_count = 0;
 	_values->setValuesMovedCallback
 	(
@@ -62,41 +49,10 @@ inline UniqueBuffer::UniqueBuffer(const int& columnId, const ScalarType& rowType
 	);
 }
 
-inline int UniqueBuffer::GetID()
-{
-	return _id;
-}
-
 inline Statistics UniqueBuffer::GetStatistics()
 {
 	return Statistics(_count, _count);
 }
-
-inline fs::string UniqueBuffer::GetName()
-{
-	return _name;
-}
-
-inline ScalarType UniqueBuffer::GetValueType()
-{
-	return _valueType;
-}
-
-inline ScalarType UniqueBuffer::GetRowIDType()
-{
-	return _rowType;
-}
-
-inline bool UniqueBuffer::GetUnique()
-{
-	return true;
-}
-
-inline bool UniqueBuffer::GetRequired()
-{
-	return _required;
-}
-
 
 inline ValueVector UniqueBuffer::GetValues(const KeyVector& rowIds)
 {
@@ -263,45 +219,6 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 		}
 	}
 
-	//Swap iterators if descending
-	if (range.Ascending)
-	{
-		//Adjust iterators
-		//Last needs to point to the element AFTER the last one we want to get
-		if (lastMatch && range.End.HasValue() && (*range.End).Inclusive)
-		{
-			last++;
-		}
-
-		//First needs to point to the first element we DO want to pick up
-		if (firstMatch && !(range.Start.HasValue() && (*range.Start).Inclusive))
-		{
-			first++;
-		}	
-	}		
-	else
-	{
-		//If we are descending, lasts needs to point at the first element we want to pick up
-		if (!lastMatch || (lastMatch && range.End.HasValue() && !(*range.End).Inclusive))
-		{
-			//If we are pointing at an excluded element, move back
-			last--;
-		} 
-
-		//If we are descending, first need to point at the element BEFORE the last one we want to pick up
-		if (!firstMatch || (firstMatch && range.Start.HasValue() && (*range.Start).Inclusive))
-		{
-			first--;
-		}
-
-		//Swap iterators
-		//TODO: Non-Copy iterator swapping
-		BTree::iterator temp = first;
-		first = last;
-		last = temp;
-	}
-
-	//Assumption -- Repeated calls will come in in the same direction, therefore we don't need to check both start and end
 	result.Data = 
 		BuildData
 		(
@@ -319,30 +236,39 @@ inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::it
 {	
 	int num = 0;
     limited = false;
-	ValueKeysVector rows;	
-	
-	while (first != last && !limited)
+	ValueKeysVector rows;
+
+	if (ascending)
 	{
-		auto rowId = (Key)((*first).value);
+		while (first != last && !limited)
+		{
+			auto rowId = (Key)((*first).value);
 		
-		KeyVector keys;
-		keys.push_back(rowId);
-		num++;
-		if (num > limit)
-		{
-			limited = true; break;
-		}
-
-		if (keys.size() > 0)
-		{
+			KeyVector keys;
+			keys.push_back(rowId);			
 			rows.push_back(ValueKeys((*first).key, keys));
-		}		
+			
+			num++;
+			limited = num == limit;
 
-		if (ascending)
 			first++;
-		else
-			first--;
+		}
 	}
+	else
+	{
+		while (first != last && !limited)
+		{
+			last--;
+			auto rowId = (Key)((*last).value);
+		
+			KeyVector keys;
+			keys.push_back(rowId);
+			rows.push_back(ValueKeys((*last).key, keys));
+
+			num++;
+			limited = num == limit;
+		}
+	}	
 
 	return rows;
 }
