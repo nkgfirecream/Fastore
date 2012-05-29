@@ -191,39 +191,44 @@ inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 
 inline GetResult UniqueBuffer::GetRows(Range& range)
 {
-	//These may not exist, add logic for handling that.
-	GetResult result;
-
-	bool firstMatch = false; //Seeking to beginning or end
-	bool lastMatch = false;
-	BTree::iterator first = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, firstMatch) : _values->begin();
-	BTree::iterator last =  range.End.HasValue() ? _values->findNearest((*range.End).Value, lastMatch) : _values->end();
-
 	if (range.Start.HasValue() && range.End.HasValue())
-	{
-		RangeBound start = *range.Start;
-		RangeBound end = *range.End;
-
-		//Bounds checking
-		//TODO: Is this needed? Could the BuildData logic handle this correctly?
-		if (last == first && (!end.Inclusive || !start.Inclusive))
-		{
-			//We have only one result, and it is excluded
-			return result; //Empty result.
-		}
-
-		if (_valueType.Compare(start.Value, end.Value) > 0)
+	{		
+		if (_valueType.Compare((*(range.Start)).Value, (*(range.End)).Value) > 0)
 		{
 			//Start is after end-> Invalid input.
-			throw;
+			throw "Invalid range. Start is after end";
 		}
 	}
+
+	//cache end marker since we will use it several times
+	BTree::iterator lastValue = _values->end();
+	
+	bool beginMatch = false;
+	bool endMatch = false;	
+
+	BTree::iterator begin = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, beginMatch) : _values->begin();
+	BTree::iterator end =  range.End.HasValue() ? _values->findNearest((*range.End).Value, endMatch) : lastValue;
+
+	bool bInclusive = range.Start.HasValue() ? (*(range.Start)).Inclusive : true;
+	bool eInclusive = range.End.HasValue() ? (*(range.End)).Inclusive : true;
+
+	GetResult result;	
+
+	//Nothing in this range, so return empty result
+	if ((begin == lastValue) || ((begin == end) && (!bInclusive || !eInclusive)))
+		return result;	
+
+	if (!bInclusive && beginMatch)
+		begin++;
+
+	if (eInclusive && endMatch)
+		end++;
 
 	result.Data = 
 		BuildData
 		(
-			first, 
-			last,
+			begin, 
+			end,
 			range.Ascending, 
 			range.Limit, 
 			result.Limited
