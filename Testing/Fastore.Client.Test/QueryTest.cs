@@ -50,7 +50,7 @@ namespace Fastore.Client.Test
             Database _db = Alphora.Fastore.Client.Client.Connect(hostname1, port1);
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
-            int[] _cols = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            int[] _cols = new int[] { 2000, 2001, 2002, 2003, 2004, 2005 };
 
             _db.Include(_schemaColumns, _cols[0], new object[] { _cols[0], "ID", "Int", "Int", true });
             _db.Include(_schemaColumns, _cols[1], new object[] { _cols[1], "Given", "String", "Int", false });
@@ -62,7 +62,7 @@ namespace Fastore.Client.Test
             var stats = _db.GetStatistics(_cols);
             Assert.AreEqual(stats[0].Total, 0);
 
-            _db.Include(_columns, 0, new object[] { 0, "Joe", "Shmoe", true, "5/26/1980", "Antarctica" });
+            _db.Include(_cols, 0, new object[] { 0, "Joe", "Shmoe", true, "5/26/1980", "Antarctica" });
             var stats2 = _db.GetStatistics(_cols);
             Assert.AreEqual(stats2[0].Total, 1);
         }
