@@ -1,0 +1,11 @@
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Fastore.Client.Test.dll
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Fastore.Client.Test.pdb
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Fastore.Client.dll
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Fastore.Communication.dll
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Thrift.dll
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Fastore.Client.pdb
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Fastore.Communication.pdb
+C:\projects\fastore\Source\Fastore.Client.Test\bin\Debug\Thrift.pdb
+C:\projects\fastore\Source\Fastore.Client.Test\obj\Debug\ResolveAssemblyReference.cache
+C:\projects\fastore\Source\Fastore.Client.Test\obj\Debug\Fastore.Client.Test.dll
+C:\projects\fastore\Source\Fastore.Client.Test\obj\Debug\Fastore.Client.Test.pdb
