@@ -107,7 +107,7 @@ namespace Fastore.Client.Test
                 new[] { new Order { ColumnID = 1000, Ascending = true } },
                 new[] { new Range { ColumnID = 1000, Limit = 9 } }
                 );
-            Assert.AreEqual(data2.Count, 7); //bug - expects 8
+            Assert.AreEqual(data2.Count, 7); 
         }
 
         [TestMethod]
