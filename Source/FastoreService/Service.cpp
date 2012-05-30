@@ -24,7 +24,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	{
 		service = boost::shared_ptr<FastoreService>(new FastoreService(config));
 	}
-	catch (exception& e)
+	catch (const exception& e)
 	{
 		cout << "Error starting service: " << e.what();
 		return;
@@ -38,7 +38,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	{
 		service->Run();
 	}
-	catch (exception& e)
+	catch (const exception& e)
 	{
 		cout << "Error during service execution: " << e.what();
 	}
@@ -51,7 +51,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	{
 		service.reset();			
 	}
-	catch (exception& e)
+	catch (const exception& e)
 	{
 		cout << "Error shutting down service: " << e.what();
 		return;

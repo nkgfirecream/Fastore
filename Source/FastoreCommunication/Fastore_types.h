@@ -757,37 +757,44 @@ void swap(ValueRows &a, ValueRows &b);
 class RangeResult {
  public:
 
-  static const char* ascii_fingerprint; // = "35701C18CAAD9A6D5379929C792CFFB9";
-  static const uint8_t binary_fingerprint[16]; // = {0x35,0x70,0x1C,0x18,0xCA,0xAD,0x9A,0x6D,0x53,0x79,0x92,0x9C,0x79,0x2C,0xFF,0xB9};
+  static const char* ascii_fingerprint; // = "A6BFD4A548133149EF24E6ED4F1025B8";
+  static const uint8_t binary_fingerprint[16]; // = {0xA6,0xBF,0xD4,0xA5,0x48,0x13,0x31,0x49,0xEF,0x24,0xE6,0xED,0x4F,0x10,0x25,0xB8};
 
-  RangeResult() : endOfRange(0), beginOfRange(0) {
+  RangeResult() : endOfFile(0), beginOfFile(0), limited(0) {
   }
 
   virtual ~RangeResult() throw() {}
 
   ValueRowsList valueRowsList;
-  bool endOfRange;
-  bool beginOfRange;
+  bool endOfFile;
+  bool beginOfFile;
+  bool limited;
 
   void __set_valueRowsList(const ValueRowsList& val) {
     valueRowsList = val;
   }
 
-  void __set_endOfRange(const bool val) {
-    endOfRange = val;
+  void __set_endOfFile(const bool val) {
+    endOfFile = val;
   }
 
-  void __set_beginOfRange(const bool val) {
-    beginOfRange = val;
+  void __set_beginOfFile(const bool val) {
+    beginOfFile = val;
+  }
+
+  void __set_limited(const bool val) {
+    limited = val;
   }
 
   bool operator == (const RangeResult & rhs) const
   {
     if (!(valueRowsList == rhs.valueRowsList))
       return false;
-    if (!(endOfRange == rhs.endOfRange))
+    if (!(endOfFile == rhs.endOfFile))
       return false;
-    if (!(beginOfRange == rhs.beginOfRange))
+    if (!(beginOfFile == rhs.beginOfFile))
+      return false;
+    if (!(limited == rhs.limited))
       return false;
     return true;
   }
@@ -870,8 +877,8 @@ typedef struct _Answer__isset {
 class Answer {
  public:
 
-  static const char* ascii_fingerprint; // = "07913048224474EEEB5D341EE66ECC37";
-  static const uint8_t binary_fingerprint[16]; // = {0x07,0x91,0x30,0x48,0x22,0x44,0x74,0xEE,0xEB,0x5D,0x34,0x1E,0xE6,0x6E,0xCC,0x37};
+  static const char* ascii_fingerprint; // = "2AE4F329512B9BFF283AD9D6279E124D";
+  static const uint8_t binary_fingerprint[16]; // = {0x2A,0xE4,0xF3,0x29,0x51,0x2B,0x9B,0xFF,0x28,0x3A,0xD9,0xD6,0x27,0x9E,0x12,0x4D};
 
   Answer() {
   }
@@ -922,8 +929,8 @@ void swap(Answer &a, Answer &b);
 class ReadResult {
  public:
 
-  static const char* ascii_fingerprint; // = "E0979AC14FF7FD491002565C55191622";
-  static const uint8_t binary_fingerprint[16]; // = {0xE0,0x97,0x9A,0xC1,0x4F,0xF7,0xFD,0x49,0x10,0x02,0x56,0x5C,0x55,0x19,0x16,0x22};
+  static const char* ascii_fingerprint; // = "747FE1FFF63CCB61ABEB89C586E23870";
+  static const uint8_t binary_fingerprint[16]; // = {0x74,0x7F,0xE1,0xFF,0xF6,0x3C,0xCB,0x61,0xAB,0xEB,0x89,0xC5,0x86,0xE2,0x38,0x70};
 
   ReadResult() : revision(0) {
   }

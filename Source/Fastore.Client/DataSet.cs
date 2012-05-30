@@ -55,8 +55,9 @@ namespace Alphora.Fastore.Client
 
         //This is with regards to the range that was used to request the dataset.
         //We need a better way to tie the two together.
-        public bool EndOfRange = false;
-        public bool BeginOfRange = false;
+        public bool EndOfFile = false;
+        public bool BeginOfFile = false;
+        public bool Limited = false;
 	}
 
     public class DataSetRow

@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Communication", "Fa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommunication", "FastoreCommunication\FastoreCommunication.vcxproj", "{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Client.Test", "..\Testing\Fastore.Client.Test\Fastore.Client.Test.csproj", "{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}"
+EndProject
 Global
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Fastore.vsmdi
@@ -174,11 +176,26 @@ Global
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.ActiveCfg = Release|x64
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.Build.0 = Release|x64
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x86.ActiveCfg = Release|Win32
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|Win32.ActiveCfg = Release|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|x64.ActiveCfg = Release|Any CPU
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{04A3E346-A100-4ED8-8CB2-3295DE028C22} = {DC376C21-AAD2-467E-BB51-9A089E507151}
+		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4} = {DC376C21-AAD2-467E-BB51-9A089E507151}
 	EndGlobalSection
 EndGlobal

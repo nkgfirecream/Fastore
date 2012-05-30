@@ -220,7 +220,9 @@ void ServiceHandler::query(ReadResults& _return, const Queries& queries)
 				fastore::ValueRowsList vrl(result.Data.size());
 				fastore::RangeResult rr;
 
-				rr.endOfRange = !result.Limited;
+				rr.endOfFile = result.EndOfFile;
+				rr.beginOfFile = result.BeginOfFile;
+				rr.limited = result.Limited;
 
 				for (int j = 0; j < result.Data.size(); j++ )
 				{

@@ -8,8 +8,15 @@ using namespace fs;
 
 struct GetResult
 {
-	GetResult() : Limited(false) {}
+	GetResult() : Limited(false), BeginOfFile(false), EndOfFile(false) {}
+	//You could derive Limited based off the EOF and BOF flags and the knowledge
+	//of which direction you were querying, but I decided to make it explicit for now.
+	//Also, there's a bit of a mismatch here as well with regards to dataphor. Dataphor only cares 
+	//about EOF and BOF, and not the end of range or beginning of ranges. It only uses ranges for
+	//searching/buffering, and doesn't yet recognize what a specific range means.
 	bool Limited;
+	bool BeginOfFile;
+	bool EndOfFile;
 	ValueKeysVector Data;
 };
 

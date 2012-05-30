@@ -1377,8 +1377,8 @@ void swap(ValueRows &a, ValueRows &b) {
   swap(a.rowIDs, b.rowIDs);
 }
 
-const char* RangeResult::ascii_fingerprint = "35701C18CAAD9A6D5379929C792CFFB9";
-const uint8_t RangeResult::binary_fingerprint[16] = {0x35,0x70,0x1C,0x18,0xCA,0xAD,0x9A,0x6D,0x53,0x79,0x92,0x9C,0x79,0x2C,0xFF,0xB9};
+const char* RangeResult::ascii_fingerprint = "A6BFD4A548133149EF24E6ED4F1025B8";
+const uint8_t RangeResult::binary_fingerprint[16] = {0xA6,0xBF,0xD4,0xA5,0x48,0x13,0x31,0x49,0xEF,0x24,0xE6,0xED,0x4F,0x10,0x25,0xB8};
 
 uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1392,8 +1392,9 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
   using ::apache::thrift::protocol::TProtocolException;
 
   bool isset_valueRowsList = false;
-  bool isset_endOfRange = false;
-  bool isset_beginOfRange = false;
+  bool isset_endOfFile = false;
+  bool isset_beginOfFile = false;
+  bool isset_limited = false;
 
   while (true)
   {
@@ -1425,16 +1426,24 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool(this->endOfRange);
-          isset_endOfRange = true;
+          xfer += iprot->readBool(this->endOfFile);
+          isset_endOfFile = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 3:
         if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool(this->beginOfRange);
-          isset_beginOfRange = true;
+          xfer += iprot->readBool(this->beginOfFile);
+          isset_beginOfFile = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_BOOL) {
+          xfer += iprot->readBool(this->limited);
+          isset_limited = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1450,9 +1459,11 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   if (!isset_valueRowsList)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_endOfRange)
+  if (!isset_endOfFile)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_beginOfRange)
+  if (!isset_beginOfFile)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_limited)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -1473,12 +1484,16 @@ uint32_t RangeResult::write(::apache::thrift::protocol::TProtocol* oprot) const 
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("endOfRange", ::apache::thrift::protocol::T_BOOL, 2);
-  xfer += oprot->writeBool(this->endOfRange);
+  xfer += oprot->writeFieldBegin("endOfFile", ::apache::thrift::protocol::T_BOOL, 2);
+  xfer += oprot->writeBool(this->endOfFile);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("beginOfRange", ::apache::thrift::protocol::T_BOOL, 3);
-  xfer += oprot->writeBool(this->beginOfRange);
+  xfer += oprot->writeFieldBegin("beginOfFile", ::apache::thrift::protocol::T_BOOL, 3);
+  xfer += oprot->writeBool(this->beginOfFile);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("limited", ::apache::thrift::protocol::T_BOOL, 4);
+  xfer += oprot->writeBool(this->limited);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -1489,8 +1504,9 @@ uint32_t RangeResult::write(::apache::thrift::protocol::TProtocol* oprot) const 
 void swap(RangeResult &a, RangeResult &b) {
   using ::std::swap;
   swap(a.valueRowsList, b.valueRowsList);
-  swap(a.endOfRange, b.endOfRange);
-  swap(a.beginOfRange, b.beginOfRange);
+  swap(a.endOfFile, b.endOfFile);
+  swap(a.beginOfFile, b.beginOfFile);
+  swap(a.limited, b.limited);
 }
 
 const char* Query::ascii_fingerprint = "ACBB8261FB1752FEC255951E77ADC28F";
@@ -1610,8 +1626,8 @@ void swap(Query &a, Query &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* Answer::ascii_fingerprint = "07913048224474EEEB5D341EE66ECC37";
-const uint8_t Answer::binary_fingerprint[16] = {0x07,0x91,0x30,0x48,0x22,0x44,0x74,0xEE,0xEB,0x5D,0x34,0x1E,0xE6,0x6E,0xCC,0x37};
+const char* Answer::ascii_fingerprint = "2AE4F329512B9BFF283AD9D6279E124D";
+const uint8_t Answer::binary_fingerprint[16] = {0x2A,0xE4,0xF3,0x29,0x51,0x2B,0x9B,0xFF,0x28,0x3A,0xD9,0xD6,0x27,0x9E,0x12,0x4D};
 
 uint32_t Answer::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1727,8 +1743,8 @@ void swap(Answer &a, Answer &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* ReadResult::ascii_fingerprint = "E0979AC14FF7FD491002565C55191622";
-const uint8_t ReadResult::binary_fingerprint[16] = {0xE0,0x97,0x9A,0xC1,0x4F,0xF7,0xFD,0x49,0x10,0x02,0x56,0x5C,0x55,0x19,0x16,0x22};
+const char* ReadResult::ascii_fingerprint = "747FE1FFF63CCB61ABEB89C586E23870";
+const uint8_t ReadResult::binary_fingerprint[16] = {0x74,0x7F,0xE1,0xFF,0xF6,0x3C,0xCB,0x61,0xAB,0xEB,0x89,0xC5,0x86,0xE2,0x38,0x70};
 
 uint32_t ReadResult::read(::apache::thrift::protocol::TProtocol* iprot) {
 

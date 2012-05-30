@@ -49,7 +49,7 @@
     <Compile Include="QueryTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fastore.Client\Fastore.Client.csproj">
+    <ProjectReference Include="..\..\Source\Fastore.Client\Fastore.Client.csproj">
       <Project>{76249753-AD81-455C-8760-62BD64918177}</Project>
       <Name>Fastore.Client</Name>
     </ProjectReference>

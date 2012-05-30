@@ -23,7 +23,6 @@ class UniqueBuffer : public IColumnBuffer
 	private:
 		void ValuesMoved(void*, Node*);
 		Value GetValue(Key rowId);
-		ValueKeysVector BuildData(BTree::iterator&, BTree::iterator&, bool, int, bool&);
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -200,80 +199,110 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 		}
 	}
 
-	//cache end marker since we will use it several times
-	BTree::iterator lastValue = _values->end();
+	//cache markers since we will use it several times
+	BTree::iterator lastMarker = _values->end();
+	BTree::iterator firstMarker = _values->begin();
 	
 	bool beginMatch = false;
-	bool endMatch = false;	
+	bool endMatch = false;
 
-	BTree::iterator begin = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, beginMatch) : _values->begin();
-	BTree::iterator end =  range.End.HasValue() ? _values->findNearest((*range.End).Value, endMatch) : lastValue;
+	BTree::iterator begin = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, beginMatch) : firstMarker;
+	BTree::iterator end =  range.End.HasValue() ? _values->findNearest((*range.End).Value, endMatch) : lastMarker;
 
 	bool bInclusive = range.Start.HasValue() ? (*(range.Start)).Inclusive : true;
 	bool eInclusive = range.End.HasValue() ? (*(range.End)).Inclusive : true;
 
 	GetResult result;	
 
+	result.BeginOfFile = begin == firstMarker;
+	result.EndOfFile = end == lastMarker;
+
 	//Nothing in this range, so return empty result
-	if ((begin == lastValue) || ((begin == end) && (!bInclusive || !eInclusive)))
+	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
 		return result;	
 
 	if (!bInclusive && beginMatch)
-		begin++;
+	{
+		//reset BOF Marker since we are excluding
+		result.BeginOfFile = false;
+		++begin;
+	}
 
 	if (eInclusive && endMatch)
-		end++;
-
-	result.Data = 
-		BuildData
-		(
-			begin, 
-			end,
-			range.Ascending, 
-			range.Limit, 
-			result.Limited
-		);
-
-	return result;
-}
-
-inline ValueKeysVector UniqueBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, bool ascending, int limit, bool &limited)
-{	
-	int num = 0;
-    limited = false;
-	ValueKeysVector rows;
-
-	if (ascending)
 	{
-		while (first != last && !limited)
+		++end;
+		//reset EOF Marker since we are including
+		result.EndOfFile = end == lastMarker;
+	}
+
+	void* startId = range.Start.HasValue() && (*(range.Start)).RowId.HasValue() ? *(*(range.Start)).RowId :
+			range.End.HasValue() && (*(range.End)).RowId.HasValue() ? (*(*(range.End)).RowId) :
+			NULL;
+
+	bool startFound = startId == NULL;	
+
+	if (range.Ascending)
+	{		
+		while (begin != end && !result.Limited)
 		{
-			auto rowId = (Key)((*first).value);
+			auto rowId = (Key)((*begin).value);
+			auto key = (Key)((*begin).key);
+
+			if (!startFound && _rowType.Compare(rowId, startId) == 0)
+			{
+				//If we end up skipping the first item due to it being a start id, reset the bof marker.
+				if (begin == firstMarker)
+					result.BeginOfFile = false;
+
+				startFound = true;
+				begin++;
+				continue;
+			}
 		
 			KeyVector keys;
 			keys.push_back(rowId);			
-			rows.push_back(ValueKeys((*first).key, keys));
-			
-			num++;
-			limited = num == limit;
+			result.Data.push_back(ValueKeys(key, keys));			
+			result.Limited = result.Data.size() == range.Limit;
 
-			first++;
+			++begin;
 		}
+
+		//if we didn't make it through the entire set, reset the eof marker.
+		if (result.Limited && result.EndOfFile)
+			result.EndOfFile = false;
 	}
 	else
 	{
-		while (first != last && !limited)
+		while (begin != end && !result.Limited)
 		{
-			last--;
-			auto rowId = (Key)((*last).value);
+			--end;
+
+			auto rowId = (Key)((*end).value);
+			auto key = (Key)((*end).key);
+
+			if (!startFound && _rowType.Compare(rowId, startId) == 0)
+			{
+				++end;
+				//If we end of excluding the last value, reset the eof marker.
+				if (end == lastMarker)
+					result.EndOfFile = false;
+
+				startFound = true;
+				--end;
+				continue;
+			}
 		
 			KeyVector keys;
 			keys.push_back(rowId);
-			rows.push_back(ValueKeys((*last).key, keys));
-
-			num++;
-			limited = num == limit;
+			result.Data.push_back(ValueKeys(key, keys));
+			result.Limited = result.Data.size() == range.Limit;
 		}
-	}	
 
-	return rows;
+		//if we didn't make it through the entire set, reset the bof marker.
+		if (result.Limited && result.BeginOfFile)
+			result.BeginOfFile = false;
+	}
+	
+
+	return result;
 }

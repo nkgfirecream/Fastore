@@ -89,8 +89,9 @@ namespace Alphora.Fastore.Client
 
 			//Create dataset to store result in....
 			DataSet ds = new DataSet(rowIds.Count, columnIds.Length + 1);
-			ds.EndOfRange = rangeResult.EndOfRange;
-            ds.BeginOfRange = rangeResult.BeginOfRange;
+			ds.EndOfFile = rangeResult.EndOfFile;
+            ds.BeginOfFile = rangeResult.BeginOfFile;
+            ds.Limited = rangeResult.Limited;
 
 			Query rowIdQuery = new Query() { RowIDs = rowIds };
             Dictionary<int, Query> queries = new Dictionary<int, Query>();

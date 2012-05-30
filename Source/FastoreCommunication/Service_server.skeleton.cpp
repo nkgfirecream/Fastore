@@ -22,104 +22,104 @@ class ServiceHandler : virtual public ServiceIf {
     // Your initialization goes here
   }
 
-  void GetTopology(TopologyResult& _return) {
+  void getTopology(TopologyResult& _return) {
     // Your implementation goes here
-    printf("GetTopology\n");
+    printf("getTopology\n");
   }
 
-  Revision PrepareTopology(const TransactionID& transactionID, const Topology& topology) {
+  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology) {
     // Your implementation goes here
-    printf("PrepareTopology\n");
+    printf("prepareTopology\n");
   }
 
-  void CommitTopology(const TransactionID& transactionID) {
+  void commitTopology(const TransactionID& transactionID) {
     // Your implementation goes here
-    printf("CommitTopology\n");
+    printf("commitTopology\n");
   }
 
-  void RollbackTopology(const TransactionID& transactionID) {
+  void rollbackTopology(const TransactionID& transactionID) {
     // Your implementation goes here
-    printf("RollbackTopology\n");
+    printf("rollbackTopology\n");
   }
 
-  void GetTopologyReport(TopologyReport& _return) {
+  void getTopologyReport(TopologyReport& _return) {
     // Your implementation goes here
-    printf("GetTopologyReport\n");
+    printf("getTopologyReport\n");
   }
 
-  void GetReport(HostReport& _return) {
+  void getReport(HostReport& _return) {
     // Your implementation goes here
-    printf("GetReport\n");
+    printf("getReport\n");
   }
 
-  Revision Prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
+  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
     // Your implementation goes here
-    printf("Prepare\n");
+    printf("prepare\n");
   }
 
-  void Apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
+  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
     // Your implementation goes here
-    printf("Apply\n");
+    printf("apply\n");
   }
 
-  void Commit(const TransactionID& transactionID) {
+  void commit(const TransactionID& transactionID) {
     // Your implementation goes here
-    printf("Commit\n");
+    printf("commit\n");
   }
 
-  void Rollback(const TransactionID& transactionID) {
+  void rollback(const TransactionID& transactionID) {
     // Your implementation goes here
-    printf("Rollback\n");
+    printf("rollback\n");
   }
 
-  void Flush(const TransactionID& transactionID) {
+  void flush(const TransactionID& transactionID) {
     // Your implementation goes here
-    printf("Flush\n");
+    printf("flush\n");
   }
 
-  bool DoesConflict(const Reads& reads, const Revision source, const Revision target) {
+  bool doesConflict(const Reads& reads, const Revision source, const Revision target) {
     // Your implementation goes here
-    printf("DoesConflict\n");
+    printf("doesConflict\n");
   }
 
-  void Update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
+  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
     // Your implementation goes here
-    printf("Update\n");
+    printf("update\n");
   }
 
-  void Transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
+  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
     // Your implementation goes here
-    printf("Transgrade\n");
+    printf("transgrade\n");
   }
 
-  LockID AcquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) {
+  LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) {
     // Your implementation goes here
-    printf("AcquireLock\n");
+    printf("acquireLock\n");
   }
 
-  void KeepLock(const LockID lockID) {
+  void keepLock(const LockID lockID) {
     // Your implementation goes here
-    printf("KeepLock\n");
+    printf("keepLock\n");
   }
 
-  void EscalateLock(const LockID lockID, const LockTimeout timeout) {
+  void escalateLock(const LockID lockID, const LockTimeout timeout) {
     // Your implementation goes here
-    printf("EscalateLock\n");
+    printf("escalateLock\n");
   }
 
-  void ReleaseLock(const LockID lockID) {
+  void releaseLock(const LockID lockID) {
     // Your implementation goes here
-    printf("ReleaseLock\n");
+    printf("releaseLock\n");
   }
 
-  void Query(ReadResults& _return, const Queries& queries) {
+  void query(ReadResults& _return, const Queries& queries) {
     // Your implementation goes here
-    printf("Query\n");
+    printf("query\n");
   }
 
-  void GetStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) {
+  void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) {
     // Your implementation goes here
-    printf("GetStatistics\n");
+    printf("getStatistics\n");
   }
 
 };
