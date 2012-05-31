@@ -53,15 +53,31 @@ fs::wstring KeyTreeString(const void* item)
 	return result.str();
 }
 
+void DeallocateKeyTree(void* items, int count)
+{
+	for (int i = 0; i < count; i++)
+		(*(KeyTree**)items)[i].~KeyTree();
+}
+
+void DeallocateBTree(void* items, int count)
+{
+	for (int i = 0; i < count; i++)
+		(*(BTree**)items)[i].~BTree();
+}
+
 KeyTreeType::KeyTreeType()
 {
 	CopyIn = CopyToArray<KeyTree*>;
 	Size = sizeof(KeyTree*);
 	ToString = KeyTreeString;
+	Name = "KeyTreeType";
+	Deallocate = DeallocateKeyTree;
 }
 
 BTreeType::BTreeType()
 {
 	CopyIn = CopyToArray<BTree*>;
 	Size = sizeof(BTree*);
+	Name = "BTreeType";
+	Deallocate = DeallocateBTree;
 }

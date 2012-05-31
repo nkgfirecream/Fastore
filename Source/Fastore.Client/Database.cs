@@ -88,7 +88,7 @@ namespace Alphora.Fastore.Client
 			}
 
 			//Create dataset to store result in....
-			DataSet ds = new DataSet(rowIds.Count, columnIds.Length + 1);
+			DataSet ds = new DataSet(rowIds.Count, columnIds.Length);
 			ds.EndOfFile = rangeResult.EndOfFile;
             ds.BeginOfFile = rangeResult.BeginOfFile;
             ds.Limited = rangeResult.Limited;

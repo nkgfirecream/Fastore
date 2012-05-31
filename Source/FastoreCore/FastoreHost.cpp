@@ -168,6 +168,23 @@ void FastoreHost::SyncToSchema()
 		schemaIds.insert(*(int*)(result.Data[i].first));
 	}
 
+	std::vector<int> curId;
+	auto cs = _columnMap.begin();
+	while (cs != _columnMap.end())
+	{
+		curId.push_back((*cs).first);
+		cs++;
+	}
+
+	auto cis = curId.begin();
+	while (cis != curId.end())
+	{
+		if (schemaIds.find(*cis) == schemaIds.end())
+			DeleteColumn(*cis);
+
+		cis++;
+	}
+
 	auto ss = schemaIds.begin();
 	while (ss != schemaIds.end())
 	{
@@ -179,16 +196,9 @@ void FastoreHost::SyncToSchema()
 		ss++;
 	}
 
-	auto ms = _columnMap.begin();
-	while (ms != _columnMap.end())
-	{
-		int id = (*ms).first;
+	
 
-		if (schemaIds.find(id) == schemaIds.end())
-			DeleteColumn(id);
-
-		ms++;
-	}	
+	
 }
 
 ScalarType FastoreHost::GetScalarTypeFromString(std::string typestring)

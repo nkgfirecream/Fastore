@@ -11,24 +11,10 @@ using namespace std;
 	Assumtion: nodes will never be empty, except for a leaf when root.
 */
 
-template<> void CopyToArray<Node*>(const void* item, void* arrpointer)
-{
-	memcpy(arrpointer, item, sizeof(Node*));
-}
-
-ScalarType GetNodeType()
-{
-	ScalarType type;
-	type.CopyIn = CopyToArray<Node*>;
-	type.Size = sizeof(Node*);
-	return type;
-}
-
-
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
 	_keyType(keyType), _valueType(valueType)
 {
-	_nodeType = GetNodeType();
+	_nodeType = NodeType();
 	_root = new Node(this);
 }
 
@@ -248,6 +234,35 @@ TreeEntry BTree::iterator::operator*()
 
 	return (*(_path.Leaf))[_path.LeafIndex];
 }
+
+void DeallocateNode(void* items, int count)
+{
+	// TODO: How to call a hash_set destructor?
+	for (int i = 0; i < count; i++)
+		((Node*)items)[i].~Node();
+}
+
+template<> void CopyToArray<Node*>(const void* item, void* arrpointer)
+{
+	memcpy(arrpointer, item, sizeof(Node*));
+}
+
+NodeType::NodeType()
+{
+	CopyIn = CopyToArray<Node*>;
+	Name = "NodeType";
+	Size = sizeof(Node*);
+	Deallocate = DeallocateNode;
+}
+
+NoOpNodeType::NoOpNodeType()
+{
+	CopyIn = CopyToArray<Node*>;
+	Name = "NodeType";
+	Size = sizeof(Node*);
+	Deallocate = NoOpDeallocate;
+}
+
 
 
 

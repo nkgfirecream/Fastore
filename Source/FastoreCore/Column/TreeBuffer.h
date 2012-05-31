@@ -9,18 +9,18 @@
 class TreeBuffer : public IColumnBuffer
 {
 	public:
-		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType);
-		ValueVector GetValues(const KeyVector& rowId);
+		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType);		
+
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
 		bool Exclude(Key rowId);
 
 		GetResult GetRows(Range& range);
-		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
-		Statistics GetStatistics();
-
+		ValueVector GetValues(const KeyVector& rowId);
 		Value GetValue(Key rowId);
-		fs::wstring ToString();
+		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
+
+		Statistics GetStatistics();
 
 	private:
 		void ValuesMoved(void*, Node*);
@@ -40,7 +40,7 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &value
 {
 	_rowType = rowType;
 	_valueType = valueType;
-	_nodeType = GetNodeType();
+	_nodeType = NoOpNodeType();
 	_rows = new BTree(_rowType, _nodeType);
 	_values = new BTree(_valueType, standardtypes::StandardKeyTree);
 	_unique = 0;
@@ -141,35 +141,30 @@ inline ValueKeysVectorVector TreeBuffer::GetSorted(const KeyVectorVector& input)
 inline bool TreeBuffer::Include(Value value, Key rowId)
 {
 	//TODO: Return Undo Information
+	auto rowpath = _rows->GetPath(rowId);
+	if (rowpath.Match)
+		return false;
+
 	BTree::Path  path = _values->GetPath(value);
 	if (path.Match)
 	{
 		KeyTree* existing = *(KeyTree**)(*path.Leaf)[path.LeafIndex].value;
 		
 		auto keypath = existing->GetPath(rowId);
-		if (!keypath.Match)
-		{
-			existing->Insert(keypath, rowId);
+		existing->Insert(keypath, rowId);			
 
-			auto rowpath = _rows->GetPath(rowId);
+		_rows->Insert(rowpath, rowId, &path.Leaf);
 
-			_rows->Insert(rowpath, rowId, &path.Leaf);
-
-			_total++;
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		_total++;
+		return true;
 	}
 	else
 	{
 		KeyTree* newRows = new KeyTree(_rowType);
 
 		auto keypath = newRows->GetPath(rowId);
+
 		newRows->Insert(keypath, rowId);
-		auto rowpath = _rows->GetPath(rowId);
 		_rows->Insert(rowpath, rowId, &path.Leaf);		
 		//Insert may generate a different leaf that the value gets inserted into,
 		//so the above may be incorrect momentarily. If the value gets inserted
@@ -184,32 +179,27 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 
 inline bool TreeBuffer::Exclude(Value value, Key rowId)
 {
+	auto rowpath = _rows->GetPath(rowId);
+	if (!rowpath.Match)
+		return false;
+
 	BTree::Path  path = _values->GetPath(value);
 	//If existing is NULL, that row id did not exist under that value
 	if (path.Match)
 	{
 		KeyTree* existing = *(KeyTree**)(*path.Leaf)[path.LeafIndex].value;
 		auto keypath = existing->GetPath(rowId);
-		if (keypath.Match)
+		existing->Delete(keypath);
+		if (existing->Count() == 0)
 		{
-			existing->Delete(keypath);
-			if (existing->Count() == 0)
-			{
-				_values->Delete(path);
-				delete(existing);
-				_unique--;
-			}
-			auto rowpath = _rows->GetPath(rowId);
-			if (rowpath.Match)
-				_rows->Delete(rowpath);
+			_values->Delete(path);
+			_unique--;
+		}
+			
+		_rows->Delete(rowpath);
 
-			_total--;
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		_total--;
+		return true;
 	}
 	
 	return false;

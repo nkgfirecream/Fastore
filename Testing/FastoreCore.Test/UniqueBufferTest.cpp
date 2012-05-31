@@ -279,8 +279,51 @@ public:
 		CFIX_ASSERT(result.EndOfFile == expectEOF);
 		CFIX_ASSERT(result.Limited == expectLimited);
 	}
+
+	void IncludeExclude()
+	{
+		UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
+
+		bool result;
+		int v = 0;
+		int k = 0;
+
+		//Non existing inserts should be ok
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == true);
+
+		//Duplicate insertions should not insert
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Duplicate keys should not insert
+		v = 2;
+	    k = 0;
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Duplicate values should not insert
+		v = 0;
+	    k = 2;
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//End of this should still be zero
+		k = 0;
+		void* value = buf.GetValue(&k);
+		CFIX_ASSERT(*(int*)value == 0);
+
+		//Values not present should not exclude
+		v = 1;
+		k = 0;
+		result = buf.Exclude(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Keys not present should not exclude
+	}
 };
 
 CFIXCC_BEGIN_CLASS( UniqueBufferTest )
 	CFIXCC_METHOD( RangeTests )
+	CFIXCC_METHOD( IncludeExclude )
 CFIXCC_END_CLASS()

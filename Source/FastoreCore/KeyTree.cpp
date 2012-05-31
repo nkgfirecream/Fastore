@@ -11,24 +11,11 @@ using namespace std;
 	Assumtion: nodes will never be empty, except for a leaf when root.
 */
 
-template<> void CopyToArray<KeyNode*>(const void* item, void* arrpointer)
-{
-	memcpy(arrpointer, item, sizeof(KeyNode*));
-}
-
-ScalarType GetKeyNodeType()
-{
-	ScalarType type;
-	type.CopyIn = CopyToArray<KeyNode*>;
-	type.Size = sizeof(KeyNode*);
-	return type;
-}
-
 KeyTree::KeyTree(ScalarType keyType) : 
 	_keyType(keyType)
 {
 	_count = 0;
-	_nodeType = GetKeyNodeType();
+	_nodeType = KeyNodeType();
 	_root = new KeyNode(this);
 }
 
@@ -245,6 +232,34 @@ KeyTreeEntry KeyTree::iterator::operator*()
 		throw "Iterator not dereferenceable";
 
 	return (*(_path.Leaf))[_path.LeafIndex];
+}
+
+void DeallocateKeyNode(void* items, int count)
+{
+	// TODO: How to call a hash_set destructor?
+	for (int i = 0; i < count; i++)
+		((KeyNode*)items)[i].~KeyNode();
+}
+
+template<> void CopyToArray<KeyNode*>(const void* item, void* arrpointer)
+{
+	memcpy(arrpointer, item, sizeof(KeyNode*));
+}
+
+KeyNodeType::KeyNodeType()
+{
+	CopyIn = CopyToArray<KeyNode*>;
+	Name = "KeyNodeType";
+	Size = sizeof(KeyNode*);
+	Deallocate = DeallocateKeyNode;
+}
+
+NoOpKeyNodeType::NoOpKeyNodeType()
+{
+	CopyIn = CopyToArray<KeyNode*>;
+	Name = "KeyNodeType";
+	Size = sizeof(KeyNode*);
+	Deallocate = NoOpDeallocate;
 }
 
 

@@ -13,6 +13,16 @@ using namespace standardtypes;
 struct KeySplit;
 class KeyNode;
 
+struct KeyNodeType : public ScalarType
+{
+	KeyNodeType();
+};
+
+struct NoOpKeyNodeType : public ScalarType
+{
+	NoOpKeyNodeType();
+};
+
 struct KeySplit
 {
 	void* key;
@@ -136,9 +146,6 @@ class KeyTree
 //Type 0 = Leaf;
 //Type 1 = Branch;
 //Todo: Enum
-
-ScalarType GetKeyNodeType();
-
 class KeyNode
 {
 	public:
@@ -289,6 +296,7 @@ class KeyNode
 
 			int size = _count - index;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
+			//TODO: Potential leak here if keys are not fixed sized.			
 			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
 			if(_type == 1)
 				memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);

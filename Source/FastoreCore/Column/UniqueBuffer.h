@@ -11,18 +11,20 @@ class UniqueBuffer : public IColumnBuffer
 {
 	public:
 		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType);
-		ValueVector GetValues(const KeyVector& rowId);
+		
 		bool Include(Value value, Key rowId);
 		bool Exclude(Value value, Key rowId);
 		bool Exclude(Key rowId);
 
 		GetResult GetRows(Range& range);
+		ValueVector GetValues(const KeyVector& rowId);
+		Value GetValue(Key rowId);
 		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
+
 		Statistics GetStatistics();
 
 	private:
-		void ValuesMoved(void*, Node*);
-		Value GetValue(Key rowId);
+		void ValuesMoved(void*, Node*);		
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -35,7 +37,7 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 {
 	_rowType = rowType;
 	_valueType = valueType;
-	_nodeType = GetNodeType();
+	_nodeType = NoOpNodeType();
 	_rows = new BTree(_rowType, _nodeType);
 	_values = new BTree(_valueType, standardtypes::StandardHashSet);
 	_count = 0;
@@ -137,12 +139,16 @@ inline ValueKeysVectorVector UniqueBuffer::GetSorted(const KeyVectorVector& inpu
 inline bool UniqueBuffer::Include(Value value, Key rowId)
 {
 	//TODO: Return Undo Information
+	auto rowpath = _rows->GetPath(rowId);
+	if (rowpath.Match)
+		return false;
+
 	BTree::Path path = _values->GetPath(value);
 	if (path.Match)
 		return false;
 	else
 	{
-		auto rowpath = _rows->GetPath(rowId);
+		
 		_rows->Insert(rowpath, rowId, &path.Leaf);
 		//Insert may generate a different leaf that the value gets inserted into,
 		//so the above may be incorrect momentarily. If the value gets inserted
@@ -155,15 +161,17 @@ inline bool UniqueBuffer::Include(Value value, Key rowId)
 
 inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 {
+	auto rowpath = _rows->GetPath(rowId);
+	if (!rowpath.Match)
+		return false;
+
 	BTree::Path  path = _values->GetPath(value);
-	//If existing is NULL, that row id did not exist under that value
 	if (path.Match)
 	{
 		Key existing = (Key)(*path.Leaf)[path.LeafIndex].value;
 		if (_rowType.Compare(existing, rowId) == 0)
 		{
 			_values->Delete(path);
-			auto rowpath = _rows->GetPath(rowId);
 			_rows->Delete(rowpath);
 			_count--;
 			return true;

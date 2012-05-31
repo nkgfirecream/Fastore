@@ -13,6 +13,16 @@ struct Split;
 class Node;
 class BTree;
 
+struct NodeType : public ScalarType
+{
+	NodeType();
+};
+
+struct NoOpNodeType : public ScalarType
+{
+	NoOpNodeType();
+};
+
 struct Split
 {
 	void* key;
@@ -146,9 +156,6 @@ class BTree
 //Type 0 = Leaf;
 //Type 1 = Branch;
 //Todo: Enum
-
-ScalarType GetNodeType();
-
 class Node
 {
 	public:
@@ -177,6 +184,7 @@ class Node
 
 		~Node() 
 		{
+			//TODO: Destructor should actually deallocate all values before deleting the array.
 			delete[] _keys;
 			delete[] _values;
 		}
@@ -287,12 +295,7 @@ class Node
 
 		//Index operations (for path -- behavior undefined for invalid paths)
 		bool Delete(short index)
-		{
-			if (_type == 1)
-			{
-				delete *(Node**)&_values[index * sizeof(Node*)];
-			}
-
+		{	
 			short size = _count - index;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
 
@@ -301,7 +304,7 @@ class Node
 			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
 
 			// Deallocate and shift values
-			_tree->_nodeType.Deallocate(&_values[index *_valueType.Size], 1);
+			_tree->_valueType.Deallocate(&_values[index *_valueType.Size], 1);
 			memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
 
 			_count--;
