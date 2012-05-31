@@ -13,34 +13,31 @@ namespace Fastore.Client.Test
         private Database _database;
         private int[] _columns;
 
-        public void createTable()
+        public void createTable(int[] cols)
         {
             string hostname = "localhost";
             const int port = 8064;
             _database = Alphora.Fastore.Client.Client.Connect(hostname, port);
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
-            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
-
-            _database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", true });
-            _database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", false });
-            _database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", false });
-            _database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", false });
-            _database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", false });
-            _database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", false });
+            
+            _database.Include(_schemaColumns, cols[0], new object[] { cols[0], "ID", "Int", "Int", true });
+            _database.Include(_schemaColumns, cols[1], new object[] { cols[1], "Given", "String", "Int", false });
+            _database.Include(_schemaColumns, cols[2], new object[] { cols[2], "Surname", "String", "Int", false });
+            _database.Include(_schemaColumns, cols[3], new object[] { cols[3], "Gender", "Bool", "Int", false });
+            _database.Include(_schemaColumns, cols[4], new object[] { cols[4], "BirthDate", "String", "Int", false });
+            _database.Include(_schemaColumns, cols[5], new object[] { cols[5], "BirthPlace", "String", "Int", false });
         }
 
-        public void addData(Database db)
+        public void addData(Database db, int[] cols)
         {
-            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
-
-            db.Include(_columns, 1, new object[] { 1, "Joe", "Shmoe", true, "5/26/1980", "Antarctica" });
-            db.Include(_columns, 2, new object[] { 2, "Ann", "Shmoe", false, "4/20/1981", "Denver" });
-            db.Include(_columns, 3, new object[] { 3, "Sarah", "Silverman", false, "11/10/1976", "Chicago" });
-            db.Include(_columns, 4, new object[] { 4, "Bob", "Newhart", true, "12/2/1970", "Paris" });
-            db.Include(_columns, 5, new object[] { 5, "Samantha", "Smith", false, "1/13/1984", "Tokyo" });
-            db.Include(_columns, 6, new object[] { 6, "Andy", "Warhol", true, "9/14/1987", "New York" });
-            db.Include(_columns, 7, new object[] { 7, "Carl", "Sagan", true, "4/1/1957", "Las Vegas" });
+            db.Include(cols, 1, new object[] { 1, "Joe", "Shmoe", true, "5/26/1980", "Antarctica" });
+            db.Include(cols, 2, new object[] { 2, "Ann", "Shmoe", false, "4/20/1981", "Denver" });
+            db.Include(cols, 3, new object[] { 3, "Sarah", "Silverman", false, "11/10/1976", "Chicago" });
+            db.Include(cols, 4, new object[] { 4, "Bob", "Newhart", true, "12/2/1970", "Paris" });
+            db.Include(cols, 5, new object[] { 5, "Samantha", "Smith", false, "1/13/1984", "Tokyo" });
+            db.Include(cols, 6, new object[] { 6, "Andy", "Warhol", true, "9/14/1987", "New York" });
+            db.Include(cols, 7, new object[] { 7, "Carl", "Sagan", true, "4/1/1957", "Las Vegas" });
         }
 
         [TestMethod]
@@ -70,8 +67,10 @@ namespace Fastore.Client.Test
         [TestMethod]
         public void TestGetRangeCols()
         {
-            createTable();
-            addData(_database);
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
+
             int[] cols = new int[] { 1000, 1002, 1005 };
             var data = _database.GetRange(
                 cols,
@@ -92,8 +91,9 @@ namespace Fastore.Client.Test
         [TestMethod]
         public void TestGetRangeLimit()
         {
-            createTable();
-            addData(_database);
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
 
             var data = _database.GetRange(
                 _columns, 
@@ -113,8 +113,9 @@ namespace Fastore.Client.Test
         [TestMethod]
         public void TestGetRangeOrder()
         {
-            createTable();
-            addData(_database);
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
             var data = _database.GetRange(
                 _columns,
                 new[] { new Order { ColumnID = 1000, Ascending = false } },
@@ -128,8 +129,9 @@ namespace Fastore.Client.Test
         [TestMethod]
         public void TestGetRangeStartId()
         {
-            createTable();
-            addData(_database);
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
             var data = _database.GetRange(
                 _columns,
                 new[] { new Order { ColumnID = 1003, Ascending = true } },
@@ -149,8 +151,9 @@ namespace Fastore.Client.Test
         [TestMethod]
         public void TestInclude()
         {
-            createTable();
-            addData(_database);
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
             _database.Include(_columns, 8, new object[] { 8, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
             var data = _database.GetRange(
                 _columns,
@@ -170,8 +173,9 @@ namespace Fastore.Client.Test
         public void TestExclude()
         {
             //service stops running before it can get to this test
-            createTable();
-            addData(_database);
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
             _database.Exclude(_columns, 7);
             var data = _database.GetRange(
                 _columns,
@@ -190,8 +194,10 @@ namespace Fastore.Client.Test
         [TestMethod]
         public void TestGetStatistics()
         {
-            createTable();
-            addData(_database);
+            _columns = new int[] { 3000, 3001, 3002, 3003, 3004, 3005 };
+            createTable(_columns);
+            addData(_database, _columns);
+            
             var data = _database.GetStatistics(_columns);
             Assert.AreEqual(data.Length, _columns.Length);
             Assert.AreEqual(data[0].Total, 7);
