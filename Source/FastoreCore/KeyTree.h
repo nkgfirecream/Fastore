@@ -289,21 +289,23 @@ class KeyNode
 		//Index operations (for path -- behavior undefined for invalid paths)
 		bool Delete(short index)
 		{
+			short size = _count - index;
+			//Assumption -- Count > 0 (otherwise the key would not have been found)
+
+			// Deallocate and shift keys
+			_keyType.Deallocate(&_keys[index *_keyType.Size], 1);
+			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
+
+			// Deallocate and shift values
 			if (_type == 1)
 			{
-				delete *(KeyNode**)&_values[index * sizeof(KeyNode*)];
-			}
-
-			int size = _count - index;
-			//Assumption -- Count > 0 (otherwise the key would not have been found)
-			//TODO: Potential leak here if keys are not fixed sized.			
-			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
-			if(_type == 1)
+				_valueType.Deallocate(&_values[index *_valueType.Size], 1);
 				memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
+			}
 
 			_count--;
 
-			return _count + _type <= 0;			
+			return _count + _type <= 0;				
 		}
 
 		KeySplit* Insert(short index, void* key, void* value)

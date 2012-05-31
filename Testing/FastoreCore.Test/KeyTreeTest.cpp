@@ -259,7 +259,6 @@ public:
 			CFIX_ASSERT(j == vec.size());
 		}
 	}
-
 };
 
 CFIXCC_BEGIN_CLASS( KeyTreeTest )

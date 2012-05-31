@@ -320,6 +320,41 @@ public:
 		CFIX_ASSERT(result == false);
 
 		//Keys not present should not exclude
+		v = 0;
+		k = 1;
+		result = buf.Exclude(&k);
+		CFIX_ASSERT(result == false);
+
+		result = buf.Exclude(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Keys present should exclude
+		v = 0;
+		k = 0;
+		result = buf.Exclude(&v, &k);
+		CFIX_ASSERT(result == true);
+
+		//A bunch of insertions should work...
+		int numrows = 10000;
+		for (int i = 0; i <= numrows; i++)
+		{
+			result = buf.Include(&i,&i);
+			CFIX_ASSERT(result == true);
+		}
+
+		//A bunch of exclusions should work...
+		for (int i = numrows / 2; i <= numrows; i++)
+		{
+			result = buf.Exclude(&i,&i);
+			CFIX_ASSERT(result == true);
+		}
+
+		//All the values should still be the same...
+		for (int i = 0; i < numrows / 2; i++)
+		{
+			value = buf.GetValue(&i);
+			CFIX_ASSERT(*(int*)value == i);
+		}
 	}
 };
 

@@ -267,6 +267,28 @@ public:
 		}
 	}
 
+	void Deletion()
+	{
+		BTree tree(standardtypes::Int, standardtypes::Int);
+
+		//Put stuff in tree
+		int numrows = 10000;
+		for (int i = 0; i <= numrows; i++)
+		{
+			auto path = tree.GetPath(&i);
+			tree.Insert(path, &i, &i);
+		}
+
+		for (int i = 0; i <= numrows; i++)
+		{
+			auto path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == true);
+			tree.Delete(path);
+			path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == false);
+		}
+	}
+
 };
 
 CFIXCC_BEGIN_CLASS( BTreeTest )
@@ -274,4 +296,5 @@ CFIXCC_BEGIN_CLASS( BTreeTest )
 	CFIXCC_METHOD( Sequential )
 	CFIXCC_METHOD( Reverse )
 	CFIXCC_METHOD( Random )
+	CFIXCC_METHOD( Deletion )
 CFIXCC_END_CLASS()

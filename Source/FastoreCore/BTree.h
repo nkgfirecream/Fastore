@@ -300,12 +300,12 @@ class Node
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
 
 			// Deallocate and shift keys
-			_tree->_keyType.Deallocate(&_keys[index *_keyType.Size], 1);
+			_keyType.Deallocate(&_keys[index *_keyType.Size], 1);
 			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
 
 			// Deallocate and shift values
-			_tree->_valueType.Deallocate(&_values[index *_valueType.Size], 1);
-			memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
+			_valueType.Deallocate(&_values[index + _type *_valueType.Size], 1);
+			memmove(&_values[index + _type *_valueType.Size], &_values[(index + _type + 1) *_valueType.Size], size * _valueType.Size);
 
 			_count--;
 

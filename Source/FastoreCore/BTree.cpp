@@ -62,7 +62,10 @@ void BTree::Delete(Path& path)
 
 	//We got to the root and removed everything
 	if (result)
+	{
+		delete _root;
 		_root = new Node(this);
+	}
 }
 
 void BTree::Insert(Path& path, void* key, void* value)

@@ -287,8 +287,80 @@ public:
 		CFIX_ASSERT(result.EndOfFile == expectEOF);
 		CFIX_ASSERT(result.Limited == expectLimited);
 	}
+
+	void IncludeExclude()
+	{
+		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
+
+		bool result;
+		int v = 0;
+		int k = 0;
+
+		//Non existing inserts should be ok
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == true);
+
+		//Duplicate insertions should not insert
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Duplicate keys should not insert
+		v = 2;
+	    k = 0;
+		result = buf.Include(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//End of this should still be zero
+		k = 0;
+		void* value = buf.GetValue(&k);
+		CFIX_ASSERT(*(int*)value == 0);
+
+		//Values not present should not exclude
+		v = 1;
+		k = 0;
+		result = buf.Exclude(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Keys not present should not exclude
+		v = 0;
+		k = 1;
+		result = buf.Exclude(&k);
+		CFIX_ASSERT(result == false);
+
+		result = buf.Exclude(&v, &k);
+		CFIX_ASSERT(result == false);
+
+		//Keys present should exclude
+		v = 0;
+		k = 0;
+		result = buf.Exclude(&v, &k);
+		CFIX_ASSERT(result == true);
+
+		//A bunch of insertions should work...
+		int numrows = 10000;
+		for (int i = 0; i <= numrows; i++)
+		{
+			result = buf.Include(&i,&i);
+			CFIX_ASSERT(result == true);
+		}
+
+		//A bunch of exclusions should work...
+		for (int i = numrows / 2; i <= numrows; i++)
+		{
+			result = buf.Exclude(&i,&i);
+			CFIX_ASSERT(result == true);
+		}
+
+		//All the values should still be the same...
+		for (int i = 0; i < numrows / 2; i++)
+		{
+			value = buf.GetValue(&i);
+			CFIX_ASSERT(*(int*)value == i);
+		}
+	}
 };
 
 CFIXCC_BEGIN_CLASS( TreeBufferTest )
 	CFIXCC_METHOD( RangeTests )
+	CFIXCC_METHOD( IncludeExclude )
 CFIXCC_END_CLASS()

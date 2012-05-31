@@ -38,10 +38,8 @@ fs::wstring KeyTree::ToString()
 
 void KeyTree::Delete(Path& path)
 {
+	_count--;
 	bool result = path.Leaf->Delete(path.LeafIndex);
-
-	if (result)
-		_count--;
 
 	while (result && path.Branches.size() > 0)
 	{
@@ -53,6 +51,7 @@ void KeyTree::Delete(Path& path)
 	//We got to the root and removed everything
 	if (result)
 	{
+		delete _root;
 		_root = new KeyNode(this);
 		_count = 0;
 	}
@@ -60,10 +59,8 @@ void KeyTree::Delete(Path& path)
 
 void KeyTree::Insert(Path& path, void* key)
 {
+	_count++;
 	KeySplit* result = path.Leaf->Insert(path.LeafIndex, key, (void*)NULL);
-	//TODO: Add insert result to get this right. result is not null if there is a split, but we need to know if something was added.
-	if (result != NULL)
-		_count++;
 
 	while (result != NULL && path.Branches.size() > 0)
 	{
