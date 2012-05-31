@@ -249,11 +249,8 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 			auto key = (Key)((*begin).key);
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
-			{
-				//If we end up skipping the first item due to it being a start id, reset the bof marker.
-				if (begin == firstMarker)
-					result.BeginOfFile = false;
-
+			{				
+				result.BeginOfFile = false;
 				startFound = true;
 				begin++;
 				continue;
@@ -282,13 +279,8 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{
-				++end;
-				//If we end of excluding the last value, reset the eof marker.
-				if (end == lastMarker)
-					result.EndOfFile = false;
-
+				result.EndOfFile = false;
 				startFound = true;
-				--end;
 				continue;
 			}
 		

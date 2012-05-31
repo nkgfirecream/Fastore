@@ -248,137 +248,139 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 
 inline GetResult TreeBuffer::GetRows(Range& range)
 {
-	//These may not exist, add logic for handling that.
-	GetResult result;
-
-	bool firstMatch = false; //Seeking to beginning or end
-	bool lastMatch = false;
-	BTree::iterator first = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, firstMatch) : _values->begin();
-	BTree::iterator last =  range.End.HasValue() ? _values->findNearest((*range.End).Value, lastMatch) : _values->end();
-
 	if (range.Start.HasValue() && range.End.HasValue())
-	{
-		RangeBound start = *range.Start;
-		RangeBound end = *range.End;
-
-		//Bounds checking
-		//TODO: Is this needed? Could the BuildData logic handle this correctly?
-		if (last == first && (!end.Inclusive || !start.Inclusive))
-		{
-			//We have only one result, and it is excluded
-			return result; //Empty result.
-		}
-
-		if (_valueType.Compare(start.Value, end.Value) > 0)
+	{		
+		if (_valueType.Compare((*(range.Start)).Value, (*(range.End)).Value) > 0)
 		{
 			//Start is after end-> Invalid input.
-			throw;
+			throw "Invalid range. Start is after end";
 		}
 	}
 
-	//Swap iterators if descending
+	//cache markers since we will use it several times
+	BTree::iterator lastMarker = _values->end();
+	BTree::iterator firstMarker = _values->begin();
+	
+	bool beginMatch = false;
+	bool endMatch = false;
+
+	BTree::iterator begin = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, beginMatch) : firstMarker;
+	BTree::iterator end =  range.End.HasValue() ? _values->findNearest((*range.End).Value, endMatch) : lastMarker;
+
+	bool bInclusive = range.Start.HasValue() ? (*(range.Start)).Inclusive : true;
+	bool eInclusive = range.End.HasValue() ? (*(range.End)).Inclusive : true;
+
+	GetResult result;	
+
+	result.BeginOfFile = begin == firstMarker;
+	result.EndOfFile = end == lastMarker;
+
+	//Nothing in this range, so return empty result
+	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
+		return result;	
+
+	if (!bInclusive && beginMatch)
+	{
+		//reset BOF Marker since we are excluding
+		result.BeginOfFile = false;
+		++begin;
+	}
+
+	if (eInclusive && endMatch)
+	{
+		++end;
+		//reset EOF Marker since we are including
+		result.EndOfFile = end == lastMarker;
+	}
+
+	void* startId = range.Start.HasValue() && (*(range.Start)).RowId.HasValue() ? *(*(range.Start)).RowId :
+			range.End.HasValue() && (*(range.End)).RowId.HasValue() ? (*(*(range.End)).RowId) :
+			NULL;
+
+	bool startFound = startId == NULL;
+
+	int num = 0;
 	if (range.Ascending)
 	{
-		//Adjust iterators
-		//Last needs to point to the element AFTER the last one we want to get
-		if (lastMatch && range.End.HasValue() && (*range.End).Inclusive)
+		while (begin != end && !result.Limited)
 		{
-			last++;
+			auto rowIds = (KeyTree*)*(void**)((*begin).value);			
+			auto key = (Key)((*begin).key);
+
+			auto idStart = rowIds->begin();
+			auto idEnd = rowIds->end();
+
+			while (!startFound)
+			{
+				if (_rowType.Compare((*idStart).key, startId) == 0)
+				{
+					startFound = true;
+					result.BeginOfFile = false;
+				}
+
+				++idStart;				
+			}
+		
+			KeyVector keys;
+			while (idStart != idEnd && !result.Limited)
+			{
+				keys.push_back((*idStart).key);
+				++num;
+				++idStart;
+
+				result.Limited = num == range.Limit;
+			}
+
+			if (keys.size() > 0)
+				result.Data.push_back(ValueKeys(key, keys));
+
+			++begin;
 		}
 
-		//First needs to point to the first element we DO want to pick up
-		if (firstMatch && !(range.Start.HasValue() && (*range.Start).Inclusive))
-		{
-			first++;
-		}	
-	}		
+		//if we didn't make it through the entire set, reset the eof marker.
+		if (result.Limited && result.EndOfFile)
+			result.EndOfFile = false;
+	}
 	else
 	{
-		//If we are descending, lasts needs to point at the first element we want to pick up
-		if (!lastMatch || (lastMatch && range.End.HasValue() && !(*range.End).Inclusive))
+		while (begin != end && !result.Limited)
 		{
-			//If we are pointing at an excluded element, move back
-			last--;
-		} 
+			--end;
+			auto rowIds = (KeyTree*)*(void**)((*end).value);		
+			auto key = (Key)((*end).key);
 
-		//If we are descending, first need to point at the element BEFORE the last one we want to pick up
-		if (!firstMatch || (firstMatch && range.Start.HasValue() && (*range.Start).Inclusive))
-		{
-			first--;
+			auto idStart = rowIds->begin();
+			auto idEnd = rowIds->end();
+
+			while (!startFound)
+			{
+				--idEnd;
+
+				if (_rowType.Compare((*idEnd).key, startId) == 0)
+				{
+					startFound = true;
+					result.EndOfFile = false;
+				}			
+			}
+		
+			KeyVector keys;
+			while (idStart != idEnd && !result.Limited)
+			{	
+				--idEnd;
+				keys.push_back((*idEnd).key);
+				++num;
+
+				result.Limited = num == range.Limit;	
+			}
+		
+			if (keys.size() > 0)
+				result.Data.push_back(ValueKeys(key, keys));
 		}
 
-		//Swap iterators
-		//TODO: Non-Copy iterator swapping
-		BTree::iterator temp = first;
-		first = last;
-		last = temp;
+		//if we didn't make it through the entire set, reset the bof marker.
+		if (result.Limited && result.BeginOfFile)
+			result.BeginOfFile = false;
 	}
-
-	//Assumption -- Repeated calls will come in in the same direction, therefore we don't need to check both start and end
-	result.Data = 
-		BuildData
-		(
-			first, 
-			last, 
-			range.Start.HasValue() && (*range.Start).RowId.HasValue() 
-				? *(*range.Start).RowId 
-				: range.End.HasValue() && (*range.End).RowId.HasValue() 
-					? *(*range.End).RowId
-					: NULL, 
-			range.Ascending, 
-			range.Limit, 
-			result.Limited
-		);
 
 	return result;
-}
-
-inline ValueKeysVector TreeBuffer::BuildData(BTree::iterator& first, BTree::iterator& last, Key startId, bool ascending, int limit, bool &limited)
-{	
-	int num = 0;
-	bool foundCurrentId = startId == NULL;
-    limited = false;
-	ValueKeysVector rows;
-
-	while (first != last && !limited)
-	{
-		auto rowIds = (KeyTree*)*(void**)((*first).value);
-		
-		auto idStart = rowIds->begin();
-		auto idEnd = rowIds->end();
-
-		//Assumption.. The Id will exist in the first value we pull
-		//Otherwise either our tree has changed (we are on the wrong revision) or we have an invalid start id, and this loop will never terminate. Ever. Until the end of time.
-		while (!foundCurrentId)
-		{
-			if ((*idStart).key == startId)
-				foundCurrentId = true;
-
-			idStart++;				
-		}
-
-		KeyVector keys;
-		while (idStart != idEnd)
-		{
-			keys.push_back((*idStart).key);
-			idStart++;
-			num++;
-			if (num > limit)
-			{
-				limited = true; break;
-			}
-		}
-
-		if (keys.size() > 0)
-		{
-			rows.push_back(ValueKeys((*first).key, keys));
-		}		
-
-		if (ascending)
-			first++;
-		else
-			first--;
-	}
-
-	return rows;
 }
