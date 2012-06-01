@@ -25,7 +25,7 @@ namespace Alphora.Fastore
   {
     private int _topologyID;
     private Dictionary<int, HostReport> _hosts;
-    private long _revision;
+    private int _hostID;
 
     public int TopologyID
     {
@@ -53,16 +53,16 @@ namespace Alphora.Fastore
       }
     }
 
-    public long Revision
+    public int HostID
     {
       get
       {
-        return _revision;
+        return _hostID;
       }
       set
       {
-        __isset.revision = true;
-        this._revision = value;
+        __isset.hostID = true;
+        this._hostID = value;
       }
     }
 
@@ -74,11 +74,10 @@ namespace Alphora.Fastore
     public struct Isset {
       public bool topologyID;
       public bool hosts;
-      public bool revision;
+      public bool hostID;
     }
 
     public TopologyReport() {
-      this._revision = 1;
     }
 
     public void Read (TProtocol iprot)
@@ -104,15 +103,15 @@ namespace Alphora.Fastore
             if (field.Type == TType.Map) {
               {
                 Hosts = new Dictionary<int, HostReport>();
-                TMap _map13 = iprot.ReadMapBegin();
-                for( int _i14 = 0; _i14 < _map13.Count; ++_i14)
+                TMap _map17 = iprot.ReadMapBegin();
+                for( int _i18 = 0; _i18 < _map17.Count; ++_i18)
                 {
-                  int _key15;
-                  HostReport _val16;
-                  _key15 = iprot.ReadI32();
-                  _val16 = new HostReport();
-                  _val16.Read(iprot);
-                  Hosts[_key15] = _val16;
+                  int _key19;
+                  HostReport _val20;
+                  _key19 = iprot.ReadI32();
+                  _val20 = new HostReport();
+                  _val20.Read(iprot);
+                  Hosts[_key19] = _val20;
                 }
                 iprot.ReadMapEnd();
               }
@@ -121,8 +120,8 @@ namespace Alphora.Fastore
             }
             break;
           case 3:
-            if (field.Type == TType.I64) {
-              Revision = iprot.ReadI64();
+            if (field.Type == TType.I32) {
+              HostID = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -155,21 +154,21 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Hosts.Count));
-          foreach (int _iter17 in Hosts.Keys)
+          foreach (int _iter21 in Hosts.Keys)
           {
-            oprot.WriteI32(_iter17);
-            Hosts[_iter17].Write(oprot);
+            oprot.WriteI32(_iter21);
+            Hosts[_iter21].Write(oprot);
           }
           oprot.WriteMapEnd();
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.revision) {
-        field.Name = "revision";
-        field.Type = TType.I64;
+      if (__isset.hostID) {
+        field.Name = "hostID";
+        field.Type = TType.I32;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI64(Revision);
+        oprot.WriteI32(HostID);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -182,8 +181,8 @@ namespace Alphora.Fastore
       sb.Append(TopologyID);
       sb.Append(",Hosts: ");
       sb.Append(Hosts);
-      sb.Append(",Revision: ");
-      sb.Append(Revision);
+      sb.Append(",HostID: ");
+      sb.Append(HostID);
       sb.Append(")");
       return sb.ToString();
     }

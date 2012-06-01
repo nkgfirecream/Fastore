@@ -9,18 +9,17 @@ namespace fs
 	{
 		RangeBound() : Value(NULL), Inclusive(true) {}
 
-		RangeBound(void* value,  bool inclusive = true, Optional<void*> rowId = Optional<void*>()) :
-			Value(value), RowId(rowId), Inclusive(inclusive) {}
+		RangeBound(void* value,  bool inclusive = true) :
+			Value(value), Inclusive(inclusive) {}
 		
 		void* Value;
 		bool Inclusive;
-		Optional<void*> RowId;
 	};
 
 	struct Range
 	{
-		Range(int limit, bool ascending, Optional<RangeBound> start = Optional<RangeBound>(), Optional<RangeBound> end = Optional<RangeBound>()):
-			Limit(limit), Start(start), End(end), Ascending(ascending) {}	
+		Range(int limit, bool ascending, Optional<RangeBound> start = Optional<RangeBound>(), Optional<void*> startId = Optional<void*>(), Optional<RangeBound> end = Optional<RangeBound>()):
+			Limit(limit), Start(start), StartId(startId), End(end), Ascending(ascending) {}	
 
 		int Limit;
 		bool Ascending;
@@ -28,6 +27,6 @@ namespace fs
 		Optional<RangeBound> Start;
 		Optional<RangeBound> End;
 
-
+		Optional<void*> StartId;
 	};
 }

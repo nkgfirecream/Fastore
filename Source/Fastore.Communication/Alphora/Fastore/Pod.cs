@@ -21,25 +21,11 @@ namespace Alphora.Fastore
   #if !SILVERLIGHT
   [Serializable]
   #endif
-  public partial class Conflict : Exception, TBase
+  public partial class Pod : TBase
   {
-    private string _details;
-    private List<int> _columnIDs;
+    private THashSet<int> _columnIDs;
 
-    public string Details
-    {
-      get
-      {
-        return _details;
-      }
-      set
-      {
-        __isset.details = true;
-        this._details = value;
-      }
-    }
-
-    public List<int> ColumnIDs
+    public THashSet<int> ColumnIDs
     {
       get
       {
@@ -58,11 +44,10 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool details;
       public bool columnIDs;
     }
 
-    public Conflict() {
+    public Pod() {
     }
 
     public void Read (TProtocol iprot)
@@ -78,24 +63,17 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.String) {
-              Details = iprot.ReadString();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 2:
-            if (field.Type == TType.List) {
+            if (field.Type == TType.Set) {
               {
-                ColumnIDs = new List<int>();
-                TList _list61 = iprot.ReadListBegin();
-                for( int _i62 = 0; _i62 < _list61.Count; ++_i62)
+                ColumnIDs = new THashSet<int>();
+                TSet _set0 = iprot.ReadSetBegin();
+                for( int _i1 = 0; _i1 < _set0.Count; ++_i1)
                 {
-                  int _elem63 = 0;
-                  _elem63 = iprot.ReadI32();
-                  ColumnIDs.Add(_elem63);
+                  int _elem2 = 0;
+                  _elem2 = iprot.ReadI32();
+                  ColumnIDs.Add(_elem2);
                 }
-                iprot.ReadListEnd();
+                iprot.ReadSetEnd();
               }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
@@ -111,29 +89,21 @@ namespace Alphora.Fastore
     }
 
     public void Write(TProtocol oprot) {
-      TStruct struc = new TStruct("Conflict");
+      TStruct struc = new TStruct("Pod");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (Details != null && __isset.details) {
-        field.Name = "details";
-        field.Type = TType.String;
-        field.ID = 1;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteString(Details);
-        oprot.WriteFieldEnd();
-      }
       if (ColumnIDs != null && __isset.columnIDs) {
         field.Name = "columnIDs";
-        field.Type = TType.List;
-        field.ID = 2;
+        field.Type = TType.Set;
+        field.ID = 1;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteListBegin(new TList(TType.I32, ColumnIDs.Count));
-          foreach (int _iter64 in ColumnIDs)
+          oprot.WriteSetBegin(new TSet(TType.I32, ColumnIDs.Count));
+          foreach (int _iter3 in ColumnIDs)
           {
-            oprot.WriteI32(_iter64);
+            oprot.WriteI32(_iter3);
           }
-          oprot.WriteListEnd();
+          oprot.WriteSetEnd();
         }
         oprot.WriteFieldEnd();
       }
@@ -142,10 +112,8 @@ namespace Alphora.Fastore
     }
 
     public override string ToString() {
-      StringBuilder sb = new StringBuilder("Conflict(");
-      sb.Append("Details: ");
-      sb.Append(Details);
-      sb.Append(",ColumnIDs: ");
+      StringBuilder sb = new StringBuilder("Pod(");
+      sb.Append("ColumnIDs: ");
       sb.Append(ColumnIDs);
       sb.Append(")");
       return sb.ToString();

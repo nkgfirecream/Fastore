@@ -9,14 +9,9 @@ namespace Alphora.Fastore.Client
 {
     public static class Client
     {
-		public static Database Connect(string url, int port)
+		public static Database Connect(string address, int port)
 		{
-            var transport = new Thrift.Transport.TSocket(url, port);
-            transport.Open();
-
-            var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
-
-            return new Database(new Service.Client(protocol), transport);
+			return new Database(address, port);
 		}
     }
 }

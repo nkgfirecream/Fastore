@@ -25,5 +25,9 @@ namespace Alphora.Fastore
     /// In the process of checkpointing; can send read and write requests, but performance may be sub-optimal.
     /// </summary>
     Checkpointing = 4,
+    /// <summary>
+    /// The repository is offline due to error during startup or execution.
+    /// </summary>
+    Offline = 5,
   }
 }

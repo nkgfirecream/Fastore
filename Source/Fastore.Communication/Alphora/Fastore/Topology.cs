@@ -24,8 +24,7 @@ namespace Alphora.Fastore
   public partial class Topology : TBase
   {
     private int _id;
-    private THashSet<Host> _hosts;
-    private THashSet<Repository> _repositories;
+    private Dictionary<int, Host> _hosts;
 
     public int Id
     {
@@ -40,7 +39,7 @@ namespace Alphora.Fastore
       }
     }
 
-    public THashSet<Host> Hosts
+    public Dictionary<int, Host> Hosts
     {
       get
       {
@@ -53,19 +52,6 @@ namespace Alphora.Fastore
       }
     }
 
-    public THashSet<Repository> Repositories
-    {
-      get
-      {
-        return _repositories;
-      }
-      set
-      {
-        __isset.repositories = true;
-        this._repositories = value;
-      }
-    }
-
 
     public Isset __isset;
     #if !SILVERLIGHT
@@ -74,7 +60,6 @@ namespace Alphora.Fastore
     public struct Isset {
       public bool id;
       public bool hosts;
-      public bool repositories;
     }
 
     public Topology() {
@@ -100,36 +85,20 @@ namespace Alphora.Fastore
             }
             break;
           case 2:
-            if (field.Type == TType.Set) {
+            if (field.Type == TType.Map) {
               {
-                Hosts = new THashSet<Host>();
-                TSet _set0 = iprot.ReadSetBegin();
-                for( int _i1 = 0; _i1 < _set0.Count; ++_i1)
+                Hosts = new Dictionary<int, Host>();
+                TMap _map9 = iprot.ReadMapBegin();
+                for( int _i10 = 0; _i10 < _map9.Count; ++_i10)
                 {
-                  Host _elem2 = new Host();
-                  _elem2 = new Host();
-                  _elem2.Read(iprot);
-                  Hosts.Add(_elem2);
+                  int _key11;
+                  Host _val12;
+                  _key11 = iprot.ReadI32();
+                  _val12 = new Host();
+                  _val12.Read(iprot);
+                  Hosts[_key11] = _val12;
                 }
-                iprot.ReadSetEnd();
-              }
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 3:
-            if (field.Type == TType.Set) {
-              {
-                Repositories = new THashSet<Repository>();
-                TSet _set3 = iprot.ReadSetBegin();
-                for( int _i4 = 0; _i4 < _set3.Count; ++_i4)
-                {
-                  Repository _elem5 = new Repository();
-                  _elem5 = new Repository();
-                  _elem5.Read(iprot);
-                  Repositories.Add(_elem5);
-                }
-                iprot.ReadSetEnd();
+                iprot.ReadMapEnd();
               }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
@@ -158,31 +127,17 @@ namespace Alphora.Fastore
       }
       if (Hosts != null && __isset.hosts) {
         field.Name = "hosts";
-        field.Type = TType.Set;
+        field.Type = TType.Map;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteSetBegin(new TSet(TType.Struct, Hosts.Count));
-          foreach (Host _iter6 in Hosts)
+          oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Hosts.Count));
+          foreach (int _iter13 in Hosts.Keys)
           {
-            _iter6.Write(oprot);
+            oprot.WriteI32(_iter13);
+            Hosts[_iter13].Write(oprot);
           }
-          oprot.WriteSetEnd();
-        }
-        oprot.WriteFieldEnd();
-      }
-      if (Repositories != null && __isset.repositories) {
-        field.Name = "repositories";
-        field.Type = TType.Set;
-        field.ID = 3;
-        oprot.WriteFieldBegin(field);
-        {
-          oprot.WriteSetBegin(new TSet(TType.Struct, Repositories.Count));
-          foreach (Repository _iter7 in Repositories)
-          {
-            _iter7.Write(oprot);
-          }
-          oprot.WriteSetEnd();
+          oprot.WriteMapEnd();
         }
         oprot.WriteFieldEnd();
       }
@@ -196,8 +151,6 @@ namespace Alphora.Fastore
       sb.Append(Id);
       sb.Append(",Hosts: ");
       sb.Append(Hosts);
-      sb.Append(",Repositories: ");
-      sb.Append(Repositories);
       sb.Append(")");
       return sb.ToString();
     }

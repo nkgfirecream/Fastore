@@ -6,15 +6,16 @@ using System.Collections;
 
 namespace Alphora.Fastore.Client
 {
-    //This class should probably be more strict about type enforcement.
     public class DataSet : IEnumerable<DataSetRow>
     {
-        private DataSetRow[] _data = null;
+        private object[][] _data = null;
+		private object[] _rowIds = null;
         private int _columns;
 
         public DataSet(int rows, int columns)
         {
-            _data = new DataSetRow[rows];
+            _data = new object[rows][];
+			_rowIds = new object[rows];
             _columns = columns;
         }
 
@@ -23,23 +24,21 @@ namespace Alphora.Fastore.Client
             get
             {
                 if (_data[index] == null)
-                    _data[index] = new DataSetRow(_columns);
+                    _data[index] = new object[_columns];
 
-                return _data[index];
+                return new DataSetRow(_data[index], _rowIds[index]);
             }
 
             set
             {
-                _data[index] = value;
+                _data[index] = value.Values;
+				_rowIds[index] = value.ID;
             }
         }
 
         public int Count
         {
-            get
-            {
-                return _data.Length;
-            }
+            get { return _data.Length; }
         }
 
         public IEnumerator<DataSetRow> GetEnumerator()
@@ -55,16 +54,17 @@ namespace Alphora.Fastore.Client
 
         //This is with regards to the range that was used to request the dataset.
         //We need a better way to tie the two together.
-        public bool EndOfFile = false;
-        public bool BeginOfFile = false;
+        public bool EndOfRange = false;
+        public bool BeginOfRange = false;
         public bool Limited = false;
 	}
 
-    public class DataSetRow
+    public struct DataSetRow
     {
-        public DataSetRow(int columns)
+        public DataSetRow(object[] values, object id)
         {
-            Values = new object[columns];
+            Values = values;
+			ID = id;
         }
 
         public object[] Values;

@@ -21,52 +21,51 @@ namespace Alphora.Fastore
   #if !SILVERLIGHT
   [Serializable]
   #endif
-  public partial class HostReport : TBase
+  public partial class HiveState : TBase
   {
-    private HostStatus _status;
-    private Dictionary<int, RepositoryStatus> _repositoryStatus;
-    private long _revision;
+    private int _topologyID;
+    private Dictionary<int, ServiceState> _services;
+    private int _hostID;
+
+    public int TopologyID
+    {
+      get
+      {
+        return _topologyID;
+      }
+      set
+      {
+        __isset.topologyID = true;
+        this._topologyID = value;
+      }
+    }
+
+    public Dictionary<int, ServiceState> Services
+    {
+      get
+      {
+        return _services;
+      }
+      set
+      {
+        __isset.services = true;
+        this._services = value;
+      }
+    }
 
     /// <summary>
-    /// 
-    /// <seealso cref="HostStatus"/>
+    /// the host ID of the service giving the report
     /// </summary>
-    public HostStatus Status
+    public int HostID
     {
       get
       {
-        return _status;
+        return _hostID;
       }
       set
       {
-        __isset.status = true;
-        this._status = value;
-      }
-    }
-
-    public Dictionary<int, RepositoryStatus> RepositoryStatus
-    {
-      get
-      {
-        return _repositoryStatus;
-      }
-      set
-      {
-        __isset.repositoryStatus = true;
-        this._repositoryStatus = value;
-      }
-    }
-
-    public long Revision
-    {
-      get
-      {
-        return _revision;
-      }
-      set
-      {
-        __isset.revision = true;
-        this._revision = value;
+        __isset.hostID = true;
+        this._hostID = value;
       }
     }
 
@@ -76,12 +75,12 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool status;
-      public bool repositoryStatus;
-      public bool revision;
+      public bool topologyID;
+      public bool services;
+      public bool hostID;
     }
 
-    public HostReport() {
+    public HiveState() {
     }
 
     public void Read (TProtocol iprot)
@@ -98,7 +97,7 @@ namespace Alphora.Fastore
         {
           case 1:
             if (field.Type == TType.I32) {
-              Status = (HostStatus)iprot.ReadI32();
+              TopologyID = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -106,15 +105,16 @@ namespace Alphora.Fastore
           case 2:
             if (field.Type == TType.Map) {
               {
-                RepositoryStatus = new Dictionary<int, RepositoryStatus>();
-                TMap _map12 = iprot.ReadMapBegin();
-                for( int _i13 = 0; _i13 < _map12.Count; ++_i13)
+                Services = new Dictionary<int, ServiceState>();
+                TMap _map24 = iprot.ReadMapBegin();
+                for( int _i25 = 0; _i25 < _map24.Count; ++_i25)
                 {
-                  int _key14;
-                  RepositoryStatus _val15;
-                  _key14 = iprot.ReadI32();
-                  _val15 = (RepositoryStatus)iprot.ReadI32();
-                  RepositoryStatus[_key14] = _val15;
+                  int _key26;
+                  ServiceState _val27;
+                  _key26 = iprot.ReadI32();
+                  _val27 = new ServiceState();
+                  _val27.Read(iprot);
+                  Services[_key26] = _val27;
                 }
                 iprot.ReadMapEnd();
               }
@@ -123,8 +123,8 @@ namespace Alphora.Fastore
             }
             break;
           case 3:
-            if (field.Type == TType.I64) {
-              Revision = iprot.ReadI64();
+            if (field.Type == TType.I32) {
+              HostID = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -139,39 +139,39 @@ namespace Alphora.Fastore
     }
 
     public void Write(TProtocol oprot) {
-      TStruct struc = new TStruct("HostReport");
+      TStruct struc = new TStruct("HiveState");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.status) {
-        field.Name = "status";
+      if (__isset.topologyID) {
+        field.Name = "topologyID";
         field.Type = TType.I32;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI32((int)Status);
+        oprot.WriteI32(TopologyID);
         oprot.WriteFieldEnd();
       }
-      if (RepositoryStatus != null && __isset.repositoryStatus) {
-        field.Name = "repositoryStatus";
+      if (Services != null && __isset.services) {
+        field.Name = "services";
         field.Type = TType.Map;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteMapBegin(new TMap(TType.I32, TType.I32, RepositoryStatus.Count));
-          foreach (int _iter16 in RepositoryStatus.Keys)
+          oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Services.Count));
+          foreach (int _iter28 in Services.Keys)
           {
-            oprot.WriteI32(_iter16);
-            oprot.WriteI32((int)RepositoryStatus[_iter16]);
+            oprot.WriteI32(_iter28);
+            Services[_iter28].Write(oprot);
           }
           oprot.WriteMapEnd();
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.revision) {
-        field.Name = "revision";
-        field.Type = TType.I64;
+      if (__isset.hostID) {
+        field.Name = "hostID";
+        field.Type = TType.I32;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI64(Revision);
+        oprot.WriteI32(HostID);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -179,13 +179,13 @@ namespace Alphora.Fastore
     }
 
     public override string ToString() {
-      StringBuilder sb = new StringBuilder("HostReport(");
-      sb.Append("Status: ");
-      sb.Append(Status);
-      sb.Append(",RepositoryStatus: ");
-      sb.Append(RepositoryStatus);
-      sb.Append(",Revision: ");
-      sb.Append(Revision);
+      StringBuilder sb = new StringBuilder("HiveState(");
+      sb.Append("TopologyID: ");
+      sb.Append(TopologyID);
+      sb.Append(",Services: ");
+      sb.Append(Services);
+      sb.Append(",HostID: ");
+      sb.Append(HostID);
       sb.Append(")");
       return sb.ToString();
     }

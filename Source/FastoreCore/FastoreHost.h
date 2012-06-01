@@ -39,6 +39,15 @@ class FastoreHost
 		FastoreHost(const CoreConfig& config);
 
 		PointerDefPair GetColumn(const int& columnId);
+
+		ValueVector GetValues(int columnId, const KeyVector& rowIds);
+		Value GetValue(int columnId, Key rowID);
+		bool Include(int columnId, Value value, Key rowID);
+		bool Exclude(int columnId, Value value, Key rowID);
+		bool Exclude(int columnId, Key rowID);
+		GetResult GetRows(int columnId, Range &range);
+		Statistics GetStatistics(int columnId);
+
 		void SyncToSchema();
 		int getId() { return _id; };
 };

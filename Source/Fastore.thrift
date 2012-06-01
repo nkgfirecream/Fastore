@@ -10,27 +10,24 @@ typedef i64 Revision
 typedef i32 TopologyID
 typedef i32 ColumnID
 typedef i32 HostID
-typedef string HostAddress
+typedef i32 PodID
+typedef string NetworkAddress
+typedef i32 NetworkPort
+
+struct Pod
+{
+	1: set<ColumnID> columnIDs
+}
 
 struct Host
 {
-	1: required HostID id,
-
-	/** Host name and optional port (e.g. "myserver:1234") */
-	2: required HostAddress address,
-}
-
-struct Repository
-{
-	1: required ColumnID columnID,
-	2: required HostID hostID,
+	1: required map<PodID, Pod> pods
 }
 
 struct Topology
 {
 	1: required TopologyID id,
-	2: required set<Host> hosts,
-	3: required set<Repository> repositories
+	2: required map<HostID, Host> hosts
 }
 
 struct TopologyResult
@@ -39,7 +36,7 @@ struct TopologyResult
 	2: required Revision revision
 }
 
-// Topology Reporting
+// State Reporting
 
 enum RepositoryStatus
 {
@@ -50,27 +47,41 @@ enum RepositoryStatus
 	/** Online and servicing requests */
 	Online = 3,
 	/** In the process of checkpointing; can send read and write requests, but performance may be sub-optimal. */
-	Checkpointing = 4
+	Checkpointing = 4,
+	/** The repository is offline due to error during startup or execution. */
+	Offline = 5
 }
 
-enum HostStatus
+enum ServiceStatus
 {
 	Offline = 1,
 	Online = 2,
 	Unreachable = 3
 }
 
-struct HostReport
+typedef i64 TimeStamp
+
+struct WorkerState
 {
-	1: required HostStatus status,
-	2: required map<ColumnID, RepositoryStatus> repositoryStatus
+	1: required map<ColumnID, RepositoryStatus> repositoryStatus,
+	2: required NetworkPort port
 }
 
-struct TopologyReport
+struct ServiceState
+{
+	1: required ServiceStatus status,
+	2: required TimeStamp timeStamp,
+	3: required NetworkAddress address,
+	4: optional NetworkPort port,
+	5: required map<PodID, WorkerState> workers
+}
+
+struct HiveState
 {
 	1: required TopologyID topologyID,
-	2: required map<HostID, HostReport> hosts,
-	3: required Revision revision = 1
+	2: required map<HostID, ServiceState> services,
+	/** the host ID of the service giving the report */
+	3: required HostID hostID
 }
 
 // Host
@@ -115,16 +126,15 @@ struct Statistic
 struct RangeBound
 {
 	1: required binary value,
-	2: required bool inclusive,
-	3: optional binary rowID
+	2: required bool inclusive
 }
 
 struct RangeRequest
 {
-	1: required i32 limit = 500,
-	2: required bool ascending = true,
-	3: optional RangeBound first,
-	4: optional RangeBound last
+	1: required bool ascending = true,
+	2: optional RangeBound first,
+	3: optional RangeBound last,
+	4: optional binary rowID
 }
 
 struct ValueRows
@@ -138,15 +148,16 @@ typedef list<ValueRows> ValueRowsList
 struct RangeResult
 {
 	1: required ValueRowsList valueRowsList,
-	2: required bool endOfFile,
-	3: required bool beginOfFile,
+	2: required bool endOfRange,
+	3: required bool beginOfRange,
 	4: required bool limited
 }
 
 struct Query
 {
 	1: optional list<binary> rowIDs,
-	2: optional list<RangeRequest> ranges
+	2: optional list<RangeRequest> ranges,
+	3: required i32 limit = 500
 }
 
 typedef map<ColumnID, Query> Queries
@@ -206,13 +217,32 @@ service Service
 	/** Informs that the prepare was unsuccessful, the change should be rolled back. */
 	void rollbackTopology(1:TransactionID transactionID),
 
-	/** Returns the current status of all hosts as this host understands it. */
-	TopologyReport getTopologyReport(),
+	/** Returns the current status of all services in the hive as understood by this service. */
+	HiveState getHiveState(),
 
-	/** Returns the current status of this host. */
-	HostReport getReport(),
+	/** Returns the current status of this service. */
+	ServiceState getState(),
 
 
+	/** Acquires a given named lock given a mode and timeout. */
+	LockID acquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
+		throws (1:LockTimedOut timeout),
+
+	/** Keeps a given lock alive - locks automatically expire if not renewed. */
+	void keepLock(1:LockID lockID)
+		throws (1:LockExpired expired),
+	
+	/** Attempts to escalate the given lock to write mode */
+	void escalateLock(1:LockID lockID, 2:LockTimeout timeout = -1)
+		throws (1:LockTimedOut timeout, 2:LockExpired expired),
+
+	/** Releases the given lock */
+	void releaseLock(1:LockID lockID)
+		throws (1:LockExpired expired)
+}
+
+service Worker
+{
 	/** Validates that the transaction ID is updated to the latest and then Applies all changes - GRID COORDINATED. */
 	Revision prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 
 		throws (1:NotLatest notLatest),
@@ -244,22 +274,6 @@ service Service
 		throws (1:BeyondHistory beyondHistory),
 
 	
-	/** Acquires a given named lock given a mode and timeout. */
-	LockID acquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
-		throws (1:LockTimedOut timeout),
-
-	/** Keeps a given lock alive - locks automatically expire if not renewed. */
-	void keepLock(1:LockID lockID)
-		throws (1:LockExpired expired),
-	
-	/** Attempts to escalate the given lock to write mode */
-	void escalateLock(1:LockID lockID, 2:LockTimeout timeout = -1)
-		throws (1:LockTimedOut timeout, 2:LockExpired expired),
-
-	/** Releases the given lock */
-	void releaseLock(1:LockID lockID)
-		throws (1:LockExpired expired),
-
 	/** Retrieves data and the latest revision number corresponding to a given list of queries. */
 	ReadResults query(1:Queries queries),
 	

@@ -24,8 +24,8 @@ namespace Alphora.Fastore
   public partial class RangeResult : TBase
   {
     private List<ValueRows> _valueRowsList;
-    private bool _endOfFile;
-    private bool _beginOfFile;
+    private bool _endOfRange;
+    private bool _beginOfRange;
     private bool _limited;
 
     public List<ValueRows> ValueRowsList
@@ -41,29 +41,29 @@ namespace Alphora.Fastore
       }
     }
 
-    public bool EndOfFile
+    public bool EndOfRange
     {
       get
       {
-        return _endOfFile;
+        return _endOfRange;
       }
       set
       {
-        __isset.endOfFile = true;
-        this._endOfFile = value;
+        __isset.endOfRange = true;
+        this._endOfRange = value;
       }
     }
 
-    public bool BeginOfFile
+    public bool BeginOfRange
     {
       get
       {
-        return _beginOfFile;
+        return _beginOfRange;
       }
       set
       {
-        __isset.beginOfFile = true;
-        this._beginOfFile = value;
+        __isset.beginOfRange = true;
+        this._beginOfRange = value;
       }
     }
 
@@ -87,8 +87,8 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool valueRowsList;
-      public bool endOfFile;
-      public bool beginOfFile;
+      public bool endOfRange;
+      public bool beginOfRange;
       public bool limited;
     }
 
@@ -111,13 +111,13 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 ValueRowsList = new List<ValueRows>();
-                TList _list30 = iprot.ReadListBegin();
-                for( int _i31 = 0; _i31 < _list30.Count; ++_i31)
+                TList _list41 = iprot.ReadListBegin();
+                for( int _i42 = 0; _i42 < _list41.Count; ++_i42)
                 {
-                  ValueRows _elem32 = new ValueRows();
-                  _elem32 = new ValueRows();
-                  _elem32.Read(iprot);
-                  ValueRowsList.Add(_elem32);
+                  ValueRows _elem43 = new ValueRows();
+                  _elem43 = new ValueRows();
+                  _elem43.Read(iprot);
+                  ValueRowsList.Add(_elem43);
                 }
                 iprot.ReadListEnd();
               }
@@ -127,14 +127,14 @@ namespace Alphora.Fastore
             break;
           case 2:
             if (field.Type == TType.Bool) {
-              EndOfFile = iprot.ReadBool();
+              EndOfRange = iprot.ReadBool();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
           case 3:
             if (field.Type == TType.Bool) {
-              BeginOfFile = iprot.ReadBool();
+              BeginOfRange = iprot.ReadBool();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -166,28 +166,28 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.Struct, ValueRowsList.Count));
-          foreach (ValueRows _iter33 in ValueRowsList)
+          foreach (ValueRows _iter44 in ValueRowsList)
           {
-            _iter33.Write(oprot);
+            _iter44.Write(oprot);
           }
           oprot.WriteListEnd();
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.endOfFile) {
-        field.Name = "endOfFile";
+      if (__isset.endOfRange) {
+        field.Name = "endOfRange";
         field.Type = TType.Bool;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
-        oprot.WriteBool(EndOfFile);
+        oprot.WriteBool(EndOfRange);
         oprot.WriteFieldEnd();
       }
-      if (__isset.beginOfFile) {
-        field.Name = "beginOfFile";
+      if (__isset.beginOfRange) {
+        field.Name = "beginOfRange";
         field.Type = TType.Bool;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        oprot.WriteBool(BeginOfFile);
+        oprot.WriteBool(BeginOfRange);
         oprot.WriteFieldEnd();
       }
       if (__isset.limited) {
@@ -206,10 +206,10 @@ namespace Alphora.Fastore
       StringBuilder sb = new StringBuilder("RangeResult(");
       sb.Append("ValueRowsList: ");
       sb.Append(ValueRowsList);
-      sb.Append(",EndOfFile: ");
-      sb.Append(EndOfFile);
-      sb.Append(",BeginOfFile: ");
-      sb.Append(BeginOfFile);
+      sb.Append(",EndOfRange: ");
+      sb.Append(EndOfRange);
+      sb.Append(",BeginOfRange: ");
+      sb.Append(BeginOfRange);
       sb.Append(",Limited: ");
       sb.Append(Limited);
       sb.Append(")");

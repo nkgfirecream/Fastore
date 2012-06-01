@@ -177,7 +177,9 @@
     <ClCompile Include="BTree.cpp" />
     <ClCompile Include="FastoreHost.cpp" />
     <ClCompile Include="KeyTree.cpp" />
+    <ClCompile Include="Logging\Log.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Repository.cpp" />
     <ClCompile Include="Schema\BaseTypes.cpp" />
     <ClCompile Include="Schema\InternalTypes.cpp" />
     <ClCompile Include="Schema\scalar.cpp" />
@@ -195,9 +197,11 @@
     <ClInclude Include="CoreConfig.h" />
     <ClInclude Include="FastoreHost.h" />
     <ClInclude Include="KeyTree.h" />
+    <ClInclude Include="Logging\Log.h" />
     <ClInclude Include="optional.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="Range.h" />
+    <ClInclude Include="Repository.h" />
     <ClInclude Include="Schema\BaseTypes.h" />
     <ClInclude Include="schema\column.h" />
     <ClInclude Include="Schema\InternalTypes.h" />

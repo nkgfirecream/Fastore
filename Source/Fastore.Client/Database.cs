@@ -2,21 +2,34 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Alphora.Fastore.Client
 {
 	// TODO: concurrency
     public class Database : IDataAccess, IDisposable
     {
-		internal Alphora.Fastore.Service.Client Host { get; set; }
-		private Thrift.Transport.TTransport _transport;
+		private class PodMap
+		{
+			public PodMap()
+			{
+				Pods = new List<int>();
+			}
+			public List<int> Pods;
+			public int Next;
+		}
+
+		private Dictionary<int, Service.Client> _services = new Dictionary<int, Service.Client>();
+		private Dictionary<int, Worker.Client> _workers = new Dictionary<int, Worker.Client>();
+		private Dictionary<int, Tuple<ServiceState, WorkerState>> _workerStates = new Dictionary<int, Tuple<ServiceState, WorkerState>>();
+		private Dictionary<int, PodMap> _columnWorkers = new Dictionary<int, PodMap>();
+		private HiveState _hiveState;
 		private Schema _schema;
         private TransactionID _defaultId = new TransactionID() { Key = 0, Revision = 0 };
 
-		public Database(Alphora.Fastore.Service.Client host, Thrift.Transport.TTransport transport)
+		public Database(string address, int port)
         {
-            Host = host;
-			_transport = transport;
+			var service = ConnectToService(address, port);
             
             //GetRange to determine the schema requires a few assumptions
             //about the schema in order to be able to decode it properly.
@@ -24,19 +37,157 @@ namespace Alphora.Fastore.Client
             BootStrapSchema();           
         }
 
+		private Service.Client EnsureService(int hostID)
+		{
+			Service.Client result;
+			if (!_services.TryGetValue(hostID, out result))
+			{
+				ServiceState serviceState;
+				if (!_hiveState.Services.TryGetValue(hostID, out serviceState))
+					throw new Exception(String.Format("No service is currently associated with host ID ({0}).", hostID));
+				result = ConnectToService(serviceState.Address, serviceState.Port);
+			}
+			return result;
+		}
+
+		private Service.Client ConnectToService(string address, int port, int hostID = -1)
+		{
+			var transport = new Thrift.Transport.TSocket(address, port);
+			transport.Open();
+			try
+			{
+				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
+
+				var service = new Service.Client(protocol);
+
+				// If hostID isn't provided, ask the service for its host ID
+				if (hostID < 0)
+				{
+					UpdateHiveState(service.getHiveState());
+					hostID = _hiveState.HostID;
+				}
+
+				_services.Add(hostID, service);
+
+				return service;
+			}
+			catch
+			{
+				transport.Close();
+				throw;
+			}
+		}
+
+		private void UpdateHiveState(HiveState newState)
+		{
+			_hiveState = newState;
+
+			// Maintain some indexes for quick access
+			_workerStates.Clear();
+			_columnWorkers.Clear();
+
+			if (newState != null)
+				foreach (var service in newState.Services)
+					foreach (var worker in service.Value.Workers)
+					{
+						_workerStates.Add(worker.Key, new Tuple<ServiceState, WorkerState>(service.Value, worker.Value));
+						foreach (var repo in worker.Value.RepositoryStatus.Where(r => r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing))
+						{
+							PodMap map;
+							if (!_columnWorkers.TryGetValue(repo.Key, out map))
+							{
+								map = new PodMap();
+								_columnWorkers.Add(repo.Key, map);
+							}
+							map.Pods.Add(worker.Key);
+						}
+					}
+		}
+
+		private Worker.Client EnsureWorker(int podID)
+		{
+			Worker.Client result;
+			if (!_workers.TryGetValue(podID, out result))
+			{
+				Tuple<ServiceState, WorkerState> workerState;
+				if (!_workerStates.TryGetValue(podID, out workerState))
+					throw new Exception(String.Format("No Worker is currently associated with pod ID ({0}).", podID));
+				result = ConnectToWorker(workerState.Item1.Address, workerState.Item2.Port, podID);
+			}
+			return result;
+		}
+
+		private Worker.Client ConnectToWorker(string address, int port, int podID)
+		{
+			var transport = new Thrift.Transport.TSocket(address, port);
+			transport.Open();
+			try
+			{
+				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
+
+				var worker = new Worker.Client(protocol);
+
+				_workers.Add(podID, worker);
+
+				return worker;
+			}
+			catch
+			{
+				transport.Close();
+				throw;
+			}
+		}
+
+		private Worker.Client GetWorker(int columnID)
+		{
+			PodMap map;
+			if (!_columnWorkers.TryGetValue(columnID, out map))
+			{
+				// TODO: Update the hive state before erroring.
+				throw new Exception(String.Format("No worker is currently available for column ID ({0}).", columnID));
+			}
+			map.Next = (map.Next + 1) % map.Pods.Count;
+			return EnsureWorker(map.Pods[map.Next]);
+		}
+
 		public void Dispose() 
 		{ 
-			if (_transport != null)
+			var errors = new List<Exception>();
+			while (_services.Count > 0)
 			{
+				var service = _services.First();
 				try
 				{
-					_transport.Close();
+					service.Value.OutputProtocol.Transport.Close();
+				}
+				catch (Exception e)
+				{
+					errors.Add(e);
 				}
 				finally
 				{
-					_transport = null;
+					_services.Remove(service.Key);
 				}
 			}
+			while (_workers.Count > 0)
+			{
+				var worker = _workers.First();
+				try
+				{
+					worker.Value.OutputProtocol.Transport.Close();
+				}
+				catch (Exception e)
+				{
+					errors.Add(e);
+				}
+				finally
+				{
+					_workers.Remove(worker.Key);
+				}
+			}
+			UpdateHiveState(null);
+			if (errors.Count > 0)
+				throw new AggregateException(errors);
 		}
 
 		public Transaction Begin(bool readIsolation, bool writeIsolation)
@@ -45,189 +196,191 @@ namespace Alphora.Fastore.Client
 		}
 
 		//Hit the thrift API to build range.
-		public DataSet GetRange(int[] columnIds, Order[] orders, Range[] ranges, object startId = null)
+		public DataSet GetRange(int[] columnIds, Range range, int limit, object startId = null)
 		{
-			// Validate arguments
-            if (orders.Length > 1)
-                throw new NotSupportedException("Multiple orders not supported");
-            if (ranges.Length > 1)
-                throw new NotSupportedException("Multiple ranges not supported");
-            if (orders.Length == 1 && ranges.Length == 1 && orders[0].ColumnID != ranges[0].ColumnID)
-                throw new InvalidOperationException("Base order and range must have same column id");
+			// Create the range query
+			var query = CreateQuery(range, limit, startId);
 
-			// TODO: Only a unique column should be selected as a key column
-			int keyColumnId = orders.Length > 0 ? orders[0].ColumnID : ranges.Length > 0 ? ranges[0].ColumnID : columnIds[0];
+			// Determine the worker to use
+			var worker = GetWorker(range.ColumnID);
 
-            var rangeQueriesResult = 
-				Host.query
-				(
-					CreateQueries(orders, ranges, startId, keyColumnId)
-				);
-            
-			return 
-				ResultToDataSet
-				(
-					columnIds, 
-					//We only sent one query, so we only care about one result...
-					rangeQueriesResult[keyColumnId].Answer.RangeValues[0]
-				);
+			// Make the range request
+            var rangeResults = worker.query(new Dictionary<int, Query> { { range.ColumnID, query }});
+			var rangeResult = rangeResults[range.ColumnID].Answer.RangeValues[0];
+
+			// Create the row ID query
+			Query rowIdQuery = GetRowsQuery(rangeResult);
+
+			// Construct the column row ID queries grouped by worker
+			Dictionary<Worker.Client, Dictionary<int, Query>> queriesByWorker = new Dictionary<Worker.Client, Dictionary<int, Query>>();
+			for (int i = 0; i < columnIds.Length; i++)
+			{
+				if (columnIds[i] != range.ColumnID)
+				{
+					worker = GetWorker(columnIds[i]);
+					Dictionary<int, Query> queries;
+					if (!queriesByWorker.TryGetValue(worker, out queries))
+					{
+						queries = new Dictionary<int, Query>();
+						queriesByWorker.Add(worker, queries);
+					}
+					queries.Add(columnIds[i], rowIdQuery);
+				}
+			}
+
+			// Make the query request against the workers and wait for all results to arrive
+			var tasks = new List<Task<Dictionary<int, ReadResult>>>(queriesByWorker.Count);
+			foreach (var workerQueries in queriesByWorker)
+				tasks.Add(Task.Factory.StartNew(()=> { return workerQueries.Key.query(workerQueries.Value); }));
+			
+			// Combine all results into a single dictionary by column
+			var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
+			foreach (var task in tasks)
+				foreach (var result in task.Result)
+					resultsByColumn.Add(result.Key, result.Value);
+			
+			return ResultToDataSet(columnIds, rowIdQuery.RowIDs, range.ColumnID, rangeResult, resultsByColumn);
 		}
 
-		private DataSet ResultToDataSet(int[] columnIds, RangeResult rangeResult)
+		private DataSet ResultToDataSet(int[] columnIds, List<byte[]> rowIDs, int rangeColumnID, RangeResult rangeResult, Dictionary<int, ReadResult> rowResults)
 		{
-			//Put all the rowIds in a list, so we can either send them off again to fill the dataset.
-			//(I am filling the order column twice in the case that it is part of the selection,
-			//but I can add code to be smart enough to handle that in the future)
+			DataSet result = new DataSet(rowIDs.Count, columnIds.Length);
+			result.EndOfRange = rangeResult.EndOfRange;
+			result.BeginOfRange = rangeResult.BeginOfRange;
+
+			int valueRowValue = 0;
+			int valueRowRow = 0;
+			for (int y = 0; y < rowIDs.Count; y++)
+			{
+				object[] rowData = new object[columnIds.Length];
+				object rowId = Fastore.Client.Encoder.Decode(rowIDs[y], _schema[columnIds[0]].IDType);
+				
+				for (int x = 0; x < columnIds.Length; x++)
+				{
+					var columnId = columnIds[x];
+					if (columnId == rangeColumnID)
+					{
+						// Column is the range column
+						rowData[x] = Fastore.Client.Encoder.Decode(rangeResult.ValueRowsList[valueRowValue].Value, _schema[columnId].Type);
+						valueRowRow++;
+						if (valueRowRow >= rangeResult.ValueRowsList[valueRowValue].RowIDs.Count)
+						{
+							valueRowValue++;
+							valueRowRow = 0;
+						}
+					}
+					else
+						rowData[x] = Fastore.Client.Encoder.Decode(rowResults[columnId].Answer.RowIDValues[y], _schema[columnId].Type);
+				}
+
+				result[y] = new DataSetRow(rowData, rowId);
+            }
+
+			return result;
+		}
+
+		private static Query GetRowsQuery(RangeResult rangeResult)
+		{
 			List<byte[]> rowIds = new List<byte[]>();
 			foreach (var valuerow in rangeResult.ValueRowsList)
 			{
 				foreach (var rowid in valuerow.RowIDs)
-				{
 					rowIds.Add(rowid);
-				}
 			}
 
-			//Create dataset to store result in....
-			DataSet ds = new DataSet(rowIds.Count, columnIds.Length);
-			ds.EndOfFile = rangeResult.EndOfFile;
-            ds.BeginOfFile = rangeResult.BeginOfFile;
-            ds.Limited = rangeResult.Limited;
-
-			Query rowIdQuery = new Query() { RowIDs = rowIds };
-            Dictionary<int, Query> queries = new Dictionary<int, Query>();
-
-			for (int i = 0; i < columnIds.Length; i++)
-			{
-                queries.Add(columnIds[i], rowIdQuery);
-            }
-
-			var idResult = Host.query(queries);
-
-            for (int i = 0; i < columnIds.Length; i++)
-            {
-                var values = idResult[columnIds[i]].Answer.RowIDValues;
-                for (int j = 0; j < values.Count; j++)
-                {
-                    ds[j].Values[i] = Fastore.Client.Encoder.Decode(values[j], _schema[columnIds[i]].Type);
-                   
-                }
-            }
-
-            for (int i = 0; i < rowIds.Count; i++)
-            {
-                //Assumption... All columns have same ID type
-                ds[i].ID = Fastore.Client.Encoder.Decode(rowIds[i], _schema[columnIds[0]].IDType);
-            }
-
-			return ds;
+			return new Query() { RowIDs = rowIds };
 		}
 
-		private static Dictionary<int, Query> CreateQueries(Order[] orders, Range[] ranges, object startId, int rangeId)
+		private static Query CreateQuery(Range range, int limit, object startId)
 		{
-			//First, pull in the correct rowIds based on the range and order.
 			RangeRequest rangeRequest = new RangeRequest();
-			rangeRequest.Ascending = orders.Length > 0 ? orders[0].Ascending : true;
+			rangeRequest.Ascending = range.Ascending;
 
-			if (ranges.Length > 0)
+			if (range.Start.HasValue)
 			{
-				var clientrange = ranges[0];
+				Fastore.RangeBound bound = new Fastore.RangeBound();
+				bound.Inclusive = range.Start.Value.Inclusive;
+				bound.Value = Fastore.Client.Encoder.Encode(range.Start.Value.Bound);
 
-				//Some things to think about...
-				//Start always represents the Lowest value in the range requested (in whatever order the column is stored in),
-				//not the value you want actually want to start with (counterintuitive in the reverse order case).
-				//Since the start/end swap happens on the server, the startId needs to be associated with whatever bound
-				//actually is the start value. 
-				if (clientrange.Start.HasValue)
-				{
-					Fastore.RangeBound bound = new Fastore.RangeBound();
-					bound.Inclusive = clientrange.Start.Value.Inclusive;
-					bound.Value = Fastore.Client.Encoder.Encode(clientrange.Start.Value.Bound);
-
-					if (rangeRequest.Ascending && startId != null)
-						bound.RowID = Fastore.Client.Encoder.Encode(startId);
-
-					rangeRequest.First = bound;
-				}
-
-				if (clientrange.End.HasValue)
-				{
-					Fastore.RangeBound bound = new Fastore.RangeBound();
-					bound.Inclusive = clientrange.End.Value.Inclusive;
-					bound.Value = Fastore.Client.Encoder.Encode(clientrange.End.Value.Bound);
-
-					if (!rangeRequest.Ascending && startId != null)
-						bound.RowID = Fastore.Client.Encoder.Encode(startId);
-
-					rangeRequest.Last = bound;
-				}
-
-				rangeRequest.Limit = ranges[0].Limit;
+				rangeRequest.First = bound;
 			}
 
-			var rangeRequests = new List<RangeRequest>();
-			rangeRequests.Add(rangeRequest);
+			if (range.End.HasValue)
+			{
+				Fastore.RangeBound bound = new Fastore.RangeBound();
+				bound.Inclusive = range.End.Value.Inclusive;
+				bound.Value = Fastore.Client.Encoder.Encode(range.End.Value.Bound);
+
+				rangeRequest.Last = bound;
+			}
+
+			if (startId != null)
+				rangeRequest.RowID = Fastore.Client.Encoder.Encode(startId);
 
 			Query rangeQuery = new Query();
-			rangeQuery.Ranges = rangeRequests;
+			rangeQuery.Ranges = new List<RangeRequest>();
+			rangeQuery.Ranges.Add(rangeRequest);
+			rangeQuery.Limit = limit;
 
-			Dictionary<int, Query> rangeQueries = new Dictionary<int, Query>();
-			rangeQueries.Add(rangeId, rangeQuery);
-			return rangeQueries;
+			return rangeQuery;
 		}
 
         public void Include(int[] columnIds, object rowId, object[] row)
 		{
-            Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
-            byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
+			throw new NotImplementedException();
+//            Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
+//            byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
 
-            for (int i = 0; i < columnIds.Length; i++)
-            {               
-                Include inc = new Fastore.Include();
-                inc.RowID = rowIdb;
-                inc.Value = Fastore.Client.Encoder.Encode(row[i]);
+//            for (int i = 0; i < columnIds.Length; i++)
+//            {               
+//                Include inc = new Fastore.Include();
+//                inc.RowID = rowIdb;
+//                inc.Value = Fastore.Client.Encoder.Encode(row[i]);
 
-                ColumnWrites wt = new ColumnWrites();
-                wt.Includes = new List<Fastore.Include>();
-                wt.Includes.Add(inc);
-                writes.Add(columnIds[i], wt);
-            }
+//                ColumnWrites wt = new ColumnWrites();
+//                wt.Includes = new List<Fastore.Include>();
+//                wt.Includes.Add(inc);
+//                writes.Add(columnIds[i], wt);
+//            }
 
-            Host.apply(_defaultId, writes);
+//            Service.apply(_defaultId, writes);
 
-            if (columnIds[0] == 0)
-                RefreshSchema();
+//            if (columnIds[0] == 0)
+//                RefreshSchema();
 		}
 
 		public void Exclude(int[] columnIds, object rowId)
 		{
-            Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
-            byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
+			throw new NotImplementedException();
+			//Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
+			//byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
             
-            Exclude ex = new Fastore.Exclude();
-            ex.RowID = rowIdb;
+			//Exclude ex = new Fastore.Exclude();
+			//ex.RowID = rowIdb;
 
-            ColumnWrites wt = new ColumnWrites();
-            wt.Excludes = new List<Fastore.Exclude>();
-            wt.Excludes.Add(ex);
+			//ColumnWrites wt = new ColumnWrites();
+			//wt.Excludes = new List<Fastore.Exclude>();
+			//wt.Excludes.Add(ex);
 
-            for (int i = 0; i < columnIds.Length; i++)
-            {
-                writes.Add(columnIds[i], wt);
-            }
+			//for (int i = 0; i < columnIds.Length; i++)
+			//{
+			//    writes.Add(columnIds[i], wt);
+			//}
 
-            Host.apply(_defaultId, writes);
+			//Service.apply(_defaultId, writes);
 
-            if (columnIds[0] == 0)
-                RefreshSchema();
+			//if (columnIds[0] == 0)
+			//    RefreshSchema();
 		}
 
 		public Statistic[] GetStatistics(int[] columnIds)
 		{
-			return 
-			(
-				from s in Host.getStatistics(columnIds.ToList()) 
-					select new Statistic { Total = s.Total, Unique = s.Unique }
-			).ToArray();
+			throw new NotImplementedException();
+			//return 
+			//(
+			//    from s in Service.getStatistics(columnIds.ToList()) 
+			//        select new Statistic { Total = s.Total, Unique = s.Unique }
+			//).ToArray();
 		}
 
 		public Schema GetSchema()
@@ -244,8 +397,8 @@ namespace Alphora.Fastore.Client
 				GetRange
 				(
 					new[] { 0, 1, 2, 3, 4 },
-					new[] { new Order { ColumnID = 0, Ascending = true } },
-					new[] { new Range { ColumnID = 0, Limit = int.MaxValue } }
+					new Range { ColumnID = 0, Ascending = true },
+					int.MaxValue
 				);
 			foreach (var column in columns)
 			{
@@ -278,31 +431,31 @@ namespace Alphora.Fastore.Client
             ColumnDef unique = new ColumnDef();
 
             id.ColumnID = 0;
-            id.Name = "ID";
+            id.Name = "Column.ID";
             id.Type = "Int";
             id.IDType = "Int";
             id.IsUnique = true;
 
             name.ColumnID = 1;
-            name.Name = "Name";
+            name.Name = "Column.Name";
             name.Type = "String";
             name.IDType = "Int";
             name.IsUnique = false;
 
             vt.ColumnID = 2;
-            vt.Name = "ValueType";
+            vt.Name = "Column.ValueType";
             vt.Type = "String";
             vt.IDType = "Int";
             vt.IsUnique = false;
 
             idt.ColumnID = 3;
-            idt.Name = "RowIDType";
+            idt.Name = "Column.RowIDType";
             idt.Type = "String";
             idt.IDType = "Int";
             idt.IsUnique = false;
 
             unique.ColumnID = 4;
-            unique.Name = "IsUnique";
+            unique.Name = "Column.IsUnique";
             unique.Type = "Bool";
             unique.IDType = "Int";
             unique.IsUnique = false;

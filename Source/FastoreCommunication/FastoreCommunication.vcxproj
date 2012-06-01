@@ -149,11 +149,13 @@
     <ClCompile Include="Fastore_types.cpp" />
     <ClCompile Include="Operators.cpp" />
     <ClCompile Include="Service.cpp" />
+    <ClCompile Include="Worker.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Fastore_constants.h" />
     <ClInclude Include="Fastore_types.h" />
     <ClInclude Include="Service.h" />
+    <ClInclude Include="Worker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

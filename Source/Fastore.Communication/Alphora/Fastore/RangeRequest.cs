@@ -23,23 +23,10 @@ namespace Alphora.Fastore
   #endif
   public partial class RangeRequest : TBase
   {
-    private int _limit;
     private bool _ascending;
     private RangeBound _first;
     private RangeBound _last;
-
-    public int Limit
-    {
-      get
-      {
-        return _limit;
-      }
-      set
-      {
-        __isset.limit = true;
-        this._limit = value;
-      }
-    }
+    private byte[] _rowID;
 
     public bool Ascending
     {
@@ -80,20 +67,32 @@ namespace Alphora.Fastore
       }
     }
 
+    public byte[] RowID
+    {
+      get
+      {
+        return _rowID;
+      }
+      set
+      {
+        __isset.rowID = true;
+        this._rowID = value;
+      }
+    }
+
 
     public Isset __isset;
     #if !SILVERLIGHT
     [Serializable]
     #endif
     public struct Isset {
-      public bool limit;
       public bool ascending;
       public bool first;
       public bool last;
+      public bool rowID;
     }
 
     public RangeRequest() {
-      this._limit = 500;
       this._ascending = true;
     }
 
@@ -110,20 +109,13 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I32) {
-              Limit = iprot.ReadI32();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 2:
             if (field.Type == TType.Bool) {
               Ascending = iprot.ReadBool();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 3:
+          case 2:
             if (field.Type == TType.Struct) {
               First = new RangeBound();
               First.Read(iprot);
@@ -131,10 +123,17 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 4:
+          case 3:
             if (field.Type == TType.Struct) {
               Last = new RangeBound();
               Last.Read(iprot);
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
+          case 4:
+            if (field.Type == TType.String) {
+              RowID = iprot.ReadBinary();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -152,18 +151,10 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("RangeRequest");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.limit) {
-        field.Name = "limit";
-        field.Type = TType.I32;
-        field.ID = 1;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteI32(Limit);
-        oprot.WriteFieldEnd();
-      }
       if (__isset.ascending) {
         field.Name = "ascending";
         field.Type = TType.Bool;
-        field.ID = 2;
+        field.ID = 1;
         oprot.WriteFieldBegin(field);
         oprot.WriteBool(Ascending);
         oprot.WriteFieldEnd();
@@ -171,7 +162,7 @@ namespace Alphora.Fastore
       if (First != null && __isset.first) {
         field.Name = "first";
         field.Type = TType.Struct;
-        field.ID = 3;
+        field.ID = 2;
         oprot.WriteFieldBegin(field);
         First.Write(oprot);
         oprot.WriteFieldEnd();
@@ -179,9 +170,17 @@ namespace Alphora.Fastore
       if (Last != null && __isset.last) {
         field.Name = "last";
         field.Type = TType.Struct;
-        field.ID = 4;
+        field.ID = 3;
         oprot.WriteFieldBegin(field);
         Last.Write(oprot);
+        oprot.WriteFieldEnd();
+      }
+      if (RowID != null && __isset.rowID) {
+        field.Name = "rowID";
+        field.Type = TType.String;
+        field.ID = 4;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteBinary(RowID);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -190,14 +189,14 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("RangeRequest(");
-      sb.Append("Limit: ");
-      sb.Append(Limit);
-      sb.Append(",Ascending: ");
+      sb.Append("Ascending: ");
       sb.Append(Ascending);
       sb.Append(",First: ");
       sb.Append(First== null ? "<null>" : First.ToString());
       sb.Append(",Last: ");
       sb.Append(Last== null ? "<null>" : Last.ToString());
+      sb.Append(",RowID: ");
+      sb.Append(RowID);
       sb.Append(")");
       return sb.ToString();
     }

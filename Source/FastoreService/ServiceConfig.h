@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\FastoreCore\CoreConfig.h";
+#include "..\FastoreCore\CoreConfig.h"
 
 const int DefaultPort = 8064;
 const int DefaultSocketThreadCount = 8;

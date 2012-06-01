@@ -11,6 +11,6 @@ namespace Alphora.Fastore.Client
 
         public RangeBound? Start;
         public RangeBound? End;
-		public int Limit;
+		public bool Ascending;
     }
 }

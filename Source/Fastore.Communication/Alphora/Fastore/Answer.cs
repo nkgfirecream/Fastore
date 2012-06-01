@@ -81,12 +81,12 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 RowIDValues = new List<byte[]>();
-                TList _list42 = iprot.ReadListBegin();
-                for( int _i43 = 0; _i43 < _list42.Count; ++_i43)
+                TList _list53 = iprot.ReadListBegin();
+                for( int _i54 = 0; _i54 < _list53.Count; ++_i54)
                 {
-                  byte[] _elem44 = null;
-                  _elem44 = iprot.ReadBinary();
-                  RowIDValues.Add(_elem44);
+                  byte[] _elem55 = null;
+                  _elem55 = iprot.ReadBinary();
+                  RowIDValues.Add(_elem55);
                 }
                 iprot.ReadListEnd();
               }
@@ -98,13 +98,13 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 RangeValues = new List<RangeResult>();
-                TList _list45 = iprot.ReadListBegin();
-                for( int _i46 = 0; _i46 < _list45.Count; ++_i46)
+                TList _list56 = iprot.ReadListBegin();
+                for( int _i57 = 0; _i57 < _list56.Count; ++_i57)
                 {
-                  RangeResult _elem47 = new RangeResult();
-                  _elem47 = new RangeResult();
-                  _elem47.Read(iprot);
-                  RangeValues.Add(_elem47);
+                  RangeResult _elem58 = new RangeResult();
+                  _elem58 = new RangeResult();
+                  _elem58.Read(iprot);
+                  RangeValues.Add(_elem58);
                 }
                 iprot.ReadListEnd();
               }
@@ -132,9 +132,9 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.String, RowIDValues.Count));
-          foreach (byte[] _iter48 in RowIDValues)
+          foreach (byte[] _iter59 in RowIDValues)
           {
-            oprot.WriteBinary(_iter48);
+            oprot.WriteBinary(_iter59);
           }
           oprot.WriteListEnd();
         }
@@ -147,9 +147,9 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.Struct, RangeValues.Count));
-          foreach (RangeResult _iter49 in RangeValues)
+          foreach (RangeResult _iter60 in RangeValues)
           {
-            _iter49.Write(oprot);
+            _iter60.Write(oprot);
           }
           oprot.WriteListEnd();
         }

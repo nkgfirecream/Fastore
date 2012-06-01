@@ -23,35 +23,18 @@ namespace Alphora.Fastore
   #endif
   public partial class Host : TBase
   {
-    private int _id;
-    private string _address;
+    private Dictionary<int, Pod> _pods;
 
-    public int Id
+    public Dictionary<int, Pod> Pods
     {
       get
       {
-        return _id;
+        return _pods;
       }
       set
       {
-        __isset.id = true;
-        this._id = value;
-      }
-    }
-
-    /// <summary>
-    /// Host name and optional port (e.g. "myserver:1234")
-    /// </summary>
-    public string Address
-    {
-      get
-      {
-        return _address;
-      }
-      set
-      {
-        __isset.address = true;
-        this._address = value;
+        __isset.pods = true;
+        this._pods = value;
       }
     }
 
@@ -61,8 +44,7 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool id;
-      public bool address;
+      public bool pods;
     }
 
     public Host() {
@@ -81,15 +63,21 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I32) {
-              Id = iprot.ReadI32();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 2:
-            if (field.Type == TType.String) {
-              Address = iprot.ReadString();
+            if (field.Type == TType.Map) {
+              {
+                Pods = new Dictionary<int, Pod>();
+                TMap _map4 = iprot.ReadMapBegin();
+                for( int _i5 = 0; _i5 < _map4.Count; ++_i5)
+                {
+                  int _key6;
+                  Pod _val7;
+                  _key6 = iprot.ReadI32();
+                  _val7 = new Pod();
+                  _val7.Read(iprot);
+                  Pods[_key6] = _val7;
+                }
+                iprot.ReadMapEnd();
+              }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -107,20 +95,20 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Host");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.id) {
-        field.Name = "id";
-        field.Type = TType.I32;
+      if (Pods != null && __isset.pods) {
+        field.Name = "pods";
+        field.Type = TType.Map;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI32(Id);
-        oprot.WriteFieldEnd();
-      }
-      if (Address != null && __isset.address) {
-        field.Name = "address";
-        field.Type = TType.String;
-        field.ID = 2;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteString(Address);
+        {
+          oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Pods.Count));
+          foreach (int _iter8 in Pods.Keys)
+          {
+            oprot.WriteI32(_iter8);
+            Pods[_iter8].Write(oprot);
+          }
+          oprot.WriteMapEnd();
+        }
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -129,10 +117,8 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("Host(");
-      sb.Append("Id: ");
-      sb.Append(Id);
-      sb.Append(",Address: ");
-      sb.Append(Address);
+      sb.Append("Pods: ");
+      sb.Append(Pods);
       sb.Append(")");
       return sb.ToString();
     }

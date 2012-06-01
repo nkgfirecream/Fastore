@@ -21,13 +21,14 @@ struct RepositoryStatus {
     Loading = 1,
     Unloading = 2,
     Online = 3,
-    Checkpointing = 4
+    Checkpointing = 4,
+    Offline = 5
   };
 };
 
 extern const std::map<int, const char*> _RepositoryStatus_VALUES_TO_NAMES;
 
-struct HostStatus {
+struct ServiceStatus {
   enum type {
     Offline = 1,
     Online = 2,
@@ -35,7 +36,7 @@ struct HostStatus {
   };
 };
 
-extern const std::map<int, const char*> _HostStatus_VALUES_TO_NAMES;
+extern const std::map<int, const char*> _ServiceStatus_VALUES_TO_NAMES;
 
 struct LockMode {
   enum type {
@@ -54,7 +55,13 @@ typedef int32_t ColumnID;
 
 typedef int32_t HostID;
 
-typedef std::string HostAddress;
+typedef int32_t PodID;
+
+typedef std::string NetworkAddress;
+
+typedef int32_t NetworkPort;
+
+typedef int64_t TimeStamp;
 
 typedef int64_t LockID;
 
@@ -74,34 +81,70 @@ typedef std::map<class Query, class Answer>  Read;
 
 typedef std::map<ColumnID, Read>  Reads;
 
+typedef struct _Pod__isset {
+  _Pod__isset() : columnIDs(false) {}
+  bool columnIDs;
+} _Pod__isset;
+
+class Pod {
+ public:
+
+  static const char* ascii_fingerprint; // = "FF7335CAA8E1AFD6418DDE8FC093C053";
+  static const uint8_t binary_fingerprint[16]; // = {0xFF,0x73,0x35,0xCA,0xA8,0xE1,0xAF,0xD6,0x41,0x8D,0xDE,0x8F,0xC0,0x93,0xC0,0x53};
+
+  Pod() {
+  }
+
+  virtual ~Pod() throw() {}
+
+  std::set<ColumnID>  columnIDs;
+
+  _Pod__isset __isset;
+
+  void __set_columnIDs(const std::set<ColumnID> & val) {
+    columnIDs = val;
+  }
+
+  bool operator == (const Pod & rhs) const
+  {
+    if (!(columnIDs == rhs.columnIDs))
+      return false;
+    return true;
+  }
+  bool operator != (const Pod &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Pod & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Pod &a, Pod &b);
+
 
 class Host {
  public:
 
-  static const char* ascii_fingerprint; // = "3F5FC93B338687BC7235B1AB103F47B3";
-  static const uint8_t binary_fingerprint[16]; // = {0x3F,0x5F,0xC9,0x3B,0x33,0x86,0x87,0xBC,0x72,0x35,0xB1,0xAB,0x10,0x3F,0x47,0xB3};
+  static const char* ascii_fingerprint; // = "7D03D12D882B7BC9C0B19273F944DDBF";
+  static const uint8_t binary_fingerprint[16]; // = {0x7D,0x03,0xD1,0x2D,0x88,0x2B,0x7B,0xC9,0xC0,0xB1,0x92,0x73,0xF9,0x44,0xDD,0xBF};
 
-  Host() : id(0), address() {
+  Host() {
   }
 
   virtual ~Host() throw() {}
 
-  HostID id;
-  HostAddress address;
+  std::map<PodID, Pod>  pods;
 
-  void __set_id(const HostID val) {
-    id = val;
-  }
-
-  void __set_address(const HostAddress& val) {
-    address = val;
+  void __set_pods(const std::map<PodID, Pod> & val) {
+    pods = val;
   }
 
   bool operator == (const Host & rhs) const
   {
-    if (!(id == rhs.id))
-      return false;
-    if (!(address == rhs.address))
+    if (!(pods == rhs.pods))
       return false;
     return true;
   }
@@ -119,55 +162,11 @@ class Host {
 void swap(Host &a, Host &b);
 
 
-class Repository {
- public:
-
-  static const char* ascii_fingerprint; // = "989D1F1AE8D148D5E2119FFEC4BBBEE3";
-  static const uint8_t binary_fingerprint[16]; // = {0x98,0x9D,0x1F,0x1A,0xE8,0xD1,0x48,0xD5,0xE2,0x11,0x9F,0xFE,0xC4,0xBB,0xBE,0xE3};
-
-  Repository() : columnID(0), hostID(0) {
-  }
-
-  virtual ~Repository() throw() {}
-
-  ColumnID columnID;
-  HostID hostID;
-
-  void __set_columnID(const ColumnID val) {
-    columnID = val;
-  }
-
-  void __set_hostID(const HostID val) {
-    hostID = val;
-  }
-
-  bool operator == (const Repository & rhs) const
-  {
-    if (!(columnID == rhs.columnID))
-      return false;
-    if (!(hostID == rhs.hostID))
-      return false;
-    return true;
-  }
-  bool operator != (const Repository &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Repository & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Repository &a, Repository &b);
-
-
 class Topology {
  public:
 
-  static const char* ascii_fingerprint; // = "D087BB3015A7C1BA44729FFF8D9C4426";
-  static const uint8_t binary_fingerprint[16]; // = {0xD0,0x87,0xBB,0x30,0x15,0xA7,0xC1,0xBA,0x44,0x72,0x9F,0xFF,0x8D,0x9C,0x44,0x26};
+  static const char* ascii_fingerprint; // = "D03993086D93441815A7DE971F647F31";
+  static const uint8_t binary_fingerprint[16]; // = {0xD0,0x39,0x93,0x08,0x6D,0x93,0x44,0x18,0x15,0xA7,0xDE,0x97,0x1F,0x64,0x7F,0x31};
 
   Topology() : id(0) {
   }
@@ -175,19 +174,14 @@ class Topology {
   virtual ~Topology() throw() {}
 
   TopologyID id;
-  std::set<Host>  hosts;
-  std::set<Repository>  repositories;
+  std::map<HostID, Host>  hosts;
 
   void __set_id(const TopologyID val) {
     id = val;
   }
 
-  void __set_hosts(const std::set<Host> & val) {
+  void __set_hosts(const std::map<HostID, Host> & val) {
     hosts = val;
-  }
-
-  void __set_repositories(const std::set<Repository> & val) {
-    repositories = val;
   }
 
   bool operator == (const Topology & rhs) const
@@ -195,8 +189,6 @@ class Topology {
     if (!(id == rhs.id))
       return false;
     if (!(hosts == rhs.hosts))
-      return false;
-    if (!(repositories == rhs.repositories))
       return false;
     return true;
   }
@@ -217,8 +209,8 @@ void swap(Topology &a, Topology &b);
 class TopologyResult {
  public:
 
-  static const char* ascii_fingerprint; // = "9EE0432C90FEA50EA66B7F2398815ABF";
-  static const uint8_t binary_fingerprint[16]; // = {0x9E,0xE0,0x43,0x2C,0x90,0xFE,0xA5,0x0E,0xA6,0x6B,0x7F,0x23,0x98,0x81,0x5A,0xBF};
+  static const char* ascii_fingerprint; // = "B2F811563D061F49A14BDC842D3A5102";
+  static const uint8_t binary_fingerprint[16]; // = {0xB2,0xF8,0x11,0x56,0x3D,0x06,0x1F,0x49,0xA1,0x4B,0xDC,0x84,0x2D,0x3A,0x51,0x02};
 
   TopologyResult() : revision(0) {
   }
@@ -258,99 +250,173 @@ class TopologyResult {
 void swap(TopologyResult &a, TopologyResult &b);
 
 
-class HostReport {
+class WorkerState {
  public:
 
-  static const char* ascii_fingerprint; // = "7402C27C789620E471CF3FE2CB95E6AF";
-  static const uint8_t binary_fingerprint[16]; // = {0x74,0x02,0xC2,0x7C,0x78,0x96,0x20,0xE4,0x71,0xCF,0x3F,0xE2,0xCB,0x95,0xE6,0xAF};
+  static const char* ascii_fingerprint; // = "D576A5D4D687D9BDB02F6FC8D2506D9E";
+  static const uint8_t binary_fingerprint[16]; // = {0xD5,0x76,0xA5,0xD4,0xD6,0x87,0xD9,0xBD,0xB0,0x2F,0x6F,0xC8,0xD2,0x50,0x6D,0x9E};
 
-  HostReport() : status((HostStatus::type)0) {
+  WorkerState() : port(0) {
   }
 
-  virtual ~HostReport() throw() {}
+  virtual ~WorkerState() throw() {}
 
-  HostStatus::type status;
   std::map<ColumnID, RepositoryStatus::type>  repositoryStatus;
-
-  void __set_status(const HostStatus::type val) {
-    status = val;
-  }
+  NetworkPort port;
 
   void __set_repositoryStatus(const std::map<ColumnID, RepositoryStatus::type> & val) {
     repositoryStatus = val;
   }
 
-  bool operator == (const HostReport & rhs) const
+  void __set_port(const NetworkPort val) {
+    port = val;
+  }
+
+  bool operator == (const WorkerState & rhs) const
   {
-    if (!(status == rhs.status))
-      return false;
     if (!(repositoryStatus == rhs.repositoryStatus))
+      return false;
+    if (!(port == rhs.port))
       return false;
     return true;
   }
-  bool operator != (const HostReport &rhs) const {
+  bool operator != (const WorkerState &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const HostReport & ) const;
+  bool operator < (const WorkerState & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-void swap(HostReport &a, HostReport &b);
+void swap(WorkerState &a, WorkerState &b);
 
+typedef struct _ServiceState__isset {
+  _ServiceState__isset() : port(false) {}
+  bool port;
+} _ServiceState__isset;
 
-class TopologyReport {
+class ServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "E6AEC4F867448704EF06F6B449656C5E";
-  static const uint8_t binary_fingerprint[16]; // = {0xE6,0xAE,0xC4,0xF8,0x67,0x44,0x87,0x04,0xEF,0x06,0xF6,0xB4,0x49,0x65,0x6C,0x5E};
+  static const char* ascii_fingerprint; // = "38FDE7751FA147BC46C0BC954603E9EE";
+  static const uint8_t binary_fingerprint[16]; // = {0x38,0xFD,0xE7,0x75,0x1F,0xA1,0x47,0xBC,0x46,0xC0,0xBC,0x95,0x46,0x03,0xE9,0xEE};
 
-  TopologyReport() : topologyID(0), revision(1LL) {
+  ServiceState() : status((ServiceStatus::type)0), timeStamp(0), address(), port(0) {
   }
 
-  virtual ~TopologyReport() throw() {}
+  virtual ~ServiceState() throw() {}
+
+  ServiceStatus::type status;
+  TimeStamp timeStamp;
+  NetworkAddress address;
+  NetworkPort port;
+  std::map<PodID, WorkerState>  workers;
+
+  _ServiceState__isset __isset;
+
+  void __set_status(const ServiceStatus::type val) {
+    status = val;
+  }
+
+  void __set_timeStamp(const TimeStamp val) {
+    timeStamp = val;
+  }
+
+  void __set_address(const NetworkAddress& val) {
+    address = val;
+  }
+
+  void __set_port(const NetworkPort val) {
+    port = val;
+    __isset.port = true;
+  }
+
+  void __set_workers(const std::map<PodID, WorkerState> & val) {
+    workers = val;
+  }
+
+  bool operator == (const ServiceState & rhs) const
+  {
+    if (!(status == rhs.status))
+      return false;
+    if (!(timeStamp == rhs.timeStamp))
+      return false;
+    if (!(address == rhs.address))
+      return false;
+    if (__isset.port != rhs.__isset.port)
+      return false;
+    else if (__isset.port && !(port == rhs.port))
+      return false;
+    if (!(workers == rhs.workers))
+      return false;
+    return true;
+  }
+  bool operator != (const ServiceState &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ServiceState & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(ServiceState &a, ServiceState &b);
+
+
+class HiveState {
+ public:
+
+  static const char* ascii_fingerprint; // = "1E74F1F34021F1762D541650812428EA";
+  static const uint8_t binary_fingerprint[16]; // = {0x1E,0x74,0xF1,0xF3,0x40,0x21,0xF1,0x76,0x2D,0x54,0x16,0x50,0x81,0x24,0x28,0xEA};
+
+  HiveState() : topologyID(0), hostID(0) {
+  }
+
+  virtual ~HiveState() throw() {}
 
   TopologyID topologyID;
-  std::map<HostID, HostReport>  hosts;
-  Revision revision;
+  std::map<HostID, ServiceState>  services;
+  HostID hostID;
 
   void __set_topologyID(const TopologyID val) {
     topologyID = val;
   }
 
-  void __set_hosts(const std::map<HostID, HostReport> & val) {
-    hosts = val;
+  void __set_services(const std::map<HostID, ServiceState> & val) {
+    services = val;
   }
 
-  void __set_revision(const Revision val) {
-    revision = val;
+  void __set_hostID(const HostID val) {
+    hostID = val;
   }
 
-  bool operator == (const TopologyReport & rhs) const
+  bool operator == (const HiveState & rhs) const
   {
     if (!(topologyID == rhs.topologyID))
       return false;
-    if (!(hosts == rhs.hosts))
+    if (!(services == rhs.services))
       return false;
-    if (!(revision == rhs.revision))
+    if (!(hostID == rhs.hostID))
       return false;
     return true;
   }
-  bool operator != (const TopologyReport &rhs) const {
+  bool operator != (const HiveState &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const TopologyReport & ) const;
+  bool operator < (const HiveState & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-void swap(TopologyReport &a, TopologyReport &b);
+void swap(HiveState &a, HiveState &b);
 
 
 class TransactionID {
@@ -578,27 +644,20 @@ class Statistic {
 
 void swap(Statistic &a, Statistic &b);
 
-typedef struct _RangeBound__isset {
-  _RangeBound__isset() : rowID(false) {}
-  bool rowID;
-} _RangeBound__isset;
 
 class RangeBound {
  public:
 
-  static const char* ascii_fingerprint; // = "9D71179D9CC54C80954B5F64B2A9E947";
-  static const uint8_t binary_fingerprint[16]; // = {0x9D,0x71,0x17,0x9D,0x9C,0xC5,0x4C,0x80,0x95,0x4B,0x5F,0x64,0xB2,0xA9,0xE9,0x47};
+  static const char* ascii_fingerprint; // = "7D61C9AA00102AB4D8F72A1DA58297DC";
+  static const uint8_t binary_fingerprint[16]; // = {0x7D,0x61,0xC9,0xAA,0x00,0x10,0x2A,0xB4,0xD8,0xF7,0x2A,0x1D,0xA5,0x82,0x97,0xDC};
 
-  RangeBound() : value(), inclusive(0), rowID() {
+  RangeBound() : value(), inclusive(0) {
   }
 
   virtual ~RangeBound() throw() {}
 
   std::string value;
   bool inclusive;
-  std::string rowID;
-
-  _RangeBound__isset __isset;
 
   void __set_value(const std::string& val) {
     value = val;
@@ -608,20 +667,11 @@ class RangeBound {
     inclusive = val;
   }
 
-  void __set_rowID(const std::string& val) {
-    rowID = val;
-    __isset.rowID = true;
-  }
-
   bool operator == (const RangeBound & rhs) const
   {
     if (!(value == rhs.value))
       return false;
     if (!(inclusive == rhs.inclusive))
-      return false;
-    if (__isset.rowID != rhs.__isset.rowID)
-      return false;
-    else if (__isset.rowID && !(rowID == rhs.rowID))
       return false;
     return true;
   }
@@ -639,32 +689,29 @@ class RangeBound {
 void swap(RangeBound &a, RangeBound &b);
 
 typedef struct _RangeRequest__isset {
-  _RangeRequest__isset() : first(false), last(false) {}
+  _RangeRequest__isset() : first(false), last(false), rowID(false) {}
   bool first;
   bool last;
+  bool rowID;
 } _RangeRequest__isset;
 
 class RangeRequest {
  public:
 
-  static const char* ascii_fingerprint; // = "6DA53D6AD417E92FAC26EBB9A3A4F5BB";
-  static const uint8_t binary_fingerprint[16]; // = {0x6D,0xA5,0x3D,0x6A,0xD4,0x17,0xE9,0x2F,0xAC,0x26,0xEB,0xB9,0xA3,0xA4,0xF5,0xBB};
+  static const char* ascii_fingerprint; // = "ED99C79CAEE6175252083848E86F96EC";
+  static const uint8_t binary_fingerprint[16]; // = {0xED,0x99,0xC7,0x9C,0xAE,0xE6,0x17,0x52,0x52,0x08,0x38,0x48,0xE8,0x6F,0x96,0xEC};
 
-  RangeRequest() : limit(500), ascending(true) {
+  RangeRequest() : ascending(true), rowID() {
   }
 
   virtual ~RangeRequest() throw() {}
 
-  int32_t limit;
   bool ascending;
   RangeBound first;
   RangeBound last;
+  std::string rowID;
 
   _RangeRequest__isset __isset;
-
-  void __set_limit(const int32_t val) {
-    limit = val;
-  }
 
   void __set_ascending(const bool val) {
     ascending = val;
@@ -680,10 +727,13 @@ class RangeRequest {
     __isset.last = true;
   }
 
+  void __set_rowID(const std::string& val) {
+    rowID = val;
+    __isset.rowID = true;
+  }
+
   bool operator == (const RangeRequest & rhs) const
   {
-    if (!(limit == rhs.limit))
-      return false;
     if (!(ascending == rhs.ascending))
       return false;
     if (__isset.first != rhs.__isset.first)
@@ -693,6 +743,10 @@ class RangeRequest {
     if (__isset.last != rhs.__isset.last)
       return false;
     else if (__isset.last && !(last == rhs.last))
+      return false;
+    if (__isset.rowID != rhs.__isset.rowID)
+      return false;
+    else if (__isset.rowID && !(rowID == rhs.rowID))
       return false;
     return true;
   }
@@ -760,26 +814,26 @@ class RangeResult {
   static const char* ascii_fingerprint; // = "A6BFD4A548133149EF24E6ED4F1025B8";
   static const uint8_t binary_fingerprint[16]; // = {0xA6,0xBF,0xD4,0xA5,0x48,0x13,0x31,0x49,0xEF,0x24,0xE6,0xED,0x4F,0x10,0x25,0xB8};
 
-  RangeResult() : endOfFile(0), beginOfFile(0), limited(0) {
+  RangeResult() : endOfRange(0), beginOfRange(0), limited(0) {
   }
 
   virtual ~RangeResult() throw() {}
 
   ValueRowsList valueRowsList;
-  bool endOfFile;
-  bool beginOfFile;
+  bool endOfRange;
+  bool beginOfRange;
   bool limited;
 
   void __set_valueRowsList(const ValueRowsList& val) {
     valueRowsList = val;
   }
 
-  void __set_endOfFile(const bool val) {
-    endOfFile = val;
+  void __set_endOfRange(const bool val) {
+    endOfRange = val;
   }
 
-  void __set_beginOfFile(const bool val) {
-    beginOfFile = val;
+  void __set_beginOfRange(const bool val) {
+    beginOfRange = val;
   }
 
   void __set_limited(const bool val) {
@@ -790,9 +844,9 @@ class RangeResult {
   {
     if (!(valueRowsList == rhs.valueRowsList))
       return false;
-    if (!(endOfFile == rhs.endOfFile))
+    if (!(endOfRange == rhs.endOfRange))
       return false;
-    if (!(beginOfFile == rhs.beginOfFile))
+    if (!(beginOfRange == rhs.beginOfRange))
       return false;
     if (!(limited == rhs.limited))
       return false;
@@ -820,16 +874,17 @@ typedef struct _Query__isset {
 class Query {
  public:
 
-  static const char* ascii_fingerprint; // = "ACBB8261FB1752FEC255951E77ADC28F";
-  static const uint8_t binary_fingerprint[16]; // = {0xAC,0xBB,0x82,0x61,0xFB,0x17,0x52,0xFE,0xC2,0x55,0x95,0x1E,0x77,0xAD,0xC2,0x8F};
+  static const char* ascii_fingerprint; // = "53486A2100C5B12C0F6DC8B42E976024";
+  static const uint8_t binary_fingerprint[16]; // = {0x53,0x48,0x6A,0x21,0x00,0xC5,0xB1,0x2C,0x0F,0x6D,0xC8,0xB4,0x2E,0x97,0x60,0x24};
 
-  Query() {
+  Query() : limit(500) {
   }
 
   virtual ~Query() throw() {}
 
   std::vector<std::string>  rowIDs;
   std::vector<RangeRequest>  ranges;
+  int32_t limit;
 
   _Query__isset __isset;
 
@@ -843,6 +898,10 @@ class Query {
     __isset.ranges = true;
   }
 
+  void __set_limit(const int32_t val) {
+    limit = val;
+  }
+
   bool operator == (const Query & rhs) const
   {
     if (__isset.rowIDs != rhs.__isset.rowIDs)
@@ -852,6 +911,8 @@ class Query {
     if (__isset.ranges != rhs.__isset.ranges)
       return false;
     else if (__isset.ranges && !(ranges == rhs.ranges))
+      return false;
+    if (!(limit == rhs.limit))
       return false;
     return true;
   }

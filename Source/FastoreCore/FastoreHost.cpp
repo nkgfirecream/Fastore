@@ -29,31 +29,31 @@ void FastoreHost::BootStrap()
 	ColumnDef unique;
 
 	id.ColumnID = 0;
-	id.Name = "ID";
+	id.Name = "Column.ID";
 	id.ValueType = standardtypes::Int;
 	id.RowIDType = standardtypes::Int;
 	id.IsUnique = true;
 
 	name.ColumnID = 1;
-	name.Name = "Name";
+	name.Name = "Column.Name";
 	name.ValueType = standardtypes::String;
 	name.RowIDType = standardtypes::Int;
 	name.IsUnique = false;
 
 	vt.ColumnID = 2;
-	vt.Name = "ValueType";
+	vt.Name = "Column.ValueType";
 	vt.ValueType = standardtypes::String;
 	vt.RowIDType = standardtypes::Int;
 	vt.IsUnique = false;
 
 	idt.ColumnID = 3;
-	idt.Name = "RowIDType";
+	idt.Name = "Column.RowIDType";
 	idt.ValueType = standardtypes::String;
 	idt.RowIDType = standardtypes::Int;
 	idt.IsUnique = false;
 
 	unique.ColumnID = 4;
-	unique.Name = "IsUnique";
+	unique.Name = "Column.IsUnique";
 	unique.ValueType = standardtypes::Bool;
 	unique.RowIDType = standardtypes::Int;
 	unique.IsUnique = false;	
@@ -229,3 +229,4 @@ ScalarType FastoreHost::GetScalarTypeFromString(std::string typestring)
 		throw;
 	}
 }
+

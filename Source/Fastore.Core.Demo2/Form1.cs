@@ -214,9 +214,9 @@ namespace Fastore.Core.Demo2
             var set = 
 				_database.GetRange
 				(
-					_columns, 
-					new[] { new Order { ColumnID = orderColumn, Ascending = true } },
-					new[] { new Range { ColumnID = orderColumn, Start = start, Limit = 100 } }
+					_columns,
+					new Range { ColumnID = orderColumn, Ascending = true },
+					100
 				);
 
             return ParseDataSet(set);

@@ -21,28 +21,10 @@ namespace Alphora.Fastore
   #if !SILVERLIGHT
   [Serializable]
   #endif
-  public partial class HostReport : TBase
+  public partial class WorkerState : TBase
   {
-    private HostStatus _status;
     private Dictionary<int, RepositoryStatus> _repositoryStatus;
-    private long _revision;
-
-    /// <summary>
-    /// 
-    /// <seealso cref="HostStatus"/>
-    /// </summary>
-    public HostStatus Status
-    {
-      get
-      {
-        return _status;
-      }
-      set
-      {
-        __isset.status = true;
-        this._status = value;
-      }
-    }
+    private int _port;
 
     public Dictionary<int, RepositoryStatus> RepositoryStatus
     {
@@ -57,16 +39,16 @@ namespace Alphora.Fastore
       }
     }
 
-    public long Revision
+    public int Port
     {
       get
       {
-        return _revision;
+        return _port;
       }
       set
       {
-        __isset.revision = true;
-        this._revision = value;
+        __isset.port = true;
+        this._port = value;
       }
     }
 
@@ -76,12 +58,11 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool status;
       public bool repositoryStatus;
-      public bool revision;
+      public bool port;
     }
 
-    public HostReport() {
+    public WorkerState() {
     }
 
     public void Read (TProtocol iprot)
@@ -97,24 +78,17 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
-            if (field.Type == TType.I32) {
-              Status = (HostStatus)iprot.ReadI32();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 2:
             if (field.Type == TType.Map) {
               {
                 RepositoryStatus = new Dictionary<int, RepositoryStatus>();
-                TMap _map12 = iprot.ReadMapBegin();
-                for( int _i13 = 0; _i13 < _map12.Count; ++_i13)
+                TMap _map14 = iprot.ReadMapBegin();
+                for( int _i15 = 0; _i15 < _map14.Count; ++_i15)
                 {
-                  int _key14;
-                  RepositoryStatus _val15;
-                  _key14 = iprot.ReadI32();
-                  _val15 = (RepositoryStatus)iprot.ReadI32();
-                  RepositoryStatus[_key14] = _val15;
+                  int _key16;
+                  RepositoryStatus _val17;
+                  _key16 = iprot.ReadI32();
+                  _val17 = (RepositoryStatus)iprot.ReadI32();
+                  RepositoryStatus[_key16] = _val17;
                 }
                 iprot.ReadMapEnd();
               }
@@ -122,9 +96,9 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 3:
-            if (field.Type == TType.I64) {
-              Revision = iprot.ReadI64();
+          case 2:
+            if (field.Type == TType.I32) {
+              Port = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -139,39 +113,31 @@ namespace Alphora.Fastore
     }
 
     public void Write(TProtocol oprot) {
-      TStruct struc = new TStruct("HostReport");
+      TStruct struc = new TStruct("WorkerState");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.status) {
-        field.Name = "status";
-        field.Type = TType.I32;
-        field.ID = 1;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteI32((int)Status);
-        oprot.WriteFieldEnd();
-      }
       if (RepositoryStatus != null && __isset.repositoryStatus) {
         field.Name = "repositoryStatus";
         field.Type = TType.Map;
-        field.ID = 2;
+        field.ID = 1;
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteMapBegin(new TMap(TType.I32, TType.I32, RepositoryStatus.Count));
-          foreach (int _iter16 in RepositoryStatus.Keys)
+          foreach (int _iter18 in RepositoryStatus.Keys)
           {
-            oprot.WriteI32(_iter16);
-            oprot.WriteI32((int)RepositoryStatus[_iter16]);
+            oprot.WriteI32(_iter18);
+            oprot.WriteI32((int)RepositoryStatus[_iter18]);
           }
           oprot.WriteMapEnd();
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.revision) {
-        field.Name = "revision";
-        field.Type = TType.I64;
-        field.ID = 3;
+      if (__isset.port) {
+        field.Name = "port";
+        field.Type = TType.I32;
+        field.ID = 2;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI64(Revision);
+        oprot.WriteI32(Port);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -179,13 +145,11 @@ namespace Alphora.Fastore
     }
 
     public override string ToString() {
-      StringBuilder sb = new StringBuilder("HostReport(");
-      sb.Append("Status: ");
-      sb.Append(Status);
-      sb.Append(",RepositoryStatus: ");
+      StringBuilder sb = new StringBuilder("WorkerState(");
+      sb.Append("RepositoryStatus: ");
       sb.Append(RepositoryStatus);
-      sb.Append(",Revision: ");
-      sb.Append(Revision);
+      sb.Append(",Port: ");
+      sb.Append(Port);
       sb.Append(")");
       return sb.ToString();
     }

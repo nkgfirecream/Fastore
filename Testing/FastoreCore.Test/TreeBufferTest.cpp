@@ -64,12 +64,12 @@ public:
 		//Expected result: values 0 - 96 (inclusive)
 		int endValue = 98;
 		RangeBound endBound(&endValue, false);
-		range = Range(500, true, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 96, 49, 2, true, false, false);
 
 		//Range: begin (inclusive) - 98 (exclusive) descending
 		//Expected result: values 96 - 0 (inclusive)
-		range = Range(500, false, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, false, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
 
 		
@@ -80,12 +80,12 @@ public:
 		endBound = RangeBound(&endValue, true);
 		startValue = 2;
 		startBound = RangeBound(&startValue, true);
-		range = Range(500, true, startBound, endBound);
+		range = Range(500, true, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 2, 96, 48, 2, false, false, false);
 
 		//Range: 2 (inclusive) - 96 (inclusive) descending
 		//Expected result: values 96 - 2 (inclusive)
-		range = Range(500, false, startBound, endBound);
+		range = Range(500, false, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 96, 2, 48, -2, false, false, false);
 
 
@@ -96,12 +96,12 @@ public:
 		endBound = RangeBound(&endValue, false);
 		startValue = 2;
 		startBound = RangeBound(&startValue, false);
-		range = Range(500, true, startBound, endBound);
+		range = Range(500, true, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 4, 94, 46, 2, false, false, false);
 
 		//Range: 2 (exclusive) - 96 (exclusive) descending
 		//Expected result: values 94 - 4 (inclusive)
-		range = Range(500, false, startBound, endBound);
+		range = Range(500, false, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 94, 4, 46, -2, false, false, false);
 
 		
@@ -112,12 +112,12 @@ public:
 		startValue = 50;
 		startBound = RangeBound(&startValue, true);
 		endBound = RangeBound(&endValue, true);
-		range = Range(500, true, startBound, endBound);
+		range = Range(500, true, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 50, 50, 1, 0, false, false, false);
 
 		//Range: 50 (inclusive) - 50 (inclusive) desc
 		//Expected result: 50
-		range = Range(500, false, startBound, endBound);
+		range = Range(500, false, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 50, 50, 1, 0, false, false, false);
 
 
@@ -128,12 +128,12 @@ public:
 		startValue = 50;
 		startBound = RangeBound(&startValue, false);
 		endBound = RangeBound(&endValue, false);
-		range = Range(500, true, startBound, endBound);
+		range = Range(500, true, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 0, 0, false, false, false);
 
 		//Range: 50 (exclusive) - 50 (exclusive) desc
 		//Expected result: Empty
-		range = Range(500, false, startBound, endBound);
+		range = Range(500, false, startBound, Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 0, 0, false, false, false);
 
 
@@ -179,13 +179,13 @@ public:
 		//Expected result: Empty
 		endValue = -2;
 		endBound = RangeBound(&endValue, true);
-		range = Range(500, true, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
 		//End before data - desc
 		//Expected result: Empty
 		endBound = RangeBound(&endValue, true);
-		range = Range(500, true, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
 		
@@ -194,23 +194,23 @@ public:
 		//Expected result: 0
 		endValue = 0;
 		endBound = RangeBound(&endValue, true);
-		range = Range(500, true, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
 
 		// Range: start - 0 (inclusive) desc
 		//Expected result: 0
-		range = Range(500, false, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, false, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
 
 		// Range: start - 0 (exclusive) asc
 		//Expected result: Empty
 		endBound = RangeBound(&endValue, false);
-		range = Range(500, true, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
 		// Range: start - 0 (exclusive) desc
 		//Expected result: Empty
-		range = Range(500, false, Optional<fs::RangeBound>(), endBound);
+		range = Range(500, false, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
 		
@@ -229,26 +229,26 @@ public:
 		//For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
 		//Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
 		startValue = 0;
-		startBound = RangeBound(&startValue, true, Optional<void*>(&startValue));
-		range = Range(500, true, startBound);
+		startBound = RangeBound(&startValue, true);
+		range = Range(500, true, startBound, Optional<void*>(&startValue));
 		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
 
 		//Range: end - start desc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
 		endValue = 98;
-		endBound = RangeBound(&endValue, true, Optional<void*>(&endValue));
-		range = Range(500, false, Optional<RangeBound>(), endBound);
+		endBound = RangeBound(&endValue, true);
+		range = Range(500, false, Optional<RangeBound>(), Optional<void*>(&endValue), endBound);
 		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
 
 
 		//Combination
 		endValue = 94;
 		startValue = 80;
-		startBound = RangeBound(&startValue, true, Optional<void*>(&startValue));
+		startBound = RangeBound(&startValue, true);
 		endBound = RangeBound(&endValue, false);
-		range = Range(500, true, startBound, endBound);
+		range = Range(500, true, startBound, Optional<void*>(&startValue), endBound);
 		TestRange(buf, range, 82, 92, 6, 2, false, false, false);
 
-		range = Range(5, true, startBound, endBound);
+		range = Range(5, true, startBound, Optional<void*>(&startValue), endBound);
 		TestRange(buf, range, 82, 90, 5, 2, false, false, true);
 
 		//--- END UNIQUE BUFFER COPY --
@@ -283,8 +283,8 @@ public:
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
 		CFIX_ASSERT(expectedNum == expectedEnd + (result.Data.size() > 0 ? increment : 0));
-		CFIX_ASSERT(result.BeginOfFile == expectBOF);
-		CFIX_ASSERT(result.EndOfFile == expectEOF);
+		CFIX_ASSERT(result.BeginOfRange == expectBOF);
+		CFIX_ASSERT(result.EndOfRange == expectEOF);
 		CFIX_ASSERT(result.Limited == expectLimited);
 	}
 

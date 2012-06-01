@@ -262,8 +262,8 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 
 	GetResult result;	
 
-	result.BeginOfFile = begin == firstMarker;
-	result.EndOfFile = end == lastMarker;
+	result.BeginOfRange = begin == firstMarker;
+	result.EndOfRange = end == lastMarker;
 
 	//Nothing in this range, so return empty result
 	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
@@ -272,7 +272,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	if (!bInclusive && beginMatch)
 	{
 		//reset BOF Marker since we are excluding
-		result.BeginOfFile = false;
+		result.BeginOfRange = false;
 		++begin;
 	}
 
@@ -280,12 +280,10 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	{
 		++end;
 		//reset EOF Marker since we are including
-		result.EndOfFile = end == lastMarker;
+		result.EndOfRange = end == lastMarker;
 	}
 
-	void* startId = range.Start.HasValue() && (*(range.Start)).RowId.HasValue() ? *(*(range.Start)).RowId :
-			range.End.HasValue() && (*(range.End)).RowId.HasValue() ? (*(*(range.End)).RowId) :
-			NULL;
+	void* startId = range.StartId.HasValue() ? *range.StartId : NULL;
 
 	bool startFound = startId == NULL;
 
@@ -305,7 +303,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				if (_rowType.Compare((*idStart).key, startId) == 0)
 				{
 					startFound = true;
-					result.BeginOfFile = false;
+					result.BeginOfRange = false;
 				}
 
 				++idStart;				
@@ -328,8 +326,8 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 		}
 
 		//if we didn't make it through the entire set, reset the eof marker.
-		if (result.Limited && result.EndOfFile)
-			result.EndOfFile = false;
+		if (result.Limited && result.EndOfRange)
+			result.EndOfRange = false;
 	}
 	else
 	{
@@ -349,7 +347,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				if (_rowType.Compare((*idEnd).key, startId) == 0)
 				{
 					startFound = true;
-					result.EndOfFile = false;
+					result.EndOfRange = false;
 				}			
 			}
 		
@@ -368,8 +366,8 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 		}
 
 		//if we didn't make it through the entire set, reset the bof marker.
-		if (result.Limited && result.BeginOfFile)
-			result.BeginOfFile = false;
+		if (result.Limited && result.BeginOfRange)
+			result.BeginOfRange = false;
 	}
 
 	return result;

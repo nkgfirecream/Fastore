@@ -2,15 +2,15 @@
 
 //This need to be defined for ordering sets/lists since Thrift depends on sets/lists
 
-bool fastore::Host::operator<(const fastore::Host& other) const
-{
-	return id < other.id;
-}
-
-bool fastore::Repository::operator<(const fastore::Repository& other) const
-{
-	return hostID < other.hostID && columnID < other.columnID;
-}
+//bool fastore::Host::operator<(const fastore::Host& other) const
+//{
+//	return id < other.id;
+//}
+//
+//bool fastore::Pod::operator<(const fastore::Pod& other) const
+//{
+//	return id < other.id;
+//}
 
 bool fastore::Include::operator<(const fastore::Include& other) const
 {

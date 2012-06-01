@@ -25,7 +25,6 @@ namespace Alphora.Fastore
   {
     private byte[] _value;
     private bool _inclusive;
-    private byte[] _rowID;
 
     public byte[] Value
     {
@@ -53,19 +52,6 @@ namespace Alphora.Fastore
       }
     }
 
-    public byte[] RowID
-    {
-      get
-      {
-        return _rowID;
-      }
-      set
-      {
-        __isset.rowID = true;
-        this._rowID = value;
-      }
-    }
-
 
     public Isset __isset;
     #if !SILVERLIGHT
@@ -74,7 +60,6 @@ namespace Alphora.Fastore
     public struct Isset {
       public bool value;
       public bool inclusive;
-      public bool rowID;
     }
 
     public RangeBound() {
@@ -102,13 +87,6 @@ namespace Alphora.Fastore
           case 2:
             if (field.Type == TType.Bool) {
               Inclusive = iprot.ReadBool();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 3:
-            if (field.Type == TType.String) {
-              RowID = iprot.ReadBinary();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -142,14 +120,6 @@ namespace Alphora.Fastore
         oprot.WriteBool(Inclusive);
         oprot.WriteFieldEnd();
       }
-      if (RowID != null && __isset.rowID) {
-        field.Name = "rowID";
-        field.Type = TType.String;
-        field.ID = 3;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteBinary(RowID);
-        oprot.WriteFieldEnd();
-      }
       oprot.WriteFieldStop();
       oprot.WriteStructEnd();
     }
@@ -160,8 +130,6 @@ namespace Alphora.Fastore
       sb.Append(Value);
       sb.Append(",Inclusive: ");
       sb.Append(Inclusive);
-      sb.Append(",RowID: ");
-      sb.Append(RowID);
       sb.Append(")");
       return sb.ToString();
     }
