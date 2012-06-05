@@ -41,20 +41,20 @@ namespace Alphora.Fastore.Client
 		// Currently known schema
 		private Schema _schema;
 
-		/// <summary> The default apply timeout. </summary>
-		public const int DefaultApplyTimeout = 1000;
+		/// <summary> The default timeout for write operations. </summary>
+		public const int DefaultWriteTimeout = 1000;
 
-		private int _applyTimeout = DefaultApplyTimeout;
+		private int _writeTimeout = DefaultWriteTimeout;
 		/// <summary> ApplyTimeout specifies the maximum time in milliseconds to wait for workers to respond to an apply request. </summary>
 		/// <remarks> The default is 1000 (1 second). </remarks>
-		public int ApplyTimeout 
+		public int WriteTimeout 
 		{ 
-			get { return _applyTimeout; } 
+			get { return _writeTimeout; } 
 			set
 			{
 				if (value < -1)
-					throw new ArgumentOutOfRangeException("value", "ApplyTimeout must be -1 or greater.");
-				_applyTimeout = value;
+					throw new ArgumentOutOfRangeException("value", "WriteTimeout must be -1 or greater.");
+				_writeTimeout = value;
 			}
 		}
 
@@ -286,7 +286,7 @@ namespace Alphora.Fastore.Client
 
 		/// <summary> Get the next worker to use for the given column ID. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private Worker.Client GetWorker(int columnID)
+		private KeyValuePair<int, Worker.Client> GetWorker(int columnID)
 		{
 			Monitor.Enter(_mapLock);
 			var taken = true;
@@ -300,13 +300,13 @@ namespace Alphora.Fastore.Client
 				}
 
 				map.Next = (map.Next + 1) % map.Pods.Count;
-				var worker = map.Pods[map.Next];
+				var podId = map.Pods[map.Next];
 
 				// Release lock during ensure
 				Monitor.Exit(_mapLock);
 				taken = false;
 
-				return EnsureWorker(worker);
+				return new KeyValuePair<int, Worker.Client>(podId, EnsureWorker(podId));
 			}
 			finally
 			{
@@ -315,32 +315,48 @@ namespace Alphora.Fastore.Client
 			}
 		}
 
-		/// <summary> Get the workers to use for the given column ID. </summary>
+		struct WorkerInfo
+		{
+			public int PodID;
+			public Worker.Client Client;
+			public int[] Columns;
+		}
+
+		/// <summary> Get the workers to write-to for the given column IDs. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private Worker.Client[] GetWorkers(int columnID)
+		private WorkerInfo[] GetWorkers(int[] columnIDs)
 		{
 			Monitor.Enter(_mapLock);
 			var taken = true;
 			try
 			{
-				PodMap map;
-				if (!_columnWorkers.TryGetValue(columnID, out map))
-				{
-					// TODO: Update the hive state before erroring.
-					throw new Exception(String.Format("No worker is currently available for column ID ({0}).", columnID));
-				}
+				// TODO: is there a better better scheme than writing to every worker?  This method takes column IDs in case one arises.
 
-				var pods = map.Pods.ToArray();
-
+				// Snapshot all needed pods
+				var results = 
+					(
+						from ws in _workerStates 
+							select new WorkerInfo() 
+							{ 
+								PodID = ws.Key, 
+								Columns = 
+								(
+									from r in ws.Value.Item2.RepositoryStatus 
+										where r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing 
+										select r.Key
+								).ToArray() 
+							}
+					).ToArray();
+				
 				// Release lock during ensures
 				Monitor.Exit(_mapLock);
 				taken = false;
 
-				var result = new Worker.Client[pods.Length];
-				for (int i = 0; i < result.Length; i++)
-					result[i] = EnsureWorker(pods[i]);
+				// Ensure a connections to all pods
+				for (int i = 0; i < results.Length; i++)
+					results[i].Client = EnsureWorker(results[i].PodID);
 				
-				return result;
+				return results;
 			}
 			finally
 			{
@@ -353,21 +369,24 @@ namespace Alphora.Fastore.Client
 		/// <remarks> This method is thread-safe. </remarks>
 		private void AttemptRead(int columnId, Action<Worker.Client> work)
 		{
-			Dictionary<Worker.Client, Exception> errors = null;
+			Dictionary<int, Exception> errors = null;
 			var elapsed = new Stopwatch();
 			while (true)
 			{
-				// Determine the worker to use
+				// Determine the (next) worker to use
 				var worker = GetWorker(columnId);
 
 				// If we've already failed with this worker, give up
-				if (errors != null && errors.ContainsKey(worker))
+				if (errors != null && errors.ContainsKey(worker.Key))
+				{
+					TrackErrors(errors);
 					throw new AggregateException(from e in errors select e.Value);
+				}
 
 				try
 				{
 					elapsed.Restart();
-					work(worker);
+					work(worker.Value);
 					elapsed.Stop();
 				}
 				catch (Exception e)
@@ -377,8 +396,9 @@ namespace Alphora.Fastore.Client
 						throw;
 
 					if (errors == null)
-						errors = new Dictionary<Worker.Client, Exception>();
-					errors.Add(worker, e);
+						errors = new Dictionary<int, Exception>();
+					errors.Add(worker.Key, e);
+					continue;
 				}
 
 				// Succeeded, track any errors we received
@@ -386,57 +406,45 @@ namespace Alphora.Fastore.Client
 					TrackErrors(errors);
 
 				// Succeeded, track the elapsed time
-				TrackTime(worker, elapsed.ElapsedTicks);
+				TrackTime(worker.Key, elapsed.ElapsedTicks);
+
+				break;
 			}
 		}
 
-		///// <summary> Performs a write operation against all applicable workers and manages errors and retries. </summary>
-		///// <remarks> This method is thread-safe. </remarks>
-		//private void AttemptWrite(int columnIds[], Action<Worker.Client> work)
-		//{
-		//    Dictionary<Worker.Client, Exception> errors = null;
-		//    var elapsed = new Stopwatch();
-		//    while (true)
-		//    {
-		//        // Determine the worker to use
-		//        var workers = GetWorkers(columnId);
+		/// <summary> Performs a write operation against a specific worker; manages errors and retries. </summary>
+		/// <remarks> This method is thread-safe. </remarks>
+		private void AttemptWrite(int podId, Action work)
+		{
+		    var elapsed = new Stopwatch();
+		    try
+		    {
+		        elapsed.Start();
+		        work();
+		        elapsed.Stop();
+		    }
+		    catch (Exception e)
+		    {
+		        // If the exception is an entity (exception coming from the remote), rethrow
+		        if (!(e is Thrift.Protocol.TBase))
+					TrackErrors(new Dictionary<int, Exception> { { podId, e } });
+				throw;
+			}
 
-		//        try
-		//        {
-		//            elapsed.Restart();
-		//            work(worker);
-		//            elapsed.Stop();
-		//        }
-		//        catch (Exception e)
-		//        {
-		//            // If the exception is an entity (exception coming from the remote), rethrow
-		//            if (e is Thrift.Protocol.TBase)
-		//                throw;
-
-		//            if (errors == null)
-		//                errors = new Dictionary<Worker.Client, Exception>();
-		//            errors.Add(worker, e);
-		//        }
-
-		//        // Succeeded, track any errors we received
-		//        if (errors != null)
-		//            TrackErrors(errors);
-
-		//        // Succeeded, track the elapsed time
-		//        TrackTime(worker, elapsed.ElapsedTicks);
-		//    }
-		//}
+		    // Succeeded, track the elapsed time
+		    TrackTime(podId, elapsed.ElapsedTicks);
+		}
 
 		/// <summary> Tracks the time taken by the given worker. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private void TrackTime(Worker.Client worker, long p)
+		private void TrackTime(int podId, long p)
 		{
 			// TODO: track the time taken by the worker for better routing
 		}
 
 		/// <summary> Tracks errors reported by workers. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private void TrackErrors(Dictionary<Worker.Client, Exception> errors)
+		private void TrackErrors(Dictionary<int, Exception> errors)
 		{
 			// TODO: stop trying to reach workers that keep giving errors, ask for a state update too
 		}
@@ -580,36 +588,130 @@ namespace Alphora.Fastore.Client
 
         public void Include(int[] columnIds, object rowId, object[] row)
 		{
-			throw new NotImplementedException();
-			//var writes = EncodeIncludes(columnIds, rowId, row);
+			var writes = EncodeIncludes(columnIds, rowId, row);
 
-			//var transactionID = new TransactionID();
+			while (true)
+			{
+				var transactionID = new TransactionID();
 
-			//// Apply the modification to each worker and wait for all results to arrive
-			//var tasks = new List<Task<TransactionID>>(writes.Count);
-			//foreach (var write in writes)
-			//{
-			//    tasks.Add
-			//    (
-			//        Task.Factory.StartNew
-			//        (
-			//            () => 
-			//            {
-			//                TransactionID result = new TransactionID();
-			//                AttemptRead
-			//                (
-			//                    write.Key, 
-			//                    (worker) => { result = worker.apply(transactionID, new Dictionary<int, ColumnWrites> { { write.Key, write.Value } }); }
-			//                );
-			//                return result;
-			//            }
-			//        )
-			//    );
-			//}
-			//Task.WaitAll(tasks.ToArray(), ApplyTimeout);
+				var workers = GetWorkers(columnIds);
 
-			//if (columnIds[0] == 0)
-			//    RefreshSchema();
+				var tasks = StartWorkerWrites(writes, transactionID, workers);
+
+				var failedWorkers = new Dictionary<int, Thrift.Protocol.TBase>();
+				var workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
+
+				if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
+				{
+					// If we've inserted/deleted system table(s), force a schema refresh
+					if (writes.ContainsKey(0))
+						RefreshSchema();
+					break;
+				}
+			}
+		}
+
+		private SortedDictionary<TransactionID, List<WorkerInfo>> ProcessWriteResults(WorkerInfo[] workers, List<Task<TransactionID>> tasks, Dictionary<int, Thrift.Protocol.TBase> failedWorkers)
+		{
+			var stopWatch = new Stopwatch();
+			stopWatch.Start();
+			var workersByTransaction = new SortedDictionary<TransactionID, List<WorkerInfo>>();
+			for (int i = 0; i < tasks.Count; i++)
+			{
+				if (tasks[i].IsCompleted)
+				{
+					// Attempt to fetch the result for each task
+					TransactionID resultId;
+					try
+					{
+						// if the task doesn't complete in time, assume failure; move on to the next one...
+						if (!tasks[i].Wait(Math.Max(0, WriteTimeout - (int)stopWatch.ElapsedMilliseconds)))
+						{
+							failedWorkers.Add(i, null);
+							continue;
+						}
+						resultId = tasks[i].Result;
+					}
+					catch (Exception e)
+					{
+						if (e is Thrift.Protocol.TBase)
+							failedWorkers.Add(i, e as Thrift.Protocol.TBase);
+						// else: Other errors were managed by AttemptWrite
+						continue;
+					}
+
+					// If successful, group with other workers that returned the same revision
+					List<WorkerInfo> transactionBucket;
+					if (!workersByTransaction.TryGetValue(resultId, out transactionBucket))
+					{
+						transactionBucket = new List<WorkerInfo>();
+						workersByTransaction.Add(resultId, transactionBucket);
+					}
+					transactionBucket.Add(workers[i]);
+				}
+			}
+			return workersByTransaction;
+		}
+
+		private bool FinalizeTransaction(WorkerInfo[] workers, SortedDictionary<TransactionID, List<WorkerInfo>> workersByTransaction, Dictionary<int, Thrift.Protocol.TBase> failedWorkers)
+		{
+			if (workersByTransaction.Count > 0)
+			{
+				var max = workersByTransaction.Keys.Max();
+				var successes = workersByTransaction[max];
+				if (successes.Count > (workers.Length / 2))
+				{
+					// Transaction successful, commit all reached workers
+					foreach (var group in workersByTransaction)
+						foreach (var worker in group.Value)
+							worker.Client.commit(max);
+				
+					// Also send out a commit to workers that timed-out
+					foreach (var worker in failedWorkers.Where(w => w.Value == null))
+						workers[worker.Key].Client.commit(max);
+					return true;
+				}
+				else
+				{
+					// Failure, roll-back successful prepares
+					foreach (var group in workersByTransaction)
+						foreach (var worker in group.Value)
+							worker.Client.rollback(group.Key);
+				}
+			}
+			return false;
+		}
+
+		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
+		private List<Task<TransactionID>> StartWorkerWrites(Dictionary<int, ColumnWrites> writes, TransactionID transactionID, WorkerInfo[] workers)
+		{
+			var tasks = new List<Task<TransactionID>>(workers.Length);
+			// Apply the modification to every worker, even if no work
+			foreach (var worker in workers)
+			{
+				// Determine the set of writes that apply to the worker's repositories
+				var work = new Dictionary<int, ColumnWrites>();
+				foreach (var columnId in worker.Columns.Where(c => writes.ContainsKey(c)))
+					work.Add(columnId, writes[columnId]);
+
+				tasks.Add
+				(
+					Task.Factory.StartNew
+					(
+						() =>
+						{
+							TransactionID result = new TransactionID();
+							AttemptWrite
+							(
+								worker.PodID,
+								() => { result = worker.Client.apply(transactionID, work); }
+							);
+							return result;
+						}
+					)
+				);
+			}
+			return tasks;
 		}
 
 		private Dictionary<int, ColumnWrites> EncodeIncludes(int[] columnIds, object rowId, object[] row)

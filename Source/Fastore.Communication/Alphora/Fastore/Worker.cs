@@ -20,7 +20,7 @@ namespace Alphora.Fastore
   public partial class Worker {
     public interface Iface {
       /// <summary>
-      /// Validates that the transaction ID is updated to the latest and then Applies all changes - GRID COORDINATED.
+      /// Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
@@ -32,7 +32,7 @@ namespace Alphora.Fastore
       #endif
       /// <summary>
       /// Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date),
-      /// returns an updated Transaction ID - GRID COORDINATED.
+      /// returns an updated Transaction ID - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
@@ -42,7 +42,7 @@ namespace Alphora.Fastore
       TransactionID End_apply(IAsyncResult asyncResult);
       #endif
       /// <summary>
-      /// Informs that the prepare was successful, the changes should be committed.
+      /// Informs that the prepare was successful on the majority of workers, the changes should be committed.
       /// </summary>
       /// <param name="transactionID"></param>
       void commit(TransactionID transactionID);
@@ -51,7 +51,7 @@ namespace Alphora.Fastore
       void End_commit(IAsyncResult asyncResult);
       #endif
       /// <summary>
-      /// Informs that the prepare was unsuccessful, the changes should be rolled back.
+      /// Informs that the prepare was unsuccessful on the majority of workers, the changes should be rolled back.
       /// </summary>
       /// <param name="transactionID"></param>
       void rollback(TransactionID transactionID);
@@ -162,7 +162,7 @@ namespace Alphora.Fastore
       #endif
 
       /// <summary>
-      /// Validates that the transaction ID is updated to the latest and then Applies all changes - GRID COORDINATED.
+      /// Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
@@ -216,6 +216,9 @@ namespace Alphora.Fastore
         if (result.__isset.notLatest) {
           throw result.NotLatest;
         }
+        if (result.__isset.alreadyPending) {
+          throw result.AlreadyPending;
+        }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "prepare failed: unknown result");
       }
 
@@ -236,7 +239,7 @@ namespace Alphora.Fastore
 
       /// <summary>
       /// Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date),
-      /// returns an updated Transaction ID - GRID COORDINATED.
+      /// returns an updated Transaction ID - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="writes"></param>
@@ -285,6 +288,9 @@ namespace Alphora.Fastore
         if (result.__isset.success) {
           return result.Success;
         }
+        if (result.__isset.alreadyPending) {
+          throw result.AlreadyPending;
+        }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "apply failed: unknown result");
       }
 
@@ -298,24 +304,21 @@ namespace Alphora.Fastore
       public void End_commit(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_commit();
       }
 
       #endif
 
       /// <summary>
-      /// Informs that the prepare was successful, the changes should be committed.
+      /// Informs that the prepare was successful on the majority of workers, the changes should be committed.
       /// </summary>
       /// <param name="transactionID"></param>
       public void commit(TransactionID transactionID)
       {
         #if !SILVERLIGHT
         send_commit(transactionID);
-        recv_commit();
 
         #else
         var asyncResult = Begin_commit(null, null, transactionID);
-        End_commit(asyncResult);
 
         #endif
       }
@@ -337,20 +340,6 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_commit()
-      {
-        TMessage msg = iprot_.ReadMessageBegin();
-        if (msg.Type == TMessageType.Exception) {
-          TApplicationException x = TApplicationException.Read(iprot_);
-          iprot_.ReadMessageEnd();
-          throw x;
-        }
-        commit_result result = new commit_result();
-        result.Read(iprot_);
-        iprot_.ReadMessageEnd();
-        return;
-      }
-
       
       #if SILVERLIGHT
       public IAsyncResult Begin_rollback(AsyncCallback callback, object state, TransactionID transactionID)
@@ -361,24 +350,21 @@ namespace Alphora.Fastore
       public void End_rollback(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_rollback();
       }
 
       #endif
 
       /// <summary>
-      /// Informs that the prepare was unsuccessful, the changes should be rolled back.
+      /// Informs that the prepare was unsuccessful on the majority of workers, the changes should be rolled back.
       /// </summary>
       /// <param name="transactionID"></param>
       public void rollback(TransactionID transactionID)
       {
         #if !SILVERLIGHT
         send_rollback(transactionID);
-        recv_rollback();
 
         #else
         var asyncResult = Begin_rollback(null, null, transactionID);
-        End_rollback(asyncResult);
 
         #endif
       }
@@ -398,20 +384,6 @@ namespace Alphora.Fastore
         #else
         oprot_.Transport.Flush();
         #endif
-      }
-
-      public void recv_rollback()
-      {
-        TMessage msg = iprot_.ReadMessageBegin();
-        if (msg.Type == TMessageType.Exception) {
-          TApplicationException x = TApplicationException.Read(iprot_);
-          iprot_.ReadMessageEnd();
-          throw x;
-        }
-        rollback_result result = new rollback_result();
-        result.Read(iprot_);
-        iprot_.ReadMessageEnd();
-        return;
       }
 
       
@@ -885,6 +857,8 @@ namespace Alphora.Fastore
           result.Success = iface_.prepare(args.TransactionID, args.Writes, args.Reads);
         } catch (NotLatest notLatest) {
           result.NotLatest = notLatest;
+        } catch (AlreadyPending alreadyPending) {
+          result.AlreadyPending = alreadyPending;
         }
         oprot.WriteMessageBegin(new TMessage("prepare", TMessageType.Reply, seqid)); 
         result.Write(oprot);
@@ -898,7 +872,11 @@ namespace Alphora.Fastore
         args.Read(iprot);
         iprot.ReadMessageEnd();
         apply_result result = new apply_result();
-        result.Success = iface_.apply(args.TransactionID, args.Writes);
+        try {
+          result.Success = iface_.apply(args.TransactionID, args.Writes);
+        } catch (AlreadyPending alreadyPending) {
+          result.AlreadyPending = alreadyPending;
+        }
         oprot.WriteMessageBegin(new TMessage("apply", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
@@ -910,27 +888,17 @@ namespace Alphora.Fastore
         commit_args args = new commit_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        commit_result result = new commit_result();
         iface_.commit(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("commit", TMessageType.Reply, seqid)); 
-        result.Write(oprot);
-        oprot.WriteMessageEnd();
-        oprot.Transport.Flush();
+        return;
       }
-
       public void rollback_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
         rollback_args args = new rollback_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        rollback_result result = new rollback_result();
         iface_.rollback(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("rollback", TMessageType.Reply, seqid)); 
-        result.Write(oprot);
-        oprot.WriteMessageEnd();
-        oprot.Transport.Flush();
+        return;
       }
-
       public void flush_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
         flush_args args = new flush_args();
@@ -1246,6 +1214,7 @@ namespace Alphora.Fastore
     {
       private long _success;
       private NotLatest _notLatest;
+      private AlreadyPending _alreadyPending;
 
       public long Success
       {
@@ -1273,6 +1242,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public AlreadyPending AlreadyPending
+      {
+        get
+        {
+          return _alreadyPending;
+        }
+        set
+        {
+          __isset.alreadyPending = true;
+          this._alreadyPending = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1281,6 +1263,7 @@ namespace Alphora.Fastore
       public struct Isset {
         public bool success;
         public bool notLatest;
+        public bool alreadyPending;
       }
 
       public prepare_result() {
@@ -1309,6 +1292,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 NotLatest = new NotLatest();
                 NotLatest.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 2:
+              if (field.Type == TType.Struct) {
+                AlreadyPending = new AlreadyPending();
+                AlreadyPending.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1343,6 +1334,15 @@ namespace Alphora.Fastore
             NotLatest.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.alreadyPending) {
+          if (AlreadyPending != null) {
+            field.Name = "AlreadyPending";
+            field.Type = TType.Struct;
+            field.ID = 2;
+            oprot.WriteFieldBegin(field);
+            AlreadyPending.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -1354,6 +1354,8 @@ namespace Alphora.Fastore
         sb.Append(Success);
         sb.Append(",NotLatest: ");
         sb.Append(NotLatest== null ? "<null>" : NotLatest.ToString());
+        sb.Append(",AlreadyPending: ");
+        sb.Append(AlreadyPending== null ? "<null>" : AlreadyPending.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1508,6 +1510,7 @@ namespace Alphora.Fastore
     public partial class apply_result : TBase
     {
       private TransactionID _success;
+      private AlreadyPending _alreadyPending;
 
       public TransactionID Success
       {
@@ -1522,6 +1525,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public AlreadyPending AlreadyPending
+      {
+        get
+        {
+          return _alreadyPending;
+        }
+        set
+        {
+          __isset.alreadyPending = true;
+          this._alreadyPending = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1529,6 +1545,7 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
+        public bool alreadyPending;
       }
 
       public apply_result() {
@@ -1550,6 +1567,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Success = new TransactionID();
                 Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 1:
+              if (field.Type == TType.Struct) {
+                AlreadyPending = new AlreadyPending();
+                AlreadyPending.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1577,6 +1602,15 @@ namespace Alphora.Fastore
             Success.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.alreadyPending) {
+          if (AlreadyPending != null) {
+            field.Name = "AlreadyPending";
+            field.Type = TType.Struct;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            AlreadyPending.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -1586,6 +1620,8 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("apply_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(",AlreadyPending: ");
+        sb.Append(AlreadyPending== null ? "<null>" : AlreadyPending.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1684,53 +1720,6 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class commit_result : TBase
-    {
-
-      public commit_result() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        TField field;
-        iprot.ReadStructBegin();
-        while (true)
-        {
-          field = iprot.ReadFieldBegin();
-          if (field.Type == TType.Stop) { 
-            break;
-          }
-          switch (field.ID)
-          {
-            default: 
-              TProtocolUtil.Skip(iprot, field.Type);
-              break;
-          }
-          iprot.ReadFieldEnd();
-        }
-        iprot.ReadStructEnd();
-      }
-
-      public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("commit_result");
-        oprot.WriteStructBegin(struc);
-
-        oprot.WriteFieldStop();
-        oprot.WriteStructEnd();
-      }
-
-      public override string ToString() {
-        StringBuilder sb = new StringBuilder("commit_result(");
-        sb.Append(")");
-        return sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
     public partial class rollback_args : TBase
     {
       private TransactionID _transactionID;
@@ -1809,53 +1798,6 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("rollback_args(");
         sb.Append("TransactionID: ");
         sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
-        sb.Append(")");
-        return sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
-    public partial class rollback_result : TBase
-    {
-
-      public rollback_result() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        TField field;
-        iprot.ReadStructBegin();
-        while (true)
-        {
-          field = iprot.ReadFieldBegin();
-          if (field.Type == TType.Stop) { 
-            break;
-          }
-          switch (field.ID)
-          {
-            default: 
-              TProtocolUtil.Skip(iprot, field.Type);
-              break;
-          }
-          iprot.ReadFieldEnd();
-        }
-        iprot.ReadStructEnd();
-      }
-
-      public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("rollback_result");
-        oprot.WriteStructBegin(struc);
-
-        oprot.WriteFieldStop();
-        oprot.WriteStructEnd();
-      }
-
-      public override string ToString() {
-        StringBuilder sb = new StringBuilder("rollback_result(");
         sb.Append(")");
         return sb.ToString();
       }

@@ -47,6 +47,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alphora\Fastore\AlreadyPending.cs" />
     <Compile Include="Alphora\Fastore\Answer.cs" />
     <Compile Include="Alphora\Fastore\BeyondHistory.cs" />
     <Compile Include="Alphora\Fastore\ColumnWrites.cs" />

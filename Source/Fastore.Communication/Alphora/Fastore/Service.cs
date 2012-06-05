@@ -28,7 +28,7 @@ namespace Alphora.Fastore
       TopologyResult End_getTopology(IAsyncResult asyncResult);
       #endif
       /// <summary>
-      /// Updates the topology and returns the new topology revision - GRID COORDINATED.
+      /// Updates the topology and returns the new topology revision - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="topology"></param>
@@ -217,7 +217,7 @@ namespace Alphora.Fastore
       #endif
 
       /// <summary>
-      /// Updates the topology and returns the new topology revision - GRID COORDINATED.
+      /// Updates the topology and returns the new topology revision - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
       /// <param name="topology"></param>

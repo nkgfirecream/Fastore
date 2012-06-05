@@ -185,6 +185,11 @@ exception NotLatest
 	1: Revision latest
 }
 
+exception AlreadyPending
+{
+	1: TransactionID pendingTransactionID
+}
+
 exception Conflict
 {
 	1: string details,
@@ -208,7 +213,7 @@ service Service
 	/** Returns the target topology as this host presently understands it. */
 	TopologyResult getTopology(),
 
-	/** Updates the topology and returns the new topology revision - GRID COORDINATED. */
+	/** Updates the topology and returns the new topology revision - HIVE TRANSACTED. */
 	Revision prepareTopology(1:TransactionID transactionID, 2:Topology topology),
 
 	/** Informs that the prepare was successful, the change should be committed. */
@@ -243,19 +248,20 @@ service Service
 
 service Worker
 {
-	/** Validates that the transaction ID is updated to the latest and then Applies all changes - GRID COORDINATED. */
+	/** Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED. */
 	Revision prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 
-		throws (1:NotLatest notLatest),
+		throws (1:NotLatest notLatest, 2:AlreadyPending alreadyPending),
 	
 	/** Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date), 
-		returns an updated Transaction ID - GRID COORDINATED. */
-	TransactionID apply(1:TransactionID transactionID, 2:Writes writes),
+		returns an updated Transaction ID - HIVE TRANSACTED. */
+	TransactionID apply(1:TransactionID transactionID, 2:Writes writes)
+		throws (1:AlreadyPending alreadyPending),
 
-	/** Informs that the prepare was successful, the changes should be committed. */
-	void commit(1:TransactionID transactionID),
+	/** Informs that the prepare was successful on the majority of workers, the changes should be committed. */
+	oneway void commit(1:TransactionID transactionID),
 
-	/** Informs that the prepare was unsuccessful, the changes should be rolled back. */
-	void rollback(1:TransactionID transactionID),
+	/** Informs that the prepare was unsuccessful on the majority of workers, the changes should be rolled back. */
+	oneway void rollback(1:TransactionID transactionID),
 
 	/** Waits for the given transaction to be flushed to disk */
 	void flush(1:TransactionID transactionID),
