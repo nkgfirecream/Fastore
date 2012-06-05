@@ -48,7 +48,6 @@ namespace Fastore.Client.Test
                 );
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 7);
-
         }
 
         [TestMethod]
@@ -154,6 +153,55 @@ namespace Fastore.Client.Test
             Assert.AreEqual(flag, true);
         }
 
+        [TestMethod]
+        public void TestMultipleTransactions()
+        {
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
+
+            Transaction _transaction1 = _database.Begin(false, false);
+            Transaction _transaction2 = _database.Begin(false, false);
+
+            _transaction1.Include(_columns, 8, new object[] { 8, "Scott", "Pilgrim", true, "10/13/1979", "Moscow" });
+            _transaction2.Include(_columns, 9, new object[] { 9, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
+
+            _transaction1.Commit();
+            var data = _database.GetRange(
+                _columns,
+                new[] { new Order { ColumnID = 1000, Ascending = true } },
+                new[] { new Range { ColumnID = 1000, Limit = 9 } }
+                );
+            Assert.AreEqual(data.Count, 8);
+
+            _transaction2.Commit();
+            data = _database.GetRange(
+                _columns,
+                new[] { new Order { ColumnID = 1000, Ascending = true } },
+                new[] { new Range { ColumnID = 1000, Limit = 9 } }
+                );
+            Assert.AreEqual(data.Count, 9);
+
+            _database.Exclude(_columns, 8);
+            _database.Exclude(_columns, 9);
+            _transaction1 = _database.Begin(false, false);
+            _transaction2 = _database.Begin(false, false);
+
+            _transaction1.Include(_columns, 8, new object[] { 8, "Scott", "Pilgrim", true, "10/13/1979", "Moscow" });
+            _transaction2.Include(_columns, 8, new object[] { 8, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
+            _transaction1.Commit();
+            bool flag = false;
+            try
+            {
+                _transaction2.Commit();
+            }
+            catch
+            {
+                flag = true;
+            }
+            Assert.AreEqual(flag, true);
+        }
+        
         [TestMethod]
         public void TestDispose()
         {
