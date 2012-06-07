@@ -295,18 +295,21 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 			auto rowIds = (KeyTree*)*(void**)((*begin).value);			
 			auto key = (Key)((*begin).key);
 
-			auto idStart = rowIds->begin();
+			auto idStart = startFound ? rowIds->begin() : rowIds->find(startId);
 			auto idEnd = rowIds->end();
 
-			while (!startFound)
+			if (!startFound)
 			{
-				if (_rowType.Compare((*idStart).key, startId) == 0)
+				if (idStart != idEnd)
 				{
 					startFound = true;
 					result.BeginOfRange = false;
+					++idStart;			
 				}
-
-				++idStart;				
+				else
+				{
+					throw "Start id not found in given value";
+				}					
 			}
 		
 			KeyVector keys;
@@ -338,17 +341,21 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 			auto key = (Key)((*end).key);
 
 			auto idStart = rowIds->begin();
-			auto idEnd = rowIds->end();
+			auto idEnd = startFound ? rowIds->end() : rowIds->find(startId);
 
-			while (!startFound)
+			if (!startFound)
 			{
-				--idEnd;
-
-				if (_rowType.Compare((*idEnd).key, startId) == 0)
+				if (idEnd != rowIds->end())
 				{
 					startFound = true;
 					result.EndOfRange = false;
-				}			
+				}
+				else
+				{
+					throw "Start id not found in given value";
+				}
+
+				--idEnd;
 			}
 		
 			KeyVector keys;
