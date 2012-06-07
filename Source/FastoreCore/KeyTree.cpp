@@ -39,21 +39,22 @@ fs::wstring KeyTree::ToString()
 void KeyTree::Delete(Path& path)
 {
 	_count--;
-	bool result = path.Leaf->Delete(path.LeafIndex);
-
-	while (result && path.Branches.size() > 0)
+	//result is true when empty (or only one item for branches)
+	path.Leaf->Delete(path.LeafIndex);
+	//If the Leaf is the root, then we don't care about underflows, balancing, etc.
+	if (path.Leaf != _root)
 	{
-		auto pathNode = path.Branches.back();
-		path.Branches.pop_back();
-		result = pathNode.Node->Delete(pathNode.Index);
-	}
+		//If we deleted index 0, update routing nodes with new key.
+		if (path.LeafIndex == 0)
+		{
+			auto pathNode = path.Branches.at(path.Branches.size() - 1);
+			pathNode.Node->UpdateKey(pathNode.Index, path, path.Branches.size() - 1);
+		}
 
-	//We got to the root and removed everything
-	if (result)
-	{
-		delete _root;
-		_root = new KeyNode(this);
-		_count = 0;
+		//Rebalance tree after delete.
+		KeyNode* result = path.Leaf->RebalanceLeaf(path, path.Branches.size());
+		if (result != NULL)
+			_root = result;
 	}
 }
 
@@ -223,7 +224,7 @@ KeyTree::iterator KeyTree::iterator::operator--(int)
 
 bool KeyTree::iterator::operator==(const KeyTree::iterator& rhs) {return (_path.Leaf == rhs._path.Leaf) && (_path.LeafIndex == rhs._path.LeafIndex) && _eof == rhs._eof;;}
 bool KeyTree::iterator::operator!=(const KeyTree::iterator& rhs) {return (_path.Leaf != rhs._path.Leaf) || (_path.LeafIndex != rhs._path.LeafIndex) || _eof != rhs._eof;}
-KeyTreeEntry KeyTree::iterator::operator*()
+TreeEntry KeyTree::iterator::operator*()
 {
 	if (_path.LeafIndex >= _path.Leaf->_count)
 		throw "Iterator not dereferenceable";

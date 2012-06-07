@@ -189,6 +189,13 @@ public:
 				CFIX_ASSERT((*(int*)(*begin).value) == i);
 				begin++;
 			}
+
+			for (int i = 0; i <= numrows; i++)
+			{
+				auto path = tree.GetPath(&i);
+				CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
+				CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+			}
 		}
 	}
 
@@ -272,23 +279,51 @@ public:
 		BTree tree(standardtypes::Int, standardtypes::Int);
 
 		//Put stuff in tree
-		int numrows = 10000;
-		for (int i = 0; i <= numrows; i++)
+		int numrows = 4096;
+		for (int i = 0; i < numrows; i++)
 		{
 			auto path = tree.GetPath(&i);
 			tree.Insert(path, &i, &i);
+			path = tree.GetPath(&i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
 		}
 
-		for (int i = 0; i <= numrows; i++)
+		for (int i = 0; i < numrows; i++)
 		{
 			auto path = tree.GetPath(&i);
 			CFIX_ASSERT(path.Match == true);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+
 			tree.Delete(path);
+
+			path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == false);
+		}
+
+		for (int i = 0; i < numrows; i++)
+		{
+			auto path = tree.GetPath(&i);
+			tree.Insert(path, &i, &i);
+			path = tree.GetPath(&i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+		}
+
+		for (int i = numrows - 1; i >= 0; i--)
+		{
+			auto path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == true);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+
+			tree.Delete(path);
+
 			path = tree.GetPath(&i);
 			CFIX_ASSERT(path.Match == false);
 		}
 	}
-
 };
 
 CFIXCC_BEGIN_CLASS( BTreeTest )

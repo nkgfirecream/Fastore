@@ -2,6 +2,7 @@
 #include "Schema\scalar.h"
 #include "Schema\standardtypes.h"
 #include "typedefs.h"
+#include "treeentry.h"
 #include <functional>
 #include "optional.h"
 #include <sstream>
@@ -29,18 +30,6 @@ struct Split
 	Node* right;
 };
 
-struct TreeEntry
-{
-    fs::Key key;
-    fs::Value value;
-
-    TreeEntry();
-    TreeEntry(const fs::Key& k) : key(k) {};
-    TreeEntry(const fs::Key& k, const fs::Value& v) : key(k), value(v) {};
-
-    TreeEntry(const TreeEntry& entry) : key(entry.key), value(entry.value) {};
-};
-
 typedef function<void(void*,Node*)> valuesMovedHandler;
 
 class BTree
@@ -52,7 +41,7 @@ class BTree
 		fs::wstring ToString();
 		int getListCapacity();
 
-		const static short DefaultListCapacity = 128;
+		const static short DefaultListCapacity = 64;
 
 		void setValuesMovedCallback(valuesMovedHandler callback);
 		valuesMovedHandler getValuesMovedCallback();
@@ -137,8 +126,10 @@ class BTree
 			return iterator(p, true);
 		}
 
-	private:
 		Node* _root;
+
+	private:
+
 		ScalarType _keyType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -184,7 +175,6 @@ class Node
 
 		~Node() 
 		{
-			//TODO: Destructor should actually deallocate all values before deleting the array.
 			delete[] _keys;
 			delete[] _values;
 		}
@@ -294,6 +284,7 @@ class Node
 		}
 
 		//Index operations (for path -- behavior undefined for invalid paths)
+		//Only valid for leaves!
 		bool Delete(short index)
 		{	
 			short size = _count - index;
@@ -301,15 +292,15 @@ class Node
 
 			// Deallocate and shift keys
 			_keyType.Deallocate(&_keys[index *_keyType.Size], 1);
-			memmove(&_keys[(index) *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
+			memmove(&_keys[index *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
 
 			// Deallocate and shift values
 			_valueType.Deallocate(&_values[index + _type *_valueType.Size], 1);
-			memmove(&_values[index + _type *_valueType.Size], &_values[(index + _type + 1) *_valueType.Size], size * _valueType.Size);
+			memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
 
 			_count--;
 
-			return _count + _type <= 0;			
+			return _count <= 0;			
 		}
 
 		Split* Insert(short index, void* key, void* value)
@@ -391,6 +382,243 @@ class Node
 		TreeEntry operator[](short index)
 		{
 			return TreeEntry(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
+		}
+
+		//Should only be called on type 1s
+		void UpdateKey(short index, BTree::Path& path, int depth)
+		{
+			auto pathNode = path.Branches.at(depth);
+			if (index != 0)
+			{
+				Node* node = *(Node**)&_values[index * _valueType.Size];
+				memcpy(&_keys[(index - 1) * _keyType.Size], node->GetChildKey(), _keyType.Size);
+			}
+			else if (depth != 0)
+			{
+				pathNode.Node->UpdateKey(pathNode.Index, path, depth - 1);
+			}
+
+			//Do nothing, we don't update the the first index on the root
+		}
+
+
+		Node* RebalanceLeaf(BTree::Path& path, int depth)
+		{
+				//No need to rebalance
+				if (_count >= _tree->DefaultListCapacity / 2 || depth == 0)
+					return NULL;
+
+				Node* parent = path.Branches.at(depth - 1).Node;
+				short pIndex = path.Branches.at(depth - 1).Index;
+				Node* rightSib = pIndex < parent->_count ? *(Node**)((*parent)[pIndex + 1].value) : NULL;
+				Node* leftSib = pIndex > 0 ? *(Node**)((*parent)[pIndex - 1].value) : NULL;
+
+				//Attempt to borrow from right sibling
+				if (rightSib != NULL && rightSib->_count > _tree->DefaultListCapacity / 2)
+				{
+					//Grab left item from right sibling
+					memcpy(&_keys[_count * _keyType.Size], &rightSib->_keys[0], _keyType.Size);
+					memcpy(&_values[_count * _valueType.Size], &rightSib->_values[0], _valueType.Size);
+					_count++;
+
+					//Shift right sibling's values down.
+					memcpy(&rightSib->_keys[0], &rightSib->_keys[_keyType.Size], _keyType.Size * (rightSib->_count - 1));
+					memcpy(&rightSib->_values[0], &rightSib->_values[_valueType.Size], _valueType.Size * (rightSib->_count - 1));
+					rightSib->_count--;
+
+					//Recursively update parent separator on right with sibling's new left.
+					//(If the parent's separator is the left most separator its parent also needs to be updated)
+					parent->UpdateKey(pIndex + 1, path, depth - 1);
+					return NULL;
+				}
+
+				//Attempt to borrow from left sibling
+				if (leftSib != NULL && leftSib->_count > _tree->DefaultListCapacity / 2)
+				{
+					//Make room for new item
+					memcpy(&_keys[_keyType.Size], &_keys[0], _count * _keyType.Size);
+					memcpy(&_values[_valueType.Size], &_values[0], _count * _valueType.Size);
+
+					//Grab right item from left sibling.
+					memcpy(&_keys[0], &leftSib->_keys[(leftSib->_count - 1) * _keyType.Size], _keyType.Size);
+					memcpy(&_values[0], &leftSib->_values[(leftSib->_count - 1) * _valueType.Size], _valueType.Size);
+					_count++;
+
+					//Delete right item from left sibling
+					leftSib->_count--;
+
+					//Recursively update parent separator on left with our new left
+					//(If the parent's separator is the left most separator its parent also needs to be updated)
+					parent->UpdateKey(pIndex, path, depth - 1);
+					return NULL;
+				}
+
+				//Attempt to merge with right sibling
+				if (rightSib != NULL && rightSib->_count + this->_count <= _tree->DefaultListCapacity)
+				{
+					//Grab all of right's items
+					memcpy(&_keys[_count * _keyType.Size], &rightSib ->_keys[0], rightSib ->_count * _keyType.Size);
+					memcpy(&_values[_count * _valueType.Size], &rightSib ->_values[0], rightSib ->_count *_valueType.Size);
+					_count += rightSib->_count;
+
+					//Delete right sibling
+					delete rightSib;
+
+					//Delete parent separator on right
+					parent->BranchDelete(pIndex);
+
+					//In case we deleted the left most item,
+					//update the keys
+					if (pIndex == 0)
+						parent->UpdateKey(0, path, depth - 1);
+
+					//Rebalance parent
+					return parent->RebalanceBranch(path, depth - 1);
+				}
+
+				//Attempt to merge with left sibling
+				if (leftSib != NULL && leftSib->_count + this->_count <= _tree->DefaultListCapacity)
+				{
+					//Move everything over to left.
+					memcpy(&leftSib->_keys[leftSib->_count * _keyType.Size], &_keys[0], _count * _keyType.Size);
+					memcpy(&leftSib->_values[leftSib->_count * _valueType.Size], &_values[0], _count *_valueType.Size);
+					leftSib->_count += _count;
+
+					//Suicide
+					delete this;
+
+					//Delete parent separator on left
+					parent->BranchDelete(pIndex - 1);
+					
+					//Rebalance parent
+					return parent->RebalanceBranch(path, depth - 1);
+				}
+
+				//If everything failed, something is wrong
+				throw "Leaf rebalancing failed";
+		}
+
+		Node* RebalanceBranch(BTree::Path& path, int depth)
+		{
+			//Only one item, we are root, replace root with child
+				if (depth == 0 && _count == 0)
+				{
+					Node* root = *(Node**)_values;
+					//Questionable...
+					delete this;
+					return root;
+				}
+
+				//No need to rebalance if we are an acceptable size
+				if ((_count + 1) >= _tree->DefaultListCapacity / 2 || depth == 0)
+					return NULL;				
+
+				//At this point we know we are not root, so we have a parent.
+				Node* parent = path.Branches.at(depth - 1).Node;
+				short pIndex = path.Branches.at(depth - 1).Index;
+				Node* rightSib = pIndex < parent->_count ? *(Node**)((*parent)[pIndex + 1].value) : NULL;
+				Node* leftSib = pIndex > 0 ? *(Node**)((*parent)[pIndex - 1].value) : NULL;
+
+				//Attempt to borrow from right sibling
+				if (rightSib != NULL && (rightSib->_count + 1) > _tree->DefaultListCapacity / 2)
+				{
+					//Grab left item from right sibling		
+					memcpy(&_values[(_count + 1) * _valueType.Size], &rightSib->_values[0], _valueType.Size);
+					memcpy(&_keys[_count * _keyType.Size],  (*(Node**)&rightSib->_values[0])->GetChildKey(), _keyType.Size);
+					_count++;
+
+					memcpy(&rightSib->_keys[0], &rightSib->_keys[_keyType.Size], _keyType.Size * (rightSib->_count - 1));
+					memcpy(&rightSib->_values[0], &rightSib->_values[_valueType.Size], _valueType.Size * (rightSib->_count));
+					rightSib->_count--;
+
+					//Recursively update parent separator on right with sibling's new left.
+					//(If the parent's separator is the left most separator its parent also needs to be updated)
+					parent->UpdateKey(pIndex + 1, path, depth - 1);
+
+					return NULL;
+				}
+
+				//Attempt to borrow form left sibling
+				if (leftSib != NULL && (leftSib->_count + 1) > _tree->DefaultListCapacity / 2)
+				{
+						//Make room for new item
+					memcpy(&_keys[_keyType.Size], &_keys[0], _count * _keyType.Size);
+					memcpy(&_values[_valueType.Size], &_values[0], _count * _valueType.Size);
+
+					//Grab right item from left sibling.
+					memcpy(&_values[0], &leftSib->_values[leftSib->_count * _valueType.Size], _valueType.Size);
+					memcpy(&_keys[0],  (*(Node**)_values[1 * _valueType.Size])->GetChildKey(), _keyType.Size);
+					_count++;
+
+					leftSib->_count--;
+
+					//Recursively update parent separator on left with our new left
+					//(If the parent's separator is the left most separator its parent 
+					parent->UpdateKey(pIndex, path, depth - 1);
+					return NULL;
+				}
+
+				//Attempt to merge with right sibling
+				if (rightSib != NULL && (rightSib->_count + 1 + this->_count + 1) <= _tree->DefaultListCapacity)
+				{
+					//Grab all of rights items
+					memcpy(&_keys[(_count + 1) * _keyType.Size], &rightSib->_keys[0], rightSib->_count * _keyType.Size);
+					memcpy(&_values[(_count + 1) * _valueType.Size], &rightSib->_values[0], (rightSib->_count + 1) *_valueType.Size);
+
+					//Create new separator
+					memcpy(&_keys[(_count) * _keyType.Size], (*(Node**)&rightSib->_values[0])->GetChildKey(), _keyType.Size);
+					_count += (rightSib->_count + 1); //Count is the number of separators. + 1 is for the the one we are taking from parent.
+					
+					delete rightSib;
+
+					//Delete parent separator on right
+					parent->BranchDelete(pIndex);
+
+					//In case we deleted the left most item,
+					//update the keys
+					if (pIndex == 0)
+						parent->UpdateKey(0, path, depth - 1);
+
+					//Rebalance parent
+					return parent->RebalanceBranch(path, depth - 1);
+				}
+
+				//Attempt to merge with left sibling
+				if (leftSib != NULL && (leftSib->_count + 1 + this->_count + 1) <= _tree->DefaultListCapacity)
+				{
+					//Move everything over to left.
+					memcpy(&leftSib->_keys[(leftSib->_count + 1) * _keyType.Size], &_keys[0], _count * _keyType.Size);
+					memcpy(&leftSib->_values[(leftSib->_count + 1) * _valueType.Size], &_values[0], _count *_valueType.Size);					
+					
+					//create new separator
+					memcpy(&leftSib->_keys[(leftSib->_count) * _keyType.Size], (*(Node**)&_values[0])->GetChildKey(), _keyType.Size);
+					leftSib->_count += (_count + 1); //Count is the number of separators. + 1 is for the the one we are taking from parent.
+
+					//Suicide
+					delete this;
+
+					//Delete parent separator on left
+					parent->BranchDelete(pIndex - 1);
+					
+					//Rebalance parent
+					return parent->RebalanceBranch(path, depth - 1);
+				}
+
+				//If everything failed, something is wrong
+				throw "Branch rebalancing failed";
+		}
+
+		//This is a special case delete from branches.
+		//It merely shift memory around, and does not deallocate anything because it does
+		//not know if it was called as the result of a merge
+		//Index is the KEY index, not the item index
+		void BranchDelete(short index)
+		{
+			int size = _count - index;
+			memcpy(&_keys[index * _keyType.Size], &_keys[(index + 1) * _keyType.Size],  size * _keyType.Size);
+			memcpy(&_values[(index + 1) * _valueType.Size], &_values[(index + 2) * _valueType.Size],  size * _valueType.Size);
+
+			_count--;
 		}
 
 		class iterator : public std::iterator<input_iterator_tag, void*>

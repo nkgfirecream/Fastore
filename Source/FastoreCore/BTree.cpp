@@ -52,19 +52,22 @@ fs::wstring BTree::ToString()
 
 void BTree::Delete(Path& path)
 {
-	bool result = path.Leaf->Delete(path.LeafIndex);
-	while (result && path.Branches.size() > 0)
+	//result is true when empty (or only one item for branches)
+	path.Leaf->Delete(path.LeafIndex);
+	//If the Leaf is the root, then we don't care about underflows, balancing, etc.
+	if (path.Leaf != _root)
 	{
-		auto pathNode = path.Branches.back();
-		path.Branches.pop_back();
-		result = pathNode.Node->Delete(pathNode.Index);
-	}
+		//If we deleted index 0, update routing nodes with new key.
+		if (path.LeafIndex == 0)
+		{
+			auto pathNode = path.Branches.at(path.Branches.size() - 1);
+			pathNode.Node->UpdateKey(pathNode.Index, path, path.Branches.size() - 1);
+		}
 
-	//We got to the root and removed everything
-	if (result)
-	{
-		delete _root;
-		_root = new Node(this);
+		//Rebalance tree after delete.
+		Node* result = path.Leaf->RebalanceLeaf(path, path.Branches.size());
+		if (result != NULL)
+			_root = result;
 	}
 }
 

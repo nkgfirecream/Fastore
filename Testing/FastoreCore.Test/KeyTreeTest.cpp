@@ -183,6 +183,12 @@ public:
 				CFIX_ASSERT((*(int*)(*begin).key) == i);
 				begin++;
 			}	
+
+			for (int i = 0; i <= numrows; i++)
+			{
+				auto path = tree.GetPath(&i);
+				CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == numrows);
+			}
 		}
 	}
 
@@ -259,6 +265,53 @@ public:
 			CFIX_ASSERT(j == vec.size());
 		}
 	}
+
+	void Deletion()
+	{
+		KeyTree tree(standardtypes::Int);
+
+		//Put stuff in tree
+		int numrows = 4096;
+		for (int i = 0; i < numrows; i++)
+		{
+			auto path = tree.GetPath(&i);
+			tree.Insert(path, &i);
+			path = tree.GetPath(&i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+		}
+
+		for (int i = 0; i < numrows; i++)
+		{
+			auto path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == true);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+
+			tree.Delete(path);
+
+			path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == false);
+		}
+
+		for (int i = 0; i < numrows; i++)
+		{
+			auto path = tree.GetPath(&i);
+			tree.Insert(path, &i);
+			path = tree.GetPath(&i);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+		}
+
+		for (int i = numrows - 1; i >= 0; i--)
+		{
+			auto path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == true);
+			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+
+			tree.Delete(path);
+
+			path = tree.GetPath(&i);
+			CFIX_ASSERT(path.Match == false);
+		}
+	}
 };
 
 CFIXCC_BEGIN_CLASS( KeyTreeTest )
@@ -266,4 +319,5 @@ CFIXCC_BEGIN_CLASS( KeyTreeTest )
 	CFIXCC_METHOD( Sequential )
 	CFIXCC_METHOD( Reverse )
 	CFIXCC_METHOD( Random )
+	CFIXCC_METHOD( Deletion )
 CFIXCC_END_CLASS()

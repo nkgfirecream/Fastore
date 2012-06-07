@@ -215,6 +215,7 @@
     <ClInclude Include="Storage\Schema\scalar.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
+    <ClInclude Include="treeentry.h" />
     <ClInclude Include="typedefs.h" />
     <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
