@@ -47,6 +47,8 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="DataAccessTest.cs" />
+    <Compile Include="TestSetup.cs" />
+    <Compile Include="TransactionTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\Fastore.Client\Fastore.Client.csproj">

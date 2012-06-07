@@ -6,7 +6,7 @@ using Alphora.Fastore.Client;
 
 namespace Fastore.Client.Test
 {
-    class TestSetup
+    public class TestSetup
     {
         internal Database _database;
         internal int[] _columns;
