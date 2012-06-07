@@ -26,7 +26,7 @@ namespace Alphora.Fastore.Client
                 if (_data[index] == null)
                     _data[index] = new object[_columns];
 
-                return new DataSetRow(_data[index], _rowIds[index]);
+                return new DataSetRow(_rowIds[index], _data[index]);
             }
 
             set
@@ -61,7 +61,7 @@ namespace Alphora.Fastore.Client
 
     public struct DataSetRow
     {
-        public DataSetRow(object[] values, object id)
+        public DataSetRow(object id, object[] values)
         {
             Values = values;
 			ID = id;

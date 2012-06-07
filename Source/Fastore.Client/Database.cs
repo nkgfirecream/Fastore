@@ -534,7 +534,7 @@ namespace Alphora.Fastore.Client
 						rowData[x] = Fastore.Client.Encoder.Decode(rowResults[columnId].Answer.RowIDValues[y], _schema[columnId].Type);
 				}
 
-				result[y] = new DataSetRow(rowData, rowId);
+				result[y] = new DataSetRow(rowId, rowData);
             }
 
 			return result;
@@ -735,27 +735,46 @@ namespace Alphora.Fastore.Client
 
 		public void Exclude(int[] columnIds, object rowId)
 		{
-			throw new NotImplementedException();
-			//Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
-			//byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
-            
-			//Exclude ex = new Fastore.Exclude();
-			//ex.RowID = rowIdb;
+            var writes = EncodeExcludes(columnIds, rowId);
 
-			//ColumnWrites wt = new ColumnWrites();
-			//wt.Excludes = new List<Fastore.Exclude>();
-			//wt.Excludes.Add(ex);
+            while (true)
+            {
+                var transactionID = new TransactionID();
 
-			//for (int i = 0; i < columnIds.Length; i++)
-			//{
-			//    writes.Add(columnIds[i], wt);
-			//}
+                var workers = GetWorkers(columnIds);
 
-			//Service.apply(_defaultId, writes);
+                var tasks = StartWorkerWrites(writes, transactionID, workers);
 
-			//if (columnIds[0] == 0)
-			//    RefreshSchema();
+                var failedWorkers = new Dictionary<int, Thrift.Protocol.TBase>();
+                var workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
+
+                if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
+                {
+                    // If we've inserted/deleted system table(s), force a schema refresh
+                    if (writes.ContainsKey(0))
+                        RefreshSchema();
+                    break;
+                }
+            }
 		}
+
+        private Dictionary<int, ColumnWrites> EncodeExcludes(int[] columnIds, object rowId)
+        {
+            var writes = new Dictionary<int, ColumnWrites>();
+            byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
+
+            for (int i = 0; i < columnIds.Length; i++)
+            {
+                Exclude inc = new Fastore.Exclude();
+                inc.RowID = rowIdb;
+
+                ColumnWrites wt = new ColumnWrites();
+                wt.Excludes = new List<Fastore.Exclude>();
+                wt.Excludes.Add(inc);
+                writes.Add(columnIds[i], wt);
+            }
+            return writes;
+        }
 
 		public Statistic[] GetStatistics(int[] columnIds)
 		{
