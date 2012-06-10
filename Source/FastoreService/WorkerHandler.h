@@ -20,7 +20,7 @@ private:
 	FastoreHost _host;
 
 public:
-	WorkerHandler(const ServiceConfig& config);
+	WorkerHandler(const CoreConfig& config);
 
 	Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
 	void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);

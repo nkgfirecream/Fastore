@@ -241,6 +241,14 @@ uint32_t Worker_prepare_result::read(::apache::thrift::protocol::TProtocol* ipro
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyPending.read(iprot);
+          this->__isset.alreadyPending = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -266,6 +274,10 @@ uint32_t Worker_prepare_result::write(::apache::thrift::protocol::TProtocol* opr
   } else if (this->__isset.notLatest) {
     xfer += oprot->writeFieldBegin("notLatest", ::apache::thrift::protocol::T_STRUCT, 1);
     xfer += this->notLatest.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.alreadyPending) {
+    xfer += oprot->writeFieldBegin("alreadyPending", ::apache::thrift::protocol::T_STRUCT, 2);
+    xfer += this->alreadyPending.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -305,6 +317,14 @@ uint32_t Worker_prepare_presult::read(::apache::thrift::protocol::TProtocol* ipr
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->notLatest.read(iprot);
           this->__isset.notLatest = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyPending.read(iprot);
+          this->__isset.alreadyPending = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -464,6 +484,14 @@ uint32_t Worker_apply_result::read(::apache::thrift::protocol::TProtocol* iprot)
           xfer += iprot->skip(ftype);
         }
         break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyPending.read(iprot);
+          this->__isset.alreadyPending = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -485,6 +513,10 @@ uint32_t Worker_apply_result::write(::apache::thrift::protocol::TProtocol* oprot
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
     xfer += this->success.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.alreadyPending) {
+    xfer += oprot->writeFieldBegin("alreadyPending", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->alreadyPending.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -516,6 +548,14 @@ uint32_t Worker_apply_presult::read(::apache::thrift::protocol::TProtocol* iprot
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyPending.read(iprot);
+          this->__isset.alreadyPending = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -598,81 +638,6 @@ uint32_t Worker_commit_pargs::write(::apache::thrift::protocol::TProtocol* oprot
   return xfer;
 }
 
-uint32_t Worker_commit_result::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t Worker_commit_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
-
-  uint32_t xfer = 0;
-
-  xfer += oprot->writeStructBegin("Worker_commit_result");
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Worker_commit_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
 uint32_t Worker_rollback_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
@@ -736,81 +701,6 @@ uint32_t Worker_rollback_pargs::write(::apache::thrift::protocol::TProtocol* opr
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Worker_rollback_result::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t Worker_rollback_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
-
-  uint32_t xfer = 0;
-
-  xfer += oprot->writeStructBegin("Worker_rollback_result");
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Worker_rollback_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
   return xfer;
 }
 
@@ -2422,6 +2312,9 @@ Revision WorkerClient::recv_prepare()
   if (result.__isset.notLatest) {
     throw result.notLatest;
   }
+  if (result.__isset.alreadyPending) {
+    throw result.alreadyPending;
+  }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "prepare failed: unknown result");
 }
 
@@ -2481,13 +2374,15 @@ void WorkerClient::recv_apply(TransactionID& _return)
     // _return pointer has now been filled
     return;
   }
+  if (result.__isset.alreadyPending) {
+    throw result.alreadyPending;
+  }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "apply failed: unknown result");
 }
 
 void WorkerClient::commit(const TransactionID& transactionID)
 {
   send_commit(transactionID);
-  recv_commit();
 }
 
 void WorkerClient::send_commit(const TransactionID& transactionID)
@@ -2504,43 +2399,9 @@ void WorkerClient::send_commit(const TransactionID& transactionID)
   oprot_->getTransport()->flush();
 }
 
-void WorkerClient::recv_commit()
-{
-
-  int32_t rseqid = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TMessageType mtype;
-
-  iprot_->readMessageBegin(fname, mtype, rseqid);
-  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
-    ::apache::thrift::TApplicationException x;
-    x.read(iprot_);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-    throw x;
-  }
-  if (mtype != ::apache::thrift::protocol::T_REPLY) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  if (fname.compare("commit") != 0) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  Worker_commit_presult result;
-  result.read(iprot_);
-  iprot_->readMessageEnd();
-  iprot_->getTransport()->readEnd();
-
-  return;
-}
-
 void WorkerClient::rollback(const TransactionID& transactionID)
 {
   send_rollback(transactionID);
-  recv_rollback();
 }
 
 void WorkerClient::send_rollback(const TransactionID& transactionID)
@@ -2555,39 +2416,6 @@ void WorkerClient::send_rollback(const TransactionID& transactionID)
   oprot_->writeMessageEnd();
   oprot_->getTransport()->writeEnd();
   oprot_->getTransport()->flush();
-}
-
-void WorkerClient::recv_rollback()
-{
-
-  int32_t rseqid = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TMessageType mtype;
-
-  iprot_->readMessageBegin(fname, mtype, rseqid);
-  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
-    ::apache::thrift::TApplicationException x;
-    x.read(iprot_);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-    throw x;
-  }
-  if (mtype != ::apache::thrift::protocol::T_REPLY) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  if (fname.compare("rollback") != 0) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  Worker_rollback_presult result;
-  result.read(iprot_);
-  iprot_->readMessageEnd();
-  iprot_->getTransport()->readEnd();
-
-  return;
 }
 
 void WorkerClient::flush(const TransactionID& transactionID)
@@ -2995,6 +2823,9 @@ void WorkerProcessor::process_prepare(int32_t seqid, ::apache::thrift::protocol:
   } catch (NotLatest &notLatest) {
     result.notLatest = notLatest;
     result.__isset.notLatest = true;
+  } catch (AlreadyPending &alreadyPending) {
+    result.alreadyPending = alreadyPending;
+    result.__isset.alreadyPending = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Worker.prepare");
@@ -3049,6 +2880,9 @@ void WorkerProcessor::process_apply(int32_t seqid, ::apache::thrift::protocol::T
   try {
     iface_->apply(result.success, args.transactionID, args.writes);
     result.__isset.success = true;
+  } catch (AlreadyPending &alreadyPending) {
+    result.alreadyPending = alreadyPending;
+    result.__isset.alreadyPending = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Worker.apply");
@@ -3078,7 +2912,7 @@ void WorkerProcessor::process_apply(int32_t seqid, ::apache::thrift::protocol::T
   }
 }
 
-void WorkerProcessor::process_commit(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void WorkerProcessor::process_commit(int32_t, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol*, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
@@ -3099,39 +2933,23 @@ void WorkerProcessor::process_commit(int32_t seqid, ::apache::thrift::protocol::
     this->eventHandler_->postRead(ctx, "Worker.commit", bytes);
   }
 
-  Worker_commit_result result;
   try {
     iface_->commit(args.transactionID);
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Worker.commit");
     }
-
-    apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("commit", apache::thrift::protocol::T_EXCEPTION, seqid);
-    x.write(oprot);
-    oprot->writeMessageEnd();
-    oprot->getTransport()->writeEnd();
-    oprot->getTransport()->flush();
     return;
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Worker.commit");
+    this->eventHandler_->asyncComplete(ctx, "Worker.commit");
   }
 
-  oprot->writeMessageBegin("commit", apache::thrift::protocol::T_REPLY, seqid);
-  result.write(oprot);
-  oprot->writeMessageEnd();
-  bytes = oprot->getTransport()->writeEnd();
-  oprot->getTransport()->flush();
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Worker.commit", bytes);
-  }
+  return;
 }
 
-void WorkerProcessor::process_rollback(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void WorkerProcessor::process_rollback(int32_t, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol*, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
@@ -3152,36 +2970,20 @@ void WorkerProcessor::process_rollback(int32_t seqid, ::apache::thrift::protocol
     this->eventHandler_->postRead(ctx, "Worker.rollback", bytes);
   }
 
-  Worker_rollback_result result;
   try {
     iface_->rollback(args.transactionID);
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Worker.rollback");
     }
-
-    apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("rollback", apache::thrift::protocol::T_EXCEPTION, seqid);
-    x.write(oprot);
-    oprot->writeMessageEnd();
-    oprot->getTransport()->writeEnd();
-    oprot->getTransport()->flush();
     return;
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Worker.rollback");
+    this->eventHandler_->asyncComplete(ctx, "Worker.rollback");
   }
 
-  oprot->writeMessageBegin("rollback", apache::thrift::protocol::T_REPLY, seqid);
-  result.write(oprot);
-  oprot->writeMessageEnd();
-  bytes = oprot->getTransport()->writeEnd();
-  oprot->getTransport()->flush();
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Worker.rollback", bytes);
-  }
+  return;
 }
 
 void WorkerProcessor::process_flush(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)

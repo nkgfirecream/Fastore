@@ -1,10 +1,14 @@
 #include "Service.h"
-#include <windows.h>
-#include <tchar.h>
-#include <strsafe.h>
 #include "errors.h"
 #include "FastoreService.h"
+#include "ServiceHandler.h"
 #include "ServiceConfig.h"
+
+#include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <tchar.h>
+#include <strsafe.h>
 #include <exception>
 #include <boost/shared_ptr.hpp>
 #include <iostream>
@@ -18,11 +22,45 @@ boost::shared_ptr<FastoreService> service;
 
 typedef void (*ServiceEventCallback)();
 
-void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const ServiceConfig& config)
+void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const ServiceConfig& serviceConfig, const CoreConfig& coreConfig)
 {
+	//Open windows sockets
+	WORD wVersionRequested;
+	WSADATA wsaData;
+	int err;
+
+	/* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
+	wVersionRequested = MAKEWORD(2, 2);
+
+	err = WSAStartup(wVersionRequested, &wsaData);
+	if (err != 0) 
+	{
+		/* Tell the user that we could not find a usable */
+		/* Winsock DLL.                                  */
+		cout << "WSAStartup failed with error: " << err << "\n";
+		return;
+	}
+
+	/* Confirm that the WinSock DLL supports 2.2.*/
+	/* Note that if the DLL supports versions greater    */
+	/* than 2.2 in addition to 2.2, it will still return */
+	/* 2.2 in wVersion since that is the version we      */
+	/* requested.                                        */
+
+	if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) 
+	{
+		/* Tell the user that we could not find a usable */
+		/* WinSock DLL.                                  */
+		WSACleanup();
+		cout << "Could not find a usable version (2.2) of Winsock.dll\n";
+		return;
+	}
+
 	try
 	{
-		service = boost::shared_ptr<FastoreService>(new FastoreService(config));
+		auto handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(coreConfig));
+		auto processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(handler));
+		service = boost::shared_ptr<FastoreService>(new FastoreService(serviceConfig, processor));
 	}
 	catch (const exception& e)
 	{
@@ -56,6 +94,9 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 		cout << "Error shutting down service: " << e.what();
 		return;
 	}
+
+	// Cleanup winsock
+	WSACleanup();
 }
 
 //
@@ -110,15 +151,21 @@ vector<string> argsToVector(int argc, _TCHAR* argv[])
 	return args;
 }
 
-ServiceConfig getConfig(vector<string>& args)
+struct CombinedConfig
 {
-	ServiceConfig config;
+	ServiceConfig serviceConfig;
+	CoreConfig coreConfig;
+};
+
+CombinedConfig getConfig(vector<string>& args)
+{
+	CombinedConfig config;
 
 	// TODO: set configuration from arguments and/or from file...
 	for (int i = 0; i < args.size(); i++)
 	{
 		if (args[i] == "-p" && args.size() - 1 > i)
-			istringstream(args[i + 1]) >> config.port;
+			istringstream(args[i + 1]) >> config.serviceConfig.port;
 		else if (args[i] == "-dp" && args.size() - 1 > i)
 			config.coreConfig.dataPath = args[i + 1];
 	}
@@ -133,12 +180,12 @@ void __cdecl _tmain(int argc, _TCHAR* argv[])
 
 	if (lstrcmpi( argv[1], TEXT("-run")) == 0 || lstrcmpi( argv[1], TEXT("-r")) == 0)
 	{
-		ServiceConfig config = getConfig(argsToVector(argc, argv));
+		auto config = getConfig(argsToVector(argc, argv));
 
-		cout << "Configuration: port = " << config.port << "	data path = '" << config.coreConfig.dataPath << "'\n";
+		cout << "Configuration: port = " << config.serviceConfig.port << "	data path = '" << config.coreConfig.dataPath << "'\n";
 
 		cout << "Service starting....\n";
-		RunService(&ConsoleStarted, &ConsoleStopping, config);
+		RunService(&ConsoleStarted, &ConsoleStopping, config.serviceConfig, config.coreConfig);
 		cout << "Service stopped.\n";
 		return;
 	}
@@ -270,10 +317,10 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR* lpszArgv )
 	ReportSvcStatus(SERVICE_START_PENDING, NO_ERROR, 3000);
 
 	// Get configuration
-	ServiceConfig config = getConfig(argsToVector(dwArgc, lpszArgv));
+	auto config = getConfig(argsToVector(dwArgc, lpszArgv));
 
 	// Run the service
-	RunService(&ServiceStarted, &ServiceStopping, config);
+	RunService(&ServiceStarted, &ServiceStopping, config.serviceConfig, config.coreConfig);
 
 	// Report stopped status to the SCM
 	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);

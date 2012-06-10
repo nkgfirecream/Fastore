@@ -158,9 +158,10 @@ class Worker_prepare_pargs {
 };
 
 typedef struct _Worker_prepare_result__isset {
-  _Worker_prepare_result__isset() : success(false), notLatest(false) {}
+  _Worker_prepare_result__isset() : success(false), notLatest(false), alreadyPending(false) {}
   bool success;
   bool notLatest;
+  bool alreadyPending;
 } _Worker_prepare_result__isset;
 
 class Worker_prepare_result {
@@ -173,6 +174,7 @@ class Worker_prepare_result {
 
   Revision success;
   NotLatest notLatest;
+  AlreadyPending alreadyPending;
 
   _Worker_prepare_result__isset __isset;
 
@@ -184,11 +186,17 @@ class Worker_prepare_result {
     notLatest = val;
   }
 
+  void __set_alreadyPending(const AlreadyPending& val) {
+    alreadyPending = val;
+  }
+
   bool operator == (const Worker_prepare_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     if (!(notLatest == rhs.notLatest))
+      return false;
+    if (!(alreadyPending == rhs.alreadyPending))
       return false;
     return true;
   }
@@ -204,9 +212,10 @@ class Worker_prepare_result {
 };
 
 typedef struct _Worker_prepare_presult__isset {
-  _Worker_prepare_presult__isset() : success(false), notLatest(false) {}
+  _Worker_prepare_presult__isset() : success(false), notLatest(false), alreadyPending(false) {}
   bool success;
   bool notLatest;
+  bool alreadyPending;
 } _Worker_prepare_presult__isset;
 
 class Worker_prepare_presult {
@@ -217,6 +226,7 @@ class Worker_prepare_presult {
 
   Revision* success;
   NotLatest notLatest;
+  AlreadyPending alreadyPending;
 
   _Worker_prepare_presult__isset __isset;
 
@@ -285,8 +295,9 @@ class Worker_apply_pargs {
 };
 
 typedef struct _Worker_apply_result__isset {
-  _Worker_apply_result__isset() : success(false) {}
+  _Worker_apply_result__isset() : success(false), alreadyPending(false) {}
   bool success;
+  bool alreadyPending;
 } _Worker_apply_result__isset;
 
 class Worker_apply_result {
@@ -298,6 +309,7 @@ class Worker_apply_result {
   virtual ~Worker_apply_result() throw() {}
 
   TransactionID success;
+  AlreadyPending alreadyPending;
 
   _Worker_apply_result__isset __isset;
 
@@ -305,9 +317,15 @@ class Worker_apply_result {
     success = val;
   }
 
+  void __set_alreadyPending(const AlreadyPending& val) {
+    alreadyPending = val;
+  }
+
   bool operator == (const Worker_apply_result & rhs) const
   {
     if (!(success == rhs.success))
+      return false;
+    if (!(alreadyPending == rhs.alreadyPending))
       return false;
     return true;
   }
@@ -323,8 +341,9 @@ class Worker_apply_result {
 };
 
 typedef struct _Worker_apply_presult__isset {
-  _Worker_apply_presult__isset() : success(false) {}
+  _Worker_apply_presult__isset() : success(false), alreadyPending(false) {}
   bool success;
+  bool alreadyPending;
 } _Worker_apply_presult__isset;
 
 class Worker_apply_presult {
@@ -334,6 +353,7 @@ class Worker_apply_presult {
   virtual ~Worker_apply_presult() throw() {}
 
   TransactionID* success;
+  AlreadyPending alreadyPending;
 
   _Worker_apply_presult__isset __isset;
 
@@ -392,43 +412,6 @@ class Worker_commit_pargs {
 
 };
 
-
-class Worker_commit_result {
- public:
-
-  Worker_commit_result() {
-  }
-
-  virtual ~Worker_commit_result() throw() {}
-
-
-  bool operator == (const Worker_commit_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const Worker_commit_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_commit_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_commit_presult {
- public:
-
-
-  virtual ~Worker_commit_presult() throw() {}
-
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
 typedef struct _Worker_rollback_args__isset {
   _Worker_rollback_args__isset() : transactionID(false) {}
   bool transactionID;
@@ -477,43 +460,6 @@ class Worker_rollback_pargs {
   const TransactionID* transactionID;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_rollback_result {
- public:
-
-  Worker_rollback_result() {
-  }
-
-  virtual ~Worker_rollback_result() throw() {}
-
-
-  bool operator == (const Worker_rollback_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const Worker_rollback_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_rollback_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_rollback_presult {
- public:
-
-
-  virtual ~Worker_rollback_presult() throw() {}
-
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
@@ -1257,10 +1203,8 @@ class WorkerClient : virtual public WorkerIf {
   void recv_apply(TransactionID& _return);
   void commit(const TransactionID& transactionID);
   void send_commit(const TransactionID& transactionID);
-  void recv_commit();
   void rollback(const TransactionID& transactionID);
   void send_rollback(const TransactionID& transactionID);
-  void recv_rollback();
   void flush(const TransactionID& transactionID);
   void send_flush(const TransactionID& transactionID);
   void recv_flush();

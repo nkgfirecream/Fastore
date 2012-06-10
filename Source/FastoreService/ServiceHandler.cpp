@@ -2,7 +2,7 @@
 
 using namespace std;
 
-ServiceHandler::ServiceHandler(const ServiceConfig& config) : _host(config.coreConfig)
+ServiceHandler::ServiceHandler(const CoreConfig& config) : _host(config)
 {
 }
 

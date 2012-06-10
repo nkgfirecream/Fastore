@@ -2014,6 +2014,68 @@ void swap(NotLatest &a, NotLatest &b) {
   swap(a.__isset, b.__isset);
 }
 
+const char* AlreadyPending::ascii_fingerprint = "9CFE4A6581B5B8EB11F5BBBCEFA07940";
+const uint8_t AlreadyPending::binary_fingerprint[16] = {0x9C,0xFE,0x4A,0x65,0x81,0xB5,0xB8,0xEB,0x11,0xF5,0xBB,0xBC,0xEF,0xA0,0x79,0x40};
+
+uint32_t AlreadyPending::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->pendingTransactionID.read(iprot);
+          this->__isset.pendingTransactionID = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t AlreadyPending::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("AlreadyPending");
+
+  xfer += oprot->writeFieldBegin("pendingTransactionID", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->pendingTransactionID.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(AlreadyPending &a, AlreadyPending &b) {
+  using ::std::swap;
+  swap(a.pendingTransactionID, b.pendingTransactionID);
+  swap(a.__isset, b.__isset);
+}
+
 const char* Conflict::ascii_fingerprint = "920F6571EE6C0CF61556A788D6042213";
 const uint8_t Conflict::binary_fingerprint[16] = {0x92,0x0F,0x65,0x71,0xEE,0x6C,0x0C,0xF6,0x15,0x56,0xA7,0x88,0xD6,0x04,0x22,0x13};
 

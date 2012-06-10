@@ -5,7 +5,7 @@
 #include <thrift/transport/TBufferTransports.h>
 #include <utility>
 
-WorkerHandler::WorkerHandler(const ServiceConfig& config) : _host(config.coreConfig)
+WorkerHandler::WorkerHandler(const CoreConfig& config) : _host(config)
 {
 }
 

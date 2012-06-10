@@ -1073,6 +1073,49 @@ class NotLatest : public ::apache::thrift::TException {
 
 void swap(NotLatest &a, NotLatest &b);
 
+typedef struct _AlreadyPending__isset {
+  _AlreadyPending__isset() : pendingTransactionID(false) {}
+  bool pendingTransactionID;
+} _AlreadyPending__isset;
+
+class AlreadyPending : public ::apache::thrift::TException {
+ public:
+
+  static const char* ascii_fingerprint; // = "9CFE4A6581B5B8EB11F5BBBCEFA07940";
+  static const uint8_t binary_fingerprint[16]; // = {0x9C,0xFE,0x4A,0x65,0x81,0xB5,0xB8,0xEB,0x11,0xF5,0xBB,0xBC,0xEF,0xA0,0x79,0x40};
+
+  AlreadyPending() {
+  }
+
+  virtual ~AlreadyPending() throw() {}
+
+  TransactionID pendingTransactionID;
+
+  _AlreadyPending__isset __isset;
+
+  void __set_pendingTransactionID(const TransactionID& val) {
+    pendingTransactionID = val;
+  }
+
+  bool operator == (const AlreadyPending & rhs) const
+  {
+    if (!(pendingTransactionID == rhs.pendingTransactionID))
+      return false;
+    return true;
+  }
+  bool operator != (const AlreadyPending &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const AlreadyPending & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(AlreadyPending &a, AlreadyPending &b);
+
 typedef struct _Conflict__isset {
   _Conflict__isset() : details(false), columnIDs(false) {}
   bool details;

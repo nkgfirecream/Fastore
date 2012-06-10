@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "..\FastoreCore\FastoreHost.h"
 #include "..\FastoreCommunication\Service.h"
-#include "ServiceConfig.h"
 #include <thrift/server/TServer.h>
 
 using namespace ::apache::thrift;
@@ -20,7 +19,7 @@ private:
 	FastoreHost _host;
 
 public:
-	ServiceHandler(const ServiceConfig& config);
+	ServiceHandler(const CoreConfig& config);
 
 	void getTopology(TopologyResult& _return);
 	Revision prepareTopology(const TransactionID& transactionID, const Topology& topology);

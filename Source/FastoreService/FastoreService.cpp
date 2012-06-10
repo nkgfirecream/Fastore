@@ -1,82 +1,37 @@
-#define WIN32_LEAN_AND_MEAN
 #include "FastoreService.h"
-#include "ServiceHandler.h"
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdio.h>
 #include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/server/TThreadPoolServer.h>
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
-#include <thrift/concurrency/ThreadManager.h>
-#include <thrift/concurrency/PlatformThreadFactory.h>
 
 using namespace std;
+using namespace apache::thrift;
+using namespace apache::thrift::protocol;
+using namespace apache::thrift::transport;
+using namespace apache::thrift::server;
 
 class FastoreService::impl
 {
-	boost::shared_ptr<ServiceHandler> _handler;
 	boost::shared_ptr<TProcessor> _processor;
 	boost::shared_ptr<TServerTransport> _serverTransport;
 	boost::shared_ptr<TTransportFactory> _transportFactory;
 	boost::shared_ptr<TProtocolFactory> _protocolFactory;
-	boost::shared_ptr<ThreadManager> _threadManager;
-	boost::shared_ptr<concurrency::PlatformThreadFactory> _threadFactory;
 	boost::shared_ptr<TServer> _server;
 
 public:
 
-	impl(const ServiceConfig& config)	
+	impl(const ServiceConfig& config, const boost::shared_ptr<TProcessor> processor)	
 	{
-		//Open windows sockets
-		WORD wVersionRequested;
-		WSADATA wsaData;
-		int err;
-
-		/* Use the MAKEWORD(lowbyte, highbyte) macro declared in Windef.h */
-		wVersionRequested = MAKEWORD(2, 2);
-
-		err = WSAStartup(wVersionRequested, &wsaData);
-		if (err != 0) 
-		{
-			/* Tell the user that we could not find a usable */
-			/* Winsock DLL.                                  */
-			throw exception("WSAStartup failed with error: %d\n", err);
-		}
-
-		/* Confirm that the WinSock DLL supports 2.2.*/
-		/* Note that if the DLL supports versions greater    */
-		/* than 2.2 in addition to 2.2, it will still return */
-		/* 2.2 in wVersion since that is the version we      */
-		/* requested.                                        */
-
-		if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) 
-		{
-			/* Tell the user that we could not find a usable */
-			/* WinSock DLL.                                  */
-			WSACleanup();
-			throw exception("Could not find a usable version (2.2) of Winsock.dll\n");
-		}
-
-		_handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(config));
-		_processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(_handler));
+		_processor = processor;
 		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
 		_transportFactory = boost::shared_ptr<TTransportFactory>(new TBufferedTransportFactory());
 		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
-	
-		_threadManager = ThreadManager::newSimpleThreadManager(config.socketThreadCount, config.socketPendingCount);
-		_threadFactory = boost::shared_ptr<concurrency::PlatformThreadFactory>(new concurrency::PlatformThreadFactory());
-		_threadManager->threadFactory(_threadFactory);
-		_threadManager->start();
-
-		_server = boost::shared_ptr<TThreadPoolServer>(new TThreadPoolServer(_processor, _serverTransport, _transportFactory, _protocolFactory, _threadManager));
+		_server = boost::shared_ptr<TSimpleServer>(new TSimpleServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
 	}
 
 	~impl()
 	{
 		Stop();
-		WSACleanup();
 	}
 
 	void Run()
@@ -90,7 +45,7 @@ public:
 	}
 };
 
-FastoreService::FastoreService(const ServiceConfig& config) : _pimpl(new impl(config))
+FastoreService::FastoreService(const ServiceConfig& config, const boost::shared_ptr<TProcessor>& processor) : _pimpl(new impl(config, processor))
 { }
 
 void FastoreService::Run()
