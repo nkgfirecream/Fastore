@@ -1,10 +1,3 @@
-#include "Service.h"
-#include "errors.h"
-#include "FastoreService.h"
-#include "ServiceHandler.h"
-#include "ServiceConfig.h"
-
-#include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <tchar.h>
@@ -15,6 +8,13 @@
 #include <sstream>
 #include <vector>
 #include <string>
+
+#include "Service.h"
+#include "errors.h"
+#include "FastoreService.h"
+#include "ServiceHandler.h"
+#include "ServiceConfig.h"
+
 
 using namespace std;
 
@@ -135,18 +135,18 @@ void ConsoleStopping()
 	cout << "Stopping Service...\n";
 }
 
-void ConsoleError(string message)
+void ConsoleError(std::string message)
 {
 	cout << message;
 }
 
-vector<string> argsToVector(int argc, _TCHAR* argv[])
+vector<std::string> argsToVector(int argc, _TCHAR* argv[])
 {
-	vector<string> args;
+	vector<std::string> args;
 	for (int i = 1; i < argc; i++) 
 	{
-		wstring current(argv[i]);
-		args.push_back(string(current.begin(), current.end()));
+		std::wstring current(argv[i]);
+		args.push_back(std::string(current.begin(), current.end()));
 	}
 	return args;
 }
@@ -157,7 +157,7 @@ struct CombinedConfig
 	CoreConfig coreConfig;
 };
 
-CombinedConfig getConfig(vector<string>& args)
+CombinedConfig getConfig(vector<std::string>& args)
 {
 	CombinedConfig config;
 
