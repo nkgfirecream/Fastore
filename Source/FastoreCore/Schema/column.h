@@ -4,7 +4,7 @@
 
 struct ColumnDef
 {
-	fs::string Name;
+	std::string Name;
 	ScalarType ValueType;
 	ScalarType RowIDType;
 	bool IsUnique;

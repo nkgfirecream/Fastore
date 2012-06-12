@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include "..\FastoreCore\FastoreHost.h"
 #include "..\FastoreCommunication\Service.h"
 #include <thrift/server/TServer.h>

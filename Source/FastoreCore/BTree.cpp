@@ -45,7 +45,7 @@ void BTree::setValuesMovedCallback(valuesMovedHandler callback)
 	_valuesMovedCallback = callback;
 }
 
-fs::wstring BTree::ToString()
+std::wstring BTree::ToString()
 {
 	return _root->ToString();
 }

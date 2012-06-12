@@ -1,20 +1,19 @@
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <tchar.h>
-#include <strsafe.h>
-#include <exception>
-#include <boost/shared_ptr.hpp>
-#include <iostream>
-#include <sstream>
-#include <vector>
-#include <string>
-
 #include "Service.h"
 #include "errors.h"
 #include "FastoreService.h"
 #include "ServiceHandler.h"
 #include "ServiceConfig.h"
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+
+#include <boost/shared_ptr.hpp>
+#include <iostream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <strsafe.h>
 
 using namespace std;
 
@@ -135,18 +134,18 @@ void ConsoleStopping()
 	cout << "Stopping Service...\n";
 }
 
-void ConsoleError(std::string message)
+void ConsoleError(string message)
 {
 	cout << message;
 }
 
-vector<std::string> argsToVector(int argc, _TCHAR* argv[])
+vector<string> argsToVector(int argc, wchar_t* argv[])
 {
-	vector<std::string> args;
+	vector<string> args;
 	for (int i = 1; i < argc; i++) 
 	{
-		std::wstring current(argv[i]);
-		args.push_back(std::string(current.begin(), current.end()));
+		wstring current(argv[i]);
+		args.push_back(string(current.begin(), current.end()));
 	}
 	return args;
 }
@@ -157,7 +156,7 @@ struct CombinedConfig
 	CoreConfig coreConfig;
 };
 
-CombinedConfig getConfig(vector<std::string>& args)
+CombinedConfig getConfig(vector<string>& args)
 {
 	CombinedConfig config;
 
@@ -173,7 +172,7 @@ CombinedConfig getConfig(vector<std::string>& args)
 	return config;
 }
 
-void __cdecl _tmain(int argc, _TCHAR* argv[])
+void __cdecl _tmain(int argc, wchar_t* argv[])
 {
 	// If command-line parameter is "install", install the service. 
 	// Otherwise, the service is probably being started by the SCM.

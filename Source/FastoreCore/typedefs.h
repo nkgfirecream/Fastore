@@ -4,8 +4,6 @@
 
 namespace fs
 {
-	typedef std::wstring wstring;
-	typedef std::string string;
 	typedef void* Value;
 	typedef void* Key;
 

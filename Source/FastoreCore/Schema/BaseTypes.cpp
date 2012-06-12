@@ -27,10 +27,10 @@ int LongCompare(const void* left, const void* right)
 	return (*(long long*)left - *(long long*)right);
 }
 
-fs::wstring LongString(const void* item)
+std::wstring LongString(const void* item)
 {
 	long long temp = *(long long *)item;
-	fs::wstring converted = to_wstring(temp);
+	std::wstring converted = to_wstring(temp);
 	return converted;
 }
 
@@ -77,7 +77,7 @@ int IntCompare(const void* left, const void* right)
 	return *(int*)left - *(int*)right;
 }
 
-fs::wstring IntString(const void* item)
+std::wstring IntString(const void* item)
 {
 	wstringstream result;
 	result << *(int*)item;
@@ -139,7 +139,7 @@ int BoolCompare(const void* left, const void* right)
 	}
 }
 
-fs::wstring BoolString(const void* item)
+std::wstring BoolString(const void* item)
 {
 	wstringstream result;
 	result << *(bool*)item;

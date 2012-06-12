@@ -38,7 +38,7 @@ class BTree
 		BTree(ScalarType keyType, ScalarType valueType);
 		~BTree();
 
-		fs::wstring ToString();
+		std::wstring ToString();
 		int getListCapacity();
 
 		const static short DefaultListCapacity = 64;
@@ -197,7 +197,7 @@ class Node
 			throw;
 		}
 
-		fs::wstring ToString()
+		std::wstring ToString()
 		{
 			if (_type == 1)
 			{

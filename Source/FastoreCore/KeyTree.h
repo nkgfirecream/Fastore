@@ -38,7 +38,7 @@ class KeyTree
 
 		const static short DefaultListCapacity = 64;
 
-		fs::wstring ToString();
+		std::wstring ToString();
 		int getListCapacity();
 
 		struct PathNode
@@ -193,7 +193,7 @@ class KeyNode
 			return match ? result : ~result;
 		}
 
-		fs::wstring ToString()
+		std::wstring ToString()
 		{
 			if (_type == 1)
 			{

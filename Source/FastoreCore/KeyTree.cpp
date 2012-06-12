@@ -31,7 +31,7 @@ KeyTree::Path KeyTree::GetPath(void* key)
 	return result;
 }
 
-fs::wstring KeyTree::ToString()
+std::wstring KeyTree::ToString()
 {
 	return _root->ToString();
 }

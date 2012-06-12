@@ -3,5 +3,5 @@
 
 struct CoreConfig
 {
-	fs::string dataPath;
+	std::string dataPath;
 };

@@ -46,7 +46,7 @@ template<> void CopyToArray<BTree*>(const void* item, void* arrpointer)
 	memcpy(arrpointer, item, sizeof(BTree*));
 }
 
-fs::wstring KeyTreeString(const void* item)
+std::wstring KeyTreeString(const void* item)
 {
 	wstringstream result;
 	result << (*(KeyTree**)item)->ToString();

@@ -1100,29 +1100,29 @@ void TestTransactionID()
 //	}
 //}
 
-std::vector<fs::wstring> split(const fs::wstring& s, wchar_t delim, unsigned int length)
+std::vector<std::wstring> split(const std::wstring& s, wchar_t delim, unsigned int length)
 {
-	std::vector<fs::wstring> elems(length);
+	std::vector<std::wstring> elems(length);
     wstringstream ss(s);
-    fs::wstring item;
+    std::wstring item;
 	unsigned int i = 0;
     while(getline(ss, item, delim) && i < length)
 	{
 		if (item != L"")
 			elems[i] = item;
 		else
-			elems[i] = fs::wstring(L"-");
+			elems[i] = std::wstring(L"-");
 		i++;
     }
 	while(i < length)
 	{
-		elems[i] = fs::wstring(L"-");
+		elems[i] = std::wstring(L"-");
 		i++;
 	}
     return elems;
 }
 
-bool stringtobool(const fs::wstring& s)
+bool stringtobool(const std::wstring& s)
 {
 	return s.size() > 0 && (s.at(0) == 't' ||  s.at(0) == 'T' || s.at(0) == '0');
 }

@@ -7,7 +7,7 @@ struct ScalarType
 {
 	typedef int (*CompareFunc)(const void* left, const void* right);
 	typedef int (*IndexOfFunc)(const char* items, const int count, void *key);
-	typedef fs::wstring (*ToStringFunc)(const void* item);
+	typedef std::wstring (*ToStringFunc)(const void* item);
 	typedef void (*CopyInFunc)(const void* item, void* arraypointer);
 	typedef void (*EncodeFunc)(const void*, std::string&);
 	typedef void (*DecodeFunc)(const std::string&, void*);
@@ -20,7 +20,7 @@ struct ScalarType
 	CompareFunc Compare;
 	IndexOfFunc IndexOf;
 	CopyInFunc CopyIn;
-	fs::string Name;
+	std::string Name;
 	EncodeFunc Encode;
 	DecodeFunc Decode;
 	AllocateFunc Allocate;

@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include "..\FastoreCore\FastoreHost.h"
 #include "..\FastoreCommunication\Worker.h"
 #include "ServiceConfig.h"

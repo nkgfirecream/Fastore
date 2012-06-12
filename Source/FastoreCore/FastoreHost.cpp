@@ -124,9 +124,9 @@ void FastoreHost::CreateColumn(int columnId)
 {
 	ColumnDef def;
 	def.ColumnID = columnId;
-	def.Name = *(fs::string*)GetColumn(1).first->GetValue(&columnId);
-	def.ValueType = GetScalarTypeFromString(*(fs::string*)GetColumn(2).first->GetValue(&columnId));
-	def.RowIDType = GetScalarTypeFromString(*(fs::string*)GetColumn(3).first->GetValue(&columnId));
+	def.Name = *(std::string*)GetColumn(1).first->GetValue(&columnId);
+	def.ValueType = GetScalarTypeFromString(*(std::string*)GetColumn(2).first->GetValue(&columnId));
+	def.RowIDType = GetScalarTypeFromString(*(std::string*)GetColumn(3).first->GetValue(&columnId));
 	def.IsUnique = *(bool*)GetColumn(4).first->GetValue(&columnId);
 
 	CreateColumn(def);

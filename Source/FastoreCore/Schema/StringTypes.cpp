@@ -4,10 +4,10 @@ using namespace std;
 
 int StringCompare(const void* left, const void* right)
 {
-	return ((fs::string*)left)->compare(*(fs::string*)right);
+	return ((std::string*)left)->compare(*(std::string*)right);
 }
 
-fs::wstring StringString(const void* item)
+std::wstring StringString(const void* item)
 {
 	//wstring ws(((fs::string*)item)->begin(),((fs::string*)item)->end());
 	return wstring(L"String -> WString - Broken");
@@ -15,8 +15,8 @@ fs::wstring StringString(const void* item)
 
 size_t StringHash(const void* item)
 {
-	static std::hash<fs::string> hash;
-	return hash(*(fs::string*)item);
+	static std::hash<std::string> hash;
+	return hash(*(std::string*)item);
 }
 
 void EncodeString(const void* input, std::string& output)
@@ -45,11 +45,11 @@ StringType::StringType()
 {
 	Name = "String";
 	Compare = StringCompare;
-	Size = sizeof(fs::string);
+	Size = sizeof(std::string);
 	ToString = StringString;
 	Hash = StringHash;
-	IndexOf = CompareIndexOf<fs::string, StringCompare>;
-	CopyIn = CopyToArray<fs::string>;
+	IndexOf = CompareIndexOf<std::string, StringCompare>;
+	CopyIn = CopyToArray<std::string>;
 	Encode = EncodeString;
 	Decode = DecodeString;
 	Allocate = AllocateString;
@@ -58,18 +58,18 @@ StringType::StringType()
 
 int WStringCompare(const void* left, const void* right)
 {
-	return ((fs::wstring*)left)->compare(*(fs::wstring*)right);
+	return ((std::wstring*)left)->compare(*(std::wstring*)right);
 }
 
-fs::wstring WStringString(const void* item)
+std::wstring WStringString(const void* item)
 {
-	return *(fs::wstring*)item;
+	return *(std::wstring*)item;
 }
 
 size_t WStringHash(const void* item)
 {
-	static std::hash<fs::wstring> hash;
-	return hash(*(fs::wstring*)item);
+	static std::hash<std::wstring> hash;
+	return hash(*(std::wstring*)item);
 }
 
 void EncodeWString(const void* input, std::string& output)
@@ -100,11 +100,11 @@ WStringType::WStringType()
 {
 	Name = "WString";
 	Compare = WStringCompare;
-	Size = sizeof(fs::wstring);
+	Size = sizeof(std::wstring);
 	ToString = WStringString;
 	Hash = WStringHash;
-	IndexOf = CompareIndexOf<fs::wstring, WStringCompare>;
-	CopyIn = CopyToArray<fs::wstring>;
+	IndexOf = CompareIndexOf<std::wstring, WStringCompare>;
+	CopyIn = CopyToArray<std::wstring>;
 	Encode = EncodeWString;
 	Decode = DecodeWString;
 	Allocate = AllocateWString;
