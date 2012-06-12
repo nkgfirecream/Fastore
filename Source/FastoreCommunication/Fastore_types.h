@@ -47,8 +47,6 @@ struct LockMode {
 
 extern const std::map<int, const char*> _LockMode_VALUES_TO_NAMES;
 
-typedef int64_t Revision;
-
 typedef int32_t TopologyID;
 
 typedef int32_t ColumnID;
@@ -69,6 +67,8 @@ typedef std::string LockName;
 
 typedef int32_t LockTimeout;
 
+typedef int64_t Revision;
+
 typedef std::map<ColumnID, class ColumnWrites>  Writes;
 
 typedef std::vector<class ValueRows>  ValueRowsList;
@@ -80,174 +80,6 @@ typedef std::map<ColumnID, class ReadResult>  ReadResults;
 typedef std::map<class Query, class Answer>  Read;
 
 typedef std::map<ColumnID, Read>  Reads;
-
-typedef struct _Pod__isset {
-  _Pod__isset() : columnIDs(false) {}
-  bool columnIDs;
-} _Pod__isset;
-
-class Pod {
- public:
-
-  static const char* ascii_fingerprint; // = "FF7335CAA8E1AFD6418DDE8FC093C053";
-  static const uint8_t binary_fingerprint[16]; // = {0xFF,0x73,0x35,0xCA,0xA8,0xE1,0xAF,0xD6,0x41,0x8D,0xDE,0x8F,0xC0,0x93,0xC0,0x53};
-
-  Pod() {
-  }
-
-  virtual ~Pod() throw() {}
-
-  std::set<ColumnID>  columnIDs;
-
-  _Pod__isset __isset;
-
-  void __set_columnIDs(const std::set<ColumnID> & val) {
-    columnIDs = val;
-  }
-
-  bool operator == (const Pod & rhs) const
-  {
-    if (!(columnIDs == rhs.columnIDs))
-      return false;
-    return true;
-  }
-  bool operator != (const Pod &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Pod & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Pod &a, Pod &b);
-
-
-class Host {
- public:
-
-  static const char* ascii_fingerprint; // = "7D03D12D882B7BC9C0B19273F944DDBF";
-  static const uint8_t binary_fingerprint[16]; // = {0x7D,0x03,0xD1,0x2D,0x88,0x2B,0x7B,0xC9,0xC0,0xB1,0x92,0x73,0xF9,0x44,0xDD,0xBF};
-
-  Host() {
-  }
-
-  virtual ~Host() throw() {}
-
-  std::map<PodID, Pod>  pods;
-
-  void __set_pods(const std::map<PodID, Pod> & val) {
-    pods = val;
-  }
-
-  bool operator == (const Host & rhs) const
-  {
-    if (!(pods == rhs.pods))
-      return false;
-    return true;
-  }
-  bool operator != (const Host &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Host & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Host &a, Host &b);
-
-
-class Topology {
- public:
-
-  static const char* ascii_fingerprint; // = "D03993086D93441815A7DE971F647F31";
-  static const uint8_t binary_fingerprint[16]; // = {0xD0,0x39,0x93,0x08,0x6D,0x93,0x44,0x18,0x15,0xA7,0xDE,0x97,0x1F,0x64,0x7F,0x31};
-
-  Topology() : id(0) {
-  }
-
-  virtual ~Topology() throw() {}
-
-  TopologyID id;
-  std::map<HostID, Host>  hosts;
-
-  void __set_id(const TopologyID val) {
-    id = val;
-  }
-
-  void __set_hosts(const std::map<HostID, Host> & val) {
-    hosts = val;
-  }
-
-  bool operator == (const Topology & rhs) const
-  {
-    if (!(id == rhs.id))
-      return false;
-    if (!(hosts == rhs.hosts))
-      return false;
-    return true;
-  }
-  bool operator != (const Topology &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Topology & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Topology &a, Topology &b);
-
-
-class TopologyResult {
- public:
-
-  static const char* ascii_fingerprint; // = "B2F811563D061F49A14BDC842D3A5102";
-  static const uint8_t binary_fingerprint[16]; // = {0xB2,0xF8,0x11,0x56,0x3D,0x06,0x1F,0x49,0xA1,0x4B,0xDC,0x84,0x2D,0x3A,0x51,0x02};
-
-  TopologyResult() : revision(0) {
-  }
-
-  virtual ~TopologyResult() throw() {}
-
-  Topology topology;
-  Revision revision;
-
-  void __set_topology(const Topology& val) {
-    topology = val;
-  }
-
-  void __set_revision(const Revision val) {
-    revision = val;
-  }
-
-  bool operator == (const TopologyResult & rhs) const
-  {
-    if (!(topology == rhs.topology))
-      return false;
-    if (!(revision == rhs.revision))
-      return false;
-    return true;
-  }
-  bool operator != (const TopologyResult &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const TopologyResult & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(TopologyResult &a, TopologyResult &b);
 
 
 class WorkerState {
@@ -417,6 +249,152 @@ class HiveState {
 };
 
 void swap(HiveState &a, HiveState &b);
+
+typedef struct _LockExpired__isset {
+  _LockExpired__isset() : lockID(false) {}
+  bool lockID;
+} _LockExpired__isset;
+
+class LockExpired : public ::apache::thrift::TException {
+ public:
+
+  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
+  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
+
+  LockExpired() : lockID(0) {
+  }
+
+  virtual ~LockExpired() throw() {}
+
+  LockID lockID;
+
+  _LockExpired__isset __isset;
+
+  void __set_lockID(const LockID val) {
+    lockID = val;
+  }
+
+  bool operator == (const LockExpired & rhs) const
+  {
+    if (!(lockID == rhs.lockID))
+      return false;
+    return true;
+  }
+  bool operator != (const LockExpired &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const LockExpired & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(LockExpired &a, LockExpired &b);
+
+
+class LockTimedOut : public ::apache::thrift::TException {
+ public:
+
+  static const char* ascii_fingerprint; // = "99914B932BD37A50B983C5E7C90AE93B";
+  static const uint8_t binary_fingerprint[16]; // = {0x99,0x91,0x4B,0x93,0x2B,0xD3,0x7A,0x50,0xB9,0x83,0xC5,0xE7,0xC9,0x0A,0xE9,0x3B};
+
+  LockTimedOut() {
+  }
+
+  virtual ~LockTimedOut() throw() {}
+
+
+  bool operator == (const LockTimedOut & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const LockTimedOut &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const LockTimedOut & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(LockTimedOut &a, LockTimedOut &b);
+
+typedef struct _AlreadyJoined__isset {
+  _AlreadyJoined__isset() : hostID(false) {}
+  bool hostID;
+} _AlreadyJoined__isset;
+
+class AlreadyJoined : public ::apache::thrift::TException {
+ public:
+
+  static const char* ascii_fingerprint; // = "E86CACEB22240450EDCBEFC3A83970E4";
+  static const uint8_t binary_fingerprint[16]; // = {0xE8,0x6C,0xAC,0xEB,0x22,0x24,0x04,0x50,0xED,0xCB,0xEF,0xC3,0xA8,0x39,0x70,0xE4};
+
+  AlreadyJoined() : hostID(0) {
+  }
+
+  virtual ~AlreadyJoined() throw() {}
+
+  HostID hostID;
+
+  _AlreadyJoined__isset __isset;
+
+  void __set_hostID(const HostID val) {
+    hostID = val;
+  }
+
+  bool operator == (const AlreadyJoined & rhs) const
+  {
+    if (!(hostID == rhs.hostID))
+      return false;
+    return true;
+  }
+  bool operator != (const AlreadyJoined &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const AlreadyJoined & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(AlreadyJoined &a, AlreadyJoined &b);
+
+
+class NotJoined : public ::apache::thrift::TException {
+ public:
+
+  static const char* ascii_fingerprint; // = "99914B932BD37A50B983C5E7C90AE93B";
+  static const uint8_t binary_fingerprint[16]; // = {0x99,0x91,0x4B,0x93,0x2B,0xD3,0x7A,0x50,0xB9,0x83,0xC5,0xE7,0xC9,0x0A,0xE9,0x3B};
+
+  NotJoined() {
+  }
+
+  virtual ~NotJoined() throw() {}
+
+
+  bool operator == (const NotJoined & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const NotJoined &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const NotJoined & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(NotJoined &a, NotJoined &b);
 
 
 class TransactionID {
@@ -1209,79 +1187,6 @@ class BeyondHistory : public ::apache::thrift::TException {
 };
 
 void swap(BeyondHistory &a, BeyondHistory &b);
-
-typedef struct _LockExpired__isset {
-  _LockExpired__isset() : lockID(false) {}
-  bool lockID;
-} _LockExpired__isset;
-
-class LockExpired : public ::apache::thrift::TException {
- public:
-
-  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
-  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
-
-  LockExpired() : lockID(0) {
-  }
-
-  virtual ~LockExpired() throw() {}
-
-  LockID lockID;
-
-  _LockExpired__isset __isset;
-
-  void __set_lockID(const LockID val) {
-    lockID = val;
-  }
-
-  bool operator == (const LockExpired & rhs) const
-  {
-    if (!(lockID == rhs.lockID))
-      return false;
-    return true;
-  }
-  bool operator != (const LockExpired &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const LockExpired & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(LockExpired &a, LockExpired &b);
-
-
-class LockTimedOut : public ::apache::thrift::TException {
- public:
-
-  static const char* ascii_fingerprint; // = "99914B932BD37A50B983C5E7C90AE93B";
-  static const uint8_t binary_fingerprint[16]; // = {0x99,0x91,0x4B,0x93,0x2B,0xD3,0x7A,0x50,0xB9,0x83,0xC5,0xE7,0xC9,0x0A,0xE9,0x3B};
-
-  LockTimedOut() {
-  }
-
-  virtual ~LockTimedOut() throw() {}
-
-
-  bool operator == (const LockTimedOut & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const LockTimedOut &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const LockTimedOut & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(LockTimedOut &a, LockTimedOut &b);
 
 } // namespace
 

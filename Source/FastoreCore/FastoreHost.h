@@ -25,11 +25,11 @@ class FastoreHost
 
 		//Most of these will probably disappear once API work has been done.
 		void BootStrap();
-		IColumnBuffer* InstantiateColumn(ColumnDef def);
+		IColumnBuffer* InstantiateColumn(const ColumnDef& def);
 		void AddColumnToSchema(ColumnDef def);
 		void RemoveColumnFromSchema(int columnId);
 		void CreateColumn(int columnId);
-		void CreateColumn(ColumnDef  def);
+		void CreateColumn(const ColumnDef& def);
 		void DeleteColumn(const int& columnId);		
 		bool ExistsColumn(const int& columnId);
 

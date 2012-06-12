@@ -47,6 +47,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alphora\Fastore\AlreadyJoined.cs" />
     <Compile Include="Alphora\Fastore\AlreadyPending.cs" />
     <Compile Include="Alphora\Fastore\Answer.cs" />
     <Compile Include="Alphora\Fastore\BeyondHistory.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="Alphora\Fastore\LockExpired.cs" />
     <Compile Include="Alphora\Fastore\LockMode.cs" />
     <Compile Include="Alphora\Fastore\LockTimedOut.cs" />
+    <Compile Include="Alphora\Fastore\NotJoined.cs" />
     <Compile Include="Alphora\Fastore\NotLatest.cs" />
     <Compile Include="Alphora\Fastore\Pod.cs" />
     <Compile Include="Alphora\Fastore\Query.cs" />

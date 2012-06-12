@@ -23,67 +23,118 @@ FastoreHost::FastoreHost(const CoreConfig& config) : _config(config)
 void FastoreHost::BootStrap()
 {
 	ColumnDef id;
-	ColumnDef name;
-	ColumnDef vt;
-	ColumnDef idt;
-	ColumnDef unique;
-
 	id.ColumnID = 0;
 	id.Name = "Column.ID";
 	id.ValueType = standardtypes::Int;
 	id.RowIDType = standardtypes::Int;
 	id.IsUnique = true;
+	CreateColumn(id);
+	AddColumnToSchema(id);
 
+	ColumnDef name;
 	name.ColumnID = 1;
 	name.Name = "Column.Name";
 	name.ValueType = standardtypes::String;
 	name.RowIDType = standardtypes::Int;
 	name.IsUnique = false;
+	CreateColumn(name);
+	AddColumnToSchema(name);
 
+	ColumnDef vt;
 	vt.ColumnID = 2;
 	vt.Name = "Column.ValueType";
 	vt.ValueType = standardtypes::String;
 	vt.RowIDType = standardtypes::Int;
 	vt.IsUnique = false;
+	CreateColumn(vt);
+	AddColumnToSchema(vt);
 
+	ColumnDef idt;
 	idt.ColumnID = 3;
 	idt.Name = "Column.RowIDType";
 	idt.ValueType = standardtypes::String;
 	idt.RowIDType = standardtypes::Int;
 	idt.IsUnique = false;
+	CreateColumn(idt);
+	AddColumnToSchema(idt);
 
+	ColumnDef unique;
 	unique.ColumnID = 4;
 	unique.Name = "Column.IsUnique";
 	unique.ValueType = standardtypes::Bool;
 	unique.RowIDType = standardtypes::Int;
 	unique.IsUnique = false;	
-
-	IColumnBuffer* idp = InstantiateColumn(id);
-	IColumnBuffer* namep = InstantiateColumn(name);
-	IColumnBuffer* vtp = InstantiateColumn(vt);
-	IColumnBuffer* idtp = InstantiateColumn(idt);
-	IColumnBuffer* uniquep = InstantiateColumn(unique);
-
-	_columnMap.insert(std::pair<int, PointerDefPair>(id.ColumnID, PointerDefPair(idp, id)));
-	_columnMap.insert(std::pair<int, PointerDefPair>(name.ColumnID, PointerDefPair(namep, name)));
-	_columnMap.insert(std::pair<int, PointerDefPair>(vt.ColumnID, PointerDefPair(vtp, vt)));
-	_columnMap.insert(std::pair<int, PointerDefPair>(idt.ColumnID, PointerDefPair(idtp, idt)));
-	_columnMap.insert(std::pair<int, PointerDefPair>(unique.ColumnID, PointerDefPair(uniquep, unique)));
-
-	AddColumnToSchema(id);
-	AddColumnToSchema(name);
-	AddColumnToSchema(vt);
-	AddColumnToSchema(idt);
+	CreateColumn(unique);
 	AddColumnToSchema(unique);
 
-	//TODO: Make modification to these columns occur to every column in the group (pseudo-table).
-	//Whenever there is an addition see if we need to instantiate...
+	ColumnDef topo;
+	topo.ColumnID = 100;
+	topo.Name = "Topology.ID";
+	topo.ValueType = standardtypes::Int;
+	topo.RowIDType = standardtypes::Int;
+	topo.IsUnique = true;	
+	CreateColumn(topo);
+	AddColumnToSchema(topo);
+
+	ColumnDef hostId;
+	hostId.ColumnID = 200;
+	hostId.Name = "Host.ID";
+	hostId.ValueType = standardtypes::Int;
+	hostId.RowIDType = standardtypes::Int;
+	hostId.IsUnique = true;	
+	CreateColumn(hostId);
+	AddColumnToSchema(hostId);
+
+	ColumnDef hostTopoId;
+	hostTopoId.ColumnID = 201;
+	hostTopoId.Name = "Host.TopologyID";
+	hostTopoId.ValueType = standardtypes::Int;
+	hostTopoId.RowIDType = standardtypes::Int;
+	hostTopoId.IsUnique = false;	
+	CreateColumn(hostTopoId);
+	AddColumnToSchema(hostTopoId);
+
+	ColumnDef podId;
+	podId.ColumnID = 300;
+	podId.Name = "Pod.ID";
+	podId.ValueType = standardtypes::Int;
+	podId.RowIDType = standardtypes::Int;
+	podId.IsUnique = true;	
+	CreateColumn(podId);
+	AddColumnToSchema(podId);
+
+	ColumnDef podHostId;
+	podHostId.ColumnID = 301;
+	podHostId.Name = "Pod.HostID";
+	podHostId.ValueType = standardtypes::Int;
+	podHostId.RowIDType = standardtypes::Int;
+	podHostId.IsUnique = false;	
+	CreateColumn(podHostId);
+	AddColumnToSchema(podHostId);
+
+	ColumnDef podColPodId;
+	podColPodId.ColumnID = 400;
+	podColPodId.Name = "PodColumn.PodID";
+	podColPodId.ValueType = standardtypes::Int;
+	podColPodId.RowIDType = standardtypes::Int;
+	podColPodId.IsUnique = false;	
+	CreateColumn(podColPodId);
+	AddColumnToSchema(podColPodId);
+
+	ColumnDef podColColId;
+	podColColId.ColumnID = 401;
+	podColColId.Name = "PodColumn.ColumnID";
+	podColColId.ValueType = standardtypes::Int;
+	podColColId.RowIDType = standardtypes::Int;
+	podColColId.IsUnique = false;	
+	CreateColumn(podColColId);
+	AddColumnToSchema(podColColId);
 }
 
-IColumnBuffer* FastoreHost::InstantiateColumn(ColumnDef def)
+IColumnBuffer* FastoreHost::InstantiateColumn(const ColumnDef& def)
 {
 	IColumnBuffer* newbuffer;
-	//Maybe I should just pass in the entire column def...
+
 	if (def.IsUnique)
 	{
 		newbuffer = new UniqueBuffer(def.RowIDType, def.ValueType);
@@ -114,7 +165,7 @@ void FastoreHost::RemoveColumnFromSchema(int columnId)
 	_columnMap.find(4)->second.first->Exclude(&columnId);
 }
 
-void FastoreHost::CreateColumn(ColumnDef  def)
+void FastoreHost::CreateColumn(const ColumnDef& def)
 {
 	IColumnBuffer* buffer = InstantiateColumn(def);
 	_columnMap.insert(std::pair<int, PointerDefPair>(def.ColumnID, PointerDefPair(buffer, def)));

@@ -81,13 +81,13 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 Includes = new List<Include>();
-                TList _list29 = iprot.ReadListBegin();
-                for( int _i30 = 0; _i30 < _list29.Count; ++_i30)
+                TList _list15 = iprot.ReadListBegin();
+                for( int _i16 = 0; _i16 < _list15.Count; ++_i16)
                 {
-                  Include _elem31 = new Include();
-                  _elem31 = new Include();
-                  _elem31.Read(iprot);
-                  Includes.Add(_elem31);
+                  Include _elem17 = new Include();
+                  _elem17 = new Include();
+                  _elem17.Read(iprot);
+                  Includes.Add(_elem17);
                 }
                 iprot.ReadListEnd();
               }
@@ -99,13 +99,13 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 Excludes = new List<Exclude>();
-                TList _list32 = iprot.ReadListBegin();
-                for( int _i33 = 0; _i33 < _list32.Count; ++_i33)
+                TList _list18 = iprot.ReadListBegin();
+                for( int _i19 = 0; _i19 < _list18.Count; ++_i19)
                 {
-                  Exclude _elem34 = new Exclude();
-                  _elem34 = new Exclude();
-                  _elem34.Read(iprot);
-                  Excludes.Add(_elem34);
+                  Exclude _elem20 = new Exclude();
+                  _elem20 = new Exclude();
+                  _elem20.Read(iprot);
+                  Excludes.Add(_elem20);
                 }
                 iprot.ReadListEnd();
               }
@@ -133,9 +133,9 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.Struct, Includes.Count));
-          foreach (Include _iter35 in Includes)
+          foreach (Include _iter21 in Includes)
           {
-            _iter35.Write(oprot);
+            _iter21.Write(oprot);
           }
           oprot.WriteListEnd();
         }
@@ -148,9 +148,9 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.Struct, Excludes.Count));
-          foreach (Exclude _iter36 in Excludes)
+          foreach (Exclude _iter22 in Excludes)
           {
-            _iter36.Write(oprot);
+            _iter22.Write(oprot);
           }
           oprot.WriteListEnd();
         }

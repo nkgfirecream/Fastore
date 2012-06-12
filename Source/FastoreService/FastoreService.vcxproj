@@ -148,17 +148,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="errors.h" />
-    <ClInclude Include="FastoreService.h" />
+    <ClInclude Include="Endpoint.h" />
     <ClInclude Include="WorkerHandler.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
-    <ClInclude Include="ServiceConfig.h" />
+    <ClInclude Include="EndpointConfig.h" />
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FastoreService.cpp" />
+    <ClCompile Include="Endpoint.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -20,40 +20,30 @@ namespace Alphora.Fastore
   public partial class Service {
     public interface Iface {
       /// <summary>
-      /// Returns the target topology as this host presently understands it.
+      /// Initialize a new hive starting with this service
       /// </summary>
-      TopologyResult getTopology();
+      HiveState init();
       #if SILVERLIGHT
-      IAsyncResult Begin_getTopology(AsyncCallback callback, object state, );
-      TopologyResult End_getTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_init(AsyncCallback callback, object state, );
+      HiveState End_init(IAsyncResult asyncResult);
       #endif
       /// <summary>
-      /// Updates the topology and returns the new topology revision - HIVE TRANSACTED.
+      /// Associates the service with the given logical host ID within the given hive.
       /// </summary>
-      /// <param name="transactionID"></param>
-      /// <param name="topology"></param>
-      long prepareTopology(TransactionID transactionID, Topology topology);
+      /// <param name="hostID"></param>
+      /// <param name="hiveState"></param>
+      ServiceState join(int hostID, HiveState hiveState);
       #if SILVERLIGHT
-      IAsyncResult Begin_prepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology);
-      long End_prepareTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_join(AsyncCallback callback, object state, int hostID, HiveState hiveState);
+      ServiceState End_join(IAsyncResult asyncResult);
       #endif
       /// <summary>
-      /// Informs that the prepare was successful, the change should be committed.
+      /// Dissociates the service from the current hive.
       /// </summary>
-      /// <param name="transactionID"></param>
-      void commitTopology(TransactionID transactionID);
+      void leave();
       #if SILVERLIGHT
-      IAsyncResult Begin_commitTopology(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_commitTopology(IAsyncResult asyncResult);
-      #endif
-      /// <summary>
-      /// Informs that the prepare was unsuccessful, the change should be rolled back.
-      /// </summary>
-      /// <param name="transactionID"></param>
-      void rollbackTopology(TransactionID transactionID);
-      #if SILVERLIGHT
-      IAsyncResult Begin_rollbackTopology(AsyncCallback callback, object state, TransactionID transactionID);
-      void End_rollbackTopology(IAsyncResult asyncResult);
+      IAsyncResult Begin_leave(AsyncCallback callback, object state, );
+      void End_leave(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Returns the current status of all services in the hive as understood by this service.
@@ -139,42 +129,42 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_getTopology(AsyncCallback callback, object state, )
+      public IAsyncResult Begin_init(AsyncCallback callback, object state, )
       {
-        return send_getTopology(callback, state);
+        return send_init(callback, state);
       }
 
-      public TopologyResult End_getTopology(IAsyncResult asyncResult)
+      public HiveState End_init(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_getTopology();
+        return recv_init();
       }
 
       #endif
 
       /// <summary>
-      /// Returns the target topology as this host presently understands it.
+      /// Initialize a new hive starting with this service
       /// </summary>
-      public TopologyResult getTopology()
+      public HiveState init()
       {
         #if !SILVERLIGHT
-        send_getTopology();
-        return recv_getTopology();
+        send_init();
+        return recv_init();
 
         #else
-        var asyncResult = Begin_getTopology(null, null, );
-        return End_getTopology(asyncResult);
+        var asyncResult = Begin_init(null, null, );
+        return End_init(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_getTopology(AsyncCallback callback, object state, )
+      public IAsyncResult send_init(AsyncCallback callback, object state, )
       #else
-      public void send_getTopology()
+      public void send_init()
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("getTopology", TMessageType.Call, seqid_));
-        getTopology_args args = new getTopology_args();
+        oprot_.WriteMessageBegin(new TMessage("init", TMessageType.Call, seqid_));
+        init_args args = new init_args();
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -184,7 +174,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public TopologyResult recv_getTopology()
+      public HiveState recv_init()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -192,57 +182,60 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        getTopology_result result = new getTopology_result();
+        init_result result = new init_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getTopology failed: unknown result");
+        if (result.__isset.alreadyJoined) {
+          throw result.AlreadyJoined;
+        }
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "init failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_prepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology)
+      public IAsyncResult Begin_join(AsyncCallback callback, object state, int hostID, HiveState hiveState)
       {
-        return send_prepareTopology(callback, state, transactionID, topology);
+        return send_join(callback, state, hostID, hiveState);
       }
 
-      public long End_prepareTopology(IAsyncResult asyncResult)
+      public ServiceState End_join(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        return recv_prepareTopology();
+        return recv_join();
       }
 
       #endif
 
       /// <summary>
-      /// Updates the topology and returns the new topology revision - HIVE TRANSACTED.
+      /// Associates the service with the given logical host ID within the given hive.
       /// </summary>
-      /// <param name="transactionID"></param>
-      /// <param name="topology"></param>
-      public long prepareTopology(TransactionID transactionID, Topology topology)
+      /// <param name="hostID"></param>
+      /// <param name="hiveState"></param>
+      public ServiceState join(int hostID, HiveState hiveState)
       {
         #if !SILVERLIGHT
-        send_prepareTopology(transactionID, topology);
-        return recv_prepareTopology();
+        send_join(hostID, hiveState);
+        return recv_join();
 
         #else
-        var asyncResult = Begin_prepareTopology(null, null, transactionID, topology);
-        return End_prepareTopology(asyncResult);
+        var asyncResult = Begin_join(null, null, hostID, hiveState);
+        return End_join(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_prepareTopology(AsyncCallback callback, object state, TransactionID transactionID, Topology topology)
+      public IAsyncResult send_join(AsyncCallback callback, object state, int hostID, HiveState hiveState)
       #else
-      public void send_prepareTopology(TransactionID transactionID, Topology topology)
+      public void send_join(int hostID, HiveState hiveState)
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("prepareTopology", TMessageType.Call, seqid_));
-        prepareTopology_args args = new prepareTopology_args();
-        args.TransactionID = transactionID;
-        args.Topology = topology;
+        oprot_.WriteMessageBegin(new TMessage("join", TMessageType.Call, seqid_));
+        join_args args = new join_args();
+        args.HostID = hostID;
+        args.HiveState = hiveState;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -252,7 +245,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public long recv_prepareTopology()
+      public ServiceState recv_join()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -260,55 +253,56 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        prepareTopology_result result = new prepareTopology_result();
+        join_result result = new join_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
         }
-        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "prepareTopology failed: unknown result");
+        if (result.__isset.alreadyJoined) {
+          throw result.AlreadyJoined;
+        }
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "join failed: unknown result");
       }
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_commitTopology(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult Begin_leave(AsyncCallback callback, object state, )
       {
-        return send_commitTopology(callback, state, transactionID);
+        return send_leave(callback, state);
       }
 
-      public void End_commitTopology(IAsyncResult asyncResult)
+      public void End_leave(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
-        recv_commitTopology();
+        recv_leave();
       }
 
       #endif
 
       /// <summary>
-      /// Informs that the prepare was successful, the change should be committed.
+      /// Dissociates the service from the current hive.
       /// </summary>
-      /// <param name="transactionID"></param>
-      public void commitTopology(TransactionID transactionID)
+      public void leave()
       {
         #if !SILVERLIGHT
-        send_commitTopology(transactionID);
-        recv_commitTopology();
+        send_leave();
+        recv_leave();
 
         #else
-        var asyncResult = Begin_commitTopology(null, null, transactionID);
-        End_commitTopology(asyncResult);
+        var asyncResult = Begin_leave(null, null, );
+        End_leave(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_commitTopology(AsyncCallback callback, object state, TransactionID transactionID)
+      public IAsyncResult send_leave(AsyncCallback callback, object state, )
       #else
-      public void send_commitTopology(TransactionID transactionID)
+      public void send_leave()
       #endif
       {
-        oprot_.WriteMessageBegin(new TMessage("commitTopology", TMessageType.Call, seqid_));
-        commitTopology_args args = new commitTopology_args();
-        args.TransactionID = transactionID;
+        oprot_.WriteMessageBegin(new TMessage("leave", TMessageType.Call, seqid_));
+        leave_args args = new leave_args();
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -318,7 +312,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public void recv_commitTopology()
+      public void recv_leave()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -326,72 +320,12 @@ namespace Alphora.Fastore
           iprot_.ReadMessageEnd();
           throw x;
         }
-        commitTopology_result result = new commitTopology_result();
+        leave_result result = new leave_result();
         result.Read(iprot_);
         iprot_.ReadMessageEnd();
-        return;
-      }
-
-      
-      #if SILVERLIGHT
-      public IAsyncResult Begin_rollbackTopology(AsyncCallback callback, object state, TransactionID transactionID)
-      {
-        return send_rollbackTopology(callback, state, transactionID);
-      }
-
-      public void End_rollbackTopology(IAsyncResult asyncResult)
-      {
-        oprot_.Transport.EndFlush(asyncResult);
-        recv_rollbackTopology();
-      }
-
-      #endif
-
-      /// <summary>
-      /// Informs that the prepare was unsuccessful, the change should be rolled back.
-      /// </summary>
-      /// <param name="transactionID"></param>
-      public void rollbackTopology(TransactionID transactionID)
-      {
-        #if !SILVERLIGHT
-        send_rollbackTopology(transactionID);
-        recv_rollbackTopology();
-
-        #else
-        var asyncResult = Begin_rollbackTopology(null, null, transactionID);
-        End_rollbackTopology(asyncResult);
-
-        #endif
-      }
-      #if SILVERLIGHT
-      public IAsyncResult send_rollbackTopology(AsyncCallback callback, object state, TransactionID transactionID)
-      #else
-      public void send_rollbackTopology(TransactionID transactionID)
-      #endif
-      {
-        oprot_.WriteMessageBegin(new TMessage("rollbackTopology", TMessageType.Call, seqid_));
-        rollbackTopology_args args = new rollbackTopology_args();
-        args.TransactionID = transactionID;
-        args.Write(oprot_);
-        oprot_.WriteMessageEnd();
-        #if SILVERLIGHT
-        return oprot_.Transport.BeginFlush(callback, state);
-        #else
-        oprot_.Transport.Flush();
-        #endif
-      }
-
-      public void recv_rollbackTopology()
-      {
-        TMessage msg = iprot_.ReadMessageBegin();
-        if (msg.Type == TMessageType.Exception) {
-          TApplicationException x = TApplicationException.Read(iprot_);
-          iprot_.ReadMessageEnd();
-          throw x;
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
         }
-        rollbackTopology_result result = new rollbackTopology_result();
-        result.Read(iprot_);
-        iprot_.ReadMessageEnd();
         return;
       }
 
@@ -456,6 +390,9 @@ namespace Alphora.Fastore
         if (result.__isset.success) {
           return result.Success;
         }
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
+        }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getHiveState failed: unknown result");
       }
 
@@ -519,6 +456,9 @@ namespace Alphora.Fastore
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
+        }
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
         }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getState failed: unknown result");
       }
@@ -593,6 +533,9 @@ namespace Alphora.Fastore
         if (result.__isset.timeout) {
           throw result.Timeout;
         }
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
+        }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "acquireLock failed: unknown result");
       }
 
@@ -658,6 +601,9 @@ namespace Alphora.Fastore
         iprot_.ReadMessageEnd();
         if (result.__isset.expired) {
           throw result.Expired;
+        }
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
         }
         return;
       }
@@ -730,6 +676,9 @@ namespace Alphora.Fastore
         if (result.__isset.expired) {
           throw result.Expired;
         }
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
+        }
         return;
       }
 
@@ -796,6 +745,9 @@ namespace Alphora.Fastore
         if (result.__isset.expired) {
           throw result.Expired;
         }
+        if (result.__isset.notJoined) {
+          throw result.NotJoined;
+        }
         return;
       }
 
@@ -804,10 +756,9 @@ namespace Alphora.Fastore
       public Processor(Iface iface)
       {
         iface_ = iface;
-        processMap_["getTopology"] = getTopology_Process;
-        processMap_["prepareTopology"] = prepareTopology_Process;
-        processMap_["commitTopology"] = commitTopology_Process;
-        processMap_["rollbackTopology"] = rollbackTopology_Process;
+        processMap_["init"] = init_Process;
+        processMap_["join"] = join_Process;
+        processMap_["leave"] = leave_Process;
         processMap_["getHiveState"] = getHiveState_Process;
         processMap_["getState"] = getState_Process;
         processMap_["acquireLock"] = acquireLock_Process;
@@ -846,53 +797,52 @@ namespace Alphora.Fastore
         return true;
       }
 
-      public void getTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void init_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        getTopology_args args = new getTopology_args();
+        init_args args = new init_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        getTopology_result result = new getTopology_result();
-        result.Success = iface_.getTopology();
-        oprot.WriteMessageBegin(new TMessage("getTopology", TMessageType.Reply, seqid)); 
+        init_result result = new init_result();
+        try {
+          result.Success = iface_.init();
+        } catch (AlreadyJoined alreadyJoined) {
+          result.AlreadyJoined = alreadyJoined;
+        }
+        oprot.WriteMessageBegin(new TMessage("init", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void prepareTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void join_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        prepareTopology_args args = new prepareTopology_args();
+        join_args args = new join_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        prepareTopology_result result = new prepareTopology_result();
-        result.Success = iface_.prepareTopology(args.TransactionID, args.Topology);
-        oprot.WriteMessageBegin(new TMessage("prepareTopology", TMessageType.Reply, seqid)); 
+        join_result result = new join_result();
+        try {
+          result.Success = iface_.join(args.HostID, args.HiveState);
+        } catch (AlreadyJoined alreadyJoined) {
+          result.AlreadyJoined = alreadyJoined;
+        }
+        oprot.WriteMessageBegin(new TMessage("join", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
       }
 
-      public void commitTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      public void leave_Process(int seqid, TProtocol iprot, TProtocol oprot)
       {
-        commitTopology_args args = new commitTopology_args();
+        leave_args args = new leave_args();
         args.Read(iprot);
         iprot.ReadMessageEnd();
-        commitTopology_result result = new commitTopology_result();
-        iface_.commitTopology(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("commitTopology", TMessageType.Reply, seqid)); 
-        result.Write(oprot);
-        oprot.WriteMessageEnd();
-        oprot.Transport.Flush();
-      }
-
-      public void rollbackTopology_Process(int seqid, TProtocol iprot, TProtocol oprot)
-      {
-        rollbackTopology_args args = new rollbackTopology_args();
-        args.Read(iprot);
-        iprot.ReadMessageEnd();
-        rollbackTopology_result result = new rollbackTopology_result();
-        iface_.rollbackTopology(args.TransactionID);
-        oprot.WriteMessageBegin(new TMessage("rollbackTopology", TMessageType.Reply, seqid)); 
+        leave_result result = new leave_result();
+        try {
+          iface_.leave();
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
+        }
+        oprot.WriteMessageBegin(new TMessage("leave", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
@@ -904,7 +854,11 @@ namespace Alphora.Fastore
         args.Read(iprot);
         iprot.ReadMessageEnd();
         getHiveState_result result = new getHiveState_result();
-        result.Success = iface_.getHiveState();
+        try {
+          result.Success = iface_.getHiveState();
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
+        }
         oprot.WriteMessageBegin(new TMessage("getHiveState", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
@@ -917,7 +871,11 @@ namespace Alphora.Fastore
         args.Read(iprot);
         iprot.ReadMessageEnd();
         getState_result result = new getState_result();
-        result.Success = iface_.getState();
+        try {
+          result.Success = iface_.getState();
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
+        }
         oprot.WriteMessageBegin(new TMessage("getState", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
@@ -934,6 +892,8 @@ namespace Alphora.Fastore
           result.Success = iface_.acquireLock(args.Name, args.Mode, args.Timeout);
         } catch (LockTimedOut timeout) {
           result.Timeout = timeout;
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
         }
         oprot.WriteMessageBegin(new TMessage("acquireLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
@@ -951,6 +911,8 @@ namespace Alphora.Fastore
           iface_.keepLock(args.LockID);
         } catch (LockExpired expired) {
           result.Expired = expired;
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
         }
         oprot.WriteMessageBegin(new TMessage("keepLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
@@ -970,6 +932,8 @@ namespace Alphora.Fastore
           result.Timeout = timeout;
         } catch (LockExpired expired) {
           result.Expired = expired;
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
         }
         oprot.WriteMessageBegin(new TMessage("escalateLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
@@ -987,6 +951,8 @@ namespace Alphora.Fastore
           iface_.releaseLock(args.LockID);
         } catch (LockExpired expired) {
           result.Expired = expired;
+        } catch (NotJoined notJoined) {
+          result.NotJoined = notJoined;
         }
         oprot.WriteMessageBegin(new TMessage("releaseLock", TMessageType.Reply, seqid)); 
         result.Write(oprot);
@@ -1000,10 +966,10 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class getTopology_args : TBase
+    public partial class init_args : TBase
     {
 
-      public getTopology_args() {
+      public init_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -1028,14 +994,14 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("getTopology_args");
+        TStruct struc = new TStruct("init_args");
         oprot.WriteStructBegin(struc);
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("getTopology_args(");
+        StringBuilder sb = new StringBuilder("init_args(");
         sb.Append(")");
         return sb.ToString();
       }
@@ -1046,11 +1012,12 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class getTopology_result : TBase
+    public partial class init_result : TBase
     {
-      private TopologyResult _success;
+      private HiveState _success;
+      private AlreadyJoined _alreadyJoined;
 
-      public TopologyResult Success
+      public HiveState Success
       {
         get
         {
@@ -1063,6 +1030,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public AlreadyJoined AlreadyJoined
+      {
+        get
+        {
+          return _alreadyJoined;
+        }
+        set
+        {
+          __isset.alreadyJoined = true;
+          this._alreadyJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1070,9 +1050,10 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
+        public bool alreadyJoined;
       }
 
-      public getTopology_result() {
+      public init_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -1089,8 +1070,16 @@ namespace Alphora.Fastore
           {
             case 0:
               if (field.Type == TType.Struct) {
-                Success = new TopologyResult();
+                Success = new HiveState();
                 Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 1:
+              if (field.Type == TType.Struct) {
+                AlreadyJoined = new AlreadyJoined();
+                AlreadyJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1105,7 +1094,7 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("getTopology_result");
+        TStruct struc = new TStruct("init_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
@@ -1118,15 +1107,26 @@ namespace Alphora.Fastore
             Success.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.alreadyJoined) {
+          if (AlreadyJoined != null) {
+            field.Name = "AlreadyJoined";
+            field.Type = TType.Struct;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            AlreadyJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("getTopology_result(");
+        StringBuilder sb = new StringBuilder("init_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(",AlreadyJoined: ");
+        sb.Append(AlreadyJoined== null ? "<null>" : AlreadyJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1137,34 +1137,34 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class prepareTopology_args : TBase
+    public partial class join_args : TBase
     {
-      private TransactionID _transactionID;
-      private Topology _topology;
+      private int _hostID;
+      private HiveState _hiveState;
 
-      public TransactionID TransactionID
+      public int HostID
       {
         get
         {
-          return _transactionID;
+          return _hostID;
         }
         set
         {
-          __isset.transactionID = true;
-          this._transactionID = value;
+          __isset.hostID = true;
+          this._hostID = value;
         }
       }
 
-      public Topology Topology
+      public HiveState HiveState
       {
         get
         {
-          return _topology;
+          return _hiveState;
         }
         set
         {
-          __isset.topology = true;
-          this._topology = value;
+          __isset.hiveState = true;
+          this._hiveState = value;
         }
       }
 
@@ -1174,11 +1174,11 @@ namespace Alphora.Fastore
       [Serializable]
       #endif
       public struct Isset {
-        public bool transactionID;
-        public bool topology;
+        public bool hostID;
+        public bool hiveState;
       }
 
-      public prepareTopology_args() {
+      public join_args() {
       }
 
       public void Read (TProtocol iprot)
@@ -1194,17 +1194,16 @@ namespace Alphora.Fastore
           switch (field.ID)
           {
             case 1:
-              if (field.Type == TType.Struct) {
-                TransactionID = new TransactionID();
-                TransactionID.Read(iprot);
+              if (field.Type == TType.I32) {
+                HostID = iprot.ReadI32();
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
               break;
-            case 2:
+            case -1:
               if (field.Type == TType.Struct) {
-                Topology = new Topology();
-                Topology.Read(iprot);
+                HiveState = new HiveState();
+                HiveState.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1219,23 +1218,23 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("prepareTopology_args");
+        TStruct struc = new TStruct("join_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
-        if (TransactionID != null && __isset.transactionID) {
-          field.Name = "transactionID";
+        if (HiveState != null && __isset.hiveState) {
+          field.Name = "hiveState";
           field.Type = TType.Struct;
-          field.ID = 1;
+          field.ID = -1;
           oprot.WriteFieldBegin(field);
-          TransactionID.Write(oprot);
+          HiveState.Write(oprot);
           oprot.WriteFieldEnd();
         }
-        if (Topology != null && __isset.topology) {
-          field.Name = "topology";
-          field.Type = TType.Struct;
-          field.ID = 2;
+        if (__isset.hostID) {
+          field.Name = "hostID";
+          field.Type = TType.I32;
+          field.ID = 1;
           oprot.WriteFieldBegin(field);
-          Topology.Write(oprot);
+          oprot.WriteI32(HostID);
           oprot.WriteFieldEnd();
         }
         oprot.WriteFieldStop();
@@ -1243,11 +1242,11 @@ namespace Alphora.Fastore
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("prepareTopology_args(");
-        sb.Append("TransactionID: ");
-        sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
-        sb.Append(",Topology: ");
-        sb.Append(Topology== null ? "<null>" : Topology.ToString());
+        StringBuilder sb = new StringBuilder("join_args(");
+        sb.Append("HostID: ");
+        sb.Append(HostID);
+        sb.Append(",HiveState: ");
+        sb.Append(HiveState== null ? "<null>" : HiveState.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1258,11 +1257,12 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class prepareTopology_result : TBase
+    public partial class join_result : TBase
     {
-      private long _success;
+      private ServiceState _success;
+      private AlreadyJoined _alreadyJoined;
 
-      public long Success
+      public ServiceState Success
       {
         get
         {
@@ -1275,6 +1275,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public AlreadyJoined AlreadyJoined
+      {
+        get
+        {
+          return _alreadyJoined;
+        }
+        set
+        {
+          __isset.alreadyJoined = true;
+          this._alreadyJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1282,9 +1295,10 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
+        public bool alreadyJoined;
       }
 
-      public prepareTopology_result() {
+      public join_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -1300,8 +1314,17 @@ namespace Alphora.Fastore
           switch (field.ID)
           {
             case 0:
-              if (field.Type == TType.I64) {
-                Success = iprot.ReadI64();
+              if (field.Type == TType.Struct) {
+                Success = new ServiceState();
+                Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 1:
+              if (field.Type == TType.Struct) {
+                AlreadyJoined = new AlreadyJoined();
+                AlreadyJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1316,26 +1339,39 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("prepareTopology_result");
+        TStruct struc = new TStruct("join_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
 
         if (this.__isset.success) {
-          field.Name = "Success";
-          field.Type = TType.I64;
-          field.ID = 0;
-          oprot.WriteFieldBegin(field);
-          oprot.WriteI64(Success);
-          oprot.WriteFieldEnd();
+          if (Success != null) {
+            field.Name = "Success";
+            field.Type = TType.Struct;
+            field.ID = 0;
+            oprot.WriteFieldBegin(field);
+            Success.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
+        } else if (this.__isset.alreadyJoined) {
+          if (AlreadyJoined != null) {
+            field.Name = "AlreadyJoined";
+            field.Type = TType.Struct;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            AlreadyJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("prepareTopology_result(");
+        StringBuilder sb = new StringBuilder("join_result(");
         sb.Append("Success: ");
-        sb.Append(Success);
+        sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(",AlreadyJoined: ");
+        sb.Append(AlreadyJoined== null ? "<null>" : AlreadyJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1346,20 +1382,66 @@ namespace Alphora.Fastore
     #if !SILVERLIGHT
     [Serializable]
     #endif
-    public partial class commitTopology_args : TBase
+    public partial class leave_args : TBase
     {
-      private TransactionID _transactionID;
 
-      public TransactionID TransactionID
+      public leave_args() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("leave_args");
+        oprot.WriteStructBegin(struc);
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("leave_args(");
+        sb.Append(")");
+        return sb.ToString();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class leave_result : TBase
+    {
+      private NotJoined _notJoined;
+
+      public NotJoined NotJoined
       {
         get
         {
-          return _transactionID;
+          return _notJoined;
         }
         set
         {
-          __isset.transactionID = true;
-          this._transactionID = value;
+          __isset.notJoined = true;
+          this._notJoined = value;
         }
       }
 
@@ -1369,10 +1451,10 @@ namespace Alphora.Fastore
       [Serializable]
       #endif
       public struct Isset {
-        public bool transactionID;
+        public bool notJoined;
       }
 
-      public commitTopology_args() {
+      public leave_result() {
       }
 
       public void Read (TProtocol iprot)
@@ -1389,8 +1471,8 @@ namespace Alphora.Fastore
           {
             case 1:
               if (field.Type == TType.Struct) {
-                TransactionID = new TransactionID();
-                TransactionID.Read(iprot);
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1405,207 +1487,28 @@ namespace Alphora.Fastore
       }
 
       public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("commitTopology_args");
+        TStruct struc = new TStruct("leave_result");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
-        if (TransactionID != null && __isset.transactionID) {
-          field.Name = "transactionID";
-          field.Type = TType.Struct;
-          field.ID = 1;
-          oprot.WriteFieldBegin(field);
-          TransactionID.Write(oprot);
-          oprot.WriteFieldEnd();
+
+        if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
-        StringBuilder sb = new StringBuilder("commitTopology_args(");
-        sb.Append("TransactionID: ");
-        sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
-        sb.Append(")");
-        return sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
-    public partial class commitTopology_result : TBase
-    {
-
-      public commitTopology_result() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        TField field;
-        iprot.ReadStructBegin();
-        while (true)
-        {
-          field = iprot.ReadFieldBegin();
-          if (field.Type == TType.Stop) { 
-            break;
-          }
-          switch (field.ID)
-          {
-            default: 
-              TProtocolUtil.Skip(iprot, field.Type);
-              break;
-          }
-          iprot.ReadFieldEnd();
-        }
-        iprot.ReadStructEnd();
-      }
-
-      public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("commitTopology_result");
-        oprot.WriteStructBegin(struc);
-
-        oprot.WriteFieldStop();
-        oprot.WriteStructEnd();
-      }
-
-      public override string ToString() {
-        StringBuilder sb = new StringBuilder("commitTopology_result(");
-        sb.Append(")");
-        return sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
-    public partial class rollbackTopology_args : TBase
-    {
-      private TransactionID _transactionID;
-
-      public TransactionID TransactionID
-      {
-        get
-        {
-          return _transactionID;
-        }
-        set
-        {
-          __isset.transactionID = true;
-          this._transactionID = value;
-        }
-      }
-
-
-      public Isset __isset;
-      #if !SILVERLIGHT
-      [Serializable]
-      #endif
-      public struct Isset {
-        public bool transactionID;
-      }
-
-      public rollbackTopology_args() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        TField field;
-        iprot.ReadStructBegin();
-        while (true)
-        {
-          field = iprot.ReadFieldBegin();
-          if (field.Type == TType.Stop) { 
-            break;
-          }
-          switch (field.ID)
-          {
-            case 1:
-              if (field.Type == TType.Struct) {
-                TransactionID = new TransactionID();
-                TransactionID.Read(iprot);
-              } else { 
-                TProtocolUtil.Skip(iprot, field.Type);
-              }
-              break;
-            default: 
-              TProtocolUtil.Skip(iprot, field.Type);
-              break;
-          }
-          iprot.ReadFieldEnd();
-        }
-        iprot.ReadStructEnd();
-      }
-
-      public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("rollbackTopology_args");
-        oprot.WriteStructBegin(struc);
-        TField field = new TField();
-        if (TransactionID != null && __isset.transactionID) {
-          field.Name = "transactionID";
-          field.Type = TType.Struct;
-          field.ID = 1;
-          oprot.WriteFieldBegin(field);
-          TransactionID.Write(oprot);
-          oprot.WriteFieldEnd();
-        }
-        oprot.WriteFieldStop();
-        oprot.WriteStructEnd();
-      }
-
-      public override string ToString() {
-        StringBuilder sb = new StringBuilder("rollbackTopology_args(");
-        sb.Append("TransactionID: ");
-        sb.Append(TransactionID== null ? "<null>" : TransactionID.ToString());
-        sb.Append(")");
-        return sb.ToString();
-      }
-
-    }
-
-
-    #if !SILVERLIGHT
-    [Serializable]
-    #endif
-    public partial class rollbackTopology_result : TBase
-    {
-
-      public rollbackTopology_result() {
-      }
-
-      public void Read (TProtocol iprot)
-      {
-        TField field;
-        iprot.ReadStructBegin();
-        while (true)
-        {
-          field = iprot.ReadFieldBegin();
-          if (field.Type == TType.Stop) { 
-            break;
-          }
-          switch (field.ID)
-          {
-            default: 
-              TProtocolUtil.Skip(iprot, field.Type);
-              break;
-          }
-          iprot.ReadFieldEnd();
-        }
-        iprot.ReadStructEnd();
-      }
-
-      public void Write(TProtocol oprot) {
-        TStruct struc = new TStruct("rollbackTopology_result");
-        oprot.WriteStructBegin(struc);
-
-        oprot.WriteFieldStop();
-        oprot.WriteStructEnd();
-      }
-
-      public override string ToString() {
-        StringBuilder sb = new StringBuilder("rollbackTopology_result(");
+        StringBuilder sb = new StringBuilder("leave_result(");
+        sb.Append("NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1665,6 +1568,7 @@ namespace Alphora.Fastore
     public partial class getHiveState_result : TBase
     {
       private HiveState _success;
+      private NotJoined _notJoined;
 
       public HiveState Success
       {
@@ -1679,6 +1583,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public NotJoined NotJoined
+      {
+        get
+        {
+          return _notJoined;
+        }
+        set
+        {
+          __isset.notJoined = true;
+          this._notJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1686,6 +1603,7 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
+        public bool notJoined;
       }
 
       public getHiveState_result() {
@@ -1707,6 +1625,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Success = new HiveState();
                 Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 1:
+              if (field.Type == TType.Struct) {
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1734,6 +1660,15 @@ namespace Alphora.Fastore
             Success.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -1743,6 +1678,8 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("getHiveState_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(",NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1802,6 +1739,7 @@ namespace Alphora.Fastore
     public partial class getState_result : TBase
     {
       private ServiceState _success;
+      private NotJoined _notJoined;
 
       public ServiceState Success
       {
@@ -1816,6 +1754,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public NotJoined NotJoined
+      {
+        get
+        {
+          return _notJoined;
+        }
+        set
+        {
+          __isset.notJoined = true;
+          this._notJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1823,6 +1774,7 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
+        public bool notJoined;
       }
 
       public getState_result() {
@@ -1844,6 +1796,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Success = new ServiceState();
                 Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 1:
+              if (field.Type == TType.Struct) {
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1871,6 +1831,15 @@ namespace Alphora.Fastore
             Success.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 1;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -1880,6 +1849,8 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("getState_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(",NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -2050,6 +2021,7 @@ namespace Alphora.Fastore
     {
       private long _success;
       private LockTimedOut _timeout;
+      private NotJoined _notJoined;
 
       public long Success
       {
@@ -2077,6 +2049,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public NotJoined NotJoined
+      {
+        get
+        {
+          return _notJoined;
+        }
+        set
+        {
+          __isset.notJoined = true;
+          this._notJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -2085,6 +2070,7 @@ namespace Alphora.Fastore
       public struct Isset {
         public bool success;
         public bool timeout;
+        public bool notJoined;
       }
 
       public acquireLock_result() {
@@ -2113,6 +2099,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Timeout = new LockTimedOut();
                 Timeout.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 2:
+              if (field.Type == TType.Struct) {
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -2147,6 +2141,15 @@ namespace Alphora.Fastore
             Timeout.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 2;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -2158,6 +2161,8 @@ namespace Alphora.Fastore
         sb.Append(Success);
         sb.Append(",Timeout: ");
         sb.Append(Timeout== null ? "<null>" : Timeout.ToString());
+        sb.Append(",NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -2258,6 +2263,7 @@ namespace Alphora.Fastore
     public partial class keepLock_result : TBase
     {
       private LockExpired _expired;
+      private NotJoined _notJoined;
 
       public LockExpired Expired
       {
@@ -2272,6 +2278,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public NotJoined NotJoined
+      {
+        get
+        {
+          return _notJoined;
+        }
+        set
+        {
+          __isset.notJoined = true;
+          this._notJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -2279,6 +2298,7 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool expired;
+        public bool notJoined;
       }
 
       public keepLock_result() {
@@ -2300,6 +2320,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Expired = new LockExpired();
                 Expired.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 2:
+              if (field.Type == TType.Struct) {
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -2327,6 +2355,15 @@ namespace Alphora.Fastore
             Expired.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 2;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -2336,6 +2373,8 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("keepLock_result(");
         sb.Append("Expired: ");
         sb.Append(Expired== null ? "<null>" : Expired.ToString());
+        sb.Append(",NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -2470,6 +2509,7 @@ namespace Alphora.Fastore
     {
       private LockTimedOut _timeout;
       private LockExpired _expired;
+      private NotJoined _notJoined;
 
       public LockTimedOut Timeout
       {
@@ -2497,6 +2537,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public NotJoined NotJoined
+      {
+        get
+        {
+          return _notJoined;
+        }
+        set
+        {
+          __isset.notJoined = true;
+          this._notJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -2505,6 +2558,7 @@ namespace Alphora.Fastore
       public struct Isset {
         public bool timeout;
         public bool expired;
+        public bool notJoined;
       }
 
       public escalateLock_result() {
@@ -2534,6 +2588,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Expired = new LockExpired();
                 Expired.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 3:
+              if (field.Type == TType.Struct) {
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -2570,6 +2632,15 @@ namespace Alphora.Fastore
             Expired.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 3;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -2581,6 +2652,8 @@ namespace Alphora.Fastore
         sb.Append(Timeout== null ? "<null>" : Timeout.ToString());
         sb.Append(",Expired: ");
         sb.Append(Expired== null ? "<null>" : Expired.ToString());
+        sb.Append(",NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -2681,6 +2754,7 @@ namespace Alphora.Fastore
     public partial class releaseLock_result : TBase
     {
       private LockExpired _expired;
+      private NotJoined _notJoined;
 
       public LockExpired Expired
       {
@@ -2695,6 +2769,19 @@ namespace Alphora.Fastore
         }
       }
 
+      public NotJoined NotJoined
+      {
+        get
+        {
+          return _notJoined;
+        }
+        set
+        {
+          __isset.notJoined = true;
+          this._notJoined = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -2702,6 +2789,7 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool expired;
+        public bool notJoined;
       }
 
       public releaseLock_result() {
@@ -2723,6 +2811,14 @@ namespace Alphora.Fastore
               if (field.Type == TType.Struct) {
                 Expired = new LockExpired();
                 Expired.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 2:
+              if (field.Type == TType.Struct) {
+                NotJoined = new NotJoined();
+                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -2750,6 +2846,15 @@ namespace Alphora.Fastore
             Expired.Write(oprot);
             oprot.WriteFieldEnd();
           }
+        } else if (this.__isset.notJoined) {
+          if (NotJoined != null) {
+            field.Name = "NotJoined";
+            field.Type = TType.Struct;
+            field.ID = 2;
+            oprot.WriteFieldBegin(field);
+            NotJoined.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -2759,6 +2864,8 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("releaseLock_result(");
         sb.Append("Expired: ");
         sb.Append(Expired== null ? "<null>" : Expired.ToString());
+        sb.Append(",NotJoined: ");
+        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }

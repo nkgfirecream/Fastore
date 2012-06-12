@@ -15,10 +15,9 @@ namespace fastore {
 class ServiceIf {
  public:
   virtual ~ServiceIf() {}
-  virtual void getTopology(TopologyResult& _return) = 0;
-  virtual Revision prepareTopology(const TransactionID& transactionID, const Topology& topology) = 0;
-  virtual void commitTopology(const TransactionID& transactionID) = 0;
-  virtual void rollbackTopology(const TransactionID& transactionID) = 0;
+  virtual void init(HiveState& _return) = 0;
+  virtual void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) = 0;
+  virtual void leave() = 0;
   virtual void getHiveState(HiveState& _return) = 0;
   virtual void getState(ServiceState& _return) = 0;
   virtual LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) = 0;
@@ -54,17 +53,13 @@ class ServiceIfSingletonFactory : virtual public ServiceIfFactory {
 class ServiceNull : virtual public ServiceIf {
  public:
   virtual ~ServiceNull() {}
-  void getTopology(TopologyResult& /* _return */) {
+  void init(HiveState& /* _return */) {
     return;
   }
-  Revision prepareTopology(const TransactionID& /* transactionID */, const Topology& /* topology */) {
-    Revision _return = 0;
-    return _return;
-  }
-  void commitTopology(const TransactionID& /* transactionID */) {
+  void join(ServiceState& /* _return */, const HostID /* hostID */, const HiveState& /* hiveState */) {
     return;
   }
-  void rollbackTopology(const TransactionID& /* transactionID */) {
+  void leave() {
     return;
   }
   void getHiveState(HiveState& /* _return */) {
@@ -89,24 +84,24 @@ class ServiceNull : virtual public ServiceIf {
 };
 
 
-class Service_getTopology_args {
+class Service_init_args {
  public:
 
-  Service_getTopology_args() {
+  Service_init_args() {
   }
 
-  virtual ~Service_getTopology_args() throw() {}
+  virtual ~Service_init_args() throw() {}
 
 
-  bool operator == (const Service_getTopology_args & /* rhs */) const
+  bool operator == (const Service_init_args & /* rhs */) const
   {
     return true;
   }
-  bool operator != (const Service_getTopology_args &rhs) const {
+  bool operator != (const Service_init_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_getTopology_args & ) const;
+  bool operator < (const Service_init_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -114,114 +109,124 @@ class Service_getTopology_args {
 };
 
 
-class Service_getTopology_pargs {
+class Service_init_pargs {
  public:
 
 
-  virtual ~Service_getTopology_pargs() throw() {}
+  virtual ~Service_init_pargs() throw() {}
 
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_getTopology_result__isset {
-  _Service_getTopology_result__isset() : success(false) {}
+typedef struct _Service_init_result__isset {
+  _Service_init_result__isset() : success(false), alreadyJoined(false) {}
   bool success;
-} _Service_getTopology_result__isset;
+  bool alreadyJoined;
+} _Service_init_result__isset;
 
-class Service_getTopology_result {
+class Service_init_result {
  public:
 
-  Service_getTopology_result() {
+  Service_init_result() {
   }
 
-  virtual ~Service_getTopology_result() throw() {}
+  virtual ~Service_init_result() throw() {}
 
-  TopologyResult success;
+  HiveState success;
+  AlreadyJoined alreadyJoined;
 
-  _Service_getTopology_result__isset __isset;
+  _Service_init_result__isset __isset;
 
-  void __set_success(const TopologyResult& val) {
+  void __set_success(const HiveState& val) {
     success = val;
   }
 
-  bool operator == (const Service_getTopology_result & rhs) const
+  void __set_alreadyJoined(const AlreadyJoined& val) {
+    alreadyJoined = val;
+  }
+
+  bool operator == (const Service_init_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
+    if (!(alreadyJoined == rhs.alreadyJoined))
+      return false;
     return true;
   }
-  bool operator != (const Service_getTopology_result &rhs) const {
+  bool operator != (const Service_init_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_getTopology_result & ) const;
+  bool operator < (const Service_init_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_getTopology_presult__isset {
-  _Service_getTopology_presult__isset() : success(false) {}
+typedef struct _Service_init_presult__isset {
+  _Service_init_presult__isset() : success(false), alreadyJoined(false) {}
   bool success;
-} _Service_getTopology_presult__isset;
+  bool alreadyJoined;
+} _Service_init_presult__isset;
 
-class Service_getTopology_presult {
+class Service_init_presult {
  public:
 
 
-  virtual ~Service_getTopology_presult() throw() {}
+  virtual ~Service_init_presult() throw() {}
 
-  TopologyResult* success;
+  HiveState* success;
+  AlreadyJoined alreadyJoined;
 
-  _Service_getTopology_presult__isset __isset;
+  _Service_init_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_prepareTopology_args__isset {
-  _Service_prepareTopology_args__isset() : transactionID(false), topology(false) {}
-  bool transactionID;
-  bool topology;
-} _Service_prepareTopology_args__isset;
+typedef struct _Service_join_args__isset {
+  _Service_join_args__isset() : hostID(false), hiveState(false) {}
+  bool hostID;
+  bool hiveState;
+} _Service_join_args__isset;
 
-class Service_prepareTopology_args {
+class Service_join_args {
  public:
 
-  Service_prepareTopology_args() {
+  Service_join_args() : hostID(0) {
   }
 
-  virtual ~Service_prepareTopology_args() throw() {}
+  virtual ~Service_join_args() throw() {}
 
-  TransactionID transactionID;
-  Topology topology;
+  HostID hostID;
+  HiveState hiveState;
 
-  _Service_prepareTopology_args__isset __isset;
+  _Service_join_args__isset __isset;
 
-  void __set_transactionID(const TransactionID& val) {
-    transactionID = val;
+  void __set_hostID(const HostID val) {
+    hostID = val;
   }
 
-  void __set_topology(const Topology& val) {
-    topology = val;
+  void __set_hiveState(const HiveState& val) {
+    hiveState = val;
   }
 
-  bool operator == (const Service_prepareTopology_args & rhs) const
+  bool operator == (const Service_join_args & rhs) const
   {
-    if (!(transactionID == rhs.transactionID))
+    if (!(hostID == rhs.hostID))
       return false;
-    if (!(topology == rhs.topology))
+    if (!(hiveState == rhs.hiveState))
       return false;
     return true;
   }
-  bool operator != (const Service_prepareTopology_args &rhs) const {
+  bool operator != (const Service_join_args &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_prepareTopology_args & ) const;
+  bool operator < (const Service_join_args & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -229,247 +234,175 @@ class Service_prepareTopology_args {
 };
 
 
-class Service_prepareTopology_pargs {
+class Service_join_pargs {
  public:
 
 
-  virtual ~Service_prepareTopology_pargs() throw() {}
+  virtual ~Service_join_pargs() throw() {}
 
-  const TransactionID* transactionID;
-  const Topology* topology;
+  const HostID* hostID;
+  const HiveState* hiveState;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_prepareTopology_result__isset {
-  _Service_prepareTopology_result__isset() : success(false) {}
+typedef struct _Service_join_result__isset {
+  _Service_join_result__isset() : success(false), alreadyJoined(false) {}
   bool success;
-} _Service_prepareTopology_result__isset;
+  bool alreadyJoined;
+} _Service_join_result__isset;
 
-class Service_prepareTopology_result {
+class Service_join_result {
  public:
 
-  Service_prepareTopology_result() : success(0) {
+  Service_join_result() {
   }
 
-  virtual ~Service_prepareTopology_result() throw() {}
+  virtual ~Service_join_result() throw() {}
 
-  Revision success;
+  ServiceState success;
+  AlreadyJoined alreadyJoined;
 
-  _Service_prepareTopology_result__isset __isset;
+  _Service_join_result__isset __isset;
 
-  void __set_success(const Revision val) {
+  void __set_success(const ServiceState& val) {
     success = val;
   }
 
-  bool operator == (const Service_prepareTopology_result & rhs) const
+  void __set_alreadyJoined(const AlreadyJoined& val) {
+    alreadyJoined = val;
+  }
+
+  bool operator == (const Service_join_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
+    if (!(alreadyJoined == rhs.alreadyJoined))
+      return false;
     return true;
   }
-  bool operator != (const Service_prepareTopology_result &rhs) const {
+  bool operator != (const Service_join_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_prepareTopology_result & ) const;
+  bool operator < (const Service_join_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-typedef struct _Service_prepareTopology_presult__isset {
-  _Service_prepareTopology_presult__isset() : success(false) {}
+typedef struct _Service_join_presult__isset {
+  _Service_join_presult__isset() : success(false), alreadyJoined(false) {}
   bool success;
-} _Service_prepareTopology_presult__isset;
+  bool alreadyJoined;
+} _Service_join_presult__isset;
 
-class Service_prepareTopology_presult {
+class Service_join_presult {
  public:
 
 
-  virtual ~Service_prepareTopology_presult() throw() {}
+  virtual ~Service_join_presult() throw() {}
 
-  Revision* success;
+  ServiceState* success;
+  AlreadyJoined alreadyJoined;
 
-  _Service_prepareTopology_presult__isset __isset;
+  _Service_join_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
-typedef struct _Service_commitTopology_args__isset {
-  _Service_commitTopology_args__isset() : transactionID(false) {}
-  bool transactionID;
-} _Service_commitTopology_args__isset;
 
-class Service_commitTopology_args {
+class Service_leave_args {
  public:
 
-  Service_commitTopology_args() {
+  Service_leave_args() {
   }
 
-  virtual ~Service_commitTopology_args() throw() {}
+  virtual ~Service_leave_args() throw() {}
 
-  TransactionID transactionID;
 
-  _Service_commitTopology_args__isset __isset;
-
-  void __set_transactionID(const TransactionID& val) {
-    transactionID = val;
-  }
-
-  bool operator == (const Service_commitTopology_args & rhs) const
+  bool operator == (const Service_leave_args & /* rhs */) const
   {
-    if (!(transactionID == rhs.transactionID))
+    return true;
+  }
+  bool operator != (const Service_leave_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Service_leave_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_leave_pargs {
+ public:
+
+
+  virtual ~Service_leave_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Service_leave_result__isset {
+  _Service_leave_result__isset() : notJoined(false) {}
+  bool notJoined;
+} _Service_leave_result__isset;
+
+class Service_leave_result {
+ public:
+
+  Service_leave_result() {
+  }
+
+  virtual ~Service_leave_result() throw() {}
+
+  NotJoined notJoined;
+
+  _Service_leave_result__isset __isset;
+
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
+  bool operator == (const Service_leave_result & rhs) const
+  {
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
-  bool operator != (const Service_commitTopology_args &rhs) const {
+  bool operator != (const Service_leave_result &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Service_commitTopology_args & ) const;
+  bool operator < (const Service_leave_result & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
+typedef struct _Service_leave_presult__isset {
+  _Service_leave_presult__isset() : notJoined(false) {}
+  bool notJoined;
+} _Service_leave_presult__isset;
 
-class Service_commitTopology_pargs {
+class Service_leave_presult {
  public:
 
 
-  virtual ~Service_commitTopology_pargs() throw() {}
+  virtual ~Service_leave_presult() throw() {}
 
-  const TransactionID* transactionID;
+  NotJoined notJoined;
 
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Service_commitTopology_result {
- public:
-
-  Service_commitTopology_result() {
-  }
-
-  virtual ~Service_commitTopology_result() throw() {}
-
-
-  bool operator == (const Service_commitTopology_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const Service_commitTopology_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Service_commitTopology_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Service_commitTopology_presult {
- public:
-
-
-  virtual ~Service_commitTopology_presult() throw() {}
-
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
-typedef struct _Service_rollbackTopology_args__isset {
-  _Service_rollbackTopology_args__isset() : transactionID(false) {}
-  bool transactionID;
-} _Service_rollbackTopology_args__isset;
-
-class Service_rollbackTopology_args {
- public:
-
-  Service_rollbackTopology_args() {
-  }
-
-  virtual ~Service_rollbackTopology_args() throw() {}
-
-  TransactionID transactionID;
-
-  _Service_rollbackTopology_args__isset __isset;
-
-  void __set_transactionID(const TransactionID& val) {
-    transactionID = val;
-  }
-
-  bool operator == (const Service_rollbackTopology_args & rhs) const
-  {
-    if (!(transactionID == rhs.transactionID))
-      return false;
-    return true;
-  }
-  bool operator != (const Service_rollbackTopology_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Service_rollbackTopology_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Service_rollbackTopology_pargs {
- public:
-
-
-  virtual ~Service_rollbackTopology_pargs() throw() {}
-
-  const TransactionID* transactionID;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Service_rollbackTopology_result {
- public:
-
-  Service_rollbackTopology_result() {
-  }
-
-  virtual ~Service_rollbackTopology_result() throw() {}
-
-
-  bool operator == (const Service_rollbackTopology_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const Service_rollbackTopology_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Service_rollbackTopology_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Service_rollbackTopology_presult {
- public:
-
-
-  virtual ~Service_rollbackTopology_presult() throw() {}
-
+  _Service_leave_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -513,8 +446,9 @@ class Service_getHiveState_pargs {
 };
 
 typedef struct _Service_getHiveState_result__isset {
-  _Service_getHiveState_result__isset() : success(false) {}
+  _Service_getHiveState_result__isset() : success(false), notJoined(false) {}
   bool success;
+  bool notJoined;
 } _Service_getHiveState_result__isset;
 
 class Service_getHiveState_result {
@@ -526,6 +460,7 @@ class Service_getHiveState_result {
   virtual ~Service_getHiveState_result() throw() {}
 
   HiveState success;
+  NotJoined notJoined;
 
   _Service_getHiveState_result__isset __isset;
 
@@ -533,9 +468,15 @@ class Service_getHiveState_result {
     success = val;
   }
 
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
   bool operator == (const Service_getHiveState_result & rhs) const
   {
     if (!(success == rhs.success))
+      return false;
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -551,8 +492,9 @@ class Service_getHiveState_result {
 };
 
 typedef struct _Service_getHiveState_presult__isset {
-  _Service_getHiveState_presult__isset() : success(false) {}
+  _Service_getHiveState_presult__isset() : success(false), notJoined(false) {}
   bool success;
+  bool notJoined;
 } _Service_getHiveState_presult__isset;
 
 class Service_getHiveState_presult {
@@ -562,6 +504,7 @@ class Service_getHiveState_presult {
   virtual ~Service_getHiveState_presult() throw() {}
 
   HiveState* success;
+  NotJoined notJoined;
 
   _Service_getHiveState_presult__isset __isset;
 
@@ -607,8 +550,9 @@ class Service_getState_pargs {
 };
 
 typedef struct _Service_getState_result__isset {
-  _Service_getState_result__isset() : success(false) {}
+  _Service_getState_result__isset() : success(false), notJoined(false) {}
   bool success;
+  bool notJoined;
 } _Service_getState_result__isset;
 
 class Service_getState_result {
@@ -620,6 +564,7 @@ class Service_getState_result {
   virtual ~Service_getState_result() throw() {}
 
   ServiceState success;
+  NotJoined notJoined;
 
   _Service_getState_result__isset __isset;
 
@@ -627,9 +572,15 @@ class Service_getState_result {
     success = val;
   }
 
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
   bool operator == (const Service_getState_result & rhs) const
   {
     if (!(success == rhs.success))
+      return false;
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -645,8 +596,9 @@ class Service_getState_result {
 };
 
 typedef struct _Service_getState_presult__isset {
-  _Service_getState_presult__isset() : success(false) {}
+  _Service_getState_presult__isset() : success(false), notJoined(false) {}
   bool success;
+  bool notJoined;
 } _Service_getState_presult__isset;
 
 class Service_getState_presult {
@@ -656,6 +608,7 @@ class Service_getState_presult {
   virtual ~Service_getState_presult() throw() {}
 
   ServiceState* success;
+  NotJoined notJoined;
 
   _Service_getState_presult__isset __isset;
 
@@ -733,9 +686,10 @@ class Service_acquireLock_pargs {
 };
 
 typedef struct _Service_acquireLock_result__isset {
-  _Service_acquireLock_result__isset() : success(false), timeout(false) {}
+  _Service_acquireLock_result__isset() : success(false), timeout(false), notJoined(false) {}
   bool success;
   bool timeout;
+  bool notJoined;
 } _Service_acquireLock_result__isset;
 
 class Service_acquireLock_result {
@@ -748,6 +702,7 @@ class Service_acquireLock_result {
 
   LockID success;
   LockTimedOut timeout;
+  NotJoined notJoined;
 
   _Service_acquireLock_result__isset __isset;
 
@@ -759,11 +714,17 @@ class Service_acquireLock_result {
     timeout = val;
   }
 
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
   bool operator == (const Service_acquireLock_result & rhs) const
   {
     if (!(success == rhs.success))
       return false;
     if (!(timeout == rhs.timeout))
+      return false;
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -779,9 +740,10 @@ class Service_acquireLock_result {
 };
 
 typedef struct _Service_acquireLock_presult__isset {
-  _Service_acquireLock_presult__isset() : success(false), timeout(false) {}
+  _Service_acquireLock_presult__isset() : success(false), timeout(false), notJoined(false) {}
   bool success;
   bool timeout;
+  bool notJoined;
 } _Service_acquireLock_presult__isset;
 
 class Service_acquireLock_presult {
@@ -792,6 +754,7 @@ class Service_acquireLock_presult {
 
   LockID* success;
   LockTimedOut timeout;
+  NotJoined notJoined;
 
   _Service_acquireLock_presult__isset __isset;
 
@@ -851,8 +814,9 @@ class Service_keepLock_pargs {
 };
 
 typedef struct _Service_keepLock_result__isset {
-  _Service_keepLock_result__isset() : expired(false) {}
+  _Service_keepLock_result__isset() : expired(false), notJoined(false) {}
   bool expired;
+  bool notJoined;
 } _Service_keepLock_result__isset;
 
 class Service_keepLock_result {
@@ -864,6 +828,7 @@ class Service_keepLock_result {
   virtual ~Service_keepLock_result() throw() {}
 
   LockExpired expired;
+  NotJoined notJoined;
 
   _Service_keepLock_result__isset __isset;
 
@@ -871,9 +836,15 @@ class Service_keepLock_result {
     expired = val;
   }
 
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
   bool operator == (const Service_keepLock_result & rhs) const
   {
     if (!(expired == rhs.expired))
+      return false;
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -889,8 +860,9 @@ class Service_keepLock_result {
 };
 
 typedef struct _Service_keepLock_presult__isset {
-  _Service_keepLock_presult__isset() : expired(false) {}
+  _Service_keepLock_presult__isset() : expired(false), notJoined(false) {}
   bool expired;
+  bool notJoined;
 } _Service_keepLock_presult__isset;
 
 class Service_keepLock_presult {
@@ -900,6 +872,7 @@ class Service_keepLock_presult {
   virtual ~Service_keepLock_presult() throw() {}
 
   LockExpired expired;
+  NotJoined notJoined;
 
   _Service_keepLock_presult__isset __isset;
 
@@ -968,9 +941,10 @@ class Service_escalateLock_pargs {
 };
 
 typedef struct _Service_escalateLock_result__isset {
-  _Service_escalateLock_result__isset() : timeout(false), expired(false) {}
+  _Service_escalateLock_result__isset() : timeout(false), expired(false), notJoined(false) {}
   bool timeout;
   bool expired;
+  bool notJoined;
 } _Service_escalateLock_result__isset;
 
 class Service_escalateLock_result {
@@ -983,6 +957,7 @@ class Service_escalateLock_result {
 
   LockTimedOut timeout;
   LockExpired expired;
+  NotJoined notJoined;
 
   _Service_escalateLock_result__isset __isset;
 
@@ -994,11 +969,17 @@ class Service_escalateLock_result {
     expired = val;
   }
 
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
   bool operator == (const Service_escalateLock_result & rhs) const
   {
     if (!(timeout == rhs.timeout))
       return false;
     if (!(expired == rhs.expired))
+      return false;
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -1014,9 +995,10 @@ class Service_escalateLock_result {
 };
 
 typedef struct _Service_escalateLock_presult__isset {
-  _Service_escalateLock_presult__isset() : timeout(false), expired(false) {}
+  _Service_escalateLock_presult__isset() : timeout(false), expired(false), notJoined(false) {}
   bool timeout;
   bool expired;
+  bool notJoined;
 } _Service_escalateLock_presult__isset;
 
 class Service_escalateLock_presult {
@@ -1027,6 +1009,7 @@ class Service_escalateLock_presult {
 
   LockTimedOut timeout;
   LockExpired expired;
+  NotJoined notJoined;
 
   _Service_escalateLock_presult__isset __isset;
 
@@ -1086,8 +1069,9 @@ class Service_releaseLock_pargs {
 };
 
 typedef struct _Service_releaseLock_result__isset {
-  _Service_releaseLock_result__isset() : expired(false) {}
+  _Service_releaseLock_result__isset() : expired(false), notJoined(false) {}
   bool expired;
+  bool notJoined;
 } _Service_releaseLock_result__isset;
 
 class Service_releaseLock_result {
@@ -1099,6 +1083,7 @@ class Service_releaseLock_result {
   virtual ~Service_releaseLock_result() throw() {}
 
   LockExpired expired;
+  NotJoined notJoined;
 
   _Service_releaseLock_result__isset __isset;
 
@@ -1106,9 +1091,15 @@ class Service_releaseLock_result {
     expired = val;
   }
 
+  void __set_notJoined(const NotJoined& val) {
+    notJoined = val;
+  }
+
   bool operator == (const Service_releaseLock_result & rhs) const
   {
     if (!(expired == rhs.expired))
+      return false;
+    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -1124,8 +1115,9 @@ class Service_releaseLock_result {
 };
 
 typedef struct _Service_releaseLock_presult__isset {
-  _Service_releaseLock_presult__isset() : expired(false) {}
+  _Service_releaseLock_presult__isset() : expired(false), notJoined(false) {}
   bool expired;
+  bool notJoined;
 } _Service_releaseLock_presult__isset;
 
 class Service_releaseLock_presult {
@@ -1135,6 +1127,7 @@ class Service_releaseLock_presult {
   virtual ~Service_releaseLock_presult() throw() {}
 
   LockExpired expired;
+  NotJoined notJoined;
 
   _Service_releaseLock_presult__isset __isset;
 
@@ -1162,18 +1155,15 @@ class ServiceClient : virtual public ServiceIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  void getTopology(TopologyResult& _return);
-  void send_getTopology();
-  void recv_getTopology(TopologyResult& _return);
-  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology);
-  void send_prepareTopology(const TransactionID& transactionID, const Topology& topology);
-  Revision recv_prepareTopology();
-  void commitTopology(const TransactionID& transactionID);
-  void send_commitTopology(const TransactionID& transactionID);
-  void recv_commitTopology();
-  void rollbackTopology(const TransactionID& transactionID);
-  void send_rollbackTopology(const TransactionID& transactionID);
-  void recv_rollbackTopology();
+  void init(HiveState& _return);
+  void send_init();
+  void recv_init(HiveState& _return);
+  void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState);
+  void send_join(const HostID hostID, const HiveState& hiveState);
+  void recv_join(ServiceState& _return);
+  void leave();
+  void send_leave();
+  void recv_leave();
   void getHiveState(HiveState& _return);
   void send_getHiveState();
   void recv_getHiveState(HiveState& _return);
@@ -1207,10 +1197,9 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef  void (ServiceProcessor::*ProcessFunction)(int32_t, apache::thrift::protocol::TProtocol*, apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
-  void process_getTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_prepareTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_commitTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_rollbackTopology(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_init(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_join(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_leave(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getHiveState(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getState(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_acquireLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -1220,10 +1209,9 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
  public:
   ServiceProcessor(boost::shared_ptr<ServiceIf> iface) :
     iface_(iface) {
-    processMap_["getTopology"] = &ServiceProcessor::process_getTopology;
-    processMap_["prepareTopology"] = &ServiceProcessor::process_prepareTopology;
-    processMap_["commitTopology"] = &ServiceProcessor::process_commitTopology;
-    processMap_["rollbackTopology"] = &ServiceProcessor::process_rollbackTopology;
+    processMap_["init"] = &ServiceProcessor::process_init;
+    processMap_["join"] = &ServiceProcessor::process_join;
+    processMap_["leave"] = &ServiceProcessor::process_leave;
     processMap_["getHiveState"] = &ServiceProcessor::process_getHiveState;
     processMap_["getState"] = &ServiceProcessor::process_getState;
     processMap_["acquireLock"] = &ServiceProcessor::process_acquireLock;
@@ -1258,41 +1246,33 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_.push_back(iface);
   }
  public:
-  void getTopology(TopologyResult& _return) {
+  void init(HiveState& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->getTopology(_return);
+      ifaces_[i]->init(_return);
     }
-    ifaces_[i]->getTopology(_return);
+    ifaces_[i]->init(_return);
     return;
   }
 
-  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology) {
+  void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->prepareTopology(transactionID, topology);
+      ifaces_[i]->join(_return, hostID, hiveState);
     }
-    return ifaces_[i]->prepareTopology(transactionID, topology);
+    ifaces_[i]->join(_return, hostID, hiveState);
+    return;
   }
 
-  void commitTopology(const TransactionID& transactionID) {
+  void leave() {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->commitTopology(transactionID);
+      ifaces_[i]->leave();
     }
-    ifaces_[i]->commitTopology(transactionID);
-  }
-
-  void rollbackTopology(const TransactionID& transactionID) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->rollbackTopology(transactionID);
-    }
-    ifaces_[i]->rollbackTopology(transactionID);
+    ifaces_[i]->leave();
   }
 
   void getHiveState(HiveState& _return) {

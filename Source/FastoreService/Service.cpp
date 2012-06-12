@@ -15,13 +15,20 @@
 #include <string>
 #include <strsafe.h>
 
+#include "Service.h"
+#include "errors.h"
+#include "Endpoint.h"
+#include "ServiceHandler.h"
+#include "EndpointConfig.h"
+
+
 using namespace std;
 
-boost::shared_ptr<FastoreService> service;
+boost::shared_ptr<Endpoint> endpoint;
 
 typedef void (*ServiceEventCallback)();
 
-void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const ServiceConfig& serviceConfig, const CoreConfig& coreConfig)
+void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const EndpointConfig& endpointConfig, const CoreConfig& coreConfig)
 {
 	//Open windows sockets
 	WORD wVersionRequested;
@@ -59,7 +66,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	{
 		auto handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(coreConfig));
 		auto processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(handler));
-		service = boost::shared_ptr<FastoreService>(new FastoreService(serviceConfig, processor));
+		endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endpointConfig, processor));
 	}
 	catch (const exception& e)
 	{
@@ -73,7 +80,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	// Start main execution
 	try
 	{
-		service->Run();
+		endpoint->Run();
 	}
 	catch (const exception& e)
 	{
@@ -86,7 +93,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	// Stop the service
 	try
 	{
-		service.reset();			
+		endpoint.reset();			
 	}
 	catch (const exception& e)
 	{
@@ -109,8 +116,8 @@ BOOL CtrlCHandler(DWORD fdwCtrlType)
 		// Handle the CTRL-C signal. 
 	case CTRL_C_EVENT: 
 		cout << "Stop Request Received.\n";
-		if (service != NULL)
-			service->Stop();
+		if (endpoint != NULL)
+			endpoint->Stop();
 		return( TRUE );
 
 	default: 
@@ -152,7 +159,7 @@ vector<string> argsToVector(int argc, wchar_t* argv[])
 
 struct CombinedConfig
 {
-	ServiceConfig serviceConfig;
+	EndpointConfig endpointConfig;
 	CoreConfig coreConfig;
 };
 
@@ -164,7 +171,7 @@ CombinedConfig getConfig(vector<string>& args)
 	for (int i = 0; i < args.size(); i++)
 	{
 		if (args[i] == "-p" && args.size() - 1 > i)
-			istringstream(args[i + 1]) >> config.serviceConfig.port;
+			istringstream(args[i + 1]) >> config.endpointConfig.port;
 		else if (args[i] == "-dp" && args.size() - 1 > i)
 			config.coreConfig.dataPath = args[i + 1];
 	}
@@ -181,10 +188,10 @@ void __cdecl _tmain(int argc, wchar_t* argv[])
 	{
 		auto config = getConfig(argsToVector(argc, argv));
 
-		cout << "Configuration: port = " << config.serviceConfig.port << "	data path = '" << config.coreConfig.dataPath << "'\n";
+		cout << "Configuration: port = " << config.endpointConfig.port << "	data path = '" << config.coreConfig.dataPath << "'\n";
 
 		cout << "Service starting....\n";
-		RunService(&ConsoleStarted, &ConsoleStopping, config.serviceConfig, config.coreConfig);
+		RunService(&ConsoleStarted, &ConsoleStopping, config.endpointConfig, config.coreConfig);
 		cout << "Service stopped.\n";
 		return;
 	}
@@ -319,7 +326,7 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR* lpszArgv )
 	auto config = getConfig(argsToVector(dwArgc, lpszArgv));
 
 	// Run the service
-	RunService(&ServiceStarted, &ServiceStopping, config.serviceConfig, config.coreConfig);
+	RunService(&ServiceStarted, &ServiceStopping, config.endpointConfig, config.coreConfig);
 
 	// Report stopped status to the SCM
 	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
@@ -385,8 +392,8 @@ VOID WINAPI SvcCtrlHandler( DWORD dwCtrl )
 
 		// Signal the service to stop.
 
-		if (service != NULL)
-			service->Stop();
+		if (endpoint != NULL)
+			endpoint->Stop();
 		ReportSvcStatus(gSvcStatus.dwCurrentState, NO_ERROR, 0);
 
 		return;

@@ -1,7 +1,6 @@
 #pragma once
 #include "..\FastoreCore\FastoreHost.h"
 #include "..\FastoreCommunication\Worker.h"
-#include "ServiceConfig.h"
 #include <thrift/server/TServer.h>
 
 using namespace ::apache::thrift;

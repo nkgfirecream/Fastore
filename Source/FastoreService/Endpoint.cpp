@@ -1,4 +1,4 @@
-#include "FastoreService.h"
+#include "Endpoint.h"
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TServerSocket.h>
@@ -10,7 +10,7 @@ using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
 using namespace apache::thrift::server;
 
-class FastoreService::impl
+class Endpoint::impl
 {
 	boost::shared_ptr<TProcessor> _processor;
 	boost::shared_ptr<TServerTransport> _serverTransport;
@@ -20,7 +20,7 @@ class FastoreService::impl
 
 public:
 
-	impl(const ServiceConfig& config, const boost::shared_ptr<TProcessor> processor)	
+	impl(const EndpointConfig& config, const boost::shared_ptr<TProcessor> processor)	
 	{
 		_processor = processor;
 		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
@@ -45,15 +45,15 @@ public:
 	}
 };
 
-FastoreService::FastoreService(const ServiceConfig& config, const boost::shared_ptr<TProcessor>& processor) : _pimpl(new impl(config, processor))
+Endpoint::Endpoint(const EndpointConfig& config, const boost::shared_ptr<TProcessor>& processor) : _pimpl(new impl(config, processor))
 { }
 
-void FastoreService::Run()
+void Endpoint::Run()
 {
 	_pimpl->Run();
 }
 
-void FastoreService::Stop()
+void Endpoint::Stop()
 {
 	_pimpl->Stop();
 }

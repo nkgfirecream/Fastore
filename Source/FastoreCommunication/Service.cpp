@@ -8,7 +8,7 @@
 
 namespace fastore {
 
-uint32_t Service_getTopology_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -40,25 +40,25 @@ uint32_t Service_getTopology_args::read(::apache::thrift::protocol::TProtocol* i
   return xfer;
 }
 
-uint32_t Service_getTopology_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Service_init_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_getTopology_args");
+  xfer += oprot->writeStructBegin("Service_init_args");
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
 }
 
-uint32_t Service_getTopology_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Service_init_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_getTopology_pargs");
+  xfer += oprot->writeStructBegin("Service_init_pargs");
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
 }
 
-uint32_t Service_getTopology_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_init_result::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -86,6 +86,14 @@ uint32_t Service_getTopology_result::read(::apache::thrift::protocol::TProtocol*
           xfer += iprot->skip(ftype);
         }
         break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyJoined.read(iprot);
+          this->__isset.alreadyJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -98,15 +106,19 @@ uint32_t Service_getTopology_result::read(::apache::thrift::protocol::TProtocol*
   return xfer;
 }
 
-uint32_t Service_getTopology_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Service_init_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   uint32_t xfer = 0;
 
-  xfer += oprot->writeStructBegin("Service_getTopology_result");
+  xfer += oprot->writeStructBegin("Service_init_result");
 
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
     xfer += this->success.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.alreadyJoined) {
+    xfer += oprot->writeFieldBegin("alreadyJoined", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->alreadyJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -114,7 +126,7 @@ uint32_t Service_getTopology_result::write(::apache::thrift::protocol::TProtocol
   return xfer;
 }
 
-uint32_t Service_getTopology_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_init_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -142,6 +154,14 @@ uint32_t Service_getTopology_presult::read(::apache::thrift::protocol::TProtocol
           xfer += iprot->skip(ftype);
         }
         break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyJoined.read(iprot);
+          this->__isset.alreadyJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -154,7 +174,7 @@ uint32_t Service_getTopology_presult::read(::apache::thrift::protocol::TProtocol
   return xfer;
 }
 
-uint32_t Service_prepareTopology_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_join_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -175,17 +195,17 @@ uint32_t Service_prepareTopology_args::read(::apache::thrift::protocol::TProtoco
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->transactionID.read(iprot);
-          this->__isset.transactionID = true;
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->hostID);
+          this->__isset.hostID = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 2:
+      case -1:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->topology.read(iprot);
-          this->__isset.topology = true;
+          xfer += this->hiveState.read(iprot);
+          this->__isset.hiveState = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -202,16 +222,16 @@ uint32_t Service_prepareTopology_args::read(::apache::thrift::protocol::TProtoco
   return xfer;
 }
 
-uint32_t Service_prepareTopology_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Service_join_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_prepareTopology_args");
+  xfer += oprot->writeStructBegin("Service_join_args");
 
-  xfer += oprot->writeFieldBegin("transactionID", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += this->transactionID.write(oprot);
+  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, -1);
+  xfer += this->hiveState.write(oprot);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("topology", ::apache::thrift::protocol::T_STRUCT, 2);
-  xfer += this->topology.write(oprot);
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
+  xfer += oprot->writeI32(this->hostID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -219,16 +239,16 @@ uint32_t Service_prepareTopology_args::write(::apache::thrift::protocol::TProtoc
   return xfer;
 }
 
-uint32_t Service_prepareTopology_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Service_join_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_prepareTopology_pargs");
+  xfer += oprot->writeStructBegin("Service_join_pargs");
 
-  xfer += oprot->writeFieldBegin("transactionID", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += (*(this->transactionID)).write(oprot);
+  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, -1);
+  xfer += (*(this->hiveState)).write(oprot);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("topology", ::apache::thrift::protocol::T_STRUCT, 2);
-  xfer += (*(this->topology)).write(oprot);
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
+  xfer += oprot->writeI32((*(this->hostID)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -236,7 +256,7 @@ uint32_t Service_prepareTopology_pargs::write(::apache::thrift::protocol::TProto
   return xfer;
 }
 
-uint32_t Service_prepareTopology_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_join_result::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -257,9 +277,17 @@ uint32_t Service_prepareTopology_result::read(::apache::thrift::protocol::TProto
     switch (fid)
     {
       case 0:
-        if (ftype == ::apache::thrift::protocol::T_I64) {
-          xfer += iprot->readI64(this->success);
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->success.read(iprot);
           this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyJoined.read(iprot);
+          this->__isset.alreadyJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -276,15 +304,19 @@ uint32_t Service_prepareTopology_result::read(::apache::thrift::protocol::TProto
   return xfer;
 }
 
-uint32_t Service_prepareTopology_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+uint32_t Service_join_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   uint32_t xfer = 0;
 
-  xfer += oprot->writeStructBegin("Service_prepareTopology_result");
+  xfer += oprot->writeStructBegin("Service_join_result");
 
   if (this->__isset.success) {
-    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_I64, 0);
-    xfer += oprot->writeI64(this->success);
+    xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
+    xfer += this->success.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.alreadyJoined) {
+    xfer += oprot->writeFieldBegin("alreadyJoined", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->alreadyJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -292,7 +324,7 @@ uint32_t Service_prepareTopology_result::write(::apache::thrift::protocol::TProt
   return xfer;
 }
 
-uint32_t Service_prepareTopology_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_join_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -313,13 +345,21 @@ uint32_t Service_prepareTopology_presult::read(::apache::thrift::protocol::TProt
     switch (fid)
     {
       case 0:
-        if (ftype == ::apache::thrift::protocol::T_I64) {
-          xfer += iprot->readI64((*(this->success)));
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->alreadyJoined.read(iprot);
+          this->__isset.alreadyJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -332,7 +372,57 @@ uint32_t Service_prepareTopology_presult::read(::apache::thrift::protocol::TProt
   return xfer;
 }
 
-uint32_t Service_commitTopology_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_leave_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Service_leave_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Service_leave_args");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Service_leave_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Service_leave_pargs");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Service_leave_result::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -354,8 +444,8 @@ uint32_t Service_commitTopology_args::read(::apache::thrift::protocol::TProtocol
     {
       case 1:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->transactionID.read(iprot);
-          this->__isset.transactionID = true;
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -372,108 +462,23 @@ uint32_t Service_commitTopology_args::read(::apache::thrift::protocol::TProtocol
   return xfer;
 }
 
-uint32_t Service_commitTopology_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_commitTopology_args");
-
-  xfer += oprot->writeFieldBegin("transactionID", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += this->transactionID.write(oprot);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Service_commitTopology_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_commitTopology_pargs");
-
-  xfer += oprot->writeFieldBegin("transactionID", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += (*(this->transactionID)).write(oprot);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Service_commitTopology_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_leave_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
 
-  xfer += iprot->readStructBegin(fname);
+  xfer += oprot->writeStructBegin("Service_leave_result");
 
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
+  if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->notJoined.write(oprot);
+    xfer += oprot->writeFieldEnd();
   }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t Service_commitTopology_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
-
-  uint32_t xfer = 0;
-
-  xfer += oprot->writeStructBegin("Service_commitTopology_result");
-
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
 }
 
-uint32_t Service_commitTopology_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t Service_rollbackTopology_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+uint32_t Service_leave_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -495,113 +500,12 @@ uint32_t Service_rollbackTopology_args::read(::apache::thrift::protocol::TProtoc
     {
       case 1:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->transactionID.read(iprot);
-          this->__isset.transactionID = true;
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t Service_rollbackTopology_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_rollbackTopology_args");
-
-  xfer += oprot->writeFieldBegin("transactionID", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += this->transactionID.write(oprot);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Service_rollbackTopology_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("Service_rollbackTopology_pargs");
-
-  xfer += oprot->writeFieldBegin("transactionID", ::apache::thrift::protocol::T_STRUCT, 1);
-  xfer += (*(this->transactionID)).write(oprot);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Service_rollbackTopology_result::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  return xfer;
-}
-
-uint32_t Service_rollbackTopology_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
-
-  uint32_t xfer = 0;
-
-  xfer += oprot->writeStructBegin("Service_rollbackTopology_result");
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-uint32_t Service_rollbackTopology_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -692,6 +596,14 @@ uint32_t Service_getHiveState_result::read(::apache::thrift::protocol::TProtocol
           xfer += iprot->skip(ftype);
         }
         break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -713,6 +625,10 @@ uint32_t Service_getHiveState_result::write(::apache::thrift::protocol::TProtoco
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
     xfer += this->success.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -744,6 +660,14 @@ uint32_t Service_getHiveState_presult::read(::apache::thrift::protocol::TProtoco
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -838,6 +762,14 @@ uint32_t Service_getState_result::read(::apache::thrift::protocol::TProtocol* ip
           xfer += iprot->skip(ftype);
         }
         break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -859,6 +791,10 @@ uint32_t Service_getState_result::write(::apache::thrift::protocol::TProtocol* o
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
     xfer += this->success.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -890,6 +826,14 @@ uint32_t Service_getState_presult::read(::apache::thrift::protocol::TProtocol* i
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -936,9 +880,9 @@ uint32_t Service_acquireLock_args::read(::apache::thrift::protocol::TProtocol* i
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast103;
-          xfer += iprot->readI32(ecast103);
-          this->mode = (LockMode::type)ecast103;
+          int32_t ecast80;
+          xfer += iprot->readI32(ecast80);
+          this->mode = (LockMode::type)ecast80;
           this->__isset.mode = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -1042,6 +986,14 @@ uint32_t Service_acquireLock_result::read(::apache::thrift::protocol::TProtocol*
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1067,6 +1019,10 @@ uint32_t Service_acquireLock_result::write(::apache::thrift::protocol::TProtocol
   } else if (this->__isset.timeout) {
     xfer += oprot->writeFieldBegin("timeout", ::apache::thrift::protocol::T_STRUCT, 1);
     xfer += this->timeout.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 2);
+    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -1106,6 +1062,14 @@ uint32_t Service_acquireLock_presult::read(::apache::thrift::protocol::TProtocol
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->timeout.read(iprot);
           this->__isset.timeout = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1216,6 +1180,14 @@ uint32_t Service_keepLock_result::read(::apache::thrift::protocol::TProtocol* ip
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1237,6 +1209,10 @@ uint32_t Service_keepLock_result::write(::apache::thrift::protocol::TProtocol* o
   if (this->__isset.expired) {
     xfer += oprot->writeFieldBegin("expired", ::apache::thrift::protocol::T_STRUCT, 1);
     xfer += this->expired.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 2);
+    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -1268,6 +1244,14 @@ uint32_t Service_keepLock_presult::read(::apache::thrift::protocol::TProtocol* i
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->expired.read(iprot);
           this->__isset.expired = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1402,6 +1386,14 @@ uint32_t Service_escalateLock_result::read(::apache::thrift::protocol::TProtocol
           xfer += iprot->skip(ftype);
         }
         break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1427,6 +1419,10 @@ uint32_t Service_escalateLock_result::write(::apache::thrift::protocol::TProtoco
   } else if (this->__isset.expired) {
     xfer += oprot->writeFieldBegin("expired", ::apache::thrift::protocol::T_STRUCT, 2);
     xfer += this->expired.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 3);
+    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -1466,6 +1462,14 @@ uint32_t Service_escalateLock_presult::read(::apache::thrift::protocol::TProtoco
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->expired.read(iprot);
           this->__isset.expired = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1576,6 +1580,14 @@ uint32_t Service_releaseLock_result::read(::apache::thrift::protocol::TProtocol*
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1597,6 +1609,10 @@ uint32_t Service_releaseLock_result::write(::apache::thrift::protocol::TProtocol
   if (this->__isset.expired) {
     xfer += oprot->writeFieldBegin("expired", ::apache::thrift::protocol::T_STRUCT, 1);
     xfer += this->expired.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  } else if (this->__isset.notJoined) {
+    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 2);
+    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -1632,6 +1648,14 @@ uint32_t Service_releaseLock_presult::read(::apache::thrift::protocol::TProtocol
           xfer += iprot->skip(ftype);
         }
         break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->notJoined.read(iprot);
+          this->__isset.notJoined = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1644,18 +1668,18 @@ uint32_t Service_releaseLock_presult::read(::apache::thrift::protocol::TProtocol
   return xfer;
 }
 
-void ServiceClient::getTopology(TopologyResult& _return)
+void ServiceClient::init(HiveState& _return)
 {
-  send_getTopology();
-  recv_getTopology(_return);
+  send_init();
+  recv_init(_return);
 }
 
-void ServiceClient::send_getTopology()
+void ServiceClient::send_init()
 {
   int32_t cseqid = 0;
-  oprot_->writeMessageBegin("getTopology", ::apache::thrift::protocol::T_CALL, cseqid);
+  oprot_->writeMessageBegin("init", ::apache::thrift::protocol::T_CALL, cseqid);
 
-  Service_getTopology_pargs args;
+  Service_init_pargs args;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1663,7 +1687,7 @@ void ServiceClient::send_getTopology()
   oprot_->getTransport()->flush();
 }
 
-void ServiceClient::recv_getTopology(TopologyResult& _return)
+void ServiceClient::recv_init(HiveState& _return)
 {
 
   int32_t rseqid = 0;
@@ -1683,12 +1707,12 @@ void ServiceClient::recv_getTopology(TopologyResult& _return)
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  if (fname.compare("getTopology") != 0) {
+  if (fname.compare("init") != 0) {
     iprot_->skip(::apache::thrift::protocol::T_STRUCT);
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  Service_getTopology_presult result;
+  Service_init_presult result;
   result.success = &_return;
   result.read(iprot_);
   iprot_->readMessageEnd();
@@ -1698,23 +1722,26 @@ void ServiceClient::recv_getTopology(TopologyResult& _return)
     // _return pointer has now been filled
     return;
   }
-  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getTopology failed: unknown result");
+  if (result.__isset.alreadyJoined) {
+    throw result.alreadyJoined;
+  }
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "init failed: unknown result");
 }
 
-Revision ServiceClient::prepareTopology(const TransactionID& transactionID, const Topology& topology)
+void ServiceClient::join(ServiceState& _return, const HostID hostID, const HiveState& hiveState)
 {
-  send_prepareTopology(transactionID, topology);
-  return recv_prepareTopology();
+  send_join(hostID, hiveState);
+  recv_join(_return);
 }
 
-void ServiceClient::send_prepareTopology(const TransactionID& transactionID, const Topology& topology)
+void ServiceClient::send_join(const HostID hostID, const HiveState& hiveState)
 {
   int32_t cseqid = 0;
-  oprot_->writeMessageBegin("prepareTopology", ::apache::thrift::protocol::T_CALL, cseqid);
+  oprot_->writeMessageBegin("join", ::apache::thrift::protocol::T_CALL, cseqid);
 
-  Service_prepareTopology_pargs args;
-  args.transactionID = &transactionID;
-  args.topology = &topology;
+  Service_join_pargs args;
+  args.hostID = &hostID;
+  args.hiveState = &hiveState;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1722,7 +1749,7 @@ void ServiceClient::send_prepareTopology(const TransactionID& transactionID, con
   oprot_->getTransport()->flush();
 }
 
-Revision ServiceClient::recv_prepareTopology()
+void ServiceClient::recv_join(ServiceState& _return)
 {
 
   int32_t rseqid = 0;
@@ -1742,37 +1769,39 @@ Revision ServiceClient::recv_prepareTopology()
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  if (fname.compare("prepareTopology") != 0) {
+  if (fname.compare("join") != 0) {
     iprot_->skip(::apache::thrift::protocol::T_STRUCT);
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  Revision _return;
-  Service_prepareTopology_presult result;
+  Service_join_presult result;
   result.success = &_return;
   result.read(iprot_);
   iprot_->readMessageEnd();
   iprot_->getTransport()->readEnd();
 
   if (result.__isset.success) {
-    return _return;
+    // _return pointer has now been filled
+    return;
   }
-  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "prepareTopology failed: unknown result");
+  if (result.__isset.alreadyJoined) {
+    throw result.alreadyJoined;
+  }
+  throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "join failed: unknown result");
 }
 
-void ServiceClient::commitTopology(const TransactionID& transactionID)
+void ServiceClient::leave()
 {
-  send_commitTopology(transactionID);
-  recv_commitTopology();
+  send_leave();
+  recv_leave();
 }
 
-void ServiceClient::send_commitTopology(const TransactionID& transactionID)
+void ServiceClient::send_leave()
 {
   int32_t cseqid = 0;
-  oprot_->writeMessageBegin("commitTopology", ::apache::thrift::protocol::T_CALL, cseqid);
+  oprot_->writeMessageBegin("leave", ::apache::thrift::protocol::T_CALL, cseqid);
 
-  Service_commitTopology_pargs args;
-  args.transactionID = &transactionID;
+  Service_leave_pargs args;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1780,7 +1809,7 @@ void ServiceClient::send_commitTopology(const TransactionID& transactionID)
   oprot_->getTransport()->flush();
 }
 
-void ServiceClient::recv_commitTopology()
+void ServiceClient::recv_leave()
 {
 
   int32_t rseqid = 0;
@@ -1800,69 +1829,19 @@ void ServiceClient::recv_commitTopology()
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  if (fname.compare("commitTopology") != 0) {
+  if (fname.compare("leave") != 0) {
     iprot_->skip(::apache::thrift::protocol::T_STRUCT);
     iprot_->readMessageEnd();
     iprot_->getTransport()->readEnd();
   }
-  Service_commitTopology_presult result;
+  Service_leave_presult result;
   result.read(iprot_);
   iprot_->readMessageEnd();
   iprot_->getTransport()->readEnd();
 
-  return;
-}
-
-void ServiceClient::rollbackTopology(const TransactionID& transactionID)
-{
-  send_rollbackTopology(transactionID);
-  recv_rollbackTopology();
-}
-
-void ServiceClient::send_rollbackTopology(const TransactionID& transactionID)
-{
-  int32_t cseqid = 0;
-  oprot_->writeMessageBegin("rollbackTopology", ::apache::thrift::protocol::T_CALL, cseqid);
-
-  Service_rollbackTopology_pargs args;
-  args.transactionID = &transactionID;
-  args.write(oprot_);
-
-  oprot_->writeMessageEnd();
-  oprot_->getTransport()->writeEnd();
-  oprot_->getTransport()->flush();
-}
-
-void ServiceClient::recv_rollbackTopology()
-{
-
-  int32_t rseqid = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TMessageType mtype;
-
-  iprot_->readMessageBegin(fname, mtype, rseqid);
-  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
-    ::apache::thrift::TApplicationException x;
-    x.read(iprot_);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-    throw x;
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
   }
-  if (mtype != ::apache::thrift::protocol::T_REPLY) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  if (fname.compare("rollbackTopology") != 0) {
-    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
-    iprot_->readMessageEnd();
-    iprot_->getTransport()->readEnd();
-  }
-  Service_rollbackTopology_presult result;
-  result.read(iprot_);
-  iprot_->readMessageEnd();
-  iprot_->getTransport()->readEnd();
-
   return;
 }
 
@@ -1920,6 +1899,9 @@ void ServiceClient::recv_getHiveState(HiveState& _return)
     // _return pointer has now been filled
     return;
   }
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
+  }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getHiveState failed: unknown result");
 }
 
@@ -1976,6 +1958,9 @@ void ServiceClient::recv_getState(ServiceState& _return)
   if (result.__isset.success) {
     // _return pointer has now been filled
     return;
+  }
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
   }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getState failed: unknown result");
 }
@@ -2040,6 +2025,9 @@ LockID ServiceClient::recv_acquireLock()
   if (result.__isset.timeout) {
     throw result.timeout;
   }
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
+  }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "acquireLock failed: unknown result");
 }
 
@@ -2095,6 +2083,9 @@ void ServiceClient::recv_keepLock()
 
   if (result.__isset.expired) {
     throw result.expired;
+  }
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
   }
   return;
 }
@@ -2156,6 +2147,9 @@ void ServiceClient::recv_escalateLock()
   if (result.__isset.expired) {
     throw result.expired;
   }
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
+  }
   return;
 }
 
@@ -2212,6 +2206,9 @@ void ServiceClient::recv_releaseLock()
   if (result.__isset.expired) {
     throw result.expired;
   }
+  if (result.__isset.notJoined) {
+    throw result.notJoined;
+  }
   return;
 }
 
@@ -2234,38 +2231,41 @@ bool ServiceProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot
   return true;
 }
 
-void ServiceProcessor::process_getTopology(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void ServiceProcessor::process_init(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("Service.getTopology", callContext);
+    ctx = this->eventHandler_->getContext("Service.init", callContext);
   }
-  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.getTopology");
+  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.init");
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "Service.getTopology");
+    this->eventHandler_->preRead(ctx, "Service.init");
   }
 
-  Service_getTopology_args args;
+  Service_init_args args;
   args.read(iprot);
   iprot->readMessageEnd();
   uint32_t bytes = iprot->getTransport()->readEnd();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "Service.getTopology", bytes);
+    this->eventHandler_->postRead(ctx, "Service.init", bytes);
   }
 
-  Service_getTopology_result result;
+  Service_init_result result;
   try {
-    iface_->getTopology(result.success);
+    iface_->init(result.success);
     result.__isset.success = true;
+  } catch (AlreadyJoined &alreadyJoined) {
+    result.alreadyJoined = alreadyJoined;
+    result.__isset.alreadyJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "Service.getTopology");
+      this->eventHandler_->handlerError(ctx, "Service.init");
     }
 
     apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("getTopology", apache::thrift::protocol::T_EXCEPTION, seqid);
+    oprot->writeMessageBegin("init", apache::thrift::protocol::T_EXCEPTION, seqid);
     x.write(oprot);
     oprot->writeMessageEnd();
     oprot->getTransport()->writeEnd();
@@ -2274,52 +2274,55 @@ void ServiceProcessor::process_getTopology(int32_t seqid, ::apache::thrift::prot
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Service.getTopology");
+    this->eventHandler_->preWrite(ctx, "Service.init");
   }
 
-  oprot->writeMessageBegin("getTopology", apache::thrift::protocol::T_REPLY, seqid);
+  oprot->writeMessageBegin("init", apache::thrift::protocol::T_REPLY, seqid);
   result.write(oprot);
   oprot->writeMessageEnd();
   bytes = oprot->getTransport()->writeEnd();
   oprot->getTransport()->flush();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Service.getTopology", bytes);
+    this->eventHandler_->postWrite(ctx, "Service.init", bytes);
   }
 }
 
-void ServiceProcessor::process_prepareTopology(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void ServiceProcessor::process_join(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("Service.prepareTopology", callContext);
+    ctx = this->eventHandler_->getContext("Service.join", callContext);
   }
-  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.prepareTopology");
+  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.join");
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "Service.prepareTopology");
+    this->eventHandler_->preRead(ctx, "Service.join");
   }
 
-  Service_prepareTopology_args args;
+  Service_join_args args;
   args.read(iprot);
   iprot->readMessageEnd();
   uint32_t bytes = iprot->getTransport()->readEnd();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "Service.prepareTopology", bytes);
+    this->eventHandler_->postRead(ctx, "Service.join", bytes);
   }
 
-  Service_prepareTopology_result result;
+  Service_join_result result;
   try {
-    result.success = iface_->prepareTopology(args.transactionID, args.topology);
+    iface_->join(result.success, args.hostID, args.hiveState);
     result.__isset.success = true;
+  } catch (AlreadyJoined &alreadyJoined) {
+    result.alreadyJoined = alreadyJoined;
+    result.__isset.alreadyJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "Service.prepareTopology");
+      this->eventHandler_->handlerError(ctx, "Service.join");
     }
 
     apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("prepareTopology", apache::thrift::protocol::T_EXCEPTION, seqid);
+    oprot->writeMessageBegin("join", apache::thrift::protocol::T_EXCEPTION, seqid);
     x.write(oprot);
     oprot->writeMessageEnd();
     oprot->getTransport()->writeEnd();
@@ -2328,51 +2331,54 @@ void ServiceProcessor::process_prepareTopology(int32_t seqid, ::apache::thrift::
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Service.prepareTopology");
+    this->eventHandler_->preWrite(ctx, "Service.join");
   }
 
-  oprot->writeMessageBegin("prepareTopology", apache::thrift::protocol::T_REPLY, seqid);
+  oprot->writeMessageBegin("join", apache::thrift::protocol::T_REPLY, seqid);
   result.write(oprot);
   oprot->writeMessageEnd();
   bytes = oprot->getTransport()->writeEnd();
   oprot->getTransport()->flush();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Service.prepareTopology", bytes);
+    this->eventHandler_->postWrite(ctx, "Service.join", bytes);
   }
 }
 
-void ServiceProcessor::process_commitTopology(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+void ServiceProcessor::process_leave(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
 {
   void* ctx = NULL;
   if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("Service.commitTopology", callContext);
+    ctx = this->eventHandler_->getContext("Service.leave", callContext);
   }
-  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.commitTopology");
+  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.leave");
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "Service.commitTopology");
+    this->eventHandler_->preRead(ctx, "Service.leave");
   }
 
-  Service_commitTopology_args args;
+  Service_leave_args args;
   args.read(iprot);
   iprot->readMessageEnd();
   uint32_t bytes = iprot->getTransport()->readEnd();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "Service.commitTopology", bytes);
+    this->eventHandler_->postRead(ctx, "Service.leave", bytes);
   }
 
-  Service_commitTopology_result result;
+  Service_leave_result result;
   try {
-    iface_->commitTopology(args.transactionID);
+    iface_->leave();
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "Service.commitTopology");
+      this->eventHandler_->handlerError(ctx, "Service.leave");
     }
 
     apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("commitTopology", apache::thrift::protocol::T_EXCEPTION, seqid);
+    oprot->writeMessageBegin("leave", apache::thrift::protocol::T_EXCEPTION, seqid);
     x.write(oprot);
     oprot->writeMessageEnd();
     oprot->getTransport()->writeEnd();
@@ -2381,70 +2387,17 @@ void ServiceProcessor::process_commitTopology(int32_t seqid, ::apache::thrift::p
   }
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Service.commitTopology");
+    this->eventHandler_->preWrite(ctx, "Service.leave");
   }
 
-  oprot->writeMessageBegin("commitTopology", apache::thrift::protocol::T_REPLY, seqid);
+  oprot->writeMessageBegin("leave", apache::thrift::protocol::T_REPLY, seqid);
   result.write(oprot);
   oprot->writeMessageEnd();
   bytes = oprot->getTransport()->writeEnd();
   oprot->getTransport()->flush();
 
   if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Service.commitTopology", bytes);
-  }
-}
-
-void ServiceProcessor::process_rollbackTopology(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
-{
-  void* ctx = NULL;
-  if (this->eventHandler_.get() != NULL) {
-    ctx = this->eventHandler_->getContext("Service.rollbackTopology", callContext);
-  }
-  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.rollbackTopology");
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preRead(ctx, "Service.rollbackTopology");
-  }
-
-  Service_rollbackTopology_args args;
-  args.read(iprot);
-  iprot->readMessageEnd();
-  uint32_t bytes = iprot->getTransport()->readEnd();
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postRead(ctx, "Service.rollbackTopology", bytes);
-  }
-
-  Service_rollbackTopology_result result;
-  try {
-    iface_->rollbackTopology(args.transactionID);
-  } catch (const std::exception& e) {
-    if (this->eventHandler_.get() != NULL) {
-      this->eventHandler_->handlerError(ctx, "Service.rollbackTopology");
-    }
-
-    apache::thrift::TApplicationException x(e.what());
-    oprot->writeMessageBegin("rollbackTopology", apache::thrift::protocol::T_EXCEPTION, seqid);
-    x.write(oprot);
-    oprot->writeMessageEnd();
-    oprot->getTransport()->writeEnd();
-    oprot->getTransport()->flush();
-    return;
-  }
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->preWrite(ctx, "Service.rollbackTopology");
-  }
-
-  oprot->writeMessageBegin("rollbackTopology", apache::thrift::protocol::T_REPLY, seqid);
-  result.write(oprot);
-  oprot->writeMessageEnd();
-  bytes = oprot->getTransport()->writeEnd();
-  oprot->getTransport()->flush();
-
-  if (this->eventHandler_.get() != NULL) {
-    this->eventHandler_->postWrite(ctx, "Service.rollbackTopology", bytes);
+    this->eventHandler_->postWrite(ctx, "Service.leave", bytes);
   }
 }
 
@@ -2473,6 +2426,9 @@ void ServiceProcessor::process_getHiveState(int32_t seqid, ::apache::thrift::pro
   try {
     iface_->getHiveState(result.success);
     result.__isset.success = true;
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.getHiveState");
@@ -2527,6 +2483,9 @@ void ServiceProcessor::process_getState(int32_t seqid, ::apache::thrift::protoco
   try {
     iface_->getState(result.success);
     result.__isset.success = true;
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.getState");
@@ -2584,6 +2543,9 @@ void ServiceProcessor::process_acquireLock(int32_t seqid, ::apache::thrift::prot
   } catch (LockTimedOut &timeout) {
     result.timeout = timeout;
     result.__isset.timeout = true;
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.acquireLock");
@@ -2640,6 +2602,9 @@ void ServiceProcessor::process_keepLock(int32_t seqid, ::apache::thrift::protoco
   } catch (LockExpired &expired) {
     result.expired = expired;
     result.__isset.expired = true;
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.keepLock");
@@ -2699,6 +2664,9 @@ void ServiceProcessor::process_escalateLock(int32_t seqid, ::apache::thrift::pro
   } catch (LockExpired &expired) {
     result.expired = expired;
     result.__isset.expired = true;
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.escalateLock");
@@ -2755,6 +2723,9 @@ void ServiceProcessor::process_releaseLock(int32_t seqid, ::apache::thrift::prot
   } catch (LockExpired &expired) {
     result.expired = expired;
     result.__isset.expired = true;
+  } catch (NotJoined &notJoined) {
+    result.notJoined = notJoined;
+    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.releaseLock");

@@ -106,15 +106,15 @@ namespace Alphora.Fastore
             if (field.Type == TType.Map) {
               {
                 Services = new Dictionary<int, ServiceState>();
-                TMap _map24 = iprot.ReadMapBegin();
-                for( int _i25 = 0; _i25 < _map24.Count; ++_i25)
+                TMap _map10 = iprot.ReadMapBegin();
+                for( int _i11 = 0; _i11 < _map10.Count; ++_i11)
                 {
-                  int _key26;
-                  ServiceState _val27;
-                  _key26 = iprot.ReadI32();
-                  _val27 = new ServiceState();
-                  _val27.Read(iprot);
-                  Services[_key26] = _val27;
+                  int _key12;
+                  ServiceState _val13;
+                  _key12 = iprot.ReadI32();
+                  _val13 = new ServiceState();
+                  _val13.Read(iprot);
+                  Services[_key12] = _val13;
                 }
                 iprot.ReadMapEnd();
               }
@@ -157,10 +157,10 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Services.Count));
-          foreach (int _iter28 in Services.Keys)
+          foreach (int _iter14 in Services.Keys)
           {
-            oprot.WriteI32(_iter28);
-            Services[_iter28].Write(oprot);
+            oprot.WriteI32(_iter14);
+            Services[_iter14].Write(oprot);
           }
           oprot.WriteMapEnd();
         }

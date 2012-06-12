@@ -1,11 +1,7 @@
 namespace cpp fastore
 namespace csharp Alphora.Fastore
 
-// Common
-
-typedef i64 Revision
-
-// Topology
+// State Reporting
 
 typedef i32 TopologyID
 typedef i32 ColumnID
@@ -13,30 +9,6 @@ typedef i32 HostID
 typedef i32 PodID
 typedef string NetworkAddress
 typedef i32 NetworkPort
-
-struct Pod
-{
-	1: set<ColumnID> columnIDs
-}
-
-struct Host
-{
-	1: required map<PodID, Pod> pods
-}
-
-struct Topology
-{
-	1: required TopologyID id,
-	2: required map<HostID, Host> hosts
-}
-
-struct TopologyResult
-{
-	1: required Topology topology,
-	2: required Revision revision
-}
-
-// State Reporting
 
 enum RepositoryStatus
 {
@@ -84,13 +56,71 @@ struct HiveState
 	3: required HostID hostID
 }
 
-// Host
+// Service
 
 typedef i64 LockID
 typedef string LockName
 enum LockMode { Read = 1, Write = 2 }
 /** Timeout in ms; <= 0 means fail immediately. */
 typedef i32 LockTimeout
+
+exception LockExpired
+{
+	1: LockID lockID
+}
+
+exception LockTimedOut {}
+
+exception AlreadyJoined
+{
+	1: HostID hostID
+}
+
+exception NotJoined {}
+
+service Service
+{
+	/** Initialize a new hive starting with this service */
+	HiveState init()
+		throws (1:AlreadyJoined alreadyJoined),
+
+	/** Associates the service with the given logical host ID within the given hive. */
+	ServiceState join(1:HostID hostID, HiveState hiveState)
+		throws (1:AlreadyJoined alreadyJoined),
+
+	/** Dissociates the service from the current hive. */
+	void leave()
+		throws (1:NotJoined notJoined),
+
+	/** Returns the current status of all services in the hive as understood by this service. */
+	HiveState getHiveState()
+		throws (1:NotJoined notJoined),
+
+	/** Returns the current status of this service. */
+	ServiceState getState()
+		throws (1:NotJoined notJoined),
+
+
+	/** Acquires a given named lock given a mode and timeout. */
+	LockID acquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
+		throws (1:LockTimedOut timeout, 2:NotJoined notJoined),
+
+	/** Keeps a given lock alive - locks automatically expire if not renewed. */
+	void keepLock(1:LockID lockID)
+		throws (1:LockExpired expired, 2:NotJoined notJoined),
+	
+	/** Attempts to escalate the given lock to write mode */
+	void escalateLock(1:LockID lockID, 2:LockTimeout timeout = -1)
+		throws (1:LockTimedOut timeout, 2:LockExpired expired, 3:NotJoined notJoined),
+
+	/** Releases the given lock */
+	void releaseLock(1:LockID lockID)
+		throws (1:LockExpired expired, 2:NotJoined notJoined)
+}
+
+// Worker
+
+typedef i64 Revision
 
 struct TransactionID
 {
@@ -199,51 +229,6 @@ exception Conflict
 exception BeyondHistory
 {
 	1: Revision minHistory
-}
-
-exception LockExpired
-{
-	1: LockID lockID
-}
-
-exception LockTimedOut {}
-
-service Service
-{
-	/** Returns the target topology as this host presently understands it. */
-	TopologyResult getTopology(),
-
-	/** Updates the topology and returns the new topology revision - HIVE TRANSACTED. */
-	Revision prepareTopology(1:TransactionID transactionID, 2:Topology topology),
-
-	/** Informs that the prepare was successful, the change should be committed. */
-	void commitTopology(1:TransactionID transactionID),
-
-	/** Informs that the prepare was unsuccessful, the change should be rolled back. */
-	void rollbackTopology(1:TransactionID transactionID),
-
-	/** Returns the current status of all services in the hive as understood by this service. */
-	HiveState getHiveState(),
-
-	/** Returns the current status of this service. */
-	ServiceState getState(),
-
-
-	/** Acquires a given named lock given a mode and timeout. */
-	LockID acquireLock(1:LockName name, 2:LockMode mode, 3:LockTimeout timeout = 1000)
-		throws (1:LockTimedOut timeout),
-
-	/** Keeps a given lock alive - locks automatically expire if not renewed. */
-	void keepLock(1:LockID lockID)
-		throws (1:LockExpired expired),
-	
-	/** Attempts to escalate the given lock to write mode */
-	void escalateLock(1:LockID lockID, 2:LockTimeout timeout = -1)
-		throws (1:LockTimedOut timeout, 2:LockExpired expired),
-
-	/** Releases the given lock */
-	void releaseLock(1:LockID lockID)
-		throws (1:LockExpired expired)
 }
 
 service Worker

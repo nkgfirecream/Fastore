@@ -20,10 +20,9 @@ private:
 public:
 	ServiceHandler(const CoreConfig& config);
 
-	void getTopology(TopologyResult& _return);
-	Revision prepareTopology(const TransactionID& transactionID, const Topology& topology);
-	void commitTopology(const TransactionID& transactionID);
-	void rollbackTopology(const TransactionID& transactionID);
+	void init(HiveState& _return);
+	void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState);
+	void leave();
 	void getHiveState(HiveState& _return);
 	void getState(ServiceState& _return);
 	LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);

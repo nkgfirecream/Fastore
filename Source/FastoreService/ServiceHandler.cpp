@@ -6,26 +6,19 @@ ServiceHandler::ServiceHandler(const CoreConfig& config) : _host(config)
 {
 }
 
-void ServiceHandler::getTopology(TopologyResult& _return) {
+void ServiceHandler::init(HiveState& _return) {
 // Your implementation goes here
-printf("GetTopology\n");
+printf("init\n");
 }
 
-Revision ServiceHandler::prepareTopology(const TransactionID& transactionID, const Topology& topology) {
+void ServiceHandler::join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) {
 // Your implementation goes here
-printf("PrepareTopology\n");
-
-return 0;
+printf("join\n");
 }
 
-void ServiceHandler::commitTopology(const TransactionID& transactionID) {
+void ServiceHandler::leave() {
 // Your implementation goes here
-printf("CommitTopology\n");
-}
-
-void ServiceHandler::rollbackTopology(const TransactionID& transactionID) {
-// Your implementation goes here
-printf("RollbackTopology\n");
+printf("leave\n");
 }
 
 void ServiceHandler::getHiveState(HiveState& _return) {
