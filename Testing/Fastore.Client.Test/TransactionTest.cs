@@ -23,16 +23,16 @@ namespace Fastore.Client.Test
 
             var data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000,  Ascending = true },
+                8
                 );
 
             _transaction = _database.Begin(false, false);
 
             var tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             Assert.AreEqual(data.Count, 8);
@@ -42,17 +42,16 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
               _columns,
-              new[] { new Order { ColumnID = 1000, Ascending = true } },
-              new[] { new Range { ColumnID = 1000, Limit = 8 } }
+              new Range { ColumnID = 1000, Ascending = true },
+              8
               );
 
             _transaction = _database.Begin(false, false);
 
             tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
-                );
+                new Range { ColumnID = 1000, Ascending = true },
+                8);
 
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 7);
@@ -69,14 +68,14 @@ namespace Fastore.Client.Test
 
             var data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
-                );    
+                new Range { ColumnID = 1000, Ascending = true },
+                8
+                );
 
             var tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             Assert.AreEqual(data.Count, 7);
@@ -90,8 +89,8 @@ namespace Fastore.Client.Test
             {
                 tData = _transaction.GetRange(
                    _columns,
-                   new[] { new Order { ColumnID = 1000, Ascending = true } },
-                   new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                   new Range { ColumnID = 1000, Ascending = true },
+                   8
                    );
             }
             catch
@@ -107,14 +106,14 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             Assert.AreEqual(data.Count, 7);
@@ -124,16 +123,16 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             _transaction = _database.Begin(false, false);
 
             tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             Assert.AreEqual(data.Count, 8);
@@ -143,14 +142,14 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             Assert.AreEqual(data.Count, 8);
@@ -160,16 +159,16 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             _transaction = _database.Begin(false, false);
 
             tData = _transaction.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 7);
@@ -209,8 +208,8 @@ namespace Fastore.Client.Test
 
             var data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 8 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                8
                 );
 
             Assert.AreEqual(data.Count, 6);
@@ -226,8 +225,8 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 9 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                9
                 );
 
             Assert.AreEqual(data.Count, 9);
@@ -250,8 +249,8 @@ namespace Fastore.Client.Test
 
             var data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 9 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                9
                 );
 
             Assert.AreEqual(data.Count, 8);
@@ -260,8 +259,8 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 9 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                9
                 );
 
             Assert.AreEqual(data.Count, 9);
@@ -305,8 +304,8 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(
                 _columns,
-                new[] { new Order { ColumnID = 1000, Ascending = true } },
-                new[] { new Range { ColumnID = 1000, Limit = 9 } }
+                new Range { ColumnID = 1000, Ascending = true },
+                9
                 );
 
             Assert.AreEqual(data.Count, 9);
