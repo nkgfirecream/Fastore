@@ -21,37 +21,22 @@ namespace Fastore.Client.Test
 
             _database.Include(_columns, 8, new object[] { 8, "Scott", "Pilgrim", true, "10/13/1979", "Moscow" });
 
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000,  Ascending = true },
-                8
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000,  Ascending = true }, 8);
 
             _transaction = _database.Begin(false, false);
 
-            var tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            var tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 8);
             Assert.AreEqual(tData.Count, 8);
 
             _database.Exclude(_columns, 8);
 
-            data = _database.GetRange(
-              _columns,
-              new Range { ColumnID = 1000, Ascending = true },
-              8
-              );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             _transaction = _database.Begin(false, false);
 
-            tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8);
+            tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 7);
@@ -66,17 +51,9 @@ namespace Fastore.Client.Test
 
             Transaction _transaction = _database.Begin(false, false);
 
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            var tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            var tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 7);
@@ -87,11 +64,7 @@ namespace Fastore.Client.Test
 
             try
             {
-                tData = _transaction.GetRange(
-                   _columns,
-                   new Range { ColumnID = 1000, Ascending = true },
-                   8
-                   );
+                tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
             }
             catch
             {
@@ -104,72 +77,40 @@ namespace Fastore.Client.Test
 
             _transaction.Include(_columns, 8, new object[] { 8, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 8);
 
             _transaction.Commit();
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            data = _database.GetRange(_columns,  new Range { ColumnID = 1000, Ascending = true }, 8);
 
             _transaction = _database.Begin(false, false);
 
-            tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 8);
             Assert.AreEqual(tData.Count, 8);
 
             _transaction.Exclude(_columns, 8);
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 8);
             Assert.AreEqual(tData.Count, 7);
 
             _transaction.Commit();
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             _transaction = _database.Begin(false, false);
 
-            tData = _transaction.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
             Assert.AreEqual(data.Count, 7);
             Assert.AreEqual(tData.Count, 7);
         }
@@ -206,11 +147,7 @@ namespace Fastore.Client.Test
 
             _transaction.Commit();
 
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
             Assert.AreEqual(data.Count, 6);
 
@@ -223,11 +160,7 @@ namespace Fastore.Client.Test
 
             _transaction.Commit();
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                9
-                );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
             Assert.AreEqual(data.Count, 9);
         }
@@ -247,21 +180,13 @@ namespace Fastore.Client.Test
 
             _transaction1.Commit();
 
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                9
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
             Assert.AreEqual(data.Count, 8);
 
             _transaction2.Commit();
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                9
-                );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
             Assert.AreEqual(data.Count, 9);
 
@@ -302,32 +227,47 @@ namespace Fastore.Client.Test
             _transaction1.Commit();
             _transaction2.Commit();
 
-            data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                9
-                );
+            data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
             Assert.AreEqual(data.Count, 9);
-
-        }
-        
-        [TestMethod]
-        public void TestDispose()
-        {
-
         }
 
         [TestMethod]
         public void TestRollback()
         {
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
 
+            Transaction _transaction = _database.Begin(false, false);
+            _transaction.Include(_columns, 8, new object[] { 8, "Scott", "Pilgrim", true, "10/13/1979", "Moscow" });
+            _transaction.Rollback();
+
+            var data = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
+            Assert.AreEqual(data.Count, 7);
         }
-
+        
         [TestMethod]
-        public void TestEnsureColumnLog()
+        public void TestDispose()
         {
+            _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
+            createTable(_columns);
+            addData(_database, _columns);
 
+            Transaction _transaction = _database.Begin(false, false);
+            _transaction.Include(_columns, 8, new object[] { 8, "Scott", "Pilgrim", true, "10/13/1979", "Moscow" });
+            _transaction.Dispose();
+
+            var data = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
+            Assert.AreEqual(data.Count, 7);
+
+            _transaction = _database.Begin(false, false);
+            _transaction.Include(_columns, 8, new object[] { 8, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
+            _transaction.Rollback();
+            _transaction.Dispose();
+
+            data = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
+            Assert.AreEqual(data.Count, 7);
         }
-    }
-}
+    }//end class
+}//end namespace

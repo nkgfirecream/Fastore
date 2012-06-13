@@ -42,11 +42,7 @@ namespace Fastore.Client.Test
             addData(_database, _columns);
 
             int[] cols = new int[] { 1000, 1002, 1005 };
-            var data = _database.GetRange(
-                cols,
-                new Range { ColumnID = 1000, Ascending = true },
-                3
-                );
+            var data = _database.GetRange(cols, new Range { ColumnID = 1000, Ascending = true }, 3);
             Assert.AreEqual(data[0].Values[0], 1);
             Assert.AreEqual(data[0].Values[1], "Shmoe");
             Assert.AreEqual(data[0].Values[2], "Antarctica");
@@ -65,18 +61,10 @@ namespace Fastore.Client.Test
             createTable(_columns);
             addData(_database, _columns);
 
-            var data = _database.GetRange(
-                _columns, 
-                new Range{ ColumnID = 1000, Ascending = true},
-                3
-                );
+            var data = _database.GetRange(_columns, new Range{ ColumnID = 1000, Ascending = true}, 3);
             Assert.AreEqual(data.Count, 3);
 
-            var data2 = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                9
-                );
+            var data2 = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
             Assert.AreEqual(data2.Count, 7); 
         }
 
@@ -86,11 +74,7 @@ namespace Fastore.Client.Test
             _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
             createTable(_columns);
             addData(_database, _columns);
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = false},
-                3
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = false}, 3);
             Assert.AreEqual((int)data[0].Values[0], 7); 
             Assert.AreEqual((int)data[1].Values[0], 6); 
             Assert.AreEqual((int)data[2].Values[0], 5); 
@@ -102,22 +86,9 @@ namespace Fastore.Client.Test
             _columns = new int[] { 1000, 1001, 1002, 1003, 1004, 1005 };
             createTable(_columns);
             addData(_database, _columns);
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1003, Ascending = true },
-                7
-                );
-            //var data2 = _database.GetRange(
-            //    _columns,
-            //    new[] { new Order { ColumnID = 1003, Ascending = true } },
-            //    new[] { new Range { ColumnID = 1003, Limit = 7, Start = new RangeBound { Bound = data[1].Values[3], Inclusive = true } } },
-            //    data[1].Values[0]
-            //    );
-            var data2 = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1003, Ascending = true, Start = new RangeBound { Bound = data[1].Values[3], Inclusive = true } },
-                7
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1003, Ascending = true }, 7);
+           
+            var data2 = _database.GetRange(_columns, new Range { ColumnID = 1003, Ascending = true, Start = new RangeBound { Bound = data[1].Values[3], Inclusive = true } }, 7);
 
             //never concludes debugging process, or gives "invalid null pointer" error and closes service
             Assert.Equals(data2.Count, 5);
@@ -131,11 +102,8 @@ namespace Fastore.Client.Test
             createTable(_columns);
             addData(_database, _columns);
             _database.Include(_columns, 8, new object[] { 8, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true },
-                8
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
+
             Assert.AreEqual(data.Count, 8);
             Assert.AreEqual(data[7].Values[0], 8);
             Assert.AreEqual(data[7].Values[1], "Martha");
@@ -153,11 +121,8 @@ namespace Fastore.Client.Test
             createTable(_columns);
             addData(_database, _columns);
             _database.Exclude(_columns, 7);
-            var data = _database.GetRange(
-                _columns,
-                new Range { ColumnID = 1000, Ascending = true }, 
-                8
-                );
+            var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
+
             Assert.Equals(data.Count, 6);
             Assert.Equals(data[0].Values[0], 1);
             Assert.Equals(data[1].Values[0], 2);
@@ -183,5 +148,5 @@ namespace Fastore.Client.Test
             Assert.AreEqual(data[3].Total, 7);
             Assert.AreEqual(data[3].Unique, 2);
         }
-    }
-}
+    }//end class
+}//end namespace

@@ -5,6 +5,10 @@ using System.Text;
 
 namespace Alphora.Fastore.Client
 {
+    /// <Remarks>
+    ///   If a transaction is disposed and hasn't been committed or rolled back then it is automatically rolled back.
+    ///   Once a transaction has been committed or rolled back then it is in a new transaction state again and can be used as if it were new again.
+    /// </Remarks>
     public class Transaction : IDataAccess, IDisposable
     {
 		public Database Database { get; private set; }
