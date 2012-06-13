@@ -214,6 +214,7 @@
     <ClInclude Include="Schema\StringTypes.h" />
     <ClInclude Include="schema\tuple.h" />
     <ClInclude Include="ServiceHandler.h" />
+    <ClInclude Include="StartupConfig.h" />
     <ClInclude Include="Storage\Schema\column.h" />
     <ClInclude Include="Storage\Schema\standardtypes.h" />
     <ClInclude Include="Storage\Schema\tuple.h" />

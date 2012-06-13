@@ -5,6 +5,7 @@
 #include "Schema\column.h"
 #include "Column\IColumnBuffer.h"
 #include "../FastoreCommunication/Server_types.h"
+#include "StartupConfig.h"
 #include <hash_map>
 
 using namespace fs;

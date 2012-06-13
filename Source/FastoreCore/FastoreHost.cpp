@@ -3,7 +3,7 @@
 #include "Column\UniqueBuffer.h"
 #include <hash_set>
 
-FastoreHost::FastoreHost(const CoreConfig& config) : _config(config)
+FastoreHost::FastoreHost(const StartupConfig& config) : _config(config)
 {
 
 }
