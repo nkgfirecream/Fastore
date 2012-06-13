@@ -11,9 +11,10 @@
 
 #include "Service.h"
 #include "errors.h"
-#include "Endpoint.h"
+#include "..\FastoreCore\Endpoint.h"
 #include "..\FastoreCore\ServiceHandler.h"
-#include "EndpointConfig.h"
+#include "..\FastoreCore\EndpointConfig.h"
+#include "..\FastoreCore\StartupConfig.h"
 
 
 using namespace std;
@@ -22,7 +23,7 @@ boost::shared_ptr<Endpoint> endpoint;
 
 typedef void (*ServiceEventCallback)();
 
-void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const EndpointConfig& endpointConfig, const CoreConfig& coreConfig)
+void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const EndpointConfig& endpointConfig, const StartupConfig& coreConfig)
 {
 	//Open windows sockets
 	WORD wVersionRequested;
@@ -58,7 +59,8 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 
 	try
 	{
-		auto handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(coreConfig));
+		ServiceStartup startup;
+		auto handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(startup));
 		auto processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(handler));
 		endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endpointConfig, processor));
 	}
@@ -154,7 +156,7 @@ vector<string> argsToVector(int argc, wchar_t* argv[])
 struct CombinedConfig
 {
 	EndpointConfig endpointConfig;
-	CoreConfig coreConfig;
+	StartupConfig startupConfig;
 };
 
 CombinedConfig getConfig(vector<string>& args)
@@ -167,7 +169,7 @@ CombinedConfig getConfig(vector<string>& args)
 		if (args[i] == "-p" && args.size() - 1 > i)
 			istringstream(args[i + 1]) >> config.endpointConfig.port;
 		else if (args[i] == "-dp" && args.size() - 1 > i)
-			config.coreConfig.dataPath = args[i + 1];
+			config.startupConfig.dataPath = args[i + 1];
 	}
 
 	return config;
@@ -182,10 +184,10 @@ void __cdecl _tmain(int argc, wchar_t* argv[])
 	{
 		auto config = getConfig(argsToVector(argc, argv));
 
-		cout << "Configuration: port = " << config.endpointConfig.port << "	data path = '" << config.coreConfig.dataPath << "'\n";
+		cout << "Configuration: port = " << config.endpointConfig.port << "	data path = '" << config.startupConfig.dataPath << "'\n";
 
 		cout << "Service starting....\n";
-		RunService(&ConsoleStarted, &ConsoleStopping, config.endpointConfig, config.coreConfig);
+		RunService(&ConsoleStarted, &ConsoleStopping, config.endpointConfig, config.startupConfig);
 		cout << "Service stopped.\n";
 		return;
 	}
@@ -320,7 +322,7 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR* lpszArgv )
 	auto config = getConfig(argsToVector(dwArgc, lpszArgv));
 
 	// Run the service
-	RunService(&ServiceStarted, &ServiceStopping, config.endpointConfig, config.coreConfig);
+	RunService(&ServiceStarted, &ServiceStopping, config.endpointConfig, config.startupConfig);
 
 	// Report stopped status to the SCM
 	ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);

@@ -179,7 +179,6 @@
     <ClCompile Include="FastoreHost.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="Logging\Log.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="Repository.cpp" />
     <ClCompile Include="Schema\BaseTypes.cpp" />
     <ClCompile Include="Schema\InternalTypes.cpp" />
