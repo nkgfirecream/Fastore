@@ -4,7 +4,7 @@
 #include "../FastoreCommunication/Server_types.h"
 #include "Endpoint.h"
 #include <thrift/server/TServer.h>
-#include <thrift/transport/TFileTransport.h>
+#include <thrift/transport/TSimpleFileTransport.h>
 #include <hash_map>
 
 using namespace ::apache::thrift;
@@ -22,7 +22,7 @@ class ServiceHandler : virtual public ServiceIf
 private: 
 	static const char* const ConfigFileName;
 
-	shared_ptr<TFileTransport> _configFile;
+	shared_ptr<TSimpleFileTransport> _configFile;
 	shared_ptr<ServiceConfig> _config;
 	std::hash_map<WorkerNumber, shared_ptr<Endpoint>> _workers;
 

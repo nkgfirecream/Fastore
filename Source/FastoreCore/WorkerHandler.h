@@ -3,6 +3,7 @@
 #include "../FastoreCommunication/Worker.h"
 #include "../FastoreCommunication/Comm_types.h"
 #include <thrift/server/TServer.h>
+#include "Repository.h"
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -17,9 +18,9 @@ class WorkerHandler : virtual public WorkerIf
 private: 
 	PodID _podId;
 	string _path;
-	//hash_map<ColumnID, Repository> _repositories;
-	//void bootstrap();
+	hash_map<ColumnID, Repository> _repositories;
 	void checkState();
+	void bootstrap();
 	
 public:
 	WorkerHandler(const PodID podId, const string path);

@@ -4,6 +4,7 @@
 #include <memory>
 #include "Schema\column.h"
 #include "Logging/Log.h"
+#include "Column\IColumnBuffer.h"
 #include "../FastoreCommunication/Comm_types.h"
 
 using namespace ::fastore::communication;
@@ -16,7 +17,8 @@ private:
 	string _path;
 	RepositoryStatus _status;
 	ColumnDef _def;
-	shared_ptr<Log> _log;
+	boost::shared_ptr<Log> _log;
+	IColumnBuffer* _buffer;
 
 	string GetLogFileName();
 	string GetDataFileName(int number);

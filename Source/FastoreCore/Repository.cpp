@@ -47,3 +47,9 @@ void Repository::Load()
 	// Update state to online
 }
 
+void Repository::Checkpoint()
+{
+
+
+}
+

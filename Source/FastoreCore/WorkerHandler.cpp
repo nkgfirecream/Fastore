@@ -13,10 +13,16 @@ WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podI
 	//* Check data directory for improper shut down - see Recovery
 
 	//* If (new instance), bootstrap
+	bootstrap();
 	//  else load system columns
 
 
 	//* Read rest of topology columns into memory; play log files for the same
+}
+
+void WorkerHandler::bootstrap()
+{
+	//Create system repositories
 }
 
 void WorkerHandler::checkState()
@@ -245,9 +251,9 @@ void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::v
 	{
 		Statistic stat;
 		
-		//auto result = _host.GetColumn(columnIDs[i]).first->GetStatistics();
-		//stat.total = result.Total;
-		//stat.unique = result.Unique;
+		/*auto result = _host.GetColumn(columnIDs[i]).first->GetStatistics();
+		stat.total = result.Total;
+		stat.unique = result.Unique;*/
 
 		_return.push_back(stat);
 	}

@@ -21,7 +21,7 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		cout << "Existing instance:" << startup.path;
 
 		// Open and hold the configuration file
-		_configFile = boost::shared_ptr<TFileTransport>(new TFileTransport(configFileName.string(), false));
+		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), false));
 
 		// Read the configuration
 		TJSONProtocol reader(_configFile);
@@ -34,7 +34,7 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		cout << "New instance:" << startup.path;
 
 		// Create new configuration
-		_configFile = boost::shared_ptr<TFileTransport>(new TFileTransport(configFileName.string(), false));
+		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), false));
 		_config = boost::shared_ptr<ServiceConfig>(new ServiceConfig());
 	}
 
