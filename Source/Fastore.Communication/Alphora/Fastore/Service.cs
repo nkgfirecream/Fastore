@@ -1200,7 +1200,7 @@ namespace Alphora.Fastore
                 TProtocolUtil.Skip(iprot, field.Type);
               }
               break;
-            case -1:
+            case 2:
               if (field.Type == TType.Struct) {
                 HiveState = new HiveState();
                 HiveState.Read(iprot);
@@ -1221,20 +1221,20 @@ namespace Alphora.Fastore
         TStruct struc = new TStruct("join_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
-        if (HiveState != null && __isset.hiveState) {
-          field.Name = "hiveState";
-          field.Type = TType.Struct;
-          field.ID = -1;
-          oprot.WriteFieldBegin(field);
-          HiveState.Write(oprot);
-          oprot.WriteFieldEnd();
-        }
         if (__isset.hostID) {
           field.Name = "hostID";
           field.Type = TType.I32;
           field.ID = 1;
           oprot.WriteFieldBegin(field);
           oprot.WriteI32(HostID);
+          oprot.WriteFieldEnd();
+        }
+        if (HiveState != null && __isset.hiveState) {
+          field.Name = "hiveState";
+          field.Type = TType.Struct;
+          field.ID = 2;
+          oprot.WriteFieldBegin(field);
+          HiveState.Write(oprot);
           oprot.WriteFieldEnd();
         }
         oprot.WriteFieldStop();

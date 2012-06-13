@@ -25,7 +25,7 @@ namespace Alphora.Fastore
   {
     private int _topologyID;
     private Dictionary<int, ServiceState> _services;
-    private int _hostID;
+    private int _reportingHostID;
 
     public int TopologyID
     {
@@ -56,16 +56,16 @@ namespace Alphora.Fastore
     /// <summary>
     /// the host ID of the service giving the report
     /// </summary>
-    public int HostID
+    public int ReportingHostID
     {
       get
       {
-        return _hostID;
+        return _reportingHostID;
       }
       set
       {
-        __isset.hostID = true;
-        this._hostID = value;
+        __isset.reportingHostID = true;
+        this._reportingHostID = value;
       }
     }
 
@@ -77,7 +77,7 @@ namespace Alphora.Fastore
     public struct Isset {
       public bool topologyID;
       public bool services;
-      public bool hostID;
+      public bool reportingHostID;
     }
 
     public HiveState() {
@@ -124,7 +124,7 @@ namespace Alphora.Fastore
             break;
           case 3:
             if (field.Type == TType.I32) {
-              HostID = iprot.ReadI32();
+              ReportingHostID = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -166,12 +166,12 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.hostID) {
-        field.Name = "hostID";
+      if (__isset.reportingHostID) {
+        field.Name = "reportingHostID";
         field.Type = TType.I32;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI32(HostID);
+        oprot.WriteI32(ReportingHostID);
         oprot.WriteFieldEnd();
       }
       oprot.WriteFieldStop();
@@ -184,8 +184,8 @@ namespace Alphora.Fastore
       sb.Append(TopologyID);
       sb.Append(",Services: ");
       sb.Append(Services);
-      sb.Append(",HostID: ");
-      sb.Append(HostID);
+      sb.Append(",ReportingHostID: ");
+      sb.Append(ReportingHostID);
       sb.Append(")");
       return sb.ToString();
     }

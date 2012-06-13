@@ -1,9 +1,3 @@
-#include "Service.h"
-#include "errors.h"
-#include "FastoreService.h"
-#include "ServiceHandler.h"
-#include "ServiceConfig.h"
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
@@ -18,7 +12,7 @@
 #include "Service.h"
 #include "errors.h"
 #include "Endpoint.h"
-#include "ServiceHandler.h"
+#include "..\FastoreCore\ServiceHandler.h"
 #include "EndpointConfig.h"
 
 

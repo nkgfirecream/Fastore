@@ -14,7 +14,7 @@ using namespace ::apache::thrift::server;
 
 using boost::shared_ptr;
 
-using namespace  ::fastore;
+using namespace  ::fastore::communication;
 
 class WorkerHandler : virtual public WorkerIf {
  public:

@@ -1,21 +1,13 @@
 #pragma once
-
 #include <string>
-#include "Schema\column.h"
 #include <exception>
 #include <memory>
+#include "Schema\column.h"
 #include "Logging/Log.h"
+#include "../FastoreCommunication/Comm_types.h"
 
+using namespace ::fastore::communication;
 using namespace std;
-
-enum RepositoryStatus
-{
-    Loading = 1,
-    Unloading = 2,
-    Online = 3,
-    Checkpointing = 4,
-	Offline = 5
-};
 
 class Repository
 {
@@ -24,13 +16,13 @@ private:
 	string _path;
 	RepositoryStatus _status;
 	ColumnDef _def;
-	auto_ptr<Log> _log;
+	shared_ptr<Log> _log;
 
 	string GetLogFileName();
-	string GetDataFileName();
+	string GetDataFileName(int number);
 
 public:
-	Repository(int columnID, const string& path, const ColumnDef& def);
+	Repository(int columnID, const string& path);
 
 	int getColumnID() { return _columnID; }
 	string getPath() { return _path; }

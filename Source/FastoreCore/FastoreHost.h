@@ -4,7 +4,7 @@
 #include "Util\utilities.h"
 #include "Schema\column.h"
 #include "Column\IColumnBuffer.h"
-#include "CoreConfig.h"
+#include "../FastoreCommunication/Server_types.h"
 #include <hash_map>
 
 using namespace fs;
@@ -20,7 +20,7 @@ class FastoreHost
 		//Map Ids to locations in the vector (should I just point to a pointer instead? No, because I potentially need additional information about the column)
 	//Topology should probably store column info
 		std::hash_map<int, PointerDefPair> _columnMap;
-		CoreConfig _config;
+		StartupConfig _config;
 		int _id;
 
 		//Most of these will probably disappear once API work has been done.
@@ -36,7 +36,7 @@ class FastoreHost
 		ScalarType GetScalarTypeFromString(std::string);		
 
 	public:
-		FastoreHost(const CoreConfig& config);
+		FastoreHost(const StartupConfig& config);
 
 		PointerDefPair GetColumn(const int& columnId);
 

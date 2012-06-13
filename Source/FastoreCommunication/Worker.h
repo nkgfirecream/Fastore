@@ -8,9 +8,9 @@
 #define Worker_H
 
 #include <thrift/TDispatchProcessor.h>
-#include "Fastore_types.h"
+#include "Comm_types.h"
 
-namespace fastore {
+namespace fastore { namespace communication {
 
 class WorkerIf {
  public:
@@ -1386,6 +1386,6 @@ class WorkerMultiface : virtual public WorkerIf {
 
 };
 
-} // namespace
+}} // namespace
 
 #endif

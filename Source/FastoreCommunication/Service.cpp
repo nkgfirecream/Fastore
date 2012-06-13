@@ -6,7 +6,7 @@
  */
 #include "Service.h"
 
-namespace fastore {
+namespace fastore { namespace communication {
 
 uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -202,7 +202,7 @@ uint32_t Service_join_args::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case -1:
+      case 2:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->hiveState.read(iprot);
           this->__isset.hiveState = true;
@@ -226,12 +226,12 @@ uint32_t Service_join_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_join_args");
 
-  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, -1);
-  xfer += this->hiveState.write(oprot);
-  xfer += oprot->writeFieldEnd();
-
   xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
   xfer += oprot->writeI32(this->hostID);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += this->hiveState.write(oprot);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -243,12 +243,12 @@ uint32_t Service_join_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_join_pargs");
 
-  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, -1);
-  xfer += (*(this->hiveState)).write(oprot);
-  xfer += oprot->writeFieldEnd();
-
   xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
   xfer += oprot->writeI32((*(this->hostID)));
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 2);
+  xfer += (*(this->hiveState)).write(oprot);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -2761,5 +2761,5 @@ void ServiceProcessor::process_releaseLock(int32_t seqid, ::apache::thrift::prot
   ::boost::shared_ptr< ::apache::thrift::TProcessor > processor(new ServiceProcessor(handler));
   return processor;
 }
-} // namespace
+}} // namespace
 

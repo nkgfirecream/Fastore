@@ -8,9 +8,9 @@
 #define Service_H
 
 #include <thrift/TDispatchProcessor.h>
-#include "Fastore_types.h"
+#include "Comm_types.h"
 
-namespace fastore {
+namespace fastore { namespace communication {
 
 class ServiceIf {
  public:
@@ -1333,6 +1333,6 @@ class ServiceMultiface : virtual public ServiceIf {
 
 };
 
-} // namespace
+}} // namespace
 
 #endif

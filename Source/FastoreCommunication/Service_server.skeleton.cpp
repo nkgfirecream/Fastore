@@ -14,7 +14,7 @@ using namespace ::apache::thrift::server;
 
 using boost::shared_ptr;
 
-using namespace  ::fastore;
+using namespace  ::fastore::communication;
 
 class ServiceHandler : virtual public ServiceIf {
  public:
@@ -22,24 +22,19 @@ class ServiceHandler : virtual public ServiceIf {
     // Your initialization goes here
   }
 
-  void getTopology(TopologyResult& _return) {
+  void init(HiveState& _return) {
     // Your implementation goes here
-    printf("getTopology\n");
+    printf("init\n");
   }
 
-  Revision prepareTopology(const TransactionID& transactionID, const Topology& topology) {
+  void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) {
     // Your implementation goes here
-    printf("prepareTopology\n");
+    printf("join\n");
   }
 
-  void commitTopology(const TransactionID& transactionID) {
+  void leave() {
     // Your implementation goes here
-    printf("commitTopology\n");
-  }
-
-  void rollbackTopology(const TransactionID& transactionID) {
-    // Your implementation goes here
-    printf("rollbackTopology\n");
+    printf("leave\n");
   }
 
   void getHiveState(HiveState& _return) {

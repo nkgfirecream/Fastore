@@ -65,19 +65,23 @@
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <IntDir>obj\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin\</OutDir>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
+    <CustomBuildBeforeTargets>Build</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -91,8 +95,18 @@
       <AdditionalDependencies>libthrift.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Build thrift files</Message>
+      <Inputs>$(SolutionDir)Server.thrift;$(SolutionDir)Comm.thrift;$(TargetPath)</Inputs>
+      <Outputs>dummy</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -107,8 +121,18 @@
       <AdditionalDependencies>libthrift.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Build thrift files</Message>
+      <Inputs>$(SolutionDir)Server.thrift;$(SolutionDir)Comm.thrift;$(TargetPath)</Inputs>
+      <Outputs>dummy</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -124,8 +148,18 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Build thrift files</Message>
+      <Inputs>$(SolutionDir)Server.thrift;$(SolutionDir)Comm.thrift;$(TargetPath)</Inputs>
+      <Outputs>dummy</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -141,19 +175,33 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <PreBuildEvent>
-      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -out $(ProjectDir) $(SolutionDir)Fastore.thrift</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Build thrift files</Message>
+      <Inputs>$(SolutionDir)Server.thrift;$(SolutionDir)Comm.thrift;$(TargetPath)</Inputs>
+      <Outputs>dummy</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Fastore_constants.cpp" />
-    <ClCompile Include="Fastore_types.cpp" />
+    <ClCompile Include="Comm_constants.cpp" />
+    <ClCompile Include="Comm_types.cpp" />
     <ClCompile Include="Operators.cpp" />
+    <ClCompile Include="Server_constants.cpp" />
+    <ClCompile Include="Server_types.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="Worker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Fastore_constants.h" />
-    <ClInclude Include="Fastore_types.h" />
+    <ClInclude Include="Comm_constants.h" />
+    <ClInclude Include="Comm_types.h" />
+    <ClInclude Include="Server_constants.h" />
+    <ClInclude Include="Server_types.h" />
     <ClInclude Include="Service.h" />
     <ClInclude Include="Worker.h" />
   </ItemGroup>

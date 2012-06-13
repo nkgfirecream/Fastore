@@ -6,7 +6,7 @@
  */
 #include "Worker.h"
 
-namespace fastore {
+namespace fastore { namespace communication {
 
 uint32_t Worker_prepare_args::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -3324,5 +3324,5 @@ void WorkerProcessor::process_getStatistics(int32_t seqid, ::apache::thrift::pro
   ::boost::shared_ptr< ::apache::thrift::TProcessor > processor(new WorkerProcessor(handler));
   return processor;
 }
-} // namespace
+}} // namespace
 
