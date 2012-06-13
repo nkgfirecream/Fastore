@@ -72,11 +72,17 @@ void ServiceHandler::InitializeJoined(const JoinedTopology& joined)
 	{
 		EndpointConfig endPointConfig;
 		endPointConfig.port = _config->port + worker->first;
-		auto handler = shared_ptr<WorkerHandler>(new WorkerHandler());
-		_workers[worker->first] = shared_ptr<Endpoint>(new Endpoint(endPointConfig, 
+		auto handler = shared_ptr<WorkerHandler>(new WorkerHandler(worker->second, _config->workerPaths[worker->first]));
+		auto processor = shared_ptr<TProcessor>(new WorkerProcessor(handler));
+		auto endpoint = shared_ptr<Endpoint>(new Endpoint(endPointConfig, processor));
+		_workers[worker->first] = endpoint;
+		// TODO: put this in a thread:
+		endpoint->Run();
+	}
 }
 
-void ServiceHandler::init(HiveState& _return) {
+void ServiceHandler::init(HiveState& _return) 
+{
 // Your implementation goes here
 printf("init\n");
 }
