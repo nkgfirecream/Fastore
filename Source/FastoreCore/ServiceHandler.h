@@ -4,6 +4,7 @@
 #include "../FastoreCommunication/Server_types.h"
 #include "Endpoint.h"
 #include <thrift/server/TServer.h>
+#include <thrift/transport/TFileTransport.h>
 #include <hash_map>
 
 using namespace ::apache::thrift;

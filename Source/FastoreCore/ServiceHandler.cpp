@@ -72,9 +72,9 @@ void ServiceHandler::InitializeJoined(const JoinedTopology& joined)
 	{
 		EndpointConfig endPointConfig;
 		endPointConfig.port = _config->port + worker->first;
-		auto handler = shared_ptr<WorkerHandler>(new WorkerHandler(worker->second, _config->workerPaths[worker->first]));
-		auto processor = shared_ptr<TProcessor>(new WorkerProcessor(handler));
-		auto endpoint = shared_ptr<Endpoint>(new Endpoint(endPointConfig, processor));
+		auto handler = boost::shared_ptr<WorkerHandler>(new WorkerHandler(worker->second, _config->workerPaths[worker->first]));
+		auto processor = boost::shared_ptr<TProcessor>(new WorkerProcessor(handler));
+		auto endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endPointConfig, processor));
 		_workers[worker->first] = endpoint;
 		// TODO: put this in a thread:
 		endpoint->Run();

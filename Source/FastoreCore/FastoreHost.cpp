@@ -233,11 +233,7 @@ void FastoreHost::SyncToSchema()
 			CreateColumn(id);
 
 		ss++;
-	}
-
-	
-
-	
+	}	
 }
 
 ScalarType FastoreHost::GetScalarTypeFromString(std::string typestring)

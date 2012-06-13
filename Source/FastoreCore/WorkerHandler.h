@@ -17,7 +17,9 @@ class WorkerHandler : virtual public WorkerIf
 private: 
 	PodID _podId;
 	string _path;
-	hash_map<ColumnID, Repository> _repositories;
+	//hash_map<ColumnID, Repository> _repositories;
+	//void bootstrap();
+	void checkState();
 	
 public:
 	WorkerHandler(const PodID podId, const string path);

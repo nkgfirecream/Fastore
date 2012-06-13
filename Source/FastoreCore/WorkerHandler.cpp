@@ -13,21 +13,20 @@ WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podI
 	//* Check data directory for improper shut down - see Recovery
 
 	//* If (new instance), bootstrap
-	BootStrap();
 	//  else load system columns
 
 
 	//* Read rest of topology columns into memory; play log files for the same
 }
 
-void WorkerHandler::CheckState()
+void WorkerHandler::checkState()
 {
-	if (_state == WorkerState.
+	//if (_state == WorkerState.
 }
 
 Revision WorkerHandler::prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) 
 {
-	CheckState();
+	checkState();
 
 	// Your implementation goes here
 	printf("Prepare\n");
@@ -43,14 +42,14 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 
 	while(start != writes.end())
 	{
-		fastore::ColumnID id = (*start).first;
+		fastore::communication::ColumnID id = (*start).first;
 
 		if (id == 0)
 			syncSchema = true;
 
-		fastore::ColumnWrites writes = (*start).second;
+		fastore::communication::ColumnWrites writes = (*start).second;
 
-		PointerDefPair pdp = _host.GetColumn(id);
+		PointerDefPair pdp; // = _host.GetColumn(id);
 
 		auto exStart = writes.excludes.begin();
 		while (exStart != writes.excludes.end())
@@ -83,8 +82,8 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 		start++;
 	}
 
-	if (syncSchema)
-		_host.SyncToSchema();
+	//if (syncSchema)
+		//_host.SyncToSchema();
 }
 
 void WorkerHandler::commit(const TransactionID& transactionID) {
@@ -126,12 +125,12 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 
 	while(start != queries.end())
 	{
-		fastore::ColumnID id = (*start).first;
-		fastore::Query query = (*start).second;
+		fastore::communication::ColumnID id = (*start).first;
+		fastore::communication::Query query = (*start).second;
 
-		PointerDefPair pdp = _host.GetColumn(id);
+		PointerDefPair pdp; // = _host.GetColumn(id);
 
-		fastore::ReadResult res;
+		fastore::communication::ReadResult res;
 
 		if (query.ranges.size() > 0)
 		{
@@ -180,8 +179,8 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 				if (oendp != NULL)
 					delete oendp;
 
-				fastore::ValueRowsList vrl(result.Data.size());
-				fastore::RangeResult rr;
+				fastore::communication::ValueRowsList vrl(result.Data.size());
+				fastore::communication::RangeResult rr;
 
 				rr.endOfRange = result.EndOfRange;
 				rr.beginOfRange = result.BeginOfRange;
@@ -189,7 +188,7 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 
 				for (int j = 0; j < result.Data.size(); j++ )
 				{
-					fastore::ValueRows vr;
+					fastore::communication::ValueRows vr;
 					fs::ValueKeys vk = result.Data[j];
 
 					pdp.second.ValueType.Encode(vk.first, vr.value);
@@ -235,7 +234,7 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 			}
 		}
 
-		_return.insert(std::pair<fastore::ColumnID, fastore::ReadResult>(id, res));
+		_return.insert(std::pair<fastore::communication::ColumnID, fastore::communication::ReadResult>(id, res));
 		start++;
 	}
 }
@@ -246,9 +245,9 @@ void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::v
 	{
 		Statistic stat;
 		
-		auto result = _host.GetColumn(columnIDs[i]).first->GetStatistics();
-		stat.total = result.Total;
-		stat.unique = result.Unique;
+		//auto result = _host.GetColumn(columnIDs[i]).first->GetStatistics();
+		//stat.total = result.Total;
+		//stat.unique = result.Unique;
 
 		_return.push_back(stat);
 	}
