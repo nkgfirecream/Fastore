@@ -1,6 +1,5 @@
 #pragma once
 
-#include "..\typedefs.h"
 #include "scalar.h"
 
 struct LongType : public ScalarType

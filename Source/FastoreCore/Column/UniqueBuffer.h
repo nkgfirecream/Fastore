@@ -1,6 +1,5 @@
 #pragma once
 
-#include "..\typedefs.h"
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
 #include "..\Column\IColumnBuffer.h"
@@ -11,20 +10,19 @@ class UniqueBuffer : public IColumnBuffer
 {
 	public:
 		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType);
-		
-		bool Include(Value value, Key rowId);
-		bool Exclude(Value value, Key rowId);
-		bool Exclude(Key rowId);
 
-		GetResult GetRows(Range& range);
-		ValueVector GetValues(const KeyVector& rowId);
-		Value GetValue(Key rowId);
-		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
-
-		Statistics GetStatistics();
+		vector<std::string> GetValues(const vector<std::string>& rowIds);		
+		void Apply(const ColumnWrites& writes);
+		RangeResult GetRows(const RangeRequest& range);
+		Statistic GetStatistic();
 
 	private:
-		void ValuesMoved(void*, Node*);		
+		bool Include(void* rowId, void* value);
+		bool Exclude(void* rowId);
+		bool Exclude(void* rowId, void* value);
+		void* GetValue(void* rowId);
+
+		void ValuesMoved(void* value, Node* leaf);		
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -50,23 +48,29 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 	);
 }
 
-inline Statistics UniqueBuffer::GetStatistics()
+inline Statistic UniqueBuffer::GetStatistic()
 {
-	return Statistics(_count, _count);
+	Statistic stat;
+	stat.total = _count;
+	stat.unique = _count;
+	return stat;
 }
 
-inline ValueVector UniqueBuffer::GetValues(const KeyVector& rowIds)
+inline vector<std::string> UniqueBuffer::GetValues(const vector<std::string>& rowIds)
 {
-	ValueVector values(rowIds.size());
+	vector<std::string> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
-		values[i] = GetValue(rowIds[i]);
+		//TODO: How should this work?
+		//Decode input as type and take a reference... Decoding doesn't work that way in current implementation.. Creates a copy.
+		//
+		//_valueType.Encode(GetValue(rowIds[i].data()), values[i]);
 	}
 
 	return values;
 }
 
-inline Value UniqueBuffer::GetValue(Key rowId)
+inline void* UniqueBuffer::GetValue(void* rowId)
 {
 	bool match;
 	auto iterator = _rows->findNearest(rowId, match);
@@ -75,12 +79,12 @@ inline Value UniqueBuffer::GetValue(Key rowId)
 	{
 		Node* leaf = *(Node**)(*(iterator)).value;
 		auto locRowType = _rowType;
-		return leaf->GetKey
+
+		void* result = leaf->GetKey
 		(
-			// TODO: would it help perf to put this callback into the type?
 			[rowId, locRowType](void* foundId) -> bool
 			{
-				return locRowType.Compare(foundId, rowId) == 0;
+				return locRowType.Compare(rowId, foundId) == 0;
 			}
 		);
 	}
@@ -90,53 +94,29 @@ inline Value UniqueBuffer::GetValue(Key rowId)
 	}
 }
 
-inline ValueKeysVectorVector UniqueBuffer::GetSorted(const KeyVectorVector& input)
+inline void UniqueBuffer::Apply(const ColumnWrites& writes)
 {
-	ValueKeysVectorVector result;
-	for (unsigned int i = 0; i < input.size(); i++)
+	auto exstart = writes.excludes.begin();
+	while (exstart != writes.excludes.end())
 	{
-		BTree valueKeyTree(_valueType, standardtypes::StandardKeyVector);
-		
-		KeyVector keys;
-		//insert each key into the hash for its correct value;
-		for (unsigned int j = 0; j < keys.size(); j++)
-		{
-			Key key = keys[i];
-			Value val = GetValue(key);
-						
-			BTree::Path path = valueKeyTree.GetPath(val);
-			if (path.Match)
-			{
-				KeyVector* existing = *(KeyVector**)(*path.Leaf)[path.LeafIndex].value;
-				existing->push_back(key);
-			}
-			else
-			{
-				KeyVector* vector = new KeyVector();
-				vector->push_back(key);
-				valueKeyTree.Insert(path, val, vector);
-			}
-		}
+		(*exstart).rowID;
 
-		ValueKeysVector sorted;
-
-		auto start = valueKeyTree.begin();
-		auto end = valueKeyTree.end();
-
-		while (start != end)
-		{
-			sorted.push_back(ValueKeys((*start).key, **((KeyVector**)(*start).value)));
-			++start;
-		}
-
-		//Stick that list into the result
-		result.push_back(sorted);
+		//Exclude
+		exstart++;
 	}
 
-	return result;
+	auto incstart = writes.includes.begin();
+	while (incstart != writes.includes.end())
+	{
+		(*incstart).value;
+		(*incstart).rowID;
+
+		//Include
+		incstart++;
+	}
 }
 
-inline bool UniqueBuffer::Include(Value value, Key rowId)
+inline bool UniqueBuffer::Include(void* rowId, void* value)
 {
 	//TODO: Return Undo Information
 	auto rowpath = _rows->GetPath(rowId);
@@ -159,7 +139,7 @@ inline bool UniqueBuffer::Include(Value value, Key rowId)
 	}
 }
 
-inline bool UniqueBuffer::Exclude(Value value, Key rowId)
+inline bool UniqueBuffer::Exclude(void* rowId, void* value)
 {
 	auto rowpath = _rows->GetPath(rowId);
 	if (!rowpath.Match)
@@ -168,8 +148,8 @@ inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 	BTree::Path  path = _values->GetPath(value);
 	if (path.Match)
 	{
-		Key existing = (Key)(*path.Leaf)[path.LeafIndex].value;
-		if (_rowType.Compare(existing, rowId) == 0)
+		void* existing = (void*)(*path.Leaf)[path.LeafIndex].value;
+		if (_rowType.Compare(rowId, existing) == 0)
 		{
 			_values->Delete(path);
 			_rows->Delete(rowpath);
@@ -181,13 +161,13 @@ inline bool UniqueBuffer::Exclude(Value value, Key rowId)
 	return false;
 }
 
-inline bool UniqueBuffer::Exclude(Key rowId)
+inline bool UniqueBuffer::Exclude(void* rowId)
 {
-	Value val = GetValue(rowId);
-	return Exclude(val, rowId);
+	void* val = GetValue(rowId);
+	return Exclude(rowId, val);
 }
 
-inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
+inline void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
 {
 	auto result = _rows->GetPath(value);
 	if (result.Match)
@@ -196,11 +176,19 @@ inline void UniqueBuffer::ValuesMoved(Key value, Node* leaf)
 	}
 }
 
-inline GetResult UniqueBuffer::GetRows(Range& range)
+inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 {
-	if (range.Start.HasValue() && range.End.HasValue())
+	//TODO: Get this from the query..
+	int limit = 500;
+	//TODO: Get address of values..
+	void* firstp;
+	void* lastp;
+	//TODO: Get address without copying..
+	void* startId; // = range.__isset.rowID ? range.rowID : NULL;
+
+	if (range.__isset.first && range.__isset.last)
 	{		
-		if (_valueType.Compare((*(range.Start)).Value, (*(range.End)).Value) > 0)
+		if (_valueType.Compare(firstp, lastp) > 0)
 		{
 			//Start is after end-> Invalid input.
 			throw "Invalid range. Start is after end";
@@ -214,16 +202,16 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	bool beginMatch = false;
 	bool endMatch = false;
 
-	BTree::iterator begin = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, beginMatch) : firstMarker;
-	BTree::iterator end =  range.End.HasValue() ? _values->findNearest((*range.End).Value, endMatch) : lastMarker;
+	BTree::iterator begin = range.__isset.first ? _values->findNearest(firstp, beginMatch) : firstMarker;
+	BTree::iterator end =  range.__isset.last ? _values->findNearest(lastp, endMatch) : lastMarker;
 
-	bool bInclusive = range.Start.HasValue() ? (*(range.Start)).Inclusive : true;
-	bool eInclusive = range.End.HasValue() ? (*(range.End)).Inclusive : true;
+	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
+	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
 
-	GetResult result;	
+	RangeResult result;	
 
-	result.BeginOfRange = begin == firstMarker;
-	result.EndOfRange = end == lastMarker;
+	result.beginOfRange = begin == firstMarker;
+	result.endOfRange = end == lastMarker;
 
 	//Nothing in this range, so return empty result
 	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
@@ -232,7 +220,7 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	if (!bInclusive && beginMatch)
 	{
 		//reset BOF Marker since we are excluding
-		result.BeginOfRange = false;
+		result.beginOfRange = false;
 		++begin;
 	}
 
@@ -240,67 +228,80 @@ inline GetResult UniqueBuffer::GetRows(Range& range)
 	{
 		++end;
 		//reset EOF Marker since we are including
-		result.EndOfRange = end == lastMarker;
-	}
-
-	void* startId = range.StartId.HasValue() ? *range.StartId : NULL;
+		result.endOfRange = end == lastMarker;
+	}	
 
 	bool startFound = startId == NULL;	
 
-	if (range.Ascending)
+	if (range.ascending)
 	{		
-		while (begin != end && !result.Limited)
+		while (begin != end && !result.limited)
 		{
-			auto rowId = (Key)((*begin).value);
-			auto key = (Key)((*begin).key);
+			auto rowId = (void*)((*begin).value);
+			auto key = (void*)((*begin).key);
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{				
-				result.BeginOfRange = false;
+				result.beginOfRange = false;
 				startFound = true;
 				begin++;
 				continue;
 			}
-		
-			KeyVector keys;
-			keys.push_back(rowId);			
-			result.Data.push_back(ValueKeys(key, keys));			
-			result.Limited = result.Data.size() == range.Limit;
+			
+			ValueRows vr;
+			string value;
+			_valueType.Encode(key, value);
+			vr.__set_value(value);
+			
+			std::vector<string> keys;
+			//TODO: Decode;
+			//keys.push_back(rowId);	
+			vr.__set_rowIDs(keys);
+			result.valueRowsList.push_back(vr);
+			result.limited = result.valueRowsList.size() == limit;
 
 			++begin;
 		}
 
 		//if we didn't make it through the entire set, reset the eof marker.
-		if (result.Limited && result.EndOfRange)
-			result.EndOfRange = false;
+		if (result.limited && result.endOfRange)
+			result.endOfRange = false;
 	}
 	else
 	{
-		while (begin != end && !result.Limited)
+		while (begin != end && !result.limited)
 		{
 			--end;
 
-			auto rowId = (Key)((*end).value);
-			auto key = (Key)((*end).key);
+			auto rowId = (void*)((*end).value);
+			auto key = (void*)((*end).key);
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{
-				result.EndOfRange = false;
+				result.endOfRange = false;
 				startFound = true;
 				continue;
 			}
 		
-			KeyVector keys;
-			keys.push_back(rowId);
-			result.Data.push_back(ValueKeys(key, keys));
-			result.Limited = result.Data.size() == range.Limit;
+			ValueRows vr;
+			string value;
+			_valueType.Encode(key, value);
+			vr.__set_value(value);
+			
+			std::vector<string> keys;
+			//TODO: Decode;
+			//keys.push_back(rowId);	
+			vr.__set_rowIDs(keys);
+			result.valueRowsList.push_back(vr);
+			result.limited = result.valueRowsList.size() == limit;
+
+			++begin;
 		}
 
 		//if we didn't make it through the entire set, reset the bof marker.
-		if (result.Limited && result.BeginOfRange)
-			result.BeginOfRange = false;
-	}
-	
+		if (result.limited && result.beginOfRange)
+			result.beginOfRange = false;
+	}	
 
 	return result;
 }

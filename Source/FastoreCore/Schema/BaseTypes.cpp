@@ -1,7 +1,7 @@
 #include "BaseTypes.h"
-#include "..\typedefs.h"
 #include "..\Util\utilities.h"
 #include <sstream>
+#include <functional>
 
 using namespace std;
 

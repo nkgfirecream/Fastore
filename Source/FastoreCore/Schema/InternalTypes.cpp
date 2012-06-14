@@ -20,22 +20,6 @@ HashSetType::HashSetType()
 	Deallocate = DeallocateHashSet;
 }
 
-void DeallocateKeyVector(void* items, int count)
-{
-	for (int i = 0; i < count; i++)
-		((fs::KeyVector*)items)[i].~vector();
-}
-
-KeyVectorType::KeyVectorType()
-{
-	Name = "KeyVector";
-	Compare = NULL;
-	Size = sizeof(fs::KeyVector*);
-	ToString = NULL;
-	CopyIn = CopyToArray<fs::KeyVector*>;
-	Deallocate = DeallocateKeyVector;
-}
-
 template<> void CopyToArray<KeyTree*>(const void* item, void* arrpointer)
 {
 	memcpy(arrpointer, item, sizeof(KeyTree*));

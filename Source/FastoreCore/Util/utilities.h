@@ -1,5 +1,4 @@
 #pragma once
-#include "../typedefs.h"
 
 inline int boolToNormalizedInt(bool forward)
 {

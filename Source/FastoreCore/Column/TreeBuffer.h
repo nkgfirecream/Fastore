@@ -1,6 +1,5 @@
 #pragma once
 
-#include "..\typedefs.h"
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
 #include "..\KeyTree.h"
@@ -11,21 +10,18 @@ class TreeBuffer : public IColumnBuffer
 	public:
 		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType);		
 
-		bool Include(Value value, Key rowId);
-		bool Exclude(Value value, Key rowId);
-		bool Exclude(Key rowId);
-
-		GetResult GetRows(Range& range);
-		ValueVector GetValues(const KeyVector& rowId);
-		Value GetValue(Key rowId);
-		ValueKeysVectorVector GetSorted(const KeyVectorVector& input);
-
-		Statistics GetStatistics();
+		vector<std::string> GetValues(const vector<std::string>& rowIds);		
+		void Apply(const ColumnWrites& writes);
+		RangeResult GetRows(const RangeRequest& range);
+		Statistic GetStatistic();
 
 	private:
+		bool Include(void* rowId, void* value);
+		bool Exclude(void* rowId);
+		bool Exclude(void* rowId, void* value);
+		void* GetValue(void* rowId);
+
 		void ValuesMoved(void*, Node*);
-		
-		ValueKeysVector BuildData(BTree::iterator&, BTree::iterator&, void*, bool, int, bool&);
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
@@ -54,23 +50,26 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &value
 	);
 }
 
-inline Statistics TreeBuffer::GetStatistics()
+inline Statistic TreeBuffer::GetStatistic()
 {
-	return Statistics(_total, _unique);
+	Statistic stat;
+	stat.total = _total;
+	stat.unique = _unique;
+	return stat;
 }
 
-inline ValueVector TreeBuffer::GetValues(const fs::KeyVector& rowIds)
+inline vector<std::string> TreeBuffer::GetValues(const vector<std::string>& rowIds)
 {
-	ValueVector values(rowIds.size());
+	vector<std::string> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
-		values[i] = GetValue(rowIds[i]);
+		//values[i] = GetValue(rowIds[i]);
 	}
 
 	return values;
 }
 
-inline Value TreeBuffer::GetValue(Key rowId)
+inline void* TreeBuffer::GetValue(void* rowId)
 {
 	bool match;
 	auto iterator = _rows->findNearest(rowId, match);
@@ -92,53 +91,7 @@ inline Value TreeBuffer::GetValue(Key rowId)
 	}
 }
 
-inline ValueKeysVectorVector TreeBuffer::GetSorted(const KeyVectorVector& input)
-{
-	ValueKeysVectorVector result;
-	for (unsigned int i = 0; i < input.size(); i++)
-	{
-		BTree valueKeyTree(_valueType, standardtypes::StandardKeyVector);
-		
-		KeyVector keys;
-		//insert each key into the hash for its correct value;
-		for (unsigned int j = 0; j < keys.size(); j++)
-		{
-			Key key = keys[i];
-			Value val = GetValue(key);
-						
-			BTree::Path path = valueKeyTree.GetPath(val);
-			if (path.Match)
-			{
-				KeyVector* existing = *(KeyVector**)(*path.Leaf)[path.LeafIndex].value;
-				existing->push_back(key);
-			}
-			else
-			{
-				KeyVector* vector = new KeyVector();
-				vector->push_back(key);
-				valueKeyTree.Insert(path, val, vector);
-			}
-		}
-
-		ValueKeysVector sorted;
-
-		auto start = valueKeyTree.begin();
-		auto end = valueKeyTree.end();
-
-		while (start != end)
-		{
-			sorted.push_back(ValueKeys((*start).key, **((KeyVector**)(*start).value)));
-			++start;
-		}
-
-		//Stick that list into the result
-		result.push_back(sorted);
-	}
-
-	return result;
-}
-
-inline bool TreeBuffer::Include(Value value, Key rowId)
+inline bool TreeBuffer::Include(void* value, void* rowId)
 {
 	//TODO: Return Undo Information
 	auto rowpath = _rows->GetPath(rowId);
@@ -177,7 +130,7 @@ inline bool TreeBuffer::Include(Value value, Key rowId)
 	}
 }
 
-inline bool TreeBuffer::Exclude(Value value, Key rowId)
+inline bool TreeBuffer::Exclude(void* value, void* rowId)
 {
 	auto rowpath = _rows->GetPath(rowId);
 	if (!rowpath.Match)
@@ -205,9 +158,9 @@ inline bool TreeBuffer::Exclude(Value value, Key rowId)
 	return false;
 }
 
-inline bool TreeBuffer::Exclude(Key rowId)
+inline bool TreeBuffer::Exclude(void* rowId)
 {
-	Value val = GetValue(rowId);
+	void* val = GetValue(rowId);
 	return Exclude(val, rowId);
 }
 
@@ -236,11 +189,19 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	}	
 }
 
-inline GetResult TreeBuffer::GetRows(Range& range)
+inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 {
-	if (range.Start.HasValue() && range.End.HasValue())
+	//TODO: Get this from the query..
+	int limit = 500;
+	//TODO: Get address of values..
+	void* firstp;
+	void* lastp;
+	//TODO: Get address without copying..
+	void* startId; // = range.__isset.rowID ? range.rowID : NULL;
+
+	if (range.__isset.first && range.__isset.last)
 	{		
-		if (_valueType.Compare((*(range.Start)).Value, (*(range.End)).Value) > 0)
+		if (_valueType.Compare(firstp, lastp) > 0)
 		{
 			//Start is after end-> Invalid input.
 			throw "Invalid range. Start is after end";
@@ -254,16 +215,16 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	bool beginMatch = false;
 	bool endMatch = false;
 
-	BTree::iterator begin = range.Start.HasValue() ? _values->findNearest((*range.Start).Value, beginMatch) : firstMarker;
-	BTree::iterator end =  range.End.HasValue() ? _values->findNearest((*range.End).Value, endMatch) : lastMarker;
+	BTree::iterator begin = range.__isset.first ? _values->findNearest(firstp, beginMatch) : firstMarker;
+	BTree::iterator end =  range.__isset.last ? _values->findNearest(lastp, endMatch) : lastMarker;
 
-	bool bInclusive = range.Start.HasValue() ? (*(range.Start)).Inclusive : true;
-	bool eInclusive = range.End.HasValue() ? (*(range.End)).Inclusive : true;
+	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
+	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
 
-	GetResult result;	
+	RangeResult result;	
 
-	result.BeginOfRange = begin == firstMarker;
-	result.EndOfRange = end == lastMarker;
+	result.beginOfRange = begin == firstMarker;
+	result.endOfRange = end == lastMarker;
 
 	//Nothing in this range, so return empty result
 	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
@@ -272,7 +233,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	if (!bInclusive && beginMatch)
 	{
 		//reset BOF Marker since we are excluding
-		result.BeginOfRange = false;
+		result.beginOfRange = false;
 		++begin;
 	}
 
@@ -280,20 +241,19 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 	{
 		++end;
 		//reset EOF Marker since we are including
-		result.EndOfRange = end == lastMarker;
+		result.endOfRange = end == lastMarker;
 	}
 
-	void* startId = range.StartId.HasValue() ? *range.StartId : NULL;
-
 	bool startFound = startId == NULL;
-
 	int num = 0;
-	if (range.Ascending)
+	ValueRowsList vrl;
+
+	if (range.ascending)
 	{
-		while (begin != end && !result.Limited)
+		while (begin != end && !result.limited)
 		{
 			auto rowIds = (KeyTree*)*(void**)((*begin).value);			
-			auto key = (Key)((*begin).key);
+			auto key = (void*)((*begin).key);
 
 			auto idStart = startFound ? rowIds->begin() : rowIds->find(startId);
 			auto idEnd = rowIds->end();
@@ -303,7 +263,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				if (idStart != idEnd)
 				{
 					startFound = true;
-					result.BeginOfRange = false;
+					result.beginOfRange = false;
 					++idStart;			
 				}
 				else
@@ -312,33 +272,40 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				}					
 			}
 		
-			KeyVector keys;
-			while (idStart != idEnd && !result.Limited)
+			std::vector<std::string> rowIdsDecoded;
+			while (idStart != idEnd && !result.limited)
 			{
-				keys.push_back((*idStart).key);
+				//TODO:Decoding
+				//rowIdsDecoded.push_back((*idStart).key);
 				++num;
 				++idStart;
 
-				result.Limited = num == range.Limit;
+				result.limited = num == limit;
 			}
 
-			if (keys.size() > 0)
-				result.Data.push_back(ValueKeys(key, keys));
+			if (rowIdsDecoded.size() > 0)
+			{
+				ValueRows vr;
+				//TODO: Decode key as value
+				//vr.__set_value(key);
+				vr.__set_rowIDs(rowIdsDecoded);
+				vrl.push_back(vr);
+			}
 
 			++begin;
 		}
 
 		//if we didn't make it through the entire set, reset the eof marker.
-		if (result.Limited && result.EndOfRange)
-			result.EndOfRange = false;
+		if (result.limited && result.endOfRange)
+			result.endOfRange = false;
 	}
 	else
 	{
-		while (begin != end && !result.Limited)
+		while (begin != end && !result.limited)
 		{
 			--end;
 			auto rowIds = (KeyTree*)*(void**)((*end).value);		
-			auto key = (Key)((*end).key);
+			auto key = (void*)((*end).key);
 
 			auto idStart = rowIds->begin();
 			auto idEnd = startFound ? rowIds->end() : rowIds->find(startId);
@@ -348,7 +315,7 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				if (idEnd != rowIds->end())
 				{
 					startFound = true;
-					result.EndOfRange = false;
+					result.endOfRange = false;
 				}
 				else
 				{
@@ -358,24 +325,32 @@ inline GetResult TreeBuffer::GetRows(Range& range)
 				--idEnd;
 			}
 		
-			KeyVector keys;
-			while (idStart != idEnd && !result.Limited)
+			std::vector<std::string> rowIdsDecoded;
+			while (idStart != idEnd && !result.limited)
 			{	
 				--idEnd;
-				keys.push_back((*idEnd).key);
+				//TODO: Decoding
+				//rowIdsDecoded.push_back((*idEnd).key);
 				++num;
 
-				result.Limited = num == range.Limit;	
+				result.limited = num == limit;	
 			}
 		
-			if (keys.size() > 0)
-				result.Data.push_back(ValueKeys(key, keys));
+			if (rowIdsDecoded.size() > 0)
+			{
+				ValueRows vr;
+				//TODO: Decode key as value
+				//vr.__set_value(key);
+				vr.__set_rowIDs(rowIdsDecoded);
+				vrl.push_back(vr);
+			}
 		}
 
 		//if we didn't make it through the entire set, reset the bof marker.
-		if (result.Limited && result.BeginOfRange)
-			result.BeginOfRange = false;
+		if (result.limited && result.beginOfRange)
+			result.beginOfRange = false;
 	}
 
+	result.__set_valueRowsList(vrl);
 	return result;
 }

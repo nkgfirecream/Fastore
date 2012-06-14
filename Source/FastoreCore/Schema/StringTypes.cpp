@@ -1,4 +1,5 @@
 #include "StringTypes.h"
+#include <functional>
 
 using namespace std;
 

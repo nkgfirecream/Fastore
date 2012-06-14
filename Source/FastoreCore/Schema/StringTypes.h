@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\typedefs.h"
 #include "scalar.h"
+#include <string>
 
 struct StringType : public ScalarType
 {

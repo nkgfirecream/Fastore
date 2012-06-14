@@ -54,36 +54,7 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 			syncSchema = true;
 
 		fastore::communication::ColumnWrites writes = (*start).second;
-
-		PointerDefPair pdp; // = _host.GetColumn(id);
-
-		auto exStart = writes.excludes.begin();
-		while (exStart != writes.excludes.end())
-		{
-			//TODO: Fix Leaks
-			void* rowIdp = pdp.second.RowIDType.Allocate();			
-			pdp.second.RowIDType.Decode((*exStart).rowID, rowIdp);
-			pdp.first->Exclude(rowIdp);
-
-			delete rowIdp;
-			exStart++;
-		}
-
-		auto inStart = writes.includes.begin();
-		while (inStart != writes.includes.end())
-		{
-			void* rowIdp = pdp.second.RowIDType.Allocate();
-			void* valuep = pdp.second.ValueType.Allocate();
-
-			pdp.second.RowIDType.Decode((*inStart).rowID, rowIdp);
-			pdp.second.ValueType.Decode((*inStart).value, valuep);
-
-			pdp.first->Include(valuep, rowIdp);
-
-			delete valuep, rowIdp;
-
-			inStart++;
-		}
+		Repository repo = (*_repositories.find(id)).second;
 
 		start++;
 	}
@@ -127,122 +98,122 @@ printf("Transgrade\n");
 
 void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 {
-	auto start = queries.begin();
+	//auto start = queries.begin();
 
-	while(start != queries.end())
-	{
-		fastore::communication::ColumnID id = (*start).first;
-		fastore::communication::Query query = (*start).second;
+	//while(start != queries.end())
+	//{
+	//	fastore::communication::ColumnID id = (*start).first;
+	//	fastore::communication::Query query = (*start).second;
 
-		PointerDefPair pdp; // = _host.GetColumn(id);
+	//	PointerDefPair pdp; // = _host.GetColumn(id);
 
-		fastore::communication::ReadResult res;
+	//	fastore::communication::ReadResult res;
 
-		if (query.ranges.size() > 0)
-		{
-			for (int i = 0; i < query.ranges.size(); i++)
-			{
-				auto range = query.ranges[i];
+	//	if (query.ranges.size() > 0)
+	//	{
+	//		for (int i = 0; i < query.ranges.size(); i++)
+	//		{
+	//			auto range = query.ranges[i];
 
-				Optional<fs::RangeBound> starto;
-				Optional<fs::RangeBound> endo;
+	//			Optional<fs::RangeBound> starto;
+	//			Optional<fs::RangeBound> endo;
 
-				void* ostartp = NULL;
-				void* oendp = NULL;
+	//			void* ostartp = NULL;
+	//			void* oendp = NULL;
 
-				if (range.__isset.first)
-				{
-					fs::RangeBound rb;
-					rb.Inclusive = range.first.inclusive;
-					rb.Value = pdp.second.ValueType.Allocate();
-					pdp.second.ValueType.Decode(range.first.value, rb.Value);
-					starto = Optional<fs::RangeBound>(rb);
-				}
+	//			if (range.__isset.first)
+	//			{
+	//				fs::RangeBound rb;
+	//				rb.Inclusive = range.first.inclusive;
+	//				rb.Value = pdp.second.ValueType.Allocate();
+	//				pdp.second.ValueType.Decode(range.first.value, rb.Value);
+	//				starto = Optional<fs::RangeBound>(rb);
+	//			}
 
-				if (range.__isset.last)
-				{
-					fs::RangeBound rb;
-					rb.Inclusive = range.last.inclusive;
-					rb.Value = pdp.second.ValueType.Allocate();
-					pdp.second.ValueType.Decode(range.last.value, rb.Value);
-					endo = Optional<fs::RangeBound>(rb);
-				}		
+	//			if (range.__isset.last)
+	//			{
+	//				fs::RangeBound rb;
+	//				rb.Inclusive = range.last.inclusive;
+	//				rb.Value = pdp.second.ValueType.Allocate();
+	//				pdp.second.ValueType.Decode(range.last.value, rb.Value);
+	//				endo = Optional<fs::RangeBound>(rb);
+	//			}		
 
-				Optional<void*> startId;
-				if (range.__isset.rowID)
-				{
-					ostartp = pdp.second.RowIDType.Allocate();
-					pdp.second.RowIDType.Decode(range.rowID, ostartp);
-					startId = Optional<void*>(ostartp);
-				}
+	//			Optional<void*> startId;
+	//			if (range.__isset.rowID)
+	//			{
+	//				ostartp = pdp.second.RowIDType.Allocate();
+	//				pdp.second.RowIDType.Decode(range.rowID, ostartp);
+	//				startId = Optional<void*>(ostartp);
+	//			}
 
-				fs::Range frange(query.limit, range.ascending, starto, startId, endo);				
-				GetResult result = pdp.first->GetRows(frange);
+	//			fs::Range frange(query.limit, range.ascending, starto, startId, endo);				
+	//			GetResult result = pdp.first->GetRows(frange);
 
-				if (ostartp != NULL)
-					delete ostartp;
+	//			if (ostartp != NULL)
+	//				delete ostartp;
 
-				if (oendp != NULL)
-					delete oendp;
+	//			if (oendp != NULL)
+	//				delete oendp;
 
-				fastore::communication::ValueRowsList vrl(result.Data.size());
-				fastore::communication::RangeResult rr;
+	//			fastore::communication::ValueRowsList vrl(result.Data.size());
+	//			fastore::communication::RangeResult rr;
 
-				rr.endOfRange = result.EndOfRange;
-				rr.beginOfRange = result.BeginOfRange;
-				rr.limited = result.Limited;
+	//			rr.endOfRange = result.EndOfRange;
+	//			rr.beginOfRange = result.BeginOfRange;
+	//			rr.limited = result.Limited;
 
-				for (int j = 0; j < result.Data.size(); j++ )
-				{
-					fastore::communication::ValueRows vr;
-					fs::ValueKeys vk = result.Data[j];
+	//			for (int j = 0; j < result.Data.size(); j++ )
+	//			{
+	//				fastore::communication::ValueRows vr;
+	//				fs::ValueKeys vk = result.Data[j];
 
-					pdp.second.ValueType.Encode(vk.first, vr.value);
+	//				pdp.second.ValueType.Encode(vk.first, vr.value);
 
-					vr.rowIDs = std::vector<std::string>(vk.second.size());
-					for (int k = 0; k < vk.second.size(); k++)
-					{
-						std::string id;
-						pdp.second.RowIDType.Encode(vk.second[k], vr.rowIDs[k]);
-					}
+	//				vr.rowIDs = std::vector<std::string>(vk.second.size());
+	//				for (int k = 0; k < vk.second.size(); k++)
+	//				{
+	//					std::string id;
+	//					pdp.second.RowIDType.Encode(vk.second[k], vr.rowIDs[k]);
+	//				}
 
-					vrl[j] = vr;
-				}
+	//				vrl[j] = vr;
+	//			}
 
-				rr.valueRowsList = vrl;
+	//			rr.valueRowsList = vrl;
 
-				res.answer.__isset.rangeValues = true;
-				res.answer.rangeValues.push_back(rr);
-			}
-		}
+	//			res.answer.__isset.rangeValues = true;
+	//			res.answer.rangeValues.push_back(rr);
+	//		}
+	//	}
 
-		if (query.rowIDs.size() > 0)
-		{
-			fs::KeyVector kv(query.rowIDs.size());
-			for (int i = 0; i < query.rowIDs.size(); i++)
-			{
-				kv[i] = pdp.second.RowIDType.Allocate();
-				pdp.second.RowIDType.Decode(query.rowIDs[i], kv[i]);
-			}
+	//	if (query.rowIDs.size() > 0)
+	//	{
+	//		fs::KeyVector kv(query.rowIDs.size());
+	//		for (int i = 0; i < query.rowIDs.size(); i++)
+	//		{
+	//			kv[i] = pdp.second.RowIDType.Allocate();
+	//			pdp.second.RowIDType.Decode(query.rowIDs[i], kv[i]);
+	//		}
 
-			auto result = pdp.first->GetValues(kv);
+	//		auto result = pdp.first->GetValues(kv);
 
-			res.answer.__set_rowIDValues(std::vector<std::string>(result.size()));
-			for (int i = 0; i < result.size(); i++)
-			{
-				pdp.second.ValueType.Encode(result[i], res.answer.rowIDValues[i]);
-			}
+	//		res.answer.__set_rowIDValues(std::vector<std::string>(result.size()));
+	//		for (int i = 0; i < result.size(); i++)
+	//		{
+	//			pdp.second.ValueType.Encode(result[i], res.answer.rowIDValues[i]);
+	//		}
 
-			//Remove temporarily decoded rowIds.
-			for (int i = 0; i < kv.size(); i++)
-			{
-				delete kv[i];
-			}
-		}
+	//		//Remove temporarily decoded rowIds.
+	//		for (int i = 0; i < kv.size(); i++)
+	//		{
+	//			delete kv[i];
+	//		}
+	//	}
 
-		_return.insert(std::pair<fastore::communication::ColumnID, fastore::communication::ReadResult>(id, res));
-		start++;
-	}
+	//	_return.insert(std::pair<fastore::communication::ColumnID, fastore::communication::ReadResult>(id, res));
+	//	start++;
+	//}
 }
 
 void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)

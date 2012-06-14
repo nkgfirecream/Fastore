@@ -201,9 +201,7 @@
     <ClInclude Include="FastoreHost.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="Logging\Log.h" />
-    <ClInclude Include="optional.h" />
     <ClInclude Include="Order.h" />
-    <ClInclude Include="Range.h" />
     <ClInclude Include="Repository.h" />
     <ClInclude Include="Schema\BaseTypes.h" />
     <ClInclude Include="schema\column.h" />
@@ -221,7 +219,6 @@
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="treeentry.h" />
-    <ClInclude Include="typedefs.h" />
     <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
     <ClInclude Include="Util\utilities.h" />

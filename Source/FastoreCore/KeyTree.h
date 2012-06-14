@@ -1,12 +1,11 @@
 #pragma once
 #include "Schema\scalar.h"
 #include "Schema\standardtypes.h"
-#include "typedefs.h"
 #include "treeentry.h"
 #include <functional>
 #include <array>
-#include "optional.h"
 #include <sstream>
+#include <vector>
 
 using namespace std;
 using namespace standardtypes;
