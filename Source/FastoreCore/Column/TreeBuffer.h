@@ -63,7 +63,7 @@ inline vector<std::string> TreeBuffer::GetValues(const vector<std::string>& rowI
 	vector<std::string> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
-		//values[i] = GetValue(rowIds[i]);
+		 _valueType.CopyOut(GetValue(_valueType.GetPointer(rowIds[i])),values[i]);
 	}
 
 	return values;
@@ -193,11 +193,10 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 {
 	//TODO: Get this from the query..
 	int limit = 500;
-	//TODO: Get address of values..
-	void* firstp;
-	void* lastp;
-	//TODO: Get address without copying..
-	void* startId; // = range.__isset.rowID ? range.rowID : NULL;
+
+	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
+	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
+	void* startId = range.__isset.rowID ? _rowType.GetPointer(range.rowID) : NULL;
 
 	if (range.__isset.first && range.__isset.last)
 	{		
@@ -252,11 +251,11 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	{
 		while (begin != end && !result.limited)
 		{
-			auto rowIds = (KeyTree*)*(void**)((*begin).value);			
+			auto rowIdTree = (KeyTree*)*(void**)((*begin).value);			
 			auto key = (void*)((*begin).key);
 
-			auto idStart = startFound ? rowIds->begin() : rowIds->find(startId);
-			auto idEnd = rowIds->end();
+			auto idStart = startFound ? rowIdTree->begin() : rowIdTree->find(startId);
+			auto idEnd = rowIdTree->end();
 
 			if (!startFound)
 			{
@@ -272,23 +271,26 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				}					
 			}
 		
-			std::vector<std::string> rowIdsDecoded;
+			std::vector<std::string> rowIds;
 			while (idStart != idEnd && !result.limited)
 			{
-				//TODO:Decoding
-				//rowIdsDecoded.push_back((*idStart).key);
+				string rowId;
+				_rowType.CopyOut((*idStart).key, rowId);
+				rowIds.push_back(rowId);
 				++num;
 				++idStart;
 
 				result.limited = num == limit;
 			}
 
-			if (rowIdsDecoded.size() > 0)
+			if (rowIds.size() > 0)
 			{
 				ValueRows vr;
-				//TODO: Decode key as value
-				//vr.__set_value(key);
-				vr.__set_rowIDs(rowIdsDecoded);
+				string value;
+				_valueType.CopyOut(key, value);
+				
+				vr.__set_value(value);
+				vr.__set_rowIDs(rowIds);
 				vrl.push_back(vr);
 			}
 
@@ -304,15 +306,15 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 		while (begin != end && !result.limited)
 		{
 			--end;
-			auto rowIds = (KeyTree*)*(void**)((*end).value);		
+			auto rowIdTree = (KeyTree*)*(void**)((*end).value);		
 			auto key = (void*)((*end).key);
 
-			auto idStart = rowIds->begin();
-			auto idEnd = startFound ? rowIds->end() : rowIds->find(startId);
+			auto idStart = rowIdTree->begin();
+			auto idEnd = startFound ? rowIdTree->end() : rowIdTree->find(startId);
 
 			if (!startFound)
 			{
-				if (idEnd != rowIds->end())
+				if (idEnd != rowIdTree->end())
 				{
 					startFound = true;
 					result.endOfRange = false;
@@ -325,23 +327,26 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				--idEnd;
 			}
 		
-			std::vector<std::string> rowIdsDecoded;
+			std::vector<std::string> rowIds;
 			while (idStart != idEnd && !result.limited)
 			{	
 				--idEnd;
-				//TODO: Decoding
-				//rowIdsDecoded.push_back((*idEnd).key);
+				string rowId;
+				_rowType.CopyOut((*idEnd).key, rowId);
+				rowIds.push_back(rowId);
 				++num;
 
 				result.limited = num == limit;	
 			}
 		
-			if (rowIdsDecoded.size() > 0)
+			if (rowIds.size() > 0)
 			{
 				ValueRows vr;
-				//TODO: Decode key as value
-				//vr.__set_value(key);
-				vr.__set_rowIDs(rowIdsDecoded);
+				string value;
+				_valueType.CopyOut(key, value);
+				
+				vr.__set_value(value);
+				vr.__set_rowIDs(rowIds);
 				vrl.push_back(vr);
 			}
 		}
