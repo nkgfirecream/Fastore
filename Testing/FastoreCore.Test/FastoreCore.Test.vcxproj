@@ -139,7 +139,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FASTORECORETEST_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\External\VisualAssert\include;$(SolutionDir)\FastoreCore\TBB\include;$(SolutionDir)\FastoreCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\VisualAssert\include;$(SolutionDir)\FastoreCore\TBB\include;$(SolutionDir)\FastoreCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

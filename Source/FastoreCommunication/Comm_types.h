@@ -676,15 +676,16 @@ typedef struct _RangeRequest__isset {
 class RangeRequest {
  public:
 
-  static const char* ascii_fingerprint; // = "ED99C79CAEE6175252083848E86F96EC";
-  static const uint8_t binary_fingerprint[16]; // = {0xED,0x99,0xC7,0x9C,0xAE,0xE6,0x17,0x52,0x52,0x08,0x38,0x48,0xE8,0x6F,0x96,0xEC};
+  static const char* ascii_fingerprint; // = "4C1A8C7B2474BEEF3B5899689B4AC289";
+  static const uint8_t binary_fingerprint[16]; // = {0x4C,0x1A,0x8C,0x7B,0x24,0x74,0xBE,0xEF,0x3B,0x58,0x99,0x68,0x9B,0x4A,0xC2,0x89};
 
-  RangeRequest() : ascending(true), rowID() {
+  RangeRequest() : ascending(true), limit(500), rowID() {
   }
 
   virtual ~RangeRequest() throw() {}
 
   bool ascending;
+  int32_t limit;
   RangeBound first;
   RangeBound last;
   std::string rowID;
@@ -693,6 +694,10 @@ class RangeRequest {
 
   void __set_ascending(const bool val) {
     ascending = val;
+  }
+
+  void __set_limit(const int32_t val) {
+    limit = val;
   }
 
   void __set_first(const RangeBound& val) {
@@ -713,6 +718,8 @@ class RangeRequest {
   bool operator == (const RangeRequest & rhs) const
   {
     if (!(ascending == rhs.ascending))
+      return false;
+    if (!(limit == rhs.limit))
       return false;
     if (__isset.first != rhs.__isset.first)
       return false;
@@ -852,17 +859,16 @@ typedef struct _Query__isset {
 class Query {
  public:
 
-  static const char* ascii_fingerprint; // = "53486A2100C5B12C0F6DC8B42E976024";
-  static const uint8_t binary_fingerprint[16]; // = {0x53,0x48,0x6A,0x21,0x00,0xC5,0xB1,0x2C,0x0F,0x6D,0xC8,0xB4,0x2E,0x97,0x60,0x24};
+  static const char* ascii_fingerprint; // = "C06DB9A662129FF3CAE53510F3482EB5";
+  static const uint8_t binary_fingerprint[16]; // = {0xC0,0x6D,0xB9,0xA6,0x62,0x12,0x9F,0xF3,0xCA,0xE5,0x35,0x10,0xF3,0x48,0x2E,0xB5};
 
-  Query() : limit(500) {
+  Query() {
   }
 
   virtual ~Query() throw() {}
 
   std::vector<std::string>  rowIDs;
   std::vector<RangeRequest>  ranges;
-  int32_t limit;
 
   _Query__isset __isset;
 
@@ -876,10 +882,6 @@ class Query {
     __isset.ranges = true;
   }
 
-  void __set_limit(const int32_t val) {
-    limit = val;
-  }
-
   bool operator == (const Query & rhs) const
   {
     if (__isset.rowIDs != rhs.__isset.rowIDs)
@@ -889,8 +891,6 @@ class Query {
     if (__isset.ranges != rhs.__isset.ranges)
       return false;
     else if (__isset.ranges && !(ranges == rhs.ranges))
-      return false;
-    if (!(limit == rhs.limit))
       return false;
     return true;
   }

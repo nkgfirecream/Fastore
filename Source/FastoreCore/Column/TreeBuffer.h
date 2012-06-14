@@ -191,9 +191,6 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 
 inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 {
-	//TODO: Get this from the query..
-	int limit = 500;
-
 	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
 	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
 	void* startId = range.__isset.rowID ? _rowType.GetPointer(range.rowID) : NULL;
@@ -280,7 +277,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				++num;
 				++idStart;
 
-				result.limited = num == limit;
+				result.limited = num == range.limit;
 			}
 
 			if (rowIds.size() > 0)
@@ -336,7 +333,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				rowIds.push_back(rowId);
 				++num;
 
-				result.limited = num == limit;	
+				result.limited = num == range.limit;	
 			}
 		
 			if (rowIds.size() > 0)

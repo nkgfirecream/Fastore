@@ -173,9 +173,6 @@ inline void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
 
 inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 {
-	//TODO: Get this from the query..
-	int limit = 500;
-
 	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
 	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
 	void* startId = range.__isset.rowID ? _rowType.GetPointer(range.rowID) : NULL;
@@ -257,7 +254,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			vr.__set_rowIDs(rowIds);
 			vrl.push_back(vr);
-			result.limited = vrl.size() == limit;
+			result.limited = vrl.size() == range.limit;
 
 			++begin;
 		}
@@ -295,7 +292,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			vr.__set_rowIDs(rowIds);
 			vrl.push_back(vr);
-			result.limited = vrl.size() == limit;
+			result.limited = vrl.size() == range.limit;
 
 			++begin;
 		}

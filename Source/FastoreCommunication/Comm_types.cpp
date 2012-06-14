@@ -1152,8 +1152,8 @@ void swap(RangeBound &a, RangeBound &b) {
   swap(a.inclusive, b.inclusive);
 }
 
-const char* RangeRequest::ascii_fingerprint = "ED99C79CAEE6175252083848E86F96EC";
-const uint8_t RangeRequest::binary_fingerprint[16] = {0xED,0x99,0xC7,0x9C,0xAE,0xE6,0x17,0x52,0x52,0x08,0x38,0x48,0xE8,0x6F,0x96,0xEC};
+const char* RangeRequest::ascii_fingerprint = "4C1A8C7B2474BEEF3B5899689B4AC289";
+const uint8_t RangeRequest::binary_fingerprint[16] = {0x4C,0x1A,0x8C,0x7B,0x24,0x74,0xBE,0xEF,0x3B,0x58,0x99,0x68,0x9B,0x4A,0xC2,0x89};
 
 uint32_t RangeRequest::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1167,6 +1167,7 @@ uint32_t RangeRequest::read(::apache::thrift::protocol::TProtocol* iprot) {
   using ::apache::thrift::protocol::TProtocolException;
 
   bool isset_ascending = false;
+  bool isset_limit = false;
 
   while (true)
   {
@@ -1185,6 +1186,14 @@ uint32_t RangeRequest::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 2:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->limit);
+          isset_limit = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->first.read(iprot);
           this->__isset.first = true;
@@ -1192,7 +1201,7 @@ uint32_t RangeRequest::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 3:
+      case 4:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->last.read(iprot);
           this->__isset.last = true;
@@ -1200,7 +1209,7 @@ uint32_t RangeRequest::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 4:
+      case 5:
         if (ftype == ::apache::thrift::protocol::T_STRING) {
           xfer += iprot->readBinary(this->rowID);
           this->__isset.rowID = true;
@@ -1219,6 +1228,8 @@ uint32_t RangeRequest::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   if (!isset_ascending)
     throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_limit)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
 
@@ -1230,18 +1241,22 @@ uint32_t RangeRequest::write(::apache::thrift::protocol::TProtocol* oprot) const
   xfer += oprot->writeBool(this->ascending);
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("limit", ::apache::thrift::protocol::T_I32, 2);
+  xfer += oprot->writeI32(this->limit);
+  xfer += oprot->writeFieldEnd();
+
   if (this->__isset.first) {
-    xfer += oprot->writeFieldBegin("first", ::apache::thrift::protocol::T_STRUCT, 2);
+    xfer += oprot->writeFieldBegin("first", ::apache::thrift::protocol::T_STRUCT, 3);
     xfer += this->first.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.last) {
-    xfer += oprot->writeFieldBegin("last", ::apache::thrift::protocol::T_STRUCT, 3);
+    xfer += oprot->writeFieldBegin("last", ::apache::thrift::protocol::T_STRUCT, 4);
     xfer += this->last.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.rowID) {
-    xfer += oprot->writeFieldBegin("rowID", ::apache::thrift::protocol::T_STRING, 4);
+    xfer += oprot->writeFieldBegin("rowID", ::apache::thrift::protocol::T_STRING, 5);
     xfer += oprot->writeBinary(this->rowID);
     xfer += oprot->writeFieldEnd();
   }
@@ -1253,6 +1268,7 @@ uint32_t RangeRequest::write(::apache::thrift::protocol::TProtocol* oprot) const
 void swap(RangeRequest &a, RangeRequest &b) {
   using ::std::swap;
   swap(a.ascending, b.ascending);
+  swap(a.limit, b.limit);
   swap(a.first, b.first);
   swap(a.last, b.last);
   swap(a.rowID, b.rowID);
@@ -1491,8 +1507,8 @@ void swap(RangeResult &a, RangeResult &b) {
   swap(a.limited, b.limited);
 }
 
-const char* Query::ascii_fingerprint = "53486A2100C5B12C0F6DC8B42E976024";
-const uint8_t Query::binary_fingerprint[16] = {0x53,0x48,0x6A,0x21,0x00,0xC5,0xB1,0x2C,0x0F,0x6D,0xC8,0xB4,0x2E,0x97,0x60,0x24};
+const char* Query::ascii_fingerprint = "C06DB9A662129FF3CAE53510F3482EB5";
+const uint8_t Query::binary_fingerprint[16] = {0xC0,0x6D,0xB9,0xA6,0x62,0x12,0x9F,0xF3,0xCA,0xE5,0x35,0x10,0xF3,0x48,0x2E,0xB5};
 
 uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1505,7 +1521,6 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   using ::apache::thrift::protocol::TProtocolException;
 
-  bool isset_limit = false;
 
   while (true)
   {
@@ -1555,14 +1570,6 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 3:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->limit);
-          isset_limit = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1572,8 +1579,6 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   xfer += iprot->readStructEnd();
 
-  if (!isset_limit)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
 
@@ -1607,10 +1612,6 @@ uint32_t Query::write(::apache::thrift::protocol::TProtocol* oprot) const {
     }
     xfer += oprot->writeFieldEnd();
   }
-  xfer += oprot->writeFieldBegin("limit", ::apache::thrift::protocol::T_I32, 3);
-  xfer += oprot->writeI32(this->limit);
-  xfer += oprot->writeFieldEnd();
-
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -1620,7 +1621,6 @@ void swap(Query &a, Query &b) {
   using ::std::swap;
   swap(a.rowIDs, b.rowIDs);
   swap(a.ranges, b.ranges);
-  swap(a.limit, b.limit);
   swap(a.__isset, b.__isset);
 }
 

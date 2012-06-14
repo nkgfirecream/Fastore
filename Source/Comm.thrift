@@ -162,9 +162,11 @@ struct RangeBound
 struct RangeRequest
 {
 	1: required bool ascending = true,
-	2: optional RangeBound first,
-	3: optional RangeBound last,
-	4: optional binary rowID
+	2: required i32 limit = 500
+	3: optional RangeBound first,
+	4: optional RangeBound last,
+	5: optional binary rowID
+
 }
 
 struct ValueRows
@@ -186,8 +188,7 @@ struct RangeResult
 struct Query
 {
 	1: optional list<binary> rowIDs,
-	2: optional list<RangeRequest> ranges,
-	3: required i32 limit = 500
+	2: optional list<RangeRequest> ranges
 }
 
 typedef map<ColumnID, Query> Queries
