@@ -5,23 +5,6 @@
 
 using namespace std;
 
-void DecodeLong(const std::string& input, void* output)
-{
-	// WARNING: Platform specific
-	*(long long*)output = *(long long*)input.data();
-}
-
-void EncodeLong(const void* input, std::string& output)
-{
-	// WARNING: Platform specific
-	output.assign((char*)input, sizeof(long long));
-}
-
-void* AllocateLong()
-{
-	return new long long();
-}
-
 int LongCompare(const void* left, const void* right)
 {
 	return (*(long long*)left - *(long long*)right);
@@ -34,42 +17,17 @@ std::wstring LongString(const void* item)
 	return converted;
 }
 
-size_t LongHash(const void* item)
-{
-	static std::hash<long long> hash;
-	return hash(*(long long*)item);
-}
-
 LongType::LongType()
 {
 	Name = "Long";
 	Compare = LongCompare;
 	Size = sizeof(long long);
 	ToString = LongString;
-	Hash = LongHash;
 	IndexOf = TargetedIndexOf<long long>;
 	CopyIn = CopyToArray<long long>;
-	Encode = EncodeLong;
-	Decode = DecodeLong;
-	Allocate = AllocateLong;
+	CopyOut = CopyOutOfArray<long long>;
+	GetPointer = GetPointerFromString<long long>;
 	Deallocate = NoOpDeallocate;
-}
-
-void* AllocateInt()
-{
-	return new int();
-}
-
-void DecodeInt(const std::string& input, void* output)
-{
-	// WARNING: Platform specific
-	*(int*)output = *(int*)input.data();
-}
-
-void EncodeInt(const void* input, std::string& output)
-{
-	// WARNING: Platform specific
-	output.assign((char*)input, sizeof(int));
 }
 
 int IntCompare(const void* left, const void* right)
@@ -84,12 +42,6 @@ std::wstring IntString(const void* item)
 	return result.str();
 }
 
-size_t IntHash(const void* item)
-{
-	static std::hash<int> hash;
-	return hash(*(int*)item);
-}
-
 IntType::IntType()
 {
 	Name = "Int";
@@ -98,28 +50,9 @@ IntType::IntType()
 	ToString = IntString;
 	IndexOf = CompareIndexOf<int, IntCompare>;
 	CopyIn = CopyToArray<int>;
-	Hash = IntHash;
-	Encode = EncodeInt;
-	Decode = DecodeInt;
-	Allocate = AllocateInt;
+	CopyOut = CopyOutOfArray<int>;
+	GetPointer = GetPointerFromString<int>;
 	Deallocate = NoOpDeallocate;
-}
-
-void* AllocateBool()
-{
-	return new bool();
-}
-
-void DecodeBool(const std::string& input, void* output)
-{
-	// WARNING: Platform specific
-	*(bool*)output = *(bool*)input.data();
-}
-
-void EncodeBool(const void* input, std::string& output)
-{
-	// WARNING: Platform specific
-	output.assign((char*)input, sizeof(bool));
 }
 
 int BoolCompare(const void* left, const void* right)
@@ -160,9 +93,7 @@ BoolType::BoolType()
 	ToString = BoolString;
 	IndexOf = CompareIndexOf<bool, BoolCompare>;
 	CopyIn = CopyToArray<bool>;
-	Hash = BoolHash;
-	Encode = EncodeBool;
-	Decode = DecodeBool;
-	Allocate = AllocateBool;
+	CopyOut = CopyOutOfArray<bool>;
+	GetPointer = GetPointerFromString<bool>;
 	Deallocate = NoOpDeallocate;
 }

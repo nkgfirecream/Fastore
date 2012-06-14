@@ -61,10 +61,7 @@ inline vector<std::string> UniqueBuffer::GetValues(const vector<std::string>& ro
 	vector<std::string> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
-		//TODO: How should this work?
-		//Decode input as type and take a reference... Decoding doesn't work that way in current implementation.. Creates a copy.
-		//
-		//_valueType.Encode(GetValue(rowIds[i].data()), values[i]);
+		 _valueType.CopyOut(GetValue(_valueType.GetPointer(rowIds[i])),values[i]);
 	}
 
 	return values;
@@ -99,19 +96,17 @@ inline void UniqueBuffer::Apply(const ColumnWrites& writes)
 	auto exstart = writes.excludes.begin();
 	while (exstart != writes.excludes.end())
 	{
-		(*exstart).rowID;
-
-		//Exclude
+		void* rowId = _rowType.GetPointer((*exstart).rowID);
+		Exclude(rowId);
 		exstart++;
 	}
 
 	auto incstart = writes.includes.begin();
 	while (incstart != writes.includes.end())
 	{
-		(*incstart).value;
-		(*incstart).rowID;
-
-		//Include
+		void* value = _valueType.GetPointer((*incstart).value);
+		void* rowId = _rowType.GetPointer((*incstart).rowID);
+		Include(rowId, value);
 		incstart++;
 	}
 }
@@ -180,11 +175,10 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 {
 	//TODO: Get this from the query..
 	int limit = 500;
-	//TODO: Get address of values..
-	void* firstp;
-	void* lastp;
-	//TODO: Get address without copying..
-	void* startId; // = range.__isset.rowID ? range.rowID : NULL;
+
+	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
+	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
+	void* startId = range.__isset.rowID ? _rowType.GetPointer(range.rowID) : NULL;
 
 	if (range.__isset.first && range.__isset.last)
 	{		
@@ -233,6 +227,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 	bool startFound = startId == NULL;	
 
+	ValueRowsList vrl;
+
 	if (range.ascending)
 	{		
 		while (begin != end && !result.limited)
@@ -250,15 +246,18 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 			
 			ValueRows vr;
 			string value;
-			_valueType.Encode(key, value);
-			vr.__set_value(value);
+			_valueType.CopyOut(key, value);
+			vr.__set_value(value);			
 			
-			std::vector<string> keys;
-			//TODO: Decode;
-			//keys.push_back(rowId);	
-			vr.__set_rowIDs(keys);
-			result.valueRowsList.push_back(vr);
-			result.limited = result.valueRowsList.size() == limit;
+			string rowIdcopy;
+			_rowType.CopyOut(rowId, rowIdcopy);
+
+			std::vector<string> rowIds;
+			rowIds.push_back(rowIdcopy);
+
+			vr.__set_rowIDs(rowIds);
+			vrl.push_back(vr);
+			result.limited = vrl.size() == limit;
 
 			++begin;
 		}
@@ -285,15 +284,18 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 		
 			ValueRows vr;
 			string value;
-			_valueType.Encode(key, value);
-			vr.__set_value(value);
+			_valueType.CopyOut(key, value);
+			vr.__set_value(value);			
 			
-			std::vector<string> keys;
-			//TODO: Decode;
-			//keys.push_back(rowId);	
-			vr.__set_rowIDs(keys);
-			result.valueRowsList.push_back(vr);
-			result.limited = result.valueRowsList.size() == limit;
+			string rowIdcopy;
+			_rowType.CopyOut(rowId, rowIdcopy);
+
+			std::vector<string> rowIds;
+			rowIds.push_back(rowIdcopy);
+
+			vr.__set_rowIDs(rowIds);
+			vrl.push_back(vr);
+			result.limited = vrl.size() == limit;
 
 			++begin;
 		}
@@ -302,6 +304,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 		if (result.limited && result.beginOfRange)
 			result.beginOfRange = false;
 	}	
+
+	result.__set_valueRowsList(vrl);
 
 	return result;
 }

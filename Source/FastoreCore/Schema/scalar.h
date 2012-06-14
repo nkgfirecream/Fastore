@@ -6,29 +6,20 @@ struct ScalarType
 	typedef int (*CompareFunc)(const void* left, const void* right);
 	typedef int (*IndexOfFunc)(const char* items, const int count, void *key);
 	typedef std::wstring (*ToStringFunc)(const void* item);
-	typedef void (*CopyInFunc)(const void* item, void* arraypointer);
-	typedef void (*EncodeFunc)(const void*, std::string&);
-	typedef void (*DecodeFunc)(const std::string&, void*);
-	typedef void* (*AllocateFunc)();
+	typedef void (*CopyInFunc)(const void* source, void* arraypointer);
+	typedef void (*CopyOutFunc)(const void* arraypointer, std::string& destination); 
 	typedef void (*DeallocateFunc)(void* items, const int count);
-	typedef size_t (*HashFunc)(const void* item);
+	typedef void* (*GetPointerFunc)(const std::string& source);
 
 	size_t Size;
 	ToStringFunc ToString;
 	CompareFunc Compare;
 	IndexOfFunc IndexOf;
 	CopyInFunc CopyIn;
+	CopyOutFunc CopyOut;
 	std::string Name;
-	EncodeFunc Encode;
-	DecodeFunc Decode;
-	AllocateFunc Allocate;
 	DeallocateFunc Deallocate;
-	HashFunc Hash;
-
-	size_t operator ()(const void* item) const
-	{
-		return Hash(item);
-	}
+	GetPointerFunc GetPointer;
 	
 	bool operator ()(const void* left, const void* right) const
 	{
@@ -195,4 +186,16 @@ template <typename T>
 void CopyToArray(const void* item, void* arrpointer)
 {
 	new (arrpointer) T(*(T*)item);
+}
+
+template <typename T>
+void* GetPointerFromString(const std::string& source)
+{
+	return (void*)(source.data());
+}
+
+template <typename T>
+void CopyOutOfArray(const void* arrpointer, std::string& destination)
+{
+	destination.assign((const char*)arrpointer, sizeof(T));
 }
