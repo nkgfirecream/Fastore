@@ -50,8 +50,10 @@ public:
 		//Entire Set
 		//Range: Entire set ascending
 		//Expected result: values 0 - 98 (inclusive) by 2s.
-		//Range range(500, true);
-		//TestRange(buf, range, 0, 98, 50, 2, true, true, false);
+		RangeRequest range;
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		TestRange(buf, range, 0, 98, 50, 2, true, true, false);
 
 		////Range: Entire set descending
 		////Expected result: values 98 - 0 (inclusive) by -2s.
