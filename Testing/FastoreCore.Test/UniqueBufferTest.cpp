@@ -38,7 +38,7 @@ public:
 
 			inc.__set_rowID(rowId);
 			inc.__set_value(value);
-			includes.push_back(inc);
+			includes.push_back(inc); 
 		}
 
 		cw.__set_includes(includes);
