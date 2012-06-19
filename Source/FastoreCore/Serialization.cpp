@@ -17,7 +17,7 @@ bool BufferSerializer::open()
 	_transport = boost::shared_ptr<transport::TFileTransport>(new transport::TFileTransport(_outputFile, false));
 	_protocol = boost::shared_ptr<protocol::TDenseProtocol>(new protocol::TDenseProtocol(_transport));
 
-	_transport->open();
+	//_transport->open();
 
 	_disposed = false;
 }
