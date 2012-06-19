@@ -185,6 +185,7 @@
     <ClCompile Include="Schema\scalar.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
     <ClCompile Include="Schema\StringTypes.cpp" />
+    <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="schema\standardtypes.h" />
     <ClInclude Include="Schema\StringTypes.h" />
     <ClInclude Include="schema\tuple.h" />
+    <ClInclude Include="Serialization.h" />
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="StartupConfig.h" />
     <ClInclude Include="Storage\Schema\column.h" />

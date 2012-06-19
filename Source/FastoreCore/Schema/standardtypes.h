@@ -14,7 +14,6 @@ namespace standardtypes
 	
 	// Internal Types
 	extern HashSetType StandardHashSet;
-	extern KeyVectorType StandardKeyVector;
 	extern KeyTreeType StandardKeyTree;
 	extern BTreeType StandardBTreeType;
 }

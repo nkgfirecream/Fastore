@@ -25,7 +25,6 @@ namespace Alphora.Fastore
   {
     private List<byte[]> _rowIDs;
     private List<RangeRequest> _ranges;
-    private int _limit;
 
     public List<byte[]> RowIDs
     {
@@ -53,19 +52,6 @@ namespace Alphora.Fastore
       }
     }
 
-    public int Limit
-    {
-      get
-      {
-        return _limit;
-      }
-      set
-      {
-        __isset.limit = true;
-        this._limit = value;
-      }
-    }
-
 
     public Isset __isset;
     #if !SILVERLIGHT
@@ -74,11 +60,9 @@ namespace Alphora.Fastore
     public struct Isset {
       public bool rowIDs;
       public bool ranges;
-      public bool limit;
     }
 
     public Query() {
-      this._limit = 500;
     }
 
     public void Read (TProtocol iprot)
@@ -128,13 +112,6 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 3:
-            if (field.Type == TType.I32) {
-              Limit = iprot.ReadI32();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
           default: 
             TProtocolUtil.Skip(iprot, field.Type);
             break;
@@ -178,14 +155,6 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.limit) {
-        field.Name = "limit";
-        field.Type = TType.I32;
-        field.ID = 3;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteI32(Limit);
-        oprot.WriteFieldEnd();
-      }
       oprot.WriteFieldStop();
       oprot.WriteStructEnd();
     }
@@ -196,8 +165,6 @@ namespace Alphora.Fastore
       sb.Append(RowIDs);
       sb.Append(",Ranges: ");
       sb.Append(Ranges);
-      sb.Append(",Limit: ");
-      sb.Append(Limit);
       sb.Append(")");
       return sb.ToString();
     }

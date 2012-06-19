@@ -24,6 +24,7 @@ namespace Alphora.Fastore
   public partial class RangeRequest : TBase
   {
     private bool _ascending;
+    private int _limit;
     private RangeBound _first;
     private RangeBound _last;
     private byte[] _rowID;
@@ -38,6 +39,19 @@ namespace Alphora.Fastore
       {
         __isset.ascending = true;
         this._ascending = value;
+      }
+    }
+
+    public int Limit
+    {
+      get
+      {
+        return _limit;
+      }
+      set
+      {
+        __isset.limit = true;
+        this._limit = value;
       }
     }
 
@@ -87,6 +101,7 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool ascending;
+      public bool limit;
       public bool first;
       public bool last;
       public bool rowID;
@@ -94,6 +109,7 @@ namespace Alphora.Fastore
 
     public RangeRequest() {
       this._ascending = true;
+      this._limit = 500;
     }
 
     public void Read (TProtocol iprot)
@@ -116,6 +132,13 @@ namespace Alphora.Fastore
             }
             break;
           case 2:
+            if (field.Type == TType.I32) {
+              Limit = iprot.ReadI32();
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
+          case 3:
             if (field.Type == TType.Struct) {
               First = new RangeBound();
               First.Read(iprot);
@@ -123,7 +146,7 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 3:
+          case 4:
             if (field.Type == TType.Struct) {
               Last = new RangeBound();
               Last.Read(iprot);
@@ -131,7 +154,7 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 4:
+          case 5:
             if (field.Type == TType.String) {
               RowID = iprot.ReadBinary();
             } else { 
@@ -159,10 +182,18 @@ namespace Alphora.Fastore
         oprot.WriteBool(Ascending);
         oprot.WriteFieldEnd();
       }
+      if (__isset.limit) {
+        field.Name = "limit";
+        field.Type = TType.I32;
+        field.ID = 2;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteI32(Limit);
+        oprot.WriteFieldEnd();
+      }
       if (First != null && __isset.first) {
         field.Name = "first";
         field.Type = TType.Struct;
-        field.ID = 2;
+        field.ID = 3;
         oprot.WriteFieldBegin(field);
         First.Write(oprot);
         oprot.WriteFieldEnd();
@@ -170,7 +201,7 @@ namespace Alphora.Fastore
       if (Last != null && __isset.last) {
         field.Name = "last";
         field.Type = TType.Struct;
-        field.ID = 3;
+        field.ID = 4;
         oprot.WriteFieldBegin(field);
         Last.Write(oprot);
         oprot.WriteFieldEnd();
@@ -178,7 +209,7 @@ namespace Alphora.Fastore
       if (RowID != null && __isset.rowID) {
         field.Name = "rowID";
         field.Type = TType.String;
-        field.ID = 4;
+        field.ID = 5;
         oprot.WriteFieldBegin(field);
         oprot.WriteBinary(RowID);
         oprot.WriteFieldEnd();
@@ -191,6 +222,8 @@ namespace Alphora.Fastore
       StringBuilder sb = new StringBuilder("RangeRequest(");
       sb.Append("Ascending: ");
       sb.Append(Ascending);
+      sb.Append(",Limit: ");
+      sb.Append(Limit);
       sb.Append(",First: ");
       sb.Append(First== null ? "<null>" : First.ToString());
       sb.Append(",Last: ");
