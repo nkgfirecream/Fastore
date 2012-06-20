@@ -55,217 +55,415 @@ public:
 		range.__set_ascending(true);
 		TestRange(buf, range, 0, 98, 50, 2, true, true, false);
 
-		////Range: Entire set descending
-		////Expected result: values 98 - 0 (inclusive) by -2s.
-		//range = Range(500, false);
-		//TestRange(buf, range, 98, 0, 50, -2, true, true, false);
+		//Range: Entire set descending
+		//Expected result: values 98 - 0 (inclusive) by -2s.
+		RangeRequest range;
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		TestRange(buf, range, 98, 0, 50, -2, true, true, false);
 
 
-		////Start Exclusive - Non overlapping
-		////Range: 0 (exclusive) - end (inclusive) ascending
-		////Expected result: values 2 - 98 (inclusive)
-		//int startValue = 0;
-		//RangeBound startBound(&startValue, false);
-		//range = Range(500, true, startBound);
-		//TestRange(buf, range, 2, 98, 49, 2, false, true, false);
+		//Start Exclusive - Non overlapping
+		//Range: 0 (exclusive) - end (inclusive) ascending
+		//Expected result: values 2 - 98 (inclusive)
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		int startBoundValue = 500;
+		string startv;
+		
+		Assign(startv, startBoundValue);
+		
+		RangeBound bound;
+		bound.__set_inclusive(false);
+		bound.__set_value(startv);
+		
+		range.__set_first(bound);
+		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
 
-		////Range: 0 (exclusive) - end (inclusive) descending
-		////Expected result: values 98 - 2 (inclusive)
-		//range = Range(500, false, startBound);
-		//TestRange(buf, range, 98, 2, 49, -2, false, true, false);
+		//Range: 0 (exclusive) - end (inclusive) descending
+		//Expected result: values 98 - 2 (inclusive)
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		int startBoundValue = 500;
+		string startv;
 
+		Assign(startv, startBoundValue);
 
-		////End Exclusive - Non overlapping
-		////Range: begin (inclusive) - 98 (exclusive) ascending
-		////Expected result: values 0 - 96 (inclusive)
-		//int endValue = 98;
-		//RangeBound endBound(&endValue, false);
-		//range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 96, 49, 2, true, false, false);
-
-		////Range: begin (inclusive) - 98 (exclusive) descending
-		////Expected result: values 96 - 0 (inclusive)
-		//range = Range(500, false, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 96, 0, 49, -2, true, false, false);
-
-		//
-		////Two bounds - inclusive, non overlapping
-		////Range: 2 (inclusive) - 96 (inclusive) ascending
-		////Expected result: values 2 - 96 (inclusive)
-		//endValue = 96;
-		//endBound = RangeBound(&endValue, true);
-		//startValue = 2;
-		//startBound = RangeBound(&startValue, true);
-		//range = Range(500, true, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 2, 96, 48, 2, false, false, false);
-
-		////Range: 2 (inclusive) - 96 (inclusive) descending
-		////Expected result: values 96 - 2 (inclusive)
-		//range = Range(500, false, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 96, 2, 48, -2, false, false, false);
+		RangeBound bound;
+		bound.__set_inclusive(false);
+		bound.__set_value(startv);
+		
+		range.__set_first(bound);
+		TestRange(buf, range, 98, 2, 49, -2, false, true, false);
 
 
-		////Two bounds - exclusive, non overlapping
-		////Range: 2 (exclusive) - 96 (exclusive) ascending
-		////Expected result: values 4 - 94 (inclusive)
-		//endValue = 96;
-		//endBound = RangeBound(&endValue, false);
-		//startValue = 2;
-		//startBound = RangeBound(&startValue, false);
-		//range = Range(500, true, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 4, 94, 46, 2, false, false, false);
+		//End Exclusive - Non overlapping
+		//Range: begin (inclusive) - 98 (exclusive) ascending
+		//Expected result: values 0 - 96 (inclusive)
+		int endValue = 98;
+		string endv;
 
-		////Range: 2 (exclusive) - 96 (exclusive) descending
-		////Expected result: values 94 - 4 (inclusive)
-		//range = Range(500, false, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 94, 4, 46, -2, false, false, false);
+		Assign(endv, endValue);
 
-		//
-		////Two bounds - inclusive, overlapping
-		////Range: 50 (inclusive) - 50 (inclusive) ascending
-		////Expected result: 50
-		//endValue = 50;
-		//startValue = 50;
-		//startBound = RangeBound(&startValue, true);
-		//endBound = RangeBound(&endValue, true);
-		//range = Range(500, true, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 50, 50, 1, 0, false, false, false);
+		RangeBound endBound; 
+		endBound.__set_inclusive(false);
+		endBound.__set_value(endv);
 
-		////Range: 50 (inclusive) - 50 (inclusive) desc
-		////Expected result: 50
-		//range = Range(500, false, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 50, 50, 1, 0, false, false, false);
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 96, 49, 2, true, false, false);
 
+		//Range: begin (inclusive) - 98 (exclusive) descending
+		//Expected result: values 96 - 0 (inclusive)
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_last(endBound);
+		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
 
-		////Two bounds - exclusive, overlaping
-		////Range: 50 (exclusive) - 50 (exclusive) asc
-		////Expected result: Empty
-		//endValue = 50;
-		//startValue = 50;
-		//startBound = RangeBound(&startValue, false);
-		//endBound = RangeBound(&endValue, false);
-		//range = Range(500, true, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 0, 0, false, false, false);
+		
+		//Two bounds - inclusive, non overlapping
+		//Range: 2 (inclusive) - 96 (inclusive) ascending
+		//Expected result: values 2 - 96 (inclusive)
+		endValue = 96;
+		string endv;
+		Assign(endv, endValue);
 
-		////Range: 50 (exclusive) - 50 (exclusive) desc
-		////Expected result: Empty
-		//range = Range(500, false, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 0, 0, false, false, false);
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
 
+		int startValue = 2;
+		string startv;
+		Assign(startv, startValue);
+		
+		RangeBound startBound;
+		startBound.__set_inclusive(true);
+		startBound.__set_value(startv);
 
-		////Start after data - asc
-		////Expected result: Empty
-		//startValue = 100;
-		//startBound = RangeBound(&startValue, true);
-		//range = Range(500, true, startBound);
-		//TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 2, 96, 48, 2, false, false, false);
 
-		////Start after data - desc
-		////Expected result: Empty
-		//range = Range(500, false, startBound);
-		//TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+		//Range: 2 (inclusive) - 96 (inclusive) descending
+		//Expected result: values 96 - 2 (inclusive)
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 96, 2, 48, -2, false, false, false);
 
 
-		////Start at end
-		////Range 98 (inclusive) - end asc
-		////Expected result: 98
-		//startValue = 98;
-		//startBound = RangeBound(&startValue, true);
-		//range = Range(500, true, startBound);
-		//TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+		//Two bounds - exclusive, non overlapping
+		//Range: 2 (exclusive) - 96 (exclusive) ascending
+		//Expected result: values 4 - 94 (inclusive)
+		endValue = 96;
+		string endv;
+		Assign(endv, endValue);
 
-		////Range 98 (inclusive) - end asc
-		////Expected result: 98
-		//range = Range(500, false, startBound);
-		//TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+		RangeBound endBound;
+		endBound.__set_inclusive(false);
+		endBound.__set_value(endv);
 
-		////Range: 98 (exclusive) - end asc
-		////Expected result: Empty
-		//startBound = RangeBound(&startValue, false);
-		//range = Range(500, true, startBound);
-		//TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+		startValue = 2;
+		string startv;
+		Assign(startv, startValue);
 
-		////Range 98 (exclusive) - end desc
-		////Expected result: Empty
-		//range = Range(500, false, startBound);
-		//TestRange(buf, range, 0, 0, 0, 0, false, true, false);
-		//
+		RangeBound startBound;
+		startBound.__set_inclusive(false);
+		startBound.__set_value(startv);
 
-		////End before data - asc
-		////Expected result: Empty
-		//endValue = -2;
-		//endBound = RangeBound(&endValue, true);
-		//range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 4, 94, 46, 2, false, false, false);
 
-		////End before data - desc
-		////Expected result: Empty
-		//endBound = RangeBound(&endValue, true);
-		//range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+		//Range: 2 (exclusive) - 96 (exclusive) descending
+		//Expected result: values 94 - 4 (inclusive)
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 94, 4, 46, -2, false, false, false);
 
-		//
-		////End at Start
-		//// Range: start - 0 (inclusive) asc
-		////Expected result: 0
-		//endValue = 0;
-		//endBound = RangeBound(&endValue, true);
-		//range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+		
+		//Two bounds - inclusive, overlapping
+		//Range: 50 (inclusive) - 50 (inclusive) ascending
+		//Expected result: 50
+		endValue = 50;
+		string endv;
+		Assign(endv, endValue);
 
-		//// Range: start - 0 (inclusive) desc
-		////Expected result: 0
-		//range = Range(500, false, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
 
-		//// Range: start - 0 (exclusive) asc
-		////Expected result: Empty
-		//endBound = RangeBound(&endValue, false);
-		//range = Range(500, true, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+		startValue = 50;
+		string startv;
+		Assign(startv, startValue);
 
-		//// Range: start - 0 (exclusive) desc
-		////Expected result: Empty
-		//range = Range(500, false, Optional<fs::RangeBound>(), Optional<void*>(), endBound);
-		//TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+		RangeBound startBound;
+		startBound.__set_inclusive(true);
+		endBound.__set_value(startv);
 
-		//
-		////Limited range
-		////Range: start - end asc, limited to 5
-		////Expected result: 0 - 8 (inclusive)
-		//range = Range(5, true);
-		//TestRange(buf, range, 0, 8, 5, 2, true, false, true);
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 50, 50, 1, 0, false, false, false);
 
-		////Range: end - start desc, limited to 5
-		////Expected result: 98-90 (inclusive)
-		//range = Range(5,false);
-		//TestRange(buf, range, 98, 90, 5, -2, false, true, true);
-
-		////Start on ID
-		////For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
-		////Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
-		//startValue = 0;
-		//startBound = RangeBound(&startValue, true);
-		//range = Range(500, true, startBound, Optional<void*>(&startValue));
-		//TestRange(buf, range, 2, 98, 49, 2, false, true, false);
-
-		////Range: end - start desc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
-		//endValue = 98;
-		//endBound = RangeBound(&endValue, true);
-		//range = Range(500, false, Optional<RangeBound>(), Optional<void*>(&endValue), endBound);
-		//TestRange(buf, range, 96, 0, 49, -2, true, false, false);
+		//Range: 50 (inclusive) - 50 (inclusive) desc
+		//Expected result: 50
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 50, 50, 1, 0, false, false, false);
 
 
-		////Combination
-		//endValue = 94;
-		//startValue = 80;
-		//startBound = RangeBound(&startValue, true);
-		//endBound = RangeBound(&endValue, false);
-		//range = Range(500, true, startBound, Optional<void*>(&startValue), endBound);
-		//TestRange(buf, range, 82, 92, 6, 2, false, false, false);
+		//Two bounds - exclusive, overlaping
+		//Range: 50 (exclusive) - 50 (exclusive) asc
+		//Expected result: Empty
+		endValue = 50;
+		string endv;
+		Assign(endv, endValue);
 
-		//range = Range(5, true, startBound, Optional<void*>(), endBound);
-		//TestRange(buf, range, 82, 90, 5, 2, false, false, true);
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
+
+		startValue = 50;
+		string startv;
+		Assign(startv, startValue);
+
+		RangeBound startBound;
+		startBound.__set_inclusive(false);
+		startBound.__set_value(startv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 0, 0, false, false, false);
+
+		//Range: 50 (exclusive) - 50 (exclusive) desc
+		//Expected result: Empty
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 0, 0, false, false, false);
+
+
+		//Start after data - asc
+		//Expected result: Empty
+		startValue = 100;
+		string startv;
+		Assign(startv, startValue);
+
+		RangeBound startBound;
+		startBound.__set_inclusive(true);
+		startBound.__set_value(startv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+
+		//Start after data - desc
+		//Expected result: Empty
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+
+
+		//Start at end
+		//Range 98 (inclusive) - end asc
+		//Expected result: 98
+		startValue = 98;
+		string startv;
+		Assign(startv, startValue);
+
+		RangeBound startBound;
+		startBound.__set_inclusive(true);
+		startBound.__set_value(startv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+
+		//Range 98 (inclusive) - end asc
+		//Expected result: 98
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+
+		//Range: 98 (exclusive) - end asc
+		//Expected result: Empty
+		RangeBound startBound;
+		startBound.__set_inclusive(false);
+		startBound.__set_value(startv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+
+		//Range 98 (exclusive) - end desc
+		//Expected result: Empty
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_first(startBound);
+		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+		
+
+		//End before data - asc
+		//Expected result: Empty
+		endValue = -2;
+		string endv;
+		Assign(endv, endValue);
+
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+		//End before data - desc
+		//Expected result: Empty
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+		
+		//End at Start
+		// Range: start - 0 (inclusive) asc
+		//Expected result: 0
+		endValue = -2;
+		string endv;
+		Assign(endv, endValue);
+
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+
+		// Range: start - 0 (inclusive) desc
+		//Expected result: 0
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+
+		// Range: start - 0 (exclusive) asc
+		//Expected result: Empty
+		RangeBound endBound;
+		endBound.__set_inclusive(false);
+		endBound.__set_value(endv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+		// Range: start - 0 (exclusive) desc
+		//Expected result: Empty
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_last(endBound);
+		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+		
+		//Limited range
+		//Range: start - end asc, limited to 5
+		//Expected result: 0 - 8 (inclusive)
+		range.__set_limit(5);
+		range.__set_ascending(true);
+		TestRange(buf, range, 0, 8, 5, 2, true, false, true);
+
+		//Range: end - start desc, limited to 5
+		//Expected result: 98-90 (inclusive)
+		range.__set_limit(5);
+		range.__set_ascending(false);
+		TestRange(buf, range, 98, 90, 5, -2, false, true, true);
+
+		//Start on ID
+		//For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
+		//Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
+		startValue = 0;
+		string startv;
+		Assign(startv, startValue);
+
+		RangeBound startBound;
+		startBound.__set_inclusive(true);
+		startBound.__set_value(startv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
+
+		//Range: end - start desc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
+		endValue = 98;
+		string endv;
+		Assign(endv, endValue);
+
+		RangeBound endBound;
+		endBound.__set_inclusive(true);
+		endBound.__set_value(endv);
+
+		range.__set_limit(500);
+		range.__set_ascending(false);
+		range.__set_last(endBound);
+		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
+
+
+		//Combination
+		endValue = 94;
+		string endv;
+		Assign(endv, endValue);
+
+		RangeBound endBound;
+		endBound.__set_inclusive(false);
+		endBound.__set_value(endv);
+
+		startValue = 80;
+		string startv;
+		Assign(startv, startValue);
+
+		RangeBound startBound;
+		startBound.__set_inclusive(true);
+		startBound.__set_value(startv);
+
+		range.__set_limit(500);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 82, 92, 6, 2, false, false, false);
+
+		range.__set_limit(5);
+		range.__set_ascending(true);
+		range.__set_first(startBound);
+		range.__set_last(endBound);
+		TestRange(buf, range, 82, 90, 5, 2, false, false, true);
 	}
 
 	void TestRange(UniqueBuffer& buf, RangeRequest range, int expectedStart, int expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
@@ -377,6 +575,10 @@ public:
 		//	value = buf.GetValue(&i);
 		//	CFIX_ASSERT(*(int*)value == i);
 		//}
+	}
+
+	string Assign(string str, int value){
+	 return str.assign((const char*)&value, sizeof(int));
 	}
 };
 
