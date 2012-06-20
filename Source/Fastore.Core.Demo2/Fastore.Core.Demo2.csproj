@@ -152,12 +152,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Fastore.Client\Fastore.Client.csproj">
-      <Project>{76249753-AD81-455C-8760-62BD64918177}</Project>
-      <Name>Fastore.Client</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

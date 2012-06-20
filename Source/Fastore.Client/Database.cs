@@ -581,7 +581,6 @@ namespace Alphora.Fastore.Client
 			Query rangeQuery = new Query();
 			rangeQuery.Ranges = new List<RangeRequest>();
 			rangeQuery.Ranges.Add(rangeRequest);
-			rangeQuery.Limit = limit;
 
 			return rangeQuery;
 		}
