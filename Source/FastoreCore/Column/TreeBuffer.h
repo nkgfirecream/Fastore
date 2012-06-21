@@ -341,6 +341,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 					throw "Start id not found in given value";
 				}
 
+				if (idEnd != idStart)
 				--idEnd;
 			}
 		

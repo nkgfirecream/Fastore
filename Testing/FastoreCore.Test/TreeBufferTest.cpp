@@ -278,7 +278,7 @@ public:
 
 		//--- END UNIQUE BUFFER COPY --
 
-		//Need more through tests for multi-id keys...
+		//Need more thorough tests for multi-id keys...
 	}
 
 	void AssignString(string& str, int value)
