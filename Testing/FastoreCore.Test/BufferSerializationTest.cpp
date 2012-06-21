@@ -1,5 +1,6 @@
-#include "StdAfx.h"
-#include <cfixcc.h>
+#include "stdafx.h"
+#include "CppUnitTest.h"
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "Schema\standardtypes.h"
 #include "Column\UniqueBuffer.h"
@@ -8,11 +9,11 @@
 using namespace std;
 
 
-class BufferSerializationTest : public cfixcc::TestFixture
+TEST_CLASS(BufferSerializationTest)
 {
 public:
 	
-	void SerializeDeserialize()
+	TEST_METHOD(SerializeDeserialize)
 	{
 		//TODO: Update limited behavior to reflect BoF/EoF semantics.
 		//Unique buffer -- one key has one and only one value
@@ -40,8 +41,8 @@ public:
 		cw.__set_includes(includes);
 		buf.Apply(cw);
 
-		CFIX_ASSERT(buf.GetStatistic().total == 5000);
-		CFIX_ASSERT(buf.GetStatistic().unique == 5000);
+		Assert::AreEqual<int>(buf.GetStatistic().total, 5000);
+		Assert::AreEqual<int>(buf.GetStatistic().unique, 5000);
 
 		//Entire Set
 		//Range: Entire set ascending
@@ -76,7 +77,7 @@ public:
 		RangeResult result = buf.GetRows(range);
 		
 		//Right number of values...
-		CFIX_ASSERT(result.valueRowsList.size() == expectedValuesCount);
+		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
 
 		int expectedNum = expectedStart;
 		for (int i = 0; i < result.valueRowsList.size(); i++)
@@ -87,25 +88,21 @@ public:
 			int value = *(int*)item.value.data();
 
 			//Value should be our expected number;
-			CFIX_ASSERT(expectedNum == value);
+			Assert::AreEqual<int>(expectedNum, value);
 
 			//should be one id per value (unique buffer)
-			CFIX_ASSERT(item.rowIDs.size() == 1);
+			Assert::IsTrue(item.rowIDs.size() == 1);
 
 			//id should be expected number
-			CFIX_ASSERT(expectedNum == *(int*)item.rowIDs[0].data());
+			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[0].data());
 
 			expectedNum += increment;
 		}
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
-		CFIX_ASSERT(expectedNum == expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
-		CFIX_ASSERT(result.beginOfRange == expectBOF);
-		CFIX_ASSERT(result.endOfRange == expectEOF);
-		CFIX_ASSERT(result.limited == expectLimited);
+		Assert::AreEqual<int>(expectedNum, expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
+		Assert::AreEqual<bool>(result.beginOfRange, expectBOF);
+		Assert::AreEqual<bool>(result.endOfRange, expectEOF);
+		Assert::AreEqual<bool>(result.limited, expectLimited);
 	}
 };
-
-CFIXCC_BEGIN_CLASS( BufferSerializationTest )
-	CFIXCC_METHOD( SerializeDeserialize )
-CFIXCC_END_CLASS()

@@ -1,19 +1,17 @@
-#include "StdAfx.h"
-#include <cfixcc.h>
+#include "stdafx.h"
+#include "CppUnitTest.h"
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-#include <sstream>
-#include <iostream>
-#include <hash_set>
-#include <algorithm>
+#include <vector>
 
 using namespace std;
 
 //Just a scratch pad. Nothing important here.
-class TestScratchPad : public cfixcc::TestFixture
+TEST_CLASS(TestScratchPad)
 {
 public:
 
-	void Test()
+	TEST_METHOD(Test)
 	{
 		std::vector<int> vec;
 
@@ -32,10 +30,6 @@ public:
 			i = *end;
 		}
 
-		CFIX_ASSERT(i == 0);
+		Assert::AreEqual<int>(i, 0);
 	}
 };
-
-CFIXCC_BEGIN_CLASS( TestScratchPad )
-	CFIXCC_METHOD( Test )
-CFIXCC_END_CLASS()

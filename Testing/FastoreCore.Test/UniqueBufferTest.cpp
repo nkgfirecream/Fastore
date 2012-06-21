@@ -1,5 +1,6 @@
-#include "StdAfx.h"
-#include <cfixcc.h>
+#include "stdafx.h"
+#include "CppUnitTest.h"
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include <sstream>
 #include <iostream>
@@ -12,12 +13,13 @@
 using namespace std;
 
 
-class UniqueBufferTest : public cfixcc::TestFixture
+TEST_CLASS(UniqueBufferTest)
 {
 public:
 	
-	void RangeTests()
+	TEST_METHOD(RangeTests)
 	{
+		
 		//TODO: Update limited behavior to reflect BoF/EoF semantics.
 		//Unique buffer -- one key has one and only one value
 		UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
@@ -44,8 +46,8 @@ public:
 		cw.__set_includes(includes);
 		buf.Apply(cw);
 
-		CFIX_ASSERT(buf.GetStatistic().total == 50);
-		CFIX_ASSERT(buf.GetStatistic().unique == 50);
+		Assert::AreEqual<long long>(buf.GetStatistic().total, 50);
+		Assert::AreEqual<long long>(buf.GetStatistic().unique, 50);
 
 		//Entire Set
 		//Range: Entire set ascending
@@ -57,6 +59,7 @@ public:
 
 		//Range: Entire set descending
 		//Expected result: values 98 - 0 (inclusive) by -2s.
+		range = RangeRequest();
 		range.__set_limit(500);
 		range.__set_ascending(false);
 		TestRange(buf, range, 98, 0, 50, -2, true, true, false);
@@ -84,9 +87,11 @@ public:
 		range.__set_limit(500);
 		range.__set_ascending(false);
 		startBoundValue = 500;
+		startv = string();
 
 		Assign(startv, startBoundValue);
 
+		bound = RangeBound();
 		bound.__set_inclusive(false);
 		bound.__set_value(startv);
 		
@@ -102,7 +107,7 @@ public:
 
 		Assign(endv, endValue);
 
-		RangeBound endBound; 
+		RangeBound endBound;
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
@@ -125,6 +130,7 @@ public:
 		endValue = 96;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -156,12 +162,14 @@ public:
 		endValue = 96;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
 		startValue = 2;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(false);
 		startBound.__set_value(startv);
 
@@ -186,12 +194,14 @@ public:
 		endValue = 50;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
 		startValue = 50;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(true);
 		endBound.__set_value(startv);
 
@@ -216,12 +226,14 @@ public:
 		endValue = 50;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
 		startValue = 50;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(false);
 		startBound.__set_value(startv);
 
@@ -245,6 +257,7 @@ public:
 		startValue = 100;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -267,6 +280,7 @@ public:
 		startValue = 98;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -284,6 +298,7 @@ public:
 
 		//Range: 98 (exclusive) - end asc
 		//Expected result: Empty
+		startBound = RangeBound();
 		startBound.__set_inclusive(false);
 		startBound.__set_value(startv);
 
@@ -305,6 +320,7 @@ public:
 		endValue = -2;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -315,6 +331,7 @@ public:
 
 		//End before data - desc
 		//Expected result: Empty
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -330,6 +347,7 @@ public:
 		endValue = -2;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -347,6 +365,7 @@ public:
 
 		// Range: start - 0 (exclusive) asc
 		//Expected result: Empty
+		endBound = RangeBound();
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
@@ -382,6 +401,7 @@ public:
 		startValue = 0;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -394,6 +414,7 @@ public:
 		endValue = 98;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -407,12 +428,14 @@ public:
 		endValue = 94;
 		Assign(endv, endValue);
 
+		endBound = RangeBound();
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
 		startValue = 80;
 		Assign(startv, startValue);
 
+		startBound = RangeBound();
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -434,7 +457,7 @@ public:
 		RangeResult result = buf.GetRows(range);
 		
 		//Right number of values...
-		CFIX_ASSERT(result.valueRowsList.size() == expectedValuesCount);
+		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
 
 		int expectedNum = expectedStart;
 		for (int i = 0; i < result.valueRowsList.size(); i++)
@@ -445,107 +468,103 @@ public:
 			int value = *(int*)item.value.data();
 
 			//Value should be our expected number;
-			CFIX_ASSERT(expectedNum == value);
+			Assert::AreEqual<int>(expectedNum, value);
 
 			//should be one id per value (unique buffer)
-			CFIX_ASSERT(item.rowIDs.size() == 1);
+			Assert::IsTrue(item.rowIDs.size() == 1);
 
 			//id should be expected number
-			CFIX_ASSERT(expectedNum == *(int*)item.rowIDs[0].data());
+			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[0].data());
 
 			expectedNum += increment;
 		}
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
-		CFIX_ASSERT(expectedNum == expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
-		CFIX_ASSERT(result.beginOfRange == expectBOF);
-		CFIX_ASSERT(result.endOfRange == expectEOF);
-		CFIX_ASSERT(result.limited == expectLimited);
+		Assert::AreEqual<int>(expectedNum, expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
+		Assert::IsTrue(result.beginOfRange == expectBOF);
+		Assert::IsTrue(result.endOfRange == expectEOF);
+		Assert::IsTrue(result.limited == expectLimited);
 	}
 
-	void IncludeExclude()
+	TEST_METHOD(IncludeExclude)
 	{
-	//	UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
+		throw "Not yet implemented";
+		//UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
 
 	//	bool result;
 	//	int v = 0;
 	//	int k = 0;
 
-	//	//Non existing inserts should be ok
-	//	result = buf.Include(&v, &k);
-	//	CFIX_ASSERT(result == true);
+		////Non existing inserts should be ok
+		//result = buf.Include(&v, &k);
+		//Assert::AreEqual(result == true);
 
-	//	//Duplicate insertions should not insert
-	//	result = buf.Include(&v, &k);
-	//	CFIX_ASSERT(result == false);
+		////Duplicate insertions should not insert
+		//result = buf.Include(&v, &k);
+		//Assert::AreEqual(result == false);
 
-	//	//Duplicate keys should not insert
-	//	v = 2;
-	//    k = 0;
-	//	result = buf.Include(&v, &k);
-	//	CFIX_ASSERT(result == false);
+		////Duplicate keys should not insert
+		//v = 2;
+	 //   k = 0;
+		//result = buf.Include(&v, &k);
+		//Assert::AreEqual(result == false);
 
-	//	//Duplicate values should not insert
-	//	v = 0;
-	//    k = 2;
-	//	result = buf.Include(&v, &k);
-	//	CFIX_ASSERT(result == false);
+		////Duplicate values should not insert
+		//v = 0;
+	 //   k = 2;
+		//result = buf.Include(&v, &k);
+		//Assert::AreEqual(result == false);
 
-	//	//End of this should still be zero
-	//	k = 0;
-	//	void* value = buf.GetValue(&k);
-	//	CFIX_ASSERT(*(int*)value == 0);
+		////End of this should still be zero
+		//k = 0;
+		//void* value = buf.GetValue(&k);
+		//Assert::AreEqual(*(int*)value == 0);
 
-	//	//Values not present should not exclude
-	//	v = 1;
-	//	k = 0;
-	//	result = buf.Exclude(&v, &k);
-	//	CFIX_ASSERT(result == false);
+		////Values not present should not exclude
+		//v = 1;
+		//k = 0;
+		//result = buf.Exclude(&v, &k);
+		//Assert::AreEqual(result == false);
 
-	//	//Keys not present should not exclude
-	//	v = 0;
-	//	k = 1;
-	//	result = buf.Exclude(&k);
-	//	CFIX_ASSERT(result == false);
+		////Keys not present should not exclude
+		//v = 0;
+		//k = 1;
+		//result = buf.Exclude(&k);
+		//Assert::AreEqual(result == false);
 
-	//	result = buf.Exclude(&v, &k);
-	//	CFIX_ASSERT(result == false);
+		//result = buf.Exclude(&v, &k);
+		//Assert::AreEqual(result == false);
 
-	//	//Keys present should exclude
-	//	v = 0;
-	//	k = 0;
-	//	result = buf.Exclude(&v, &k);
-	//	CFIX_ASSERT(result == true);
+		////Keys present should exclude
+		//v = 0;
+		//k = 0;
+		//result = buf.Exclude(&v, &k);
+		//Assert::AreEqual(result == true);
 
-	//	//A bunch of insertions should work...
-	//	int numrows = 10000;
-	//	for (int i = 0; i <= numrows; i++)
-	//	{
-	//		result = buf.Include(&i,&i);
-	//		CFIX_ASSERT(result == true);
-	//	}
+		////A bunch of insertions should work...
+		//int numrows = 10000;
+		//for (int i = 0; i <= numrows; i++)
+		//{
+		//	result = buf.Include(&i,&i);
+		//	Assert::AreEqual(result == true);
+		//}
 
-	//	//A bunch of exclusions should work...
-	//	for (int i = numrows / 2; i <= numrows; i++)
-	//	{
-	//		result = buf.Exclude(&i,&i);
-	//		CFIX_ASSERT(result == true);
-	//	}
+		////A bunch of exclusions should work...
+		//for (int i = numrows / 2; i <= numrows; i++)
+		//{
+		//	result = buf.Exclude(&i,&i);
+		//	Assert::AreEqual(result == true);
+		//}
 
-	//	//All the values should still be the same...
-	//	for (int i = 0; i < numrows / 2; i++)
-	//	{
-	//		value = buf.GetValue(&i);
-	//		CFIX_ASSERT(*(int*)value == i);
-	//	}
-	//}
+		////All the values should still be the same...
+		//for (int i = 0; i < numrows / 2; i++)
+		//{
+		//	value = buf.GetValue(&i);
+		//	Assert::AreEqual(*(int*)value == i);
+		//}
+	}
 
-	string Assign(string str, int value){
-	 return str.assign((const char*)&value, sizeof(int));
+	void Assign(string& str, int value){
+	 str.assign((const char*)&value, sizeof(int));
 	}
 };
-
-CFIXCC_BEGIN_CLASS( UniqueBufferTest )
-	CFIXCC_METHOD( RangeTests )
-	CFIXCC_METHOD( IncludeExclude )
-CFIXCC_END_CLASS()

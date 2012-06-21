@@ -380,7 +380,7 @@ class Node
 
 		TreeEntry operator[](short index)
 		{
-			return TreeEntry(_keys + (_tree->_keyType.Size * index), _values + (_tree->_valueType.Size * index));
+			return TreeEntry(_keys + (_tree->_keyType.Size * index), _values + (_valueType.Size * index));
 		}
 
 		//Should only be called on type 1s

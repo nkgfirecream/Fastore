@@ -42,7 +42,8 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Thrift">
+    <Reference Include="Thrift, Version=0.8.0.27874, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Thrift.0.8.0.27874\lib\net35\Thrift.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -86,7 +87,9 @@
     <Compile Include="Alphora\Fastore\WorkerState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)..\External\Thrift\thrift --gen csharp -out $(ProjectDir) $(SolutionDir)Comm.thrift</PreBuildEvent>

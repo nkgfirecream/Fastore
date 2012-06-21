@@ -4,8 +4,8 @@
 #include <fstream>
 
 #include <boost\shared_ptr.hpp>
-#include <thrift\protocol\TDenseProtocol.h>
-#include <thrift\transport\TFileTransport.h>
+#include <thrift\protocol\TProtocol.h>
+#include <thrift\transport\TTransport.h>
 
 using namespace std;
 using namespace apache::thrift;
@@ -24,13 +24,13 @@ class BufferSerializer
 		~BufferSerializer();
 
 		//Open acquires resources
-		bool open();
+		void open();
 
 		//Returns true for EOF;
 		bool writeNextChunk();
 
 		//Close releases resources
-		bool close();
+		void close();
 
 	private:
 		IColumnBuffer& _buffer;
@@ -40,12 +40,12 @@ class BufferSerializer
 		string _lastValue;
 		string _lastRowId;
 
-		boost::shared_ptr<protocol::TDenseProtocol> _protocol;
-		boost::shared_ptr<transport::TFileTransport> _transport;
+		boost::shared_ptr<protocol::TProtocol> _protocol;
+		boost::shared_ptr<transport::TTransport> _transport;
 
 		bool _disposed;
 
-		void writeResult(RangeResult& result);
+		void writeValueRowsList(ValueRowsList& list);
 };
 
 class BufferDeserializer
@@ -55,18 +55,20 @@ class BufferDeserializer
 		~BufferDeserializer();
 
 		//Open acquires resources
-		bool open();
+		void open();
+
 		//Returns true for EOF;
 		bool readNextChunk();
+
 		//Close releases resources
-		bool close();
+		void close();
 
 	private:
 		IColumnBuffer& _buffer;
 		string _inputFile;
 
-		boost::shared_ptr<protocol::TDenseProtocol> _protocol;
-		boost::shared_ptr<transport::TFileTransport> _transport;
+		boost::shared_ptr<protocol::TProtocol> _protocol;
+		boost::shared_ptr<transport::TTransport> _transport;
 
 		bool _disposed;
 };

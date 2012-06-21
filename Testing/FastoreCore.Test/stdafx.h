@@ -5,14 +5,9 @@
 
 #pragma once
 
-
-
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-// Windows Header Files:
 #include "targetver.h"
-#include <windows.h>
-#include <yvals.h>
 
-
+// Headers for CppUnitTest
+#include "CppUnitTest.h"
 
 // TODO: reference additional headers your program requires here

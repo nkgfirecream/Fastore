@@ -1,18 +1,16 @@
-#include "StdAfx.h"
-#include <cfixcc.h>
-
-#include <sstream>
-#include <iostream>
-#include <hash_set>
-#include <algorithm>
+#include "stdafx.h"
+#include "CppUnitTest.h"
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "BTree.h"
 #include "Schema\standardtypes.h"
+#include <hash_set>
+#include <algorithm>
 
 using namespace std;
 
 
-class BTreeTest : public cfixcc::TestFixture
+TEST_CLASS(BTreeTest)
 {
 public:
 	wstring RandomString(int length)
@@ -30,7 +28,7 @@ public:
 		return result.str();
 	}
 
-	void IteratorBehavior()
+	TEST_METHOD(IteratorBehavior)
 	{
 		BTree etree(standardtypes::Int, standardtypes::Int);
 
@@ -38,16 +36,16 @@ public:
 		auto end = etree.end();
 
 		//Empty tree should return end pointer
-		CFIX_ASSERT(begin == end);
+		Assert::IsTrue(begin == end);
 
 		int i = 2;
 		auto find = etree.find(&i);
-		CFIX_ASSERT(find == end);
+		Assert::IsTrue(find == end);
 
 		bool match;
 		find = etree.findNearest(&i, match);
-		CFIX_ASSERT(find == end);
-		CFIX_ASSERT(match == false);
+		Assert::IsTrue(find == end);
+		Assert::IsFalse(match);
 
 		int countarray[] = {50 , 5000, 100000 };
 		for (int i = 0; i < 3; i++)
@@ -57,11 +55,11 @@ public:
 
 			//Put stuff in tree
 			int numrows =  countarray[i];
-			for (int i = 0; i <= numrows; i += 2)
+			for (int k = 0; k <= numrows; k += 2)
 			{
-				auto path = tree.GetPath(&i);
-				CFIX_ASSERT(path.Match == false);
-				tree.Insert(path, &i, &i);
+				auto path = tree.GetPath(&k);
+				Assert::IsFalse(path.Match);
+				tree.Insert(path, &k, &k);
 			}
 
 			//Iteration should cover the entire tree with no missing ends;
@@ -70,20 +68,20 @@ public:
 			int j = 0;
 			while (begin != end)
 			{
-				CFIX_ASSERT((*(int*)(*begin).key) == j);
-				CFIX_ASSERT((*(int*)(*begin).value) == j);
+				Assert::AreEqual<int>((*(int*)(*begin).key), j);
+				Assert::AreEqual<int>((*(int*)(*begin).value), j);
 				++begin;
 				j += 2;
 			}
 
-			CFIX_ASSERT(j == numrows + 2);
+			Assert::AreEqual<int>(j, numrows + 2);
 
 			//we should be able to iterate backwards as well with no problems.
 			for (int i = numrows; i >= 0; i -= 2)
 			{	
 				--end;
-				CFIX_ASSERT((*(int*)(*end).key) == i);
-				CFIX_ASSERT((*(int*)(*end).value) == i);
+				Assert::AreEqual<int>((*(int*)(*end).key), i);
+				Assert::AreEqual<int>((*(int*)(*end).value), i);
 			}	
 
 			//Incrementing at the end should throw an exception
@@ -99,7 +97,7 @@ public:
 				exthrown = true;
 			}
 
-			CFIX_ASSERT(exthrown == true);
+			Assert::IsTrue(exthrown);
 
 			//Dereferencing at the end should throw an exception
 			end = tree.end();
@@ -113,7 +111,7 @@ public:
 				exthrown = true;
 			}
 		
-			CFIX_ASSERT(exthrown == true);
+			Assert::IsTrue(exthrown);
 
 			//Decrementing at the beginning should throw an exception
 			begin = tree.begin();
@@ -127,39 +125,39 @@ public:
 				exthrown = true;
 			}
 		
-			CFIX_ASSERT(exthrown == true);
+			Assert::IsTrue(exthrown);
 
 
 			//find should return a path to an item if found, or the end path if not found
 			int test = 3;
 			find = tree.find(&test);
 
-			CFIX_ASSERT(find == tree.end());
+			Assert::IsTrue(find == tree.end());
 
 			test = 4;
 			find = tree.find(&test);
 
-			CFIX_ASSERT((*(int*)(*find).key) == 4);
+			Assert::AreEqual<int>((*(int*)(*find).key), 4);
 
 			//first nearest should return the item if found, or the next high item if not found, or the end if there is no higher value
 			find = tree.findNearest(&test, match);
-			CFIX_ASSERT((*(int*)(*find).key) == 4);
-			CFIX_ASSERT(match == true);
+			Assert::AreEqual<int>((*(int*)(*find).key), 4);
+			Assert::IsTrue(match);
 
 			test = 3;
 			find = tree.findNearest(&test, match);
-			CFIX_ASSERT((*(int*)(*find).key) == 4);
-			CFIX_ASSERT(match == false);
+			Assert::AreEqual<int>((*(int*)(*find).key), 4);
+			Assert::IsFalse(match);
 
 			test = numrows + 1;
 			find = tree.findNearest(&test, match);
-			CFIX_ASSERT(find == tree.end());
-			CFIX_ASSERT(match == false);
+			Assert::IsTrue(find == tree.end());
+			Assert::IsFalse(match);
 		}
 
 	}
 
-	void Sequential()
+	TEST_METHOD(Sequential)
 	{
 		//Test is done on various sizes of trees to ensure that we build correctly no matter if the tree
 		//is flat, shallow, or deep.
@@ -178,28 +176,28 @@ public:
 			for (int i = 0; i <= numrows; i++)
 			{
 				auto path = tree.GetPath(&i);
-				CFIX_ASSERT(path.Match == false);
+				Assert::IsFalse(path.Match);
 				tree.Insert(path, &i, &i);
 			}
 
 			auto begin = tree.begin();
 			for (int i = 0; i <= numrows; i++)
 			{
-				CFIX_ASSERT((*(int*)(*begin).key) == i);
-				CFIX_ASSERT((*(int*)(*begin).value) == i);
+				Assert::AreEqual<int>((*(int*)(*begin).key), i);
+				Assert::AreEqual<int>((*(int*)(*begin).value), i);
 				begin++;
 			}
 
 			for (int i = 0; i <= numrows; i++)
 			{
 				auto path = tree.GetPath(&i);
-				CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
-				CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+				Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
+				Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 			}
 		}
 	}
 
-	void Reverse()
+	TEST_METHOD(Reverse)
 	{
 		int countarray[] = {50 , 5000, 100000 };
 		for (int i = 0; i < 3; i++)
@@ -213,21 +211,21 @@ public:
 			for (int i = numrows; i >= 0; i--)
 			{
 				auto path = tree.GetPath(&i);
-				CFIX_ASSERT(path.Match == false);
+				Assert::IsFalse(path.Match);
 				tree.Insert(path, &i, &i);
 			}
 
 			auto begin = tree.begin();
 			for (int i = 0; i <= numrows; i++)
 			{
-				CFIX_ASSERT((*(int*)(*begin).key) == i);
-				CFIX_ASSERT((*(int*)(*begin).value) == i);
+				Assert::AreEqual<int>((*(int*)(*begin).key), i);
+				Assert::AreEqual<int>((*(int*)(*begin).value), i);
 				begin++;
 			}
 		}
 	}
 
-	void Random()
+	TEST_METHOD(Random)
 	{
 		int countarray[] = {50 , 5000, 20000 };
 		for (int i = 0; i < 3; i++)
@@ -250,7 +248,7 @@ public:
 			{
 				int i = (*hb);
 				auto path = tree.GetPath(&i);
-				CFIX_ASSERT(path.Match == false);
+				Assert::IsFalse(path.Match);
 				tree.Insert(path, &i, &i);
 
 				vec.push_back(i);
@@ -265,16 +263,16 @@ public:
 			int j = 0;
 			while (begin != end)
 			{
-				CFIX_ASSERT((*(int*)(*begin).key) == vec[j]);
+				Assert::AreEqual<int>((*(int*)(*begin).key), vec[j]);
 				j++;
 				begin++;
 			}
 
-			CFIX_ASSERT(j == vec.size());
+			Assert::AreEqual<int>(j, vec.size());
 		}
 	}
 
-	void Deletion()
+	TEST_METHOD(Deletion)
 	{
 		BTree tree(standardtypes::Int, standardtypes::Int);
 
@@ -285,21 +283,21 @@ public:
 			auto path = tree.GetPath(&i);
 			tree.Insert(path, &i, &i);
 			path = tree.GetPath(&i);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 		}
 
 		for (int i = 0; i < numrows; i++)
 		{
 			auto path = tree.GetPath(&i);
-			CFIX_ASSERT(path.Match == true);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+			Assert::IsTrue(path.Match);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 
 			tree.Delete(path);
 
 			path = tree.GetPath(&i);
-			CFIX_ASSERT(path.Match == false);
+			Assert::IsFalse(path.Match);
 		}
 
 		for (int i = 0; i < numrows; i++)
@@ -307,29 +305,21 @@ public:
 			auto path = tree.GetPath(&i);
 			tree.Insert(path, &i, &i);
 			path = tree.GetPath(&i);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 		}
 
 		for (int i = numrows - 1; i >= 0; i--)
 		{
 			auto path = tree.GetPath(&i);
-			CFIX_ASSERT(path.Match == true);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].value) == i);
-			CFIX_ASSERT((*(int*)(*path.Leaf)[path.LeafIndex].key) == i);
+			Assert::IsTrue(path.Match);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
+			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 
 			tree.Delete(path);
 
 			path = tree.GetPath(&i);
-			CFIX_ASSERT(path.Match == false);
+			Assert::IsFalse(path.Match);
 		}
 	}
 };
-
-CFIXCC_BEGIN_CLASS( BTreeTest )
-	CFIXCC_METHOD( IteratorBehavior )
-	CFIXCC_METHOD( Sequential )
-	CFIXCC_METHOD( Reverse )
-	CFIXCC_METHOD( Random )
-	CFIXCC_METHOD( Deletion )
-CFIXCC_END_CLASS()

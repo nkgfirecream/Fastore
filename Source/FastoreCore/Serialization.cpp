@@ -1,4 +1,6 @@
 #include "Serialization.h"
+#include <thrift\transport\TSimpleFileTransport.h>
+#include <thrift\protocol\TBinaryProtocol.h>
 
 //Buffer serializer
 BufferSerializer::BufferSerializer(IColumnBuffer& buffer, string filename) : _buffer(buffer)
@@ -8,21 +10,21 @@ BufferSerializer::BufferSerializer(IColumnBuffer& buffer, string filename) : _bu
 	_disposed = true;
 }
 
-bool BufferSerializer::open()
+void BufferSerializer::open()
 {
 	if (!_disposed)
 		throw "Serializer already open!";
 
 	//acquire resources
-	_transport = boost::shared_ptr<transport::TFileTransport>(new transport::TFileTransport(_outputFile, false));
-	_protocol = boost::shared_ptr<protocol::TDenseProtocol>(new protocol::TDenseProtocol(_transport));
+	_transport = boost::shared_ptr<transport::TSimpleFileTransport>(new transport::TSimpleFileTransport(_outputFile, false, true));
+	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
 
 	//_transport->open();
 
 	_disposed = false;
 }
 
-bool BufferSerializer::close()
+void BufferSerializer::close()
 {
 	if (_disposed)
 		throw "Serializer already closed!";
@@ -67,11 +69,12 @@ bool BufferSerializer::writeNextChunk()
 	range.__set_limit(BufferChunkSize);	
 	RangeResult result = _buffer.GetRows(range);
 
-	if (result.valueRowsList.size() > 0)
+	ValueRowsList vrl = result.valueRowsList;
+	if (vrl.size() > 0)
 	{
-		writeResult(result);
+		writeValueRowsList(vrl);
 
-		ValueRows lastValueRows = result.valueRowsList.at(result.valueRowsList.size() - 1);
+		ValueRows lastValueRows = vrl.at(vrl.size() - 1);
 
 		_lastValue = lastValueRows.value;
 		_lastRowId = lastValueRows.rowIDs.at(lastValueRows.rowIDs.size() - 1);
@@ -82,9 +85,12 @@ bool BufferSerializer::writeNextChunk()
 		return true;
 }
 
-void BufferSerializer::writeResult(fastore::communication::RangeResult& result)
+void BufferSerializer::writeValueRowsList(fastore::communication::ValueRowsList& list)
 {
-	result.write(_protocol.get());
+	for (int i = 0; i < list.size(); i++)
+	{
+		list.at(i).write(_protocol.get());
+	}
 }
 
 //Buffer deserializer
@@ -94,19 +100,19 @@ BufferDeserializer::BufferDeserializer(IColumnBuffer& buffer, std::string filena
 	_disposed = true;
 }
 
-bool BufferDeserializer::open()
+void BufferDeserializer::open()
 {
 	if (!_disposed)
 		throw "Serializer already open!";
 
 	//acquire resources
-	boost::shared_ptr<transport::TFileTransport> transport(new transport::TFileTransport(_inputFile, true));
-	_protocol = boost::shared_ptr<protocol::TDenseProtocol>(new protocol::TDenseProtocol(transport));
+	_transport = boost::shared_ptr<transport::TSimpleFileTransport>(new transport::TSimpleFileTransport(_inputFile, true, false));
+	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
 
 	_disposed = false;
 }
 
-bool BufferDeserializer::close()
+void BufferDeserializer::close()
 {
 	if (_disposed)
 		throw "Serializer already closed!";
@@ -131,24 +137,26 @@ bool BufferDeserializer::readNextChunk()
 	if (!_transport->peek())
 		return false;
 
-	RangeResult result;
-	result.read(_protocol.get());
-
+	int totalWritesMade = 0;
 	ColumnWrites writes;
 	vector<Include> includes;
 
-	ValueRowsList data = result.valueRowsList;
-	for (int i = 0; i < data.size(); i++)
+	//We can't stop mid structure... So we may go over the chunk size, but never more than 2x the chunksize
+	while (totalWritesMade < BufferChunkSize && _transport->peek())
 	{
-		ValueRows vr = data.at(i);
+		ValueRows vr;
+		vr.read(_protocol.get());
 		for (int j = 0; j < vr.rowIDs.size(); j++)
 		{
 			Include inc;
 			inc.__set_value(vr.value);
 			inc.__set_rowID(vr.rowIDs.at(j));
+			totalWritesMade++;
 		}
 	}
 
 	writes.__set_includes(includes);
 	_buffer.Apply(writes);
+
+	return true;
 }

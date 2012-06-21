@@ -1,5 +1,6 @@
-#include "StdAfx.h"
-#include <cfixcc.h>
+#include "stdafx.h"
+#include "CppUnitTest.h"
+using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include <sstream>
 #include <iostream>
@@ -11,382 +12,377 @@
 
 using namespace std;
 
-
-class TreeBufferTest : public cfixcc::TestFixture
+TEST_CLASS(TreeBufferTest)
 {
 public:
 	
-	void RangeTests()
+	TEST_METHOD(RangeTests)
 	{
-		//--- THIS SUBSET OF BEHAVIOR SHOULD BE IDENTICAL TO UNIQUE BUFFER ---
+		throw "Not yet Implemented";
+	//	//--- THIS SUBSET OF BEHAVIOR SHOULD BE IDENTICAL TO UNIQUE BUFFER ---
 
-		//TODO: Update limited behavior to reflect BoF/EoF semantics.
-		//Unique buffer -- one key has one and only one value
-		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
+	//	//TODO: Update limited behavior to reflect BoF/EoF semantics.
+	//	//Unique buffer -- one key has one and only one value
+	//	TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
-		ColumnWrites cw;
-		std:vector<Include> includes;
+	//	ColumnWrites cw;
+	//	std:vector<Include> includes;
 
-		//Insert values 0 - 98 (inclusive) in increments of 2 into buffer
-		for (int i = 0; i < 100; i += 2)
-		{
-			Include inc;
-			//TODO: Create thrift strings
-			string rowId;
-			rowId.assign((const char*)&i, sizeof(int));
+	////	Assert::AreEqual(buf.GetStatistics().Total == 50);
+	////	Assert::AreEqual(buf.GetStatistics().Unique == 50);
 
-			string value;
-			value.assign((const char*)&i, sizeof(int));
+	//		string value;
+	//		value.assign((const char*)&i, sizeof(int));
 
-			inc.__set_rowID(rowId);
-			inc.__set_value(value);
-			includes.push_back(inc); 
-		}
+	//		inc.__set_rowID(rowId);
+	//		inc.__set_value(value);
+	//		includes.push_back(inc); 
+	//	}
 
-		cw.__set_includes(includes);
-		buf.Apply(cw);
+	//	cw.__set_includes(includes);
+	//	buf.Apply(cw);
 
-		CFIX_ASSERT(buf.GetStatistic().total == 50);
-		CFIX_ASSERT(buf.GetStatistic().unique == 50);
+	//	CFIX_ASSERT(buf.GetStatistic().total == 50);
+	//	CFIX_ASSERT(buf.GetStatistic().unique == 50);
 
-		//Entire Set
-		//Range: Entire set ascending
-		//Expected result: values 0 - 98 (inclusive) by 2s.
-		RangeRequest range;
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		TestRange(buf, range, 0, 98, 50, 2, true, true, false);
+	//	//Entire Set
+	//	//Range: Entire set ascending
+	//	//Expected result: values 0 - 98 (inclusive) by 2s.
+	//	RangeRequest range;
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	TestRange(buf, range, 0, 98, 50, 2, true, true, false);
 
-		//Range: Entire set descending
-		//Expected result: values 98 - 0 (inclusive) by -2s.
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		TestRange(buf, range, 98, 0, 50, -2, true, true, false);
+	//	//Range: Entire set descending
+	//	//Expected result: values 98 - 0 (inclusive) by -2s.
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	TestRange(buf, range, 98, 0, 50, -2, true, true, false);
 
 
-		//Start Exclusive - Non overlapping
-		//Range: 0 (exclusive) - end (inclusive) ascending
-		//Expected result: values 2 - 98 (inclusive)
-		int startValue = 0;
-		string startv;
-		Assign(startv, startValue);
-		RangeBound startBound;
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
+	//	//Start Exclusive - Non overlapping
+	//	//Range: 0 (exclusive) - end (inclusive) ascending
+	//	//Expected result: values 2 - 98 (inclusive)
+	//	int startValue = 0;
+	//	string startv;
+	//	Assign(startv, startValue);
+	//	RangeBound startBound;
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
 
-		startBound.__set_inclusive(false);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
+	//	startBound.__set_inclusive(false);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 2, 98, 49, 2, false, true, false);
 
-		//Range: 0 (exclusive) - end (inclusive) descending
-		//Expected result: values 98 - 2 (inclusive)
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		TestRange(buf, range, 98, 2, 49, -2, false, true, false);
-
-
-		//End Exclusive - Non overlapping
-		//Range: begin (inclusive) - 98 (exclusive) ascending
-		//Expected result: values 0 - 96 (inclusive)
-		int endValue = 98;
-		string endv;
-		Assign(endv, endValue);
-		RangeBound endBound;
-		endBound.__set_inclusive(false);
-		endBound.__set_value(endv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 96, 49, 2, true, false, false);
-
-		//Range: begin (inclusive) - 98 (exclusive) descending
-		//Expected result: values 96 - 0 (inclusive)
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_last(endBound);
-		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
-
-		
-		//Two bounds - inclusive, non overlapping
-		//Range: 2 (inclusive) - 96 (inclusive) ascending
-		//Expected result: values 2 - 96 (inclusive)
-		endValue = 96;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(true);
-		endBound.__set_value(endv);
-		startValue = 2;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 2, 96, 48, 2, false, false, false);
-
-		//Range: 2 (inclusive) - 96 (inclusive) descending
-		//Expected result: values 96 - 2 (inclusive)
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 96, 2, 48, -2, false, false, false);
+	//	//Range: 0 (exclusive) - end (inclusive) descending
+	//	//Expected result: values 98 - 2 (inclusive)
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 98, 2, 49, -2, false, true, false);
 
 
-		//Two bounds - exclusive, non overlapping
-		//Range: 2 (exclusive) - 96 (exclusive) ascending
-		//Expected result: values 4 - 94 (inclusive)
-		endValue = 96;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(false);
-		endBound.__set_value(endv);
-		startValue = 2;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(false);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 4, 94, 46, 2, false, false, false);
+	//	//End Exclusive - Non overlapping
+	//	//Range: begin (inclusive) - 98 (exclusive) ascending
+	//	//Expected result: values 0 - 96 (inclusive)
+	//	int endValue = 98;
+	//	string endv;
+	//	Assign(endv, endValue);
+	//	RangeBound endBound;
+	//	endBound.__set_inclusive(false);
+	//	endBound.__set_value(endv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 96, 49, 2, true, false, false);
 
-		//Range: 2 (exclusive) - 96 (exclusive) descending
-		//Expected result: values 94 - 4 (inclusive)
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 94, 4, 46, -2, false, false, false);
+	//	//Range: begin (inclusive) - 98 (exclusive) descending
+	//	//Expected result: values 96 - 0 (inclusive)
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 96, 0, 49, -2, true, false, false);
 
-		
-		//Two bounds - inclusive, overlapping
-		//Range: 50 (inclusive) - 50 (inclusive) ascending
-		//Expected result: 50
-		endValue = 50;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(true); 
-		endBound.__set_value(endv);
-		startValue = 50;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 50, 50, 1, 0, false, false, false);
+	//	
+	//	//Two bounds - inclusive, non overlapping
+	//	//Range: 2 (inclusive) - 96 (inclusive) ascending
+	//	//Expected result: values 2 - 96 (inclusive)
+	//	endValue = 96;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(true);
+	//	endBound.__set_value(endv);
+	//	startValue = 2;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 2, 96, 48, 2, false, false, false);
 
-		//Range: 50 (inclusive) - 50 (inclusive) desc
-		//Expected result: 50
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 50, 50, 1, 0, false, false, false);
+	//	//Range: 2 (inclusive) - 96 (inclusive) descending
+	//	//Expected result: values 96 - 2 (inclusive)
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 96, 2, 48, -2, false, false, false);
 
 
-		//Two bounds - exclusive, overlaping
-		//Range: 50 (exclusive) - 50 (exclusive) asc
-		//Expected result: Empty
-		endValue = 50;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(false);
-		endBound.__set_value(endv);
-		startValue = 50;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(false);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, false, false);
+	//	//Two bounds - exclusive, non overlapping
+	//	//Range: 2 (exclusive) - 96 (exclusive) ascending
+	//	//Expected result: values 4 - 94 (inclusive)
+	//	endValue = 96;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(false);
+	//	endBound.__set_value(endv);
+	//	startValue = 2;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(false);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 4, 94, 46, 2, false, false, false);
 
-		//Range: 50 (exclusive) - 50 (exclusive) desc
-		//Expected result: Empty
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, false, false);
+	//	//Range: 2 (exclusive) - 96 (exclusive) descending
+	//	//Expected result: values 94 - 4 (inclusive)
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 94, 4, 46, -2, false, false, false);
 
+	//	
+	//	//Two bounds - inclusive, overlapping
+	//	//Range: 50 (inclusive) - 50 (inclusive) ascending
+	//	//Expected result: 50
+	//	endValue = 50;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(true); 
+	//	endBound.__set_value(endv);
+	//	startValue = 50;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 50, 50, 1, 0, false, false, false);
 
-		//Start after data - asc
-		//Expected result: Empty
-		startValue = 100;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
-
-		//Start after data - desc
-		//Expected result: Empty
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
-
-
-		//Start at end
-		//Range 98 (inclusive) - end asc
-		//Expected result: 98
-		startValue = 98;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound); 
-		TestRange(buf, range, 98, 98, 1, 0, false, true, false);
-
-		//Range 98 (inclusive) - end asc
-		//Expected result: 98
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		TestRange(buf, range, 98, 98, 1, 0, false, true, false);
-
-		//Range: 98 (exclusive) - end asc
-		//Expected result: Empty
-		startBound.__set_inclusive(false);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
-
-		//Range 98 (exclusive) - end desc
-		//Expected result: Empty
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_first(startBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
-	
-
-		//End before data - asc
-		//Expected result: Empty
-		endValue = -2;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(true);
-		endBound.__set_value(endv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
-
-		//End before data - desc
-		//Expected result: Empty
-		endBound.__set_inclusive(true);
-		endBound.__set_value(endv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
-
-		
-		//End at Start
-		// Range: start - 0 (inclusive) asc
-		//Expected result: 0
-		endValue = 0;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(true);
-		endBound.__set_value(endv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
-
-		// Range: start - 0 (inclusive) desc
-		//Expected result: 0
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
-
-		// Range: start - 0 (exclusive) asc
-		//Expected result: Empty
-		endBound.__set_inclusive(false);
-		endBound.__set_value(endv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
-
-		// Range: start - 0 (exclusive) desc
-		//Expected result: Empty
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_last(endBound);
-		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
-
-		
-		//Limited range
-		//Range: start - end asc, limited to 5
-		//Expected result: 0 - 8 (inclusive)
-		range.__set_limit(5);
-		range.__set_ascending(true);
-		TestRange(buf, range, 0, 8, 5, 2, true, false, true);
-
-		//Range: end - start desc, limited to 5
-		//Expected result: 98-90 (inclusive)
-		range.__set_limit(5);
-		range.__set_ascending(false);
-		TestRange(buf, range, 98, 90, 5, -2, false, true, true);
-
-		//Start on ID
-		//For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
-		//Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
-		startValue = 0;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_last(startBound);
-		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
-
-		//Range: end - start desc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
-		endValue = 98;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(true);
-		endBound.__set_value(endv);
-		range.__set_limit(500);
-		range.__set_ascending(false);
-		range.__set_last(endBound);
-		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
+	//	//Range: 50 (inclusive) - 50 (inclusive) desc
+	//	//Expected result: 50
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 50, 50, 1, 0, false, false, false);
 
 
-		//Combination
-		endValue = 94;
-		Assign(endv, endValue);
-		endBound.__set_inclusive(false);
-		endBound.__set_value(endv);
-		startValue = 80;
-		Assign(startv, startValue);
-		startBound.__set_inclusive(true);
-		startBound.__set_value(startv);
-		range.__set_limit(500);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 82, 92, 6, 2, false, false, false);
+	//	//Two bounds - exclusive, overlaping
+	//	//Range: 50 (exclusive) - 50 (exclusive) asc
+	//	//Expected result: Empty
+	//	endValue = 50;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(false);
+	//	endBound.__set_value(endv);
+	//	startValue = 50;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(false);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, false, false, false);
 
-		range.__set_limit(5);
-		range.__set_ascending(true);
-		range.__set_first(startBound);
-		range.__set_last(endBound);
-		TestRange(buf, range, 82, 90, 5, 2, false, false, true);
+	//	//Range: 50 (exclusive) - 50 (exclusive) desc
+	//	//Expected result: Empty
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, false, false, false);
 
-	//	//--- END UNIQUE BUFFER COPY --
 
-	//	//Need more through tests for multi-id keys...
+	//	//Start after data - asc
+	//	//Expected result: Empty
+	//	startValue = 100;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+
+	//	//Start after data - desc
+	//	//Expected result: Empty
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+
+
+	//	//Start at end
+	//	//Range 98 (inclusive) - end asc
+	//	//Expected result: 98
+	//	startValue = 98;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound); 
+	//	TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+
+	//	//Range 98 (inclusive) - end asc
+	//	//Expected result: 98
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+
+	//	//Range: 98 (exclusive) - end asc
+	//	//Expected result: Empty
+	//	startBound.__set_inclusive(false);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+
+	//	//Range 98 (exclusive) - end desc
+	//	//Expected result: Empty
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_first(startBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, false, true, false);
+	//
+
+	//	//End before data - asc
+	//	//Expected result: Empty
+	//	endValue = -2;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(true);
+	//	endBound.__set_value(endv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+	//	//End before data - desc
+	//	//Expected result: Empty
+	//	endBound.__set_inclusive(true);
+	//	endBound.__set_value(endv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+	//	
+	//	//End at Start
+	//	// Range: start - 0 (inclusive) asc
+	//	//Expected result: 0
+	//	endValue = 0;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(true);
+	//	endBound.__set_value(endv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+
+	//	// Range: start - 0 (inclusive) desc
+	//	//Expected result: 0
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+
+	//	// Range: start - 0 (exclusive) asc
+	//	//Expected result: Empty
+	//	endBound.__set_inclusive(false);
+	//	endBound.__set_value(endv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+	//	// Range: start - 0 (exclusive) desc
+	//	//Expected result: Empty
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
+	//	
+	//	//Limited range
+	//	//Range: start - end asc, limited to 5
+	//	//Expected result: 0 - 8 (inclusive)
+	//	range.__set_limit(5);
+	//	range.__set_ascending(true);
+	//	TestRange(buf, range, 0, 8, 5, 2, true, false, true);
+
+	//	//Range: end - start desc, limited to 5
+	//	//Expected result: 98-90 (inclusive)
+	//	range.__set_limit(5);
+	//	range.__set_ascending(false);
+	//	TestRange(buf, range, 98, 90, 5, -2, false, true, true);
+
+	//	//Start on ID
+	//	//For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
+	//	//Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
+	//	startValue = 0;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_last(startBound);
+	//	TestRange(buf, range, 2, 98, 49, 2, false, true, false);
+
+	//	//Range: end - start desc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
+	//	endValue = 98;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(true);
+	//	endBound.__set_value(endv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(false);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 96, 0, 49, -2, true, false, false);
+
+
+	//	//Combination
+	//	endValue = 94;
+	//	Assign(endv, endValue);
+	//	endBound.__set_inclusive(false);
+	//	endBound.__set_value(endv);
+	//	startValue = 80;
+	//	Assign(startv, startValue);
+	//	startBound.__set_inclusive(true);
+	//	startBound.__set_value(startv);
+	//	range.__set_limit(500);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 82, 92, 6, 2, false, false, false);
+
+	//	range.__set_limit(5);
+	//	range.__set_ascending(true);
+	//	range.__set_first(startBound);
+	//	range.__set_last(endBound);
+	//	TestRange(buf, range, 82, 90, 5, 2, false, false, true);
+
+	////	//--- END UNIQUE BUFFER COPY --
+
+	////	//Need more through tests for multi-id keys...
 
 
 	}
@@ -396,33 +392,34 @@ public:
 	//	GetResult result = buf.GetRows(range);
 
 	//	//Right number of values...
-	//	CFIX_ASSERT(result.Data.size() == expectedValuesCount);
+	//	Assert::AreEqual(result.Data.size() == expectedValuesCount);
 
 	//	int expectedNum = expectedStart;
 	//	for (int i = 0; i < result.Data.size(); i++)
 	//	{
 	//		auto item = result.Data[i];
 	//		//Value should be our expected number;
-	//		CFIX_ASSERT(expectedNum == *(int*)item.first);
+	//		Assert::AreEqual(expectedNum == *(int*)item.first);
 
 	//		//should be one id per value (unique buffer)
-	//		CFIX_ASSERT(item.second.size() == 1);
+	//		Assert::AreEqual(item.second.size() == 1);
 
 	//		//id should be expected number
-	//		CFIX_ASSERT(expectedNum == *(int*)item.second[0]);
+	//		Assert::AreEqual(expectedNum == *(int*)item.second[0]);
 
 	//		expectedNum += increment;
 	//	}
 
 	//	//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
-	//	CFIX_ASSERT(expectedNum == expectedEnd + (result.Data.size() > 0 ? increment : 0));
-	//	CFIX_ASSERT(result.BeginOfRange == expectBOF);
-	//	CFIX_ASSERT(result.EndOfRange == expectEOF);
-	//	CFIX_ASSERT(result.Limited == expectLimited);
+	//	Assert::AreEqual(expectedNum == expectedEnd + (result.Data.size() > 0 ? increment : 0));
+	//	Assert::AreEqual(result.BeginOfRange == expectBOF);
+	//	Assert::AreEqual(result.EndOfRange == expectEOF);
+	//	Assert::AreEqual(result.Limited == expectLimited);
 	}
 
-	void IncludeExclude()
+	TEST_METHOD(IncludeExclude)
 	{
+		throw "Not yet implemented";
 		//TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
 		//bool result;
@@ -431,73 +428,64 @@ public:
 
 		////Non existing inserts should be ok
 		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == true);
+		//Assert::AreEqual(result == true);
 
 		////Duplicate insertions should not insert
 		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == false);
+		//Assert::AreEqual(result == false);
 
 		////Duplicate keys should not insert
 		//v = 2;
 	 //   k = 0;
 		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == false);
+		//Assert::AreEqual(result == false);
 
 		////End of this should still be zero
 		//k = 0;
 		//void* value = buf.GetValue(&k);
-		//CFIX_ASSERT(*(int*)value == 0);
+		//Assert::AreEqual(*(int*)value == 0);
 
 		////Values not present should not exclude
 		//v = 1;
 		//k = 0;
 		//result = buf.Exclude(&v, &k);
-		//CFIX_ASSERT(result == false);
+		//Assert::AreEqual(result == false);
 
 		////Keys not present should not exclude
 		//v = 0;
 		//k = 1;
 		//result = buf.Exclude(&k);
-		//CFIX_ASSERT(result == false);
+		//Assert::AreEqual(result == false);
 
 		//result = buf.Exclude(&v, &k);
-		//CFIX_ASSERT(result == false);
+		//Assert::AreEqual(result == false);
 
 		////Keys present should exclude
 		//v = 0;
 		//k = 0;
 		//result = buf.Exclude(&v, &k);
-		//CFIX_ASSERT(result == true);
+		//Assert::AreEqual(result == true);
 
 		////A bunch of insertions should work...
 		//int numrows = 10000;
 		//for (int i = 0; i <= numrows; i++)
 		//{
 		//	result = buf.Include(&i,&i);
-		//	CFIX_ASSERT(result == true);
+		//	Assert::AreEqual(result == true);
 		//}
 
 		////A bunch of exclusions should work...
 		//for (int i = numrows / 2; i <= numrows; i++)
 		//{
 		//	result = buf.Exclude(&i,&i);
-		//	CFIX_ASSERT(result == true);
+		//	Assert::AreEqual(result == true);
 		//}
 
 		////All the values should still be the same...
 		//for (int i = 0; i < numrows / 2; i++)
 		//{
 		//	value = buf.GetValue(&i);
-		//	CFIX_ASSERT(*(int*)value == i);
+		//	Assert::AreEqual(*(int*)value == i);
 		//}
 	}
-
-	string Assign(string str, int value){
-	 return str.assign((const char*)&value, sizeof(int));
-	}
 };
-
-CFIXCC_BEGIN_CLASS( TreeBufferTest )
-	CFIXCC_METHOD( RangeTests )
-	CFIXCC_METHOD( IncludeExclude )
-CFIXCC_END_CLASS()
