@@ -57,7 +57,6 @@ public:
 
 		//Range: Entire set descending
 		//Expected result: values 98 - 0 (inclusive) by -2s.
-		RangeRequest range;
 		range.__set_limit(500);
 		range.__set_ascending(false);
 		TestRange(buf, range, 98, 0, 50, -2, true, true, false);
@@ -84,12 +83,10 @@ public:
 		//Expected result: values 98 - 2 (inclusive)
 		range.__set_limit(500);
 		range.__set_ascending(false);
-		int startBoundValue = 500;
-		string startv;
+		startBoundValue = 500;
 
 		Assign(startv, startBoundValue);
 
-		RangeBound bound;
 		bound.__set_inclusive(false);
 		bound.__set_value(startv);
 		
@@ -126,15 +123,12 @@ public:
 		//Range: 2 (inclusive) - 96 (inclusive) ascending
 		//Expected result: values 2 - 96 (inclusive)
 		endValue = 96;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
 		int startValue = 2;
-		string startv;
 		Assign(startv, startValue);
 		
 		RangeBound startBound;
@@ -160,18 +154,14 @@ public:
 		//Range: 2 (exclusive) - 96 (exclusive) ascending
 		//Expected result: values 4 - 94 (inclusive)
 		endValue = 96;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
 		startValue = 2;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(false);
 		startBound.__set_value(startv);
 
@@ -194,18 +184,14 @@ public:
 		//Range: 50 (inclusive) - 50 (inclusive) ascending
 		//Expected result: 50
 		endValue = 50;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
 		startValue = 50;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(true);
 		endBound.__set_value(startv);
 
@@ -228,18 +214,14 @@ public:
 		//Range: 50 (exclusive) - 50 (exclusive) asc
 		//Expected result: Empty
 		endValue = 50;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
 		startValue = 50;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(false);
 		startBound.__set_value(startv);
 
@@ -261,10 +243,8 @@ public:
 		//Start after data - asc
 		//Expected result: Empty
 		startValue = 100;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -285,10 +265,8 @@ public:
 		//Range 98 (inclusive) - end asc
 		//Expected result: 98
 		startValue = 98;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -306,7 +284,6 @@ public:
 
 		//Range: 98 (exclusive) - end asc
 		//Expected result: Empty
-		RangeBound startBound;
 		startBound.__set_inclusive(false);
 		startBound.__set_value(startv);
 
@@ -326,10 +303,8 @@ public:
 		//End before data - asc
 		//Expected result: Empty
 		endValue = -2;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -340,7 +315,6 @@ public:
 
 		//End before data - desc
 		//Expected result: Empty
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -354,10 +328,8 @@ public:
 		// Range: start - 0 (inclusive) asc
 		//Expected result: 0
 		endValue = -2;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -375,7 +347,6 @@ public:
 
 		// Range: start - 0 (exclusive) asc
 		//Expected result: Empty
-		RangeBound endBound;
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
@@ -409,10 +380,8 @@ public:
 		//For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
 		//Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
 		startValue = 0;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -423,10 +392,8 @@ public:
 
 		//Range: end - start desc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
 		endValue = 98;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(true);
 		endBound.__set_value(endv);
 
@@ -438,18 +405,14 @@ public:
 
 		//Combination
 		endValue = 94;
-		string endv;
 		Assign(endv, endValue);
 
-		RangeBound endBound;
 		endBound.__set_inclusive(false);
 		endBound.__set_value(endv);
 
 		startValue = 80;
-		string startv;
 		Assign(startv, startValue);
 
-		RangeBound startBound;
 		startBound.__set_inclusive(true);
 		startBound.__set_value(startv);
 
@@ -502,80 +465,80 @@ public:
 
 	void IncludeExclude()
 	{
-		//UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
+	//	UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
 
-		//bool result;
-		//int v = 0;
-		//int k = 0;
+	//	bool result;
+	//	int v = 0;
+	//	int k = 0;
 
-		////Non existing inserts should be ok
-		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == true);
+	//	//Non existing inserts should be ok
+	//	result = buf.Include(&v, &k);
+	//	CFIX_ASSERT(result == true);
 
-		////Duplicate insertions should not insert
-		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == false);
+	//	//Duplicate insertions should not insert
+	//	result = buf.Include(&v, &k);
+	//	CFIX_ASSERT(result == false);
 
-		////Duplicate keys should not insert
-		//v = 2;
-	 //   k = 0;
-		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == false);
+	//	//Duplicate keys should not insert
+	//	v = 2;
+	//    k = 0;
+	//	result = buf.Include(&v, &k);
+	//	CFIX_ASSERT(result == false);
 
-		////Duplicate values should not insert
-		//v = 0;
-	 //   k = 2;
-		//result = buf.Include(&v, &k);
-		//CFIX_ASSERT(result == false);
+	//	//Duplicate values should not insert
+	//	v = 0;
+	//    k = 2;
+	//	result = buf.Include(&v, &k);
+	//	CFIX_ASSERT(result == false);
 
-		////End of this should still be zero
-		//k = 0;
-		//void* value = buf.GetValue(&k);
-		//CFIX_ASSERT(*(int*)value == 0);
+	//	//End of this should still be zero
+	//	k = 0;
+	//	void* value = buf.GetValue(&k);
+	//	CFIX_ASSERT(*(int*)value == 0);
 
-		////Values not present should not exclude
-		//v = 1;
-		//k = 0;
-		//result = buf.Exclude(&v, &k);
-		//CFIX_ASSERT(result == false);
+	//	//Values not present should not exclude
+	//	v = 1;
+	//	k = 0;
+	//	result = buf.Exclude(&v, &k);
+	//	CFIX_ASSERT(result == false);
 
-		////Keys not present should not exclude
-		//v = 0;
-		//k = 1;
-		//result = buf.Exclude(&k);
-		//CFIX_ASSERT(result == false);
+	//	//Keys not present should not exclude
+	//	v = 0;
+	//	k = 1;
+	//	result = buf.Exclude(&k);
+	//	CFIX_ASSERT(result == false);
 
-		//result = buf.Exclude(&v, &k);
-		//CFIX_ASSERT(result == false);
+	//	result = buf.Exclude(&v, &k);
+	//	CFIX_ASSERT(result == false);
 
-		////Keys present should exclude
-		//v = 0;
-		//k = 0;
-		//result = buf.Exclude(&v, &k);
-		//CFIX_ASSERT(result == true);
+	//	//Keys present should exclude
+	//	v = 0;
+	//	k = 0;
+	//	result = buf.Exclude(&v, &k);
+	//	CFIX_ASSERT(result == true);
 
-		////A bunch of insertions should work...
-		//int numrows = 10000;
-		//for (int i = 0; i <= numrows; i++)
-		//{
-		//	result = buf.Include(&i,&i);
-		//	CFIX_ASSERT(result == true);
-		//}
+	//	//A bunch of insertions should work...
+	//	int numrows = 10000;
+	//	for (int i = 0; i <= numrows; i++)
+	//	{
+	//		result = buf.Include(&i,&i);
+	//		CFIX_ASSERT(result == true);
+	//	}
 
-		////A bunch of exclusions should work...
-		//for (int i = numrows / 2; i <= numrows; i++)
-		//{
-		//	result = buf.Exclude(&i,&i);
-		//	CFIX_ASSERT(result == true);
-		//}
+	//	//A bunch of exclusions should work...
+	//	for (int i = numrows / 2; i <= numrows; i++)
+	//	{
+	//		result = buf.Exclude(&i,&i);
+	//		CFIX_ASSERT(result == true);
+	//	}
 
-		////All the values should still be the same...
-		//for (int i = 0; i < numrows / 2; i++)
-		//{
-		//	value = buf.GetValue(&i);
-		//	CFIX_ASSERT(*(int*)value == i);
-		//}
-	}
+	//	//All the values should still be the same...
+	//	for (int i = 0; i < numrows / 2; i++)
+	//	{
+	//		value = buf.GetValue(&i);
+	//		CFIX_ASSERT(*(int*)value == i);
+	//	}
+	//}
 
 	string Assign(string str, int value){
 	 return str.assign((const char*)&value, sizeof(int));
