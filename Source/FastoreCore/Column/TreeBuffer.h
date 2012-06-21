@@ -91,6 +91,26 @@ inline void* TreeBuffer::GetValue(void* rowId)
 	}
 }
 
+inline void TreeBuffer::Apply(const ColumnWrites& writes)
+{
+	auto exstart = writes.excludes.begin();
+	while (exstart != writes.excludes.end())
+	{
+		void* rowId = _rowType.GetPointer((*exstart).rowID);
+		Exclude(rowId);
+		exstart++;
+	}
+
+	auto incstart = writes.includes.begin();
+	while (incstart != writes.includes.end())
+	{
+		void* value = _valueType.GetPointer((*incstart).value);
+		void* rowId = _rowType.GetPointer((*incstart).rowID);
+		Include(rowId, value);
+		incstart++;
+	}
+}
+
 inline bool TreeBuffer::Include(void* value, void* rowId)
 {
 	//TODO: Return Undo Information
@@ -219,8 +239,8 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 
 	RangeResult result;	
 
-	result.beginOfRange = begin == firstMarker;
-	result.endOfRange = end == lastMarker;
+	result.__set_beginOfRange(begin == firstMarker);
+	result.__set_endOfRange(end == lastMarker);
 
 	//Nothing in this range, so return empty result
 	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
@@ -229,7 +249,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	if (!bInclusive && beginMatch)
 	{
 		//reset BOF Marker since we are excluding
-		result.beginOfRange = false;
+		result.__set_beginOfRange(false);
 		++begin;
 	}
 
@@ -237,7 +257,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	{
 		++end;
 		//reset EOF Marker since we are including
-		result.endOfRange = end == lastMarker;
+		result.__set_endOfRange(end == lastMarker);
 	}
 
 	bool startFound = startId == NULL;
@@ -259,7 +279,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				if (idStart != idEnd)
 				{
 					startFound = true;
-					result.beginOfRange = false;
+					result.__set_beginOfRange(false);
 					++idStart;			
 				}
 				else
@@ -277,7 +297,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				++num;
 				++idStart;
 
-				result.limited = num == range.limit;
+				result.__set_limited(num == range.limit);
 			}
 
 			if (rowIds.size() > 0)
@@ -296,7 +316,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 
 		//if we didn't make it through the entire set, reset the eof marker.
 		if (result.limited && result.endOfRange)
-			result.endOfRange = false;
+			result.__set_endOfRange(false);
 	}
 	else
 	{
@@ -314,7 +334,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				if (idEnd != rowIdTree->end())
 				{
 					startFound = true;
-					result.endOfRange = false;
+					result.__set_endOfRange(false);
 				}
 				else
 				{
@@ -333,7 +353,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 				rowIds.push_back(rowId);
 				++num;
 
-				result.limited = num == range.limit;	
+				result.__set_limited(num == range.limit);
 			}
 		
 			if (rowIds.size() > 0)
@@ -350,7 +370,7 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 
 		//if we didn't make it through the entire set, reset the bof marker.
 		if (result.limited && result.beginOfRange)
-			result.beginOfRange = false;
+			result.__set_beginOfRange(false);
 	}
 
 	result.__set_valueRowsList(vrl);

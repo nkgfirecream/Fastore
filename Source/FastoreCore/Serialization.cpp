@@ -19,8 +19,6 @@ void BufferSerializer::open()
 	_transport = boost::shared_ptr<transport::TSimpleFileTransport>(new transport::TSimpleFileTransport(_outputFile, false, true));
 	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
 
-	//_transport->open();
-
 	_disposed = false;
 }
 
@@ -133,9 +131,12 @@ BufferDeserializer::~BufferDeserializer()
 
 bool BufferDeserializer::readNextChunk()
 {
+	if(_disposed)
+		throw "Serializer not opened!";
+
 	//Test for more data
 	if (!_transport->peek())
-		return false;
+		return true;
 
 	int totalWritesMade = 0;
 	ColumnWrites writes;
@@ -158,5 +159,5 @@ bool BufferDeserializer::readNextChunk()
 	writes.__set_includes(includes);
 	_buffer.Apply(writes);
 
-	return true;
+	return false;
 }

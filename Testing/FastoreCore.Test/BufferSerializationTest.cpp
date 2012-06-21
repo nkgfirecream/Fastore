@@ -6,6 +6,8 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include "Column\UniqueBuffer.h"
 #include "Serialization.h"
 
+#include <stdio.h>
+
 using namespace std;
 
 
@@ -15,6 +17,11 @@ public:
 	
 	TEST_METHOD(SerializeDeserialize)
 	{
+		//Create blank file
+		string filename = "C:\\test.dat";
+		auto file = fopen(filename.c_str(),"w");
+		fclose(file);
+
 		//TODO: Update limited behavior to reflect BoF/EoF semantics.
 		//Unique buffer -- one key has one and only one value
 		UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
@@ -53,7 +60,7 @@ public:
 		TestRange(buf, range, 0, 998, 500, 2, true, false, true);
 
 		//Serialize
-		BufferSerializer serializer(buf, "C:\\test.dat");
+		BufferSerializer serializer(buf, filename);
 
 		serializer.open();
 		while (!serializer.writeNextChunk());
@@ -61,7 +68,7 @@ public:
 
 		//Deserialize
 		UniqueBuffer buf2(standardtypes::Int, standardtypes::Int);
-		BufferDeserializer deserializer(buf2, "C:\\test.dat");
+		BufferDeserializer deserializer(buf2, filename);
 
 		deserializer.open();
 		while (!deserializer.readNextChunk());

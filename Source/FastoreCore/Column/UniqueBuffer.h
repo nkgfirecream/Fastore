@@ -201,8 +201,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 	RangeResult result;	
 
-	result.beginOfRange = begin == firstMarker;
-	result.endOfRange = end == lastMarker;
+	result.__set_beginOfRange(begin == firstMarker);
+	result.__set_endOfRange(end == lastMarker);
 
 	//Nothing in this range, so return empty result
 	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
@@ -211,7 +211,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 	if (!bInclusive && beginMatch)
 	{
 		//reset BOF Marker since we are excluding
-		result.beginOfRange = false;
+		result.__set_beginOfRange(false);
 		++begin;
 	}
 
@@ -219,7 +219,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 	{
 		++end;
 		//reset EOF Marker since we are including
-		result.endOfRange = end == lastMarker;
+		result.__set_endOfRange(end == lastMarker);
 	}	
 
 	bool startFound = startId == NULL;	
@@ -235,7 +235,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{				
-				result.beginOfRange = false;
+				result.__set_beginOfRange(false);
 				startFound = true;
 				begin++;
 				continue;
@@ -254,14 +254,14 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			vr.__set_rowIDs(rowIds);
 			vrl.push_back(vr);
-			result.limited = vrl.size() == range.limit;
+			result.__set_limited(vrl.size() == range.limit);
 
 			++begin;
 		}
 
 		//if we didn't make it through the entire set, reset the eof marker.
 		if (result.limited && result.endOfRange)
-			result.endOfRange = false;
+			result.__set_endOfRange(false);
 	}
 	else
 	{
@@ -274,7 +274,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{
-				result.endOfRange = false;
+				result.__set_endOfRange(false);
 				startFound = true;
 				continue;
 			}
@@ -292,14 +292,12 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			vr.__set_rowIDs(rowIds);
 			vrl.push_back(vr);
-			result.limited = vrl.size() == range.limit;
-
-			++begin;
+			result.__set_limited(vrl.size() == range.limit);
 		}
 
 		//if we didn't make it through the entire set, reset the bof marker.
 		if (result.limited && result.beginOfRange)
-			result.beginOfRange = false;
+			result.__set_beginOfRange(false);
 	}	
 
 	result.__set_valueRowsList(vrl);
