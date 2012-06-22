@@ -1,8 +1,16 @@
 #include "Repository.h"
 #include <sstream>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include "Column\UniqueBuffer.h"
+#include "Column\TreeBuffer.h"
+
+using namespace boost::filesystem;
 
 Repository::Repository(int columnID, const string& path) : _columnID(columnID), _path(path)
 {
+	//set status to offline.
 }
 
 string Repository::GetLogFileName()
@@ -19,12 +27,41 @@ string Repository::GetDataFileName(int number)
 	return logFileName.str();
 }
 
-void Repository::Create()
+void Repository::create(ColumnDef def)
 {
+	if (def.ColumnID != _columnID)
+		throw "Create definition columnId does not match assigned Id!";
+
 	// Verify that there is no persistence to load from - shouldn't be if creating
+	auto logpath = path(GetLogFileName());
+	
+	if (exists(logpath))
+		throw "Existing log file!";
+
+	for (int i = 0; i <= 1; i++)
+	{
+		auto datapath = path(GetDataFileName(i));
+		if (exists(datapath))
+			throw "Existing data file!";
+	}
+	
+	//There's no previous data... continue with creation
+	//Set our column definition
+	_def = def;
+	
+	//Instatiante buffer
+	if (_def.IsUnique)
+		_buffer = new UniqueBuffer(_def.RowIDType, _def.ValueType);
+	else
+		_buffer = new TreeBuffer(_def.RowIDType, _def.ValueType);
+
+	// Initialize the log file
+	_log = auto_ptr<Log>(new Log(GetLogFileName()));
+
+	//Set status to online
 }
 
-void Repository::Load()
+void Repository::load()
 {
 	// Update state to loading
 	// Read header from each data file to determine which is newer
@@ -47,9 +84,66 @@ void Repository::Load()
 	// Update state to online
 }
 
-void Repository::Checkpoint()
+void Repository::checkpoint()
 {
+	// Set state to checkpointing
 
+	// Pick oldest datafile
+	ofstream dataFile(GetDataFileName(1));
+	// ...
+	// Write buffer to file
+
+	// Truncate log
+
+	// Update state to online
+}
+
+Answer Repository::query(const fastore::communication::Query& query)
+{
+	Answer answer;	
+	if (query.ranges.size() > 0)
+	{
+		std::vector<RangeResult> results;
+		for (int i = 0; i < query.ranges.size(); i++)
+		{
+			
+			auto range = query.ranges[i];
+			RangeResult result = _buffer->GetRows(range);
+			results.push_back(result);
+		}
+
+		answer.__set_rangeValues(results);
+	}
+
+	if (query.rowIDs.size() > 0)
+	{
+		auto values = _buffer->GetValues(query.rowIDs);
+		answer.__set_rowIDValues(values);
+	}
+
+	return answer;
+}
+
+void Repository::apply(const Revision& revision, const ColumnWrites& writes)
+{
+	_buffer->Apply(writes);
+	_revision = revision;
+
+	WriteToLog(revision, writes);
+}
+
+void Repository::WriteToLog(const Revision& revision, const ColumnWrites& writes)
+{
+	//Buffer log write? Batched log write?
+}
+
+Statistic Repository::getStatistic()
+{
+	return _buffer->GetStatistic();
+}
+
+void Repository::destroy()
+{
 
 }
 

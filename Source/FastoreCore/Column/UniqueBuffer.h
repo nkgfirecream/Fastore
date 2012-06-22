@@ -77,7 +77,7 @@ inline void* UniqueBuffer::GetValue(void* rowId)
 		Node* leaf = *(Node**)(*(iterator)).value;
 		auto locRowType = _rowType;
 
-		void* result = leaf->GetKey
+		return leaf->GetKey
 		(
 			[rowId, locRowType](void* foundId) -> bool
 			{

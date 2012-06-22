@@ -13,26 +13,157 @@ WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podI
 	//* Check data directory for improper shut down - see Recovery
 
 	//* If (new instance), bootstrap
-	bootstrap();
+	Bootstrap();
 	//  else load system columns
 
 
 	//* Read rest of topology columns into memory; play log files for the same
 }
 
-void WorkerHandler::bootstrap()
+void WorkerHandler::Bootstrap()
 {
-	//Create system repositories
+	ColumnDef id;
+	id.ColumnID = 0;
+	id.Name = "Column.ID";
+	id.ValueType = standardtypes::Int;
+	id.RowIDType = standardtypes::Int;
+	id.IsUnique = true;
+	CreateRepo(id);	
+
+	ColumnDef name;
+	name.ColumnID = 1;
+	name.Name = "Column.Name";
+	name.ValueType = standardtypes::String;
+	name.RowIDType = standardtypes::Int;
+	name.IsUnique = false;
+	CreateRepo(name);
+
+	ColumnDef vt;
+	vt.ColumnID = 2;
+	vt.Name = "Column.ValueType";
+	vt.ValueType = standardtypes::String;
+	vt.RowIDType = standardtypes::Int;
+	vt.IsUnique = false;
+	CreateRepo(vt);	
+
+	ColumnDef idt;
+	idt.ColumnID = 3;
+	idt.Name = "Column.RowIDType";
+	idt.ValueType = standardtypes::String;
+	idt.RowIDType = standardtypes::Int;
+	idt.IsUnique = false;
+	CreateRepo(idt);	
+
+	ColumnDef unique;
+	unique.ColumnID = 4;
+	unique.Name = "Column.IsUnique";
+	unique.ValueType = standardtypes::Bool;
+	unique.RowIDType = standardtypes::Int;
+	unique.IsUnique = false;	
+	CreateRepo(unique);	
+
+	ColumnDef topo;
+	topo.ColumnID = 100;
+	topo.Name = "Topology.ID";
+	topo.ValueType = standardtypes::Int;
+	topo.RowIDType = standardtypes::Int;
+	topo.IsUnique = true;	
+	CreateRepo(topo);
+
+	ColumnDef hostId;
+	hostId.ColumnID = 200;
+	hostId.Name = "Host.ID";
+	hostId.ValueType = standardtypes::Int;
+	hostId.RowIDType = standardtypes::Int;
+	hostId.IsUnique = true;	
+	CreateRepo(hostId);	
+
+	ColumnDef hostTopoId;
+	hostTopoId.ColumnID = 201;
+	hostTopoId.Name = "Host.TopologyID";
+	hostTopoId.ValueType = standardtypes::Int;
+	hostTopoId.RowIDType = standardtypes::Int;
+	hostTopoId.IsUnique = false;	
+	CreateRepo(hostTopoId);	
+
+	ColumnDef podId;
+	podId.ColumnID = 300;
+	podId.Name = "Pod.ID";
+	podId.ValueType = standardtypes::Int;
+	podId.RowIDType = standardtypes::Int;
+	podId.IsUnique = true;	
+	CreateRepo(podId);	
+
+	ColumnDef podHostId;
+	podHostId.ColumnID = 301;
+	podHostId.Name = "Pod.HostID";
+	podHostId.ValueType = standardtypes::Int;
+	podHostId.RowIDType = standardtypes::Int;
+	podHostId.IsUnique = false;	
+	CreateRepo(podHostId);	
+
+	ColumnDef podColPodId;
+	podColPodId.ColumnID = 400;
+	podColPodId.Name = "PodColumn.PodID";
+	podColPodId.ValueType = standardtypes::Int;
+	podColPodId.RowIDType = standardtypes::Int;
+	podColPodId.IsUnique = false;	
+	CreateRepo(podColPodId);	
+
+	ColumnDef podColColId;
+	podColColId.ColumnID = 401;
+	podColColId.Name = "PodColumn.ColumnID";
+	podColColId.ValueType = standardtypes::Int;
+	podColColId.RowIDType = standardtypes::Int;
+	podColColId.IsUnique = false;	
+	CreateRepo(podColColId);
+
+	//This must come after the repos are initialized. Can't add a column to the schema if the schema doesn't exist
+	AddColumnToSchema(id);
+	AddColumnToSchema(name);
+	AddColumnToSchema(vt);
+	AddColumnToSchema(idt);
+	AddColumnToSchema(unique);
+	AddColumnToSchema(topo);
+	AddColumnToSchema(hostId);
+	AddColumnToSchema(hostTopoId);
+	AddColumnToSchema(podId);
+	AddColumnToSchema(podHostId);
+	AddColumnToSchema(podColPodId);
+	AddColumnToSchema(podColColId);
 }
 
-void WorkerHandler::checkState()
+void WorkerHandler::CreateRepo(ColumnDef def)
+{
+	Repository* repo = new Repository(def.ColumnID, _path);
+	_repositories.insert(std::pair<ColumnID, Repository*>(def.ColumnID, repo));
+}
+
+void WorkerHandler::DestroyRepo(ColumnID id)
+{
+	Repository* repo = _repositories[id];
+	repo->destroy();
+	_repositories.erase(id);
+}
+
+void WorkerHandler::SyncToSchema()
+{
+
+}
+
+void WorkerHandler::AddColumnToSchema(ColumnDef def)
+{
+
+}
+
+void WorkerHandler::CheckState()
 {
 	//if (_state == WorkerState.
 }
 
 Revision WorkerHandler::prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) 
 {
-	checkState();
+	CheckState();
 
 	// Your implementation goes here
 	printf("Prepare\n");
@@ -50,17 +181,20 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 	{
 		fastore::communication::ColumnID id = (*start).first;
 
+		//If pod or column table changes we need to check and see if we should update.
 		if (id == 0)
 			syncSchema = true;
 
-		fastore::communication::ColumnWrites writes = (*start).second;
-		Repository repo = (*_repositories.find(id)).second;
+		Repository repo = *_repositories[id];
+		ColumnWrites writes = (*start).second;
 
+		repo.apply(transactionID.revision, writes);
+		
 		start++;
 	}
 
-	//if (syncSchema)
-		//_host.SyncToSchema();
+	if (syncSchema)
+		SyncToSchema();
 }
 
 void WorkerHandler::commit(const TransactionID& transactionID) {
@@ -98,134 +232,32 @@ printf("Transgrade\n");
 
 void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 {
-	//auto start = queries.begin();
+	auto start = queries.begin();
+	while (start != queries.end())
+	{
+		ColumnID id = (*start).first;
+		Repository repo = *_repositories[id];
 
-	//while(start != queries.end())
-	//{
-	//	fastore::communication::ColumnID id = (*start).first;
-	//	fastore::communication::Query query = (*start).second;
+		Query query = (*start).second;
+		Answer answer = repo.query(query);
+		Revision rev = repo.getRevision();
 
-	//	PointerDefPair pdp; // = _host.GetColumn(id);
+		ReadResult result;
+		result.__set_answer(answer);
+		result.__set_revision(rev);
 
-	//	fastore::communication::ReadResult res;
+		_return.insert(std::pair<ColumnID, ReadResult>(id, result));
 
-	//	if (query.ranges.size() > 0)
-	//	{
-	//		for (int i = 0; i < query.ranges.size(); i++)
-	//		{
-	//			auto range = query.ranges[i];
-
-	//			Optional<fs::RangeBound> starto;
-	//			Optional<fs::RangeBound> endo;
-
-	//			void* ostartp = NULL;
-	//			void* oendp = NULL;
-
-	//			if (range.__isset.first)
-	//			{
-	//				fs::RangeBound rb;
-	//				rb.Inclusive = range.first.inclusive;
-	//				rb.Value = pdp.second.ValueType.Allocate();
-	//				pdp.second.ValueType.Decode(range.first.value, rb.Value);
-	//				starto = Optional<fs::RangeBound>(rb);
-	//			}
-
-	//			if (range.__isset.last)
-	//			{
-	//				fs::RangeBound rb;
-	//				rb.Inclusive = range.last.inclusive;
-	//				rb.Value = pdp.second.ValueType.Allocate();
-	//				pdp.second.ValueType.Decode(range.last.value, rb.Value);
-	//				endo = Optional<fs::RangeBound>(rb);
-	//			}		
-
-	//			Optional<void*> startId;
-	//			if (range.__isset.rowID)
-	//			{
-	//				ostartp = pdp.second.RowIDType.Allocate();
-	//				pdp.second.RowIDType.Decode(range.rowID, ostartp);
-	//				startId = Optional<void*>(ostartp);
-	//			}
-
-	//			fs::Range frange(query.limit, range.ascending, starto, startId, endo);				
-	//			GetResult result = pdp.first->GetRows(frange);
-
-	//			if (ostartp != NULL)
-	//				delete ostartp;
-
-	//			if (oendp != NULL)
-	//				delete oendp;
-
-	//			fastore::communication::ValueRowsList vrl(result.Data.size());
-	//			fastore::communication::RangeResult rr;
-
-	//			rr.endOfRange = result.EndOfRange;
-	//			rr.beginOfRange = result.BeginOfRange;
-	//			rr.limited = result.Limited;
-
-	//			for (int j = 0; j < result.Data.size(); j++ )
-	//			{
-	//				fastore::communication::ValueRows vr;
-	//				fs::ValueKeys vk = result.Data[j];
-
-	//				pdp.second.ValueType.Encode(vk.first, vr.value);
-
-	//				vr.rowIDs = std::vector<std::string>(vk.second.size());
-	//				for (int k = 0; k < vk.second.size(); k++)
-	//				{
-	//					std::string id;
-	//					pdp.second.RowIDType.Encode(vk.second[k], vr.rowIDs[k]);
-	//				}
-
-	//				vrl[j] = vr;
-	//			}
-
-	//			rr.valueRowsList = vrl;
-
-	//			res.answer.__isset.rangeValues = true;
-	//			res.answer.rangeValues.push_back(rr);
-	//		}
-	//	}
-
-	//	if (query.rowIDs.size() > 0)
-	//	{
-	//		fs::KeyVector kv(query.rowIDs.size());
-	//		for (int i = 0; i < query.rowIDs.size(); i++)
-	//		{
-	//			kv[i] = pdp.second.RowIDType.Allocate();
-	//			pdp.second.RowIDType.Decode(query.rowIDs[i], kv[i]);
-	//		}
-
-	//		auto result = pdp.first->GetValues(kv);
-
-	//		res.answer.__set_rowIDValues(std::vector<std::string>(result.size()));
-	//		for (int i = 0; i < result.size(); i++)
-	//		{
-	//			pdp.second.ValueType.Encode(result[i], res.answer.rowIDValues[i]);
-	//		}
-
-	//		//Remove temporarily decoded rowIds.
-	//		for (int i = 0; i < kv.size(); i++)
-	//		{
-	//			delete kv[i];
-	//		}
-	//	}
-
-	//	_return.insert(std::pair<fastore::communication::ColumnID, fastore::communication::ReadResult>(id, res));
-	//	start++;
-	//}
+		start++;
+	}
 }
 
 void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)
 {	
 	for (int i = 0; i < columnIDs.size(); i++)
-	{
-		Statistic stat;
-		
-		/*auto result = _host.GetColumn(columnIDs[i]).first->GetStatistics();
-		stat.total = result.Total;
-		stat.unique = result.Unique;*/
-
+	{		
+		Repository repo = *_repositories[columnIDs[i]];
+		Statistic stat = repo.getStatistic();
 		_return.push_back(stat);
 	}
 }
