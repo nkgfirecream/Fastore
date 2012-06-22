@@ -7,8 +7,11 @@ typedef i32 TopologyID
 typedef i32 ColumnID
 typedef i32 HostID
 typedef i32 PodID
-typedef string NetworkAddress
-typedef i32 NetworkPort
+struct NetworkAddress
+{
+	1: required string name,
+	2: optional i32 port
+}
 
 enum RepositoryStatus
 {
@@ -36,7 +39,7 @@ typedef i64 TimeStamp
 struct WorkerState
 {
 	1: required map<ColumnID, RepositoryStatus> repositoryStatus,
-	2: required NetworkPort port
+	2: required i32 port
 }
 
 struct ServiceState
@@ -44,7 +47,6 @@ struct ServiceState
 	1: required ServiceStatus status,
 	2: required TimeStamp timeStamp,
 	3: required NetworkAddress address,
-	4: optional NetworkPort port,
 	5: required map<PodID, WorkerState> workers
 }
 
@@ -55,6 +57,20 @@ struct HiveState
 	/** the host ID of the service giving the report */
 	3: required HostID reportingHostID
 }
+
+// Topology construction
+
+typedef list<ColumnID> ColumnIDs
+
+typedef map<PodID, ColumnIDs> Pods
+	
+struct Topology
+{
+	1: required TopologyID topologyID, 
+	2: required map<HostID, Pods> hosts
+}
+
+typedef map<HostID, NetworkAddress> HostAddresses
 
 // Service
 
@@ -76,16 +92,19 @@ exception AlreadyJoined
 	1: HostID hostID
 }
 
-exception NotJoined {}
+exception NotJoined 
+{
+	1: i32 potentialWorkers
+}
 
 service Service
 {
-	/** Initialize a new hive starting with this service */
-	HiveState init()
+	/** Initialize a new hive including this service */
+	ServiceState init(1:Topology topology, 2:HostAddresses addresses, 3:HostID hostID)
 		throws (1:AlreadyJoined alreadyJoined),
 
 	/** Associates the service with the given logical host ID within the given hive. */
-	ServiceState join(1:HostID hostID, 2:HiveState hiveState)
+	ServiceState join(1:HiveState hiveState, 3:NetworkAddress address, 4:HostID hostID)
 		throws (1:AlreadyJoined alreadyJoined),
 
 	/** Dissociates the service from the current hive. */
@@ -93,7 +112,7 @@ service Service
 		throws (1:NotJoined notJoined),
 
 	/** Returns the current status of all services in the hive as understood by this service. */
-	HiveState getHiveState()
+	HiveState getHiveState(1: bool forceUpdate = false)
 		throws (1:NotJoined notJoined),
 
 	/** Returns the current status of this service. */

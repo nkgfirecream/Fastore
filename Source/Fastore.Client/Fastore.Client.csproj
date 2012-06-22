@@ -57,6 +57,7 @@
     <Compile Include="Range.cs" />
     <Compile Include="RangeBound.cs" />
     <Compile Include="Schema.cs" />
+    <Compile Include="ServiceAddress.cs" />
     <Compile Include="Statistic.cs" />
     <Compile Include="Transaction.cs" />
   </ItemGroup>

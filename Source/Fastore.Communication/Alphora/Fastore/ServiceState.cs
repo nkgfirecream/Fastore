@@ -25,8 +25,7 @@ namespace Alphora.Fastore
   {
     private ServiceStatus _status;
     private long _timeStamp;
-    private string _address;
-    private int _port;
+    private NetworkAddress _address;
     private Dictionary<int, WorkerState> _workers;
 
     /// <summary>
@@ -59,7 +58,7 @@ namespace Alphora.Fastore
       }
     }
 
-    public string Address
+    public NetworkAddress Address
     {
       get
       {
@@ -69,19 +68,6 @@ namespace Alphora.Fastore
       {
         __isset.address = true;
         this._address = value;
-      }
-    }
-
-    public int Port
-    {
-      get
-      {
-        return _port;
-      }
-      set
-      {
-        __isset.port = true;
-        this._port = value;
       }
     }
 
@@ -107,7 +93,6 @@ namespace Alphora.Fastore
       public bool status;
       public bool timeStamp;
       public bool address;
-      public bool port;
       public bool workers;
     }
 
@@ -141,15 +126,9 @@ namespace Alphora.Fastore
             }
             break;
           case 3:
-            if (field.Type == TType.String) {
-              Address = iprot.ReadString();
-            } else { 
-              TProtocolUtil.Skip(iprot, field.Type);
-            }
-            break;
-          case 4:
-            if (field.Type == TType.I32) {
-              Port = iprot.ReadI32();
+            if (field.Type == TType.Struct) {
+              Address = new NetworkAddress();
+              Address.Read(iprot);
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -205,18 +184,10 @@ namespace Alphora.Fastore
       }
       if (Address != null && __isset.address) {
         field.Name = "address";
-        field.Type = TType.String;
+        field.Type = TType.Struct;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        oprot.WriteString(Address);
-        oprot.WriteFieldEnd();
-      }
-      if (__isset.port) {
-        field.Name = "port";
-        field.Type = TType.I32;
-        field.ID = 4;
-        oprot.WriteFieldBegin(field);
-        oprot.WriteI32(Port);
+        Address.Write(oprot);
         oprot.WriteFieldEnd();
       }
       if (Workers != null && __isset.workers) {
@@ -246,9 +217,7 @@ namespace Alphora.Fastore
       sb.Append(",TimeStamp: ");
       sb.Append(TimeStamp);
       sb.Append(",Address: ");
-      sb.Append(Address);
-      sb.Append(",Port: ");
-      sb.Append(Port);
+      sb.Append(Address== null ? "<null>" : Address.ToString());
       sb.Append(",Workers: ");
       sb.Append(Workers);
       sb.Append(")");

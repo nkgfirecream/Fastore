@@ -12,4 +12,6 @@ public:
 	Endpoint(const EndpointConfig& config, const boost::shared_ptr<apache::thrift::TProcessor>& processor);
 	void Run();
 	void Stop();
+
+	boost::shared_ptr<apache::thrift::TProcessor> getProcessor();
 };

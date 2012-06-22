@@ -63,6 +63,7 @@
     <Compile Include="Alphora\Fastore\LockExpired.cs" />
     <Compile Include="Alphora\Fastore\LockMode.cs" />
     <Compile Include="Alphora\Fastore\LockTimedOut.cs" />
+    <Compile Include="Alphora\Fastore\NetworkAddress.cs" />
     <Compile Include="Alphora\Fastore\NotJoined.cs" />
     <Compile Include="Alphora\Fastore\NotLatest.cs" />
     <Compile Include="Alphora\Fastore\Pod.cs" />

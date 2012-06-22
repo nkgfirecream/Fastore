@@ -261,8 +261,8 @@ void swap(JoinedTopology &a, JoinedTopology &b) {
   swap(a.workerPodIDs, b.workerPodIDs);
 }
 
-const char* ServiceConfig::ascii_fingerprint = "8EE1223182BF9C484B7D25C25407A085";
-const uint8_t ServiceConfig::binary_fingerprint[16] = {0x8E,0xE1,0x22,0x31,0x82,0xBF,0x9C,0x48,0x4B,0x7D,0x25,0xC2,0x54,0x07,0xA0,0x85};
+const char* ServiceConfig::ascii_fingerprint = "D3217A03F7C15A8AA899518E3E42EE89";
+const uint8_t ServiceConfig::binary_fingerprint[16] = {0xD3,0x21,0x7A,0x03,0xF7,0xC1,0x5A,0x8A,0xA8,0x99,0x51,0x8E,0x3E,0x42,0xEE,0x89};
 
 uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -277,7 +277,6 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   bool isset_path = false;
   bool isset_workerPaths = false;
-  bool isset_port = false;
   bool isset_address = false;
 
   while (true)
@@ -320,22 +319,14 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 3:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->port);
-          isset_port = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 4:
-        if (ftype == ::apache::thrift::protocol::T_STRING) {
-          xfer += iprot->readString(this->address);
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->address.read(iprot);
           isset_address = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 5:
+      case 4:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->joinedTopology.read(iprot);
           this->__isset.joinedTopology = true;
@@ -355,8 +346,6 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
   if (!isset_path)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_workerPaths)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_port)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_address)
     throw TProtocolException(TProtocolException::INVALID_DATA);
@@ -384,16 +373,12 @@ uint32_t ServiceConfig::write(::apache::thrift::protocol::TProtocol* oprot) cons
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 3);
-  xfer += oprot->writeI32(this->port);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("address", ::apache::thrift::protocol::T_STRING, 4);
-  xfer += oprot->writeString(this->address);
+  xfer += oprot->writeFieldBegin("address", ::apache::thrift::protocol::T_STRUCT, 3);
+  xfer += this->address.write(oprot);
   xfer += oprot->writeFieldEnd();
 
   if (this->__isset.joinedTopology) {
-    xfer += oprot->writeFieldBegin("joinedTopology", ::apache::thrift::protocol::T_STRUCT, 5);
+    xfer += oprot->writeFieldBegin("joinedTopology", ::apache::thrift::protocol::T_STRUCT, 4);
     xfer += this->joinedTopology.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
@@ -406,7 +391,6 @@ void swap(ServiceConfig &a, ServiceConfig &b) {
   using ::std::swap;
   swap(a.path, b.path);
   swap(a.workerPaths, b.workerPaths);
-  swap(a.port, b.port);
   swap(a.address, b.address);
   swap(a.joinedTopology, b.joinedTopology);
   swap(a.__isset, b.__isset);

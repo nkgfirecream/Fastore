@@ -1078,15 +1078,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Writes = new Dictionary<int, ColumnWrites>();
-                  TMap _map51 = iprot.ReadMapBegin();
-                  for( int _i52 = 0; _i52 < _map51.Count; ++_i52)
+                  TMap _map70 = iprot.ReadMapBegin();
+                  for( int _i71 = 0; _i71 < _map70.Count; ++_i71)
                   {
-                    int _key53;
-                    ColumnWrites _val54;
-                    _key53 = iprot.ReadI32();
-                    _val54 = new ColumnWrites();
-                    _val54.Read(iprot);
-                    Writes[_key53] = _val54;
+                    int _key72;
+                    ColumnWrites _val73;
+                    _key72 = iprot.ReadI32();
+                    _val73 = new ColumnWrites();
+                    _val73.Read(iprot);
+                    Writes[_key72] = _val73;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -1098,28 +1098,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map55 = iprot.ReadMapBegin();
-                  for( int _i56 = 0; _i56 < _map55.Count; ++_i56)
+                  TMap _map74 = iprot.ReadMapBegin();
+                  for( int _i75 = 0; _i75 < _map74.Count; ++_i75)
                   {
-                    int _key57;
-                    Dictionary<Query, Answer> _val58;
-                    _key57 = iprot.ReadI32();
+                    int _key76;
+                    Dictionary<Query, Answer> _val77;
+                    _key76 = iprot.ReadI32();
                     {
-                      _val58 = new Dictionary<Query, Answer>();
-                      TMap _map59 = iprot.ReadMapBegin();
-                      for( int _i60 = 0; _i60 < _map59.Count; ++_i60)
+                      _val77 = new Dictionary<Query, Answer>();
+                      TMap _map78 = iprot.ReadMapBegin();
+                      for( int _i79 = 0; _i79 < _map78.Count; ++_i79)
                       {
-                        Query _key61;
-                        Answer _val62;
-                        _key61 = new Query();
-                        _key61.Read(iprot);
-                        _val62 = new Answer();
-                        _val62.Read(iprot);
-                        _val58[_key61] = _val62;
+                        Query _key80;
+                        Answer _val81;
+                        _key80 = new Query();
+                        _key80.Read(iprot);
+                        _val81 = new Answer();
+                        _val81.Read(iprot);
+                        _val77[_key80] = _val81;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key57] = _val58;
+                    Reads[_key76] = _val77;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -1155,10 +1155,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Writes.Count));
-            foreach (int _iter63 in Writes.Keys)
+            foreach (int _iter82 in Writes.Keys)
             {
-              oprot.WriteI32(_iter63);
-              Writes[_iter63].Write(oprot);
+              oprot.WriteI32(_iter82);
+              Writes[_iter82].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -1171,15 +1171,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter64 in Reads.Keys)
+            foreach (int _iter83 in Reads.Keys)
             {
-              oprot.WriteI32(_iter64);
+              oprot.WriteI32(_iter83);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter64].Count));
-                foreach (Query _iter65 in Reads[_iter64].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter83].Count));
+                foreach (Query _iter84 in Reads[_iter83].Keys)
                 {
-                  _iter65.Write(oprot);
-                  Reads[_iter64][_iter65].Write(oprot);
+                  _iter84.Write(oprot);
+                  Reads[_iter83][_iter84].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -1434,15 +1434,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Writes = new Dictionary<int, ColumnWrites>();
-                  TMap _map66 = iprot.ReadMapBegin();
-                  for( int _i67 = 0; _i67 < _map66.Count; ++_i67)
+                  TMap _map85 = iprot.ReadMapBegin();
+                  for( int _i86 = 0; _i86 < _map85.Count; ++_i86)
                   {
-                    int _key68;
-                    ColumnWrites _val69;
-                    _key68 = iprot.ReadI32();
-                    _val69 = new ColumnWrites();
-                    _val69.Read(iprot);
-                    Writes[_key68] = _val69;
+                    int _key87;
+                    ColumnWrites _val88;
+                    _key87 = iprot.ReadI32();
+                    _val88 = new ColumnWrites();
+                    _val88.Read(iprot);
+                    Writes[_key87] = _val88;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -1478,10 +1478,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Writes.Count));
-            foreach (int _iter70 in Writes.Keys)
+            foreach (int _iter89 in Writes.Keys)
             {
-              oprot.WriteI32(_iter70);
-              Writes[_iter70].Write(oprot);
+              oprot.WriteI32(_iter89);
+              Writes[_iter89].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -2018,28 +2018,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map71 = iprot.ReadMapBegin();
-                  for( int _i72 = 0; _i72 < _map71.Count; ++_i72)
+                  TMap _map90 = iprot.ReadMapBegin();
+                  for( int _i91 = 0; _i91 < _map90.Count; ++_i91)
                   {
-                    int _key73;
-                    Dictionary<Query, Answer> _val74;
-                    _key73 = iprot.ReadI32();
+                    int _key92;
+                    Dictionary<Query, Answer> _val93;
+                    _key92 = iprot.ReadI32();
                     {
-                      _val74 = new Dictionary<Query, Answer>();
-                      TMap _map75 = iprot.ReadMapBegin();
-                      for( int _i76 = 0; _i76 < _map75.Count; ++_i76)
+                      _val93 = new Dictionary<Query, Answer>();
+                      TMap _map94 = iprot.ReadMapBegin();
+                      for( int _i95 = 0; _i95 < _map94.Count; ++_i95)
                       {
-                        Query _key77;
-                        Answer _val78;
-                        _key77 = new Query();
-                        _key77.Read(iprot);
-                        _val78 = new Answer();
-                        _val78.Read(iprot);
-                        _val74[_key77] = _val78;
+                        Query _key96;
+                        Answer _val97;
+                        _key96 = new Query();
+                        _key96.Read(iprot);
+                        _val97 = new Answer();
+                        _val97.Read(iprot);
+                        _val93[_key96] = _val97;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key73] = _val74;
+                    Reads[_key92] = _val93;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2081,15 +2081,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter79 in Reads.Keys)
+            foreach (int _iter98 in Reads.Keys)
             {
-              oprot.WriteI32(_iter79);
+              oprot.WriteI32(_iter98);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter79].Count));
-                foreach (Query _iter80 in Reads[_iter79].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter98].Count));
+                foreach (Query _iter99 in Reads[_iter98].Keys)
                 {
-                  _iter80.Write(oprot);
-                  Reads[_iter79][_iter80].Write(oprot);
+                  _iter99.Write(oprot);
+                  Reads[_iter98][_iter99].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -2341,15 +2341,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Writes = new Dictionary<int, ColumnWrites>();
-                  TMap _map81 = iprot.ReadMapBegin();
-                  for( int _i82 = 0; _i82 < _map81.Count; ++_i82)
+                  TMap _map100 = iprot.ReadMapBegin();
+                  for( int _i101 = 0; _i101 < _map100.Count; ++_i101)
                   {
-                    int _key83;
-                    ColumnWrites _val84;
-                    _key83 = iprot.ReadI32();
-                    _val84 = new ColumnWrites();
-                    _val84.Read(iprot);
-                    Writes[_key83] = _val84;
+                    int _key102;
+                    ColumnWrites _val103;
+                    _key102 = iprot.ReadI32();
+                    _val103 = new ColumnWrites();
+                    _val103.Read(iprot);
+                    Writes[_key102] = _val103;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2361,28 +2361,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map85 = iprot.ReadMapBegin();
-                  for( int _i86 = 0; _i86 < _map85.Count; ++_i86)
+                  TMap _map104 = iprot.ReadMapBegin();
+                  for( int _i105 = 0; _i105 < _map104.Count; ++_i105)
                   {
-                    int _key87;
-                    Dictionary<Query, Answer> _val88;
-                    _key87 = iprot.ReadI32();
+                    int _key106;
+                    Dictionary<Query, Answer> _val107;
+                    _key106 = iprot.ReadI32();
                     {
-                      _val88 = new Dictionary<Query, Answer>();
-                      TMap _map89 = iprot.ReadMapBegin();
-                      for( int _i90 = 0; _i90 < _map89.Count; ++_i90)
+                      _val107 = new Dictionary<Query, Answer>();
+                      TMap _map108 = iprot.ReadMapBegin();
+                      for( int _i109 = 0; _i109 < _map108.Count; ++_i109)
                       {
-                        Query _key91;
-                        Answer _val92;
-                        _key91 = new Query();
-                        _key91.Read(iprot);
-                        _val92 = new Answer();
-                        _val92.Read(iprot);
-                        _val88[_key91] = _val92;
+                        Query _key110;
+                        Answer _val111;
+                        _key110 = new Query();
+                        _key110.Read(iprot);
+                        _val111 = new Answer();
+                        _val111.Read(iprot);
+                        _val107[_key110] = _val111;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key87] = _val88;
+                    Reads[_key106] = _val107;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2418,10 +2418,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Writes.Count));
-            foreach (int _iter93 in Writes.Keys)
+            foreach (int _iter112 in Writes.Keys)
             {
-              oprot.WriteI32(_iter93);
-              Writes[_iter93].Write(oprot);
+              oprot.WriteI32(_iter112);
+              Writes[_iter112].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -2434,15 +2434,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter94 in Reads.Keys)
+            foreach (int _iter113 in Reads.Keys)
             {
-              oprot.WriteI32(_iter94);
+              oprot.WriteI32(_iter113);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter94].Count));
-                foreach (Query _iter95 in Reads[_iter94].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter113].Count));
+                foreach (Query _iter114 in Reads[_iter113].Keys)
                 {
-                  _iter95.Write(oprot);
-                  Reads[_iter94][_iter95].Write(oprot);
+                  _iter114.Write(oprot);
+                  Reads[_iter113][_iter114].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -2673,28 +2673,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Reads = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map96 = iprot.ReadMapBegin();
-                  for( int _i97 = 0; _i97 < _map96.Count; ++_i97)
+                  TMap _map115 = iprot.ReadMapBegin();
+                  for( int _i116 = 0; _i116 < _map115.Count; ++_i116)
                   {
-                    int _key98;
-                    Dictionary<Query, Answer> _val99;
-                    _key98 = iprot.ReadI32();
+                    int _key117;
+                    Dictionary<Query, Answer> _val118;
+                    _key117 = iprot.ReadI32();
                     {
-                      _val99 = new Dictionary<Query, Answer>();
-                      TMap _map100 = iprot.ReadMapBegin();
-                      for( int _i101 = 0; _i101 < _map100.Count; ++_i101)
+                      _val118 = new Dictionary<Query, Answer>();
+                      TMap _map119 = iprot.ReadMapBegin();
+                      for( int _i120 = 0; _i120 < _map119.Count; ++_i120)
                       {
-                        Query _key102;
-                        Answer _val103;
-                        _key102 = new Query();
-                        _key102.Read(iprot);
-                        _val103 = new Answer();
-                        _val103.Read(iprot);
-                        _val99[_key102] = _val103;
+                        Query _key121;
+                        Answer _val122;
+                        _key121 = new Query();
+                        _key121.Read(iprot);
+                        _val122 = new Answer();
+                        _val122.Read(iprot);
+                        _val118[_key121] = _val122;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Reads[_key98] = _val99;
+                    Reads[_key117] = _val118;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2736,15 +2736,15 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Reads.Count));
-            foreach (int _iter104 in Reads.Keys)
+            foreach (int _iter123 in Reads.Keys)
             {
-              oprot.WriteI32(_iter104);
+              oprot.WriteI32(_iter123);
               {
-                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter104].Count));
-                foreach (Query _iter105 in Reads[_iter104].Keys)
+                oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Reads[_iter123].Count));
+                foreach (Query _iter124 in Reads[_iter123].Keys)
                 {
-                  _iter105.Write(oprot);
-                  Reads[_iter104][_iter105].Write(oprot);
+                  _iter124.Write(oprot);
+                  Reads[_iter123][_iter124].Write(oprot);
                 }
                 oprot.WriteMapEnd();
               }
@@ -2851,28 +2851,28 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Success = new Dictionary<int, Dictionary<Query, Answer>>();
-                  TMap _map106 = iprot.ReadMapBegin();
-                  for( int _i107 = 0; _i107 < _map106.Count; ++_i107)
+                  TMap _map125 = iprot.ReadMapBegin();
+                  for( int _i126 = 0; _i126 < _map125.Count; ++_i126)
                   {
-                    int _key108;
-                    Dictionary<Query, Answer> _val109;
-                    _key108 = iprot.ReadI32();
+                    int _key127;
+                    Dictionary<Query, Answer> _val128;
+                    _key127 = iprot.ReadI32();
                     {
-                      _val109 = new Dictionary<Query, Answer>();
-                      TMap _map110 = iprot.ReadMapBegin();
-                      for( int _i111 = 0; _i111 < _map110.Count; ++_i111)
+                      _val128 = new Dictionary<Query, Answer>();
+                      TMap _map129 = iprot.ReadMapBegin();
+                      for( int _i130 = 0; _i130 < _map129.Count; ++_i130)
                       {
-                        Query _key112;
-                        Answer _val113;
-                        _key112 = new Query();
-                        _key112.Read(iprot);
-                        _val113 = new Answer();
-                        _val113.Read(iprot);
-                        _val109[_key112] = _val113;
+                        Query _key131;
+                        Answer _val132;
+                        _key131 = new Query();
+                        _key131.Read(iprot);
+                        _val132 = new Answer();
+                        _val132.Read(iprot);
+                        _val128[_key131] = _val132;
                       }
                       iprot.ReadMapEnd();
                     }
-                    Success[_key108] = _val109;
+                    Success[_key127] = _val128;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -2910,15 +2910,15 @@ namespace Alphora.Fastore
             oprot.WriteFieldBegin(field);
             {
               oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Success.Count));
-              foreach (int _iter114 in Success.Keys)
+              foreach (int _iter133 in Success.Keys)
               {
-                oprot.WriteI32(_iter114);
+                oprot.WriteI32(_iter133);
                 {
-                  oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Success[_iter114].Count));
-                  foreach (Query _iter115 in Success[_iter114].Keys)
+                  oprot.WriteMapBegin(new TMap(TType.Struct, TType.Struct, Success[_iter133].Count));
+                  foreach (Query _iter134 in Success[_iter133].Keys)
                   {
-                    _iter115.Write(oprot);
-                    Success[_iter114][_iter115].Write(oprot);
+                    _iter134.Write(oprot);
+                    Success[_iter133][_iter134].Write(oprot);
                   }
                   oprot.WriteMapEnd();
                 }
@@ -3002,15 +3002,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Queries = new Dictionary<int, Query>();
-                  TMap _map116 = iprot.ReadMapBegin();
-                  for( int _i117 = 0; _i117 < _map116.Count; ++_i117)
+                  TMap _map135 = iprot.ReadMapBegin();
+                  for( int _i136 = 0; _i136 < _map135.Count; ++_i136)
                   {
-                    int _key118;
-                    Query _val119;
-                    _key118 = iprot.ReadI32();
-                    _val119 = new Query();
-                    _val119.Read(iprot);
-                    Queries[_key118] = _val119;
+                    int _key137;
+                    Query _val138;
+                    _key137 = iprot.ReadI32();
+                    _val138 = new Query();
+                    _val138.Read(iprot);
+                    Queries[_key137] = _val138;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -3038,10 +3038,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Queries.Count));
-            foreach (int _iter120 in Queries.Keys)
+            foreach (int _iter139 in Queries.Keys)
             {
-              oprot.WriteI32(_iter120);
-              Queries[_iter120].Write(oprot);
+              oprot.WriteI32(_iter139);
+              Queries[_iter139].Write(oprot);
             }
             oprot.WriteMapEnd();
           }
@@ -3110,15 +3110,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Success = new Dictionary<int, ReadResult>();
-                  TMap _map121 = iprot.ReadMapBegin();
-                  for( int _i122 = 0; _i122 < _map121.Count; ++_i122)
+                  TMap _map140 = iprot.ReadMapBegin();
+                  for( int _i141 = 0; _i141 < _map140.Count; ++_i141)
                   {
-                    int _key123;
-                    ReadResult _val124;
-                    _key123 = iprot.ReadI32();
-                    _val124 = new ReadResult();
-                    _val124.Read(iprot);
-                    Success[_key123] = _val124;
+                    int _key142;
+                    ReadResult _val143;
+                    _key142 = iprot.ReadI32();
+                    _val143 = new ReadResult();
+                    _val143.Read(iprot);
+                    Success[_key142] = _val143;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -3148,10 +3148,10 @@ namespace Alphora.Fastore
             oprot.WriteFieldBegin(field);
             {
               oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Success.Count));
-              foreach (int _iter125 in Success.Keys)
+              foreach (int _iter144 in Success.Keys)
               {
-                oprot.WriteI32(_iter125);
-                Success[_iter125].Write(oprot);
+                oprot.WriteI32(_iter144);
+                Success[_iter144].Write(oprot);
               }
               oprot.WriteMapEnd();
             }
@@ -3221,12 +3221,12 @@ namespace Alphora.Fastore
               if (field.Type == TType.List) {
                 {
                   ColumnIDs = new List<int>();
-                  TList _list126 = iprot.ReadListBegin();
-                  for( int _i127 = 0; _i127 < _list126.Count; ++_i127)
+                  TList _list145 = iprot.ReadListBegin();
+                  for( int _i146 = 0; _i146 < _list145.Count; ++_i146)
                   {
-                    int _elem128 = 0;
-                    _elem128 = iprot.ReadI32();
-                    ColumnIDs.Add(_elem128);
+                    int _elem147 = 0;
+                    _elem147 = iprot.ReadI32();
+                    ColumnIDs.Add(_elem147);
                   }
                   iprot.ReadListEnd();
                 }
@@ -3254,9 +3254,9 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteListBegin(new TList(TType.I32, ColumnIDs.Count));
-            foreach (int _iter129 in ColumnIDs)
+            foreach (int _iter148 in ColumnIDs)
             {
-              oprot.WriteI32(_iter129);
+              oprot.WriteI32(_iter148);
             }
             oprot.WriteListEnd();
           }
@@ -3325,13 +3325,13 @@ namespace Alphora.Fastore
               if (field.Type == TType.List) {
                 {
                   Success = new List<Statistic>();
-                  TList _list130 = iprot.ReadListBegin();
-                  for( int _i131 = 0; _i131 < _list130.Count; ++_i131)
+                  TList _list149 = iprot.ReadListBegin();
+                  for( int _i150 = 0; _i150 < _list149.Count; ++_i150)
                   {
-                    Statistic _elem132 = new Statistic();
-                    _elem132 = new Statistic();
-                    _elem132.Read(iprot);
-                    Success.Add(_elem132);
+                    Statistic _elem151 = new Statistic();
+                    _elem151 = new Statistic();
+                    _elem151.Read(iprot);
+                    Success.Add(_elem151);
                   }
                   iprot.ReadListEnd();
                 }
@@ -3361,9 +3361,9 @@ namespace Alphora.Fastore
             oprot.WriteFieldBegin(field);
             {
               oprot.WriteListBegin(new TList(TType.Struct, Success.Count));
-              foreach (Statistic _iter133 in Success)
+              foreach (Statistic _iter152 in Success)
               {
-                _iter133.Write(oprot);
+                _iter152.Write(oprot);
               }
               oprot.WriteListEnd();
             }

@@ -15,7 +15,7 @@ namespace Fastore.Client.Test
         {
             string hostname = "localhost";
             const int port = 8064;
-            _database = Alphora.Fastore.Client.Client.Connect(hostname, port);
+			_database = Alphora.Fastore.Client.Client.Connect(new[] { new ServiceAddress { Name = hostname, Port = port } });
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
 

@@ -22,12 +22,12 @@ class ServiceHandler : virtual public ServiceIf {
     // Your initialization goes here
   }
 
-  void init(HiveState& _return) {
+  void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) {
     // Your implementation goes here
     printf("init\n");
   }
 
-  void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) {
+  void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) {
     // Your implementation goes here
     printf("join\n");
   }
@@ -37,7 +37,7 @@ class ServiceHandler : virtual public ServiceIf {
     printf("leave\n");
   }
 
-  void getHiveState(HiveState& _return) {
+  void getHiveState(HiveState& _return, const bool forceUpdate) {
     // Your implementation goes here
     printf("getHiveState\n");
   }

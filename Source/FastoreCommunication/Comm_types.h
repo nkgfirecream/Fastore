@@ -55,11 +55,13 @@ typedef int32_t HostID;
 
 typedef int32_t PodID;
 
-typedef std::string NetworkAddress;
-
-typedef int32_t NetworkPort;
-
 typedef int64_t TimeStamp;
+
+typedef std::vector<ColumnID>  ColumnIDs;
+
+typedef std::map<PodID, ColumnIDs>  Pods;
+
+typedef std::map<HostID, class NetworkAddress>  HostAddresses;
 
 typedef int64_t LockID;
 
@@ -81,6 +83,59 @@ typedef std::map<class Query, class Answer>  Read;
 
 typedef std::map<ColumnID, Read>  Reads;
 
+typedef struct _NetworkAddress__isset {
+  _NetworkAddress__isset() : port(false) {}
+  bool port;
+} _NetworkAddress__isset;
+
+class NetworkAddress {
+ public:
+
+  static const char* ascii_fingerprint; // = "18B162B1D15D8D46509D3911A9F1C2AA";
+  static const uint8_t binary_fingerprint[16]; // = {0x18,0xB1,0x62,0xB1,0xD1,0x5D,0x8D,0x46,0x50,0x9D,0x39,0x11,0xA9,0xF1,0xC2,0xAA};
+
+  NetworkAddress() : name(), port(0) {
+  }
+
+  virtual ~NetworkAddress() throw() {}
+
+  std::string name;
+  int32_t port;
+
+  _NetworkAddress__isset __isset;
+
+  void __set_name(const std::string& val) {
+    name = val;
+  }
+
+  void __set_port(const int32_t val) {
+    port = val;
+    __isset.port = true;
+  }
+
+  bool operator == (const NetworkAddress & rhs) const
+  {
+    if (!(name == rhs.name))
+      return false;
+    if (__isset.port != rhs.__isset.port)
+      return false;
+    else if (__isset.port && !(port == rhs.port))
+      return false;
+    return true;
+  }
+  bool operator != (const NetworkAddress &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const NetworkAddress & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(NetworkAddress &a, NetworkAddress &b);
+
 
 class WorkerState {
  public:
@@ -94,13 +149,13 @@ class WorkerState {
   virtual ~WorkerState() throw() {}
 
   std::map<ColumnID, RepositoryStatus::type>  repositoryStatus;
-  NetworkPort port;
+  int32_t port;
 
   void __set_repositoryStatus(const std::map<ColumnID, RepositoryStatus::type> & val) {
     repositoryStatus = val;
   }
 
-  void __set_port(const NetworkPort val) {
+  void __set_port(const int32_t val) {
     port = val;
   }
 
@@ -125,18 +180,14 @@ class WorkerState {
 
 void swap(WorkerState &a, WorkerState &b);
 
-typedef struct _ServiceState__isset {
-  _ServiceState__isset() : port(false) {}
-  bool port;
-} _ServiceState__isset;
 
 class ServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "38FDE7751FA147BC46C0BC954603E9EE";
-  static const uint8_t binary_fingerprint[16]; // = {0x38,0xFD,0xE7,0x75,0x1F,0xA1,0x47,0xBC,0x46,0xC0,0xBC,0x95,0x46,0x03,0xE9,0xEE};
+  static const char* ascii_fingerprint; // = "8B2EF7533FE7CD5FF58CED94F3CDCE73";
+  static const uint8_t binary_fingerprint[16]; // = {0x8B,0x2E,0xF7,0x53,0x3F,0xE7,0xCD,0x5F,0xF5,0x8C,0xED,0x94,0xF3,0xCD,0xCE,0x73};
 
-  ServiceState() : status((ServiceStatus::type)0), timeStamp(0), address(), port(0) {
+  ServiceState() : status((ServiceStatus::type)0), timeStamp(0) {
   }
 
   virtual ~ServiceState() throw() {}
@@ -144,10 +195,7 @@ class ServiceState {
   ServiceStatus::type status;
   TimeStamp timeStamp;
   NetworkAddress address;
-  NetworkPort port;
   std::map<PodID, WorkerState>  workers;
-
-  _ServiceState__isset __isset;
 
   void __set_status(const ServiceStatus::type val) {
     status = val;
@@ -161,11 +209,6 @@ class ServiceState {
     address = val;
   }
 
-  void __set_port(const NetworkPort val) {
-    port = val;
-    __isset.port = true;
-  }
-
   void __set_workers(const std::map<PodID, WorkerState> & val) {
     workers = val;
   }
@@ -177,10 +220,6 @@ class ServiceState {
     if (!(timeStamp == rhs.timeStamp))
       return false;
     if (!(address == rhs.address))
-      return false;
-    if (__isset.port != rhs.__isset.port)
-      return false;
-    else if (__isset.port && !(port == rhs.port))
       return false;
     if (!(workers == rhs.workers))
       return false;
@@ -203,8 +242,8 @@ void swap(ServiceState &a, ServiceState &b);
 class HiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "1E74F1F34021F1762D541650812428EA";
-  static const uint8_t binary_fingerprint[16]; // = {0x1E,0x74,0xF1,0xF3,0x40,0x21,0xF1,0x76,0x2D,0x54,0x16,0x50,0x81,0x24,0x28,0xEA};
+  static const char* ascii_fingerprint; // = "EB7D21473380080E55471C125F7E739C";
+  static const uint8_t binary_fingerprint[16]; // = {0xEB,0x7D,0x21,0x47,0x33,0x80,0x08,0x0E,0x55,0x47,0x1C,0x12,0x5F,0x7E,0x73,0x9C};
 
   HiveState() : topologyID(0), reportingHostID(0) {
   }
@@ -249,6 +288,50 @@ class HiveState {
 };
 
 void swap(HiveState &a, HiveState &b);
+
+
+class Topology {
+ public:
+
+  static const char* ascii_fingerprint; // = "8FFF1DF7A12AE69FE78268BC347A1EAE";
+  static const uint8_t binary_fingerprint[16]; // = {0x8F,0xFF,0x1D,0xF7,0xA1,0x2A,0xE6,0x9F,0xE7,0x82,0x68,0xBC,0x34,0x7A,0x1E,0xAE};
+
+  Topology() : topologyID(0) {
+  }
+
+  virtual ~Topology() throw() {}
+
+  TopologyID topologyID;
+  std::map<HostID, Pods>  hosts;
+
+  void __set_topologyID(const TopologyID val) {
+    topologyID = val;
+  }
+
+  void __set_hosts(const std::map<HostID, Pods> & val) {
+    hosts = val;
+  }
+
+  bool operator == (const Topology & rhs) const
+  {
+    if (!(topologyID == rhs.topologyID))
+      return false;
+    if (!(hosts == rhs.hosts))
+      return false;
+    return true;
+  }
+  bool operator != (const Topology &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Topology & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Topology &a, Topology &b);
 
 typedef struct _LockExpired__isset {
   _LockExpired__isset() : lockID(false) {}
@@ -366,21 +449,34 @@ class AlreadyJoined : public ::apache::thrift::TException {
 
 void swap(AlreadyJoined &a, AlreadyJoined &b);
 
+typedef struct _NotJoined__isset {
+  _NotJoined__isset() : potentialWorkers(false) {}
+  bool potentialWorkers;
+} _NotJoined__isset;
 
 class NotJoined : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "99914B932BD37A50B983C5E7C90AE93B";
-  static const uint8_t binary_fingerprint[16]; // = {0x99,0x91,0x4B,0x93,0x2B,0xD3,0x7A,0x50,0xB9,0x83,0xC5,0xE7,0xC9,0x0A,0xE9,0x3B};
+  static const char* ascii_fingerprint; // = "E86CACEB22240450EDCBEFC3A83970E4";
+  static const uint8_t binary_fingerprint[16]; // = {0xE8,0x6C,0xAC,0xEB,0x22,0x24,0x04,0x50,0xED,0xCB,0xEF,0xC3,0xA8,0x39,0x70,0xE4};
 
-  NotJoined() {
+  NotJoined() : potentialWorkers(0) {
   }
 
   virtual ~NotJoined() throw() {}
 
+  int32_t potentialWorkers;
 
-  bool operator == (const NotJoined & /* rhs */) const
+  _NotJoined__isset __isset;
+
+  void __set_potentialWorkers(const int32_t val) {
+    potentialWorkers = val;
+  }
+
+  bool operator == (const NotJoined & rhs) const
   {
+    if (!(potentialWorkers == rhs.potentialWorkers))
+      return false;
     return true;
   }
   bool operator != (const NotJoined &rhs) const {

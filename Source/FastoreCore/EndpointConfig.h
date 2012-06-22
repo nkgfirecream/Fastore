@@ -2,7 +2,7 @@
 
 struct EndpointConfig
 {
-	static const int DefaultPort = 8064;
+	static const int DefaultPort = 8765;
 
 	int port;
 

@@ -58,13 +58,15 @@ namespace Alphora.Fastore.Client
 			}
 		}
 
-		public Database(string address, int port)
+		public Database(ServiceAddress[] addresses)
         {
-			var service = ConnectToService(address, port);
+			// TODO: check for new vs. existing, create hive if necessary
+
+			var service = ConnectToService(new NetworkAddress { Name = addresses[0].Name, Port = addresses[0].Port });
 			try
 			{
 				// Discover the state of the entire hive from the given service
-				var hiveState = service.getHiveState();
+				var hiveState = service.getHiveState(false);
 				UpdateHiveState(hiveState);
 
 				// Add the service to our collection to avoid re-connection if needed
@@ -137,7 +139,7 @@ namespace Alphora.Fastore.Client
 					Monitor.Exit(_mapLock);
 					taken = false;
 
-					result = ConnectToService(serviceState.Address, serviceState.Port);
+					result = ConnectToService(serviceState.Address);
 
 					// Take the lock again
 					Monitor.Enter(_mapLock);
@@ -169,9 +171,9 @@ namespace Alphora.Fastore.Client
 		/// <summary> Makes a connection to a service given connection information. </summary>
 		/// <param name="hostID"> The host ID of the service if it is known; if not given the service is asked. </param>
 		/// <returns></returns>
-		private Service.Client ConnectToService(string address, int port)
+		private Service.Client ConnectToService(NetworkAddress address)
 		{
-			var transport = new Thrift.Transport.TSocket(address, port);
+			var transport = new Thrift.Transport.TSocket(address.Name, address.Port);
 			transport.Open();
 			try
 			{
@@ -236,7 +238,7 @@ namespace Alphora.Fastore.Client
 					Monitor.Exit(_mapLock);
 					taken = false;
 
-					result = ConnectToWorker(workerState.Item1.Address, workerState.Item2.Port, podID);
+					result = ConnectToWorker(new NetworkAddress { Name = workerState.Item1.Address.Name, Port = workerState.Item2.Port }, podID);
 
 					// Take the lock again
 					Monitor.Enter(_mapLock);
@@ -267,9 +269,9 @@ namespace Alphora.Fastore.Client
 
 		/// <summary> Connects to a given pod ID. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private Worker.Client ConnectToWorker(string address, int port, int podID)
+		private Worker.Client ConnectToWorker(NetworkAddress address, int podID)
 		{
-			var transport = new Thrift.Transport.TSocket(address, port);
+			var transport = new Thrift.Transport.TSocket(address.Name, address.Port);
 			transport.Open();
 			try
 			{

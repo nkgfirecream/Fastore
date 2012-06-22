@@ -41,7 +41,7 @@ namespace Fastore.Core.Demo2
 			var port = connect.Port;
 			connect.Dispose();
 
-			_database = Client.Connect(address, port);
+			_database = Client.Connect(new[] { new ServiceAddress { Name = address, Port = port } });
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
 

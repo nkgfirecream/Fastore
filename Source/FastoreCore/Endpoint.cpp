@@ -43,6 +43,11 @@ public:
 	{
 		_server->stop();
 	}
+
+	boost::shared_ptr<apache::thrift::TProcessor> getProcessor()
+	{
+		return _processor;
+	}
 };
 
 Endpoint::Endpoint(const EndpointConfig& config, const boost::shared_ptr<TProcessor>& processor) : _pimpl(new impl(config, processor))
@@ -56,4 +61,9 @@ void Endpoint::Run()
 void Endpoint::Stop()
 {
 	_pimpl->Stop();
+}
+
+boost::shared_ptr<apache::thrift::TProcessor> Endpoint::getProcessor()
+{
+	return _pimpl->getProcessor();
 }

@@ -12,10 +12,10 @@ struct ServiceStartup
 	1: required Path path,
 
 	/** Override of network address. */
-	2: optional Comm.NetworkAddress address,
+	2: optional string address,
 
 	/** Override of network port. */
-	3: optional Comm.NetworkPort port,
+	3: optional i32 port,
 
 	/** Override of worker paths */
 	4: optional map<WorkerNumber, string> workerPaths
@@ -32,7 +32,6 @@ struct ServiceConfig
 {
 	1: required Path path,
 	2: required map<WorkerNumber, Path> workerPaths,
-	3: required Comm.NetworkPort port,
-	4: required Comm.NetworkAddress address,
-	5: optional JoinedTopology joinedTopology
+	3: required Comm.NetworkAddress address,
+	4: optional JoinedTopology joinedTopology
 }

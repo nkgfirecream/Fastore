@@ -20,21 +20,25 @@ namespace Alphora.Fastore
   public partial class Service {
     public interface Iface {
       /// <summary>
-      /// Initialize a new hive starting with this service
+      /// Initialize a new hive including this service
       /// </summary>
-      HiveState init();
+      /// <param name="topology"></param>
+      /// <param name="addresses"></param>
+      /// <param name="hostID"></param>
+      ServiceState init(Topology topology, Dictionary<int, NetworkAddress> addresses, int hostID);
       #if SILVERLIGHT
-      IAsyncResult Begin_init(AsyncCallback callback, object state, );
-      HiveState End_init(IAsyncResult asyncResult);
+      IAsyncResult Begin_init(AsyncCallback callback, object state, Topology topology, Dictionary<int, NetworkAddress> addresses, int hostID);
+      ServiceState End_init(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Associates the service with the given logical host ID within the given hive.
       /// </summary>
-      /// <param name="hostID"></param>
       /// <param name="hiveState"></param>
-      ServiceState join(int hostID, HiveState hiveState);
+      /// <param name="address"></param>
+      /// <param name="hostID"></param>
+      ServiceState join(HiveState hiveState, NetworkAddress address, int hostID);
       #if SILVERLIGHT
-      IAsyncResult Begin_join(AsyncCallback callback, object state, int hostID, HiveState hiveState);
+      IAsyncResult Begin_join(AsyncCallback callback, object state, HiveState hiveState, NetworkAddress address, int hostID);
       ServiceState End_join(IAsyncResult asyncResult);
       #endif
       /// <summary>
@@ -48,9 +52,10 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the current status of all services in the hive as understood by this service.
       /// </summary>
-      HiveState getHiveState();
+      /// <param name="forceUpdate"></param>
+      HiveState getHiveState(bool forceUpdate);
       #if SILVERLIGHT
-      IAsyncResult Begin_getHiveState(AsyncCallback callback, object state, );
+      IAsyncResult Begin_getHiveState(AsyncCallback callback, object state, bool forceUpdate);
       HiveState End_getHiveState(IAsyncResult asyncResult);
       #endif
       /// <summary>
@@ -129,12 +134,12 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_init(AsyncCallback callback, object state, )
+      public IAsyncResult Begin_init(AsyncCallback callback, object state, Topology topology, Dictionary<int, NetworkAddress> addresses, int hostID)
       {
-        return send_init(callback, state);
+        return send_init(callback, state, topology, addresses, hostID);
       }
 
-      public HiveState End_init(IAsyncResult asyncResult)
+      public ServiceState End_init(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
         return recv_init();
@@ -143,28 +148,34 @@ namespace Alphora.Fastore
       #endif
 
       /// <summary>
-      /// Initialize a new hive starting with this service
+      /// Initialize a new hive including this service
       /// </summary>
-      public HiveState init()
+      /// <param name="topology"></param>
+      /// <param name="addresses"></param>
+      /// <param name="hostID"></param>
+      public ServiceState init(Topology topology, Dictionary<int, NetworkAddress> addresses, int hostID)
       {
         #if !SILVERLIGHT
-        send_init();
+        send_init(topology, addresses, hostID);
         return recv_init();
 
         #else
-        var asyncResult = Begin_init(null, null, );
+        var asyncResult = Begin_init(null, null, topology, addresses, hostID);
         return End_init(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_init(AsyncCallback callback, object state, )
+      public IAsyncResult send_init(AsyncCallback callback, object state, Topology topology, Dictionary<int, NetworkAddress> addresses, int hostID)
       #else
-      public void send_init()
+      public void send_init(Topology topology, Dictionary<int, NetworkAddress> addresses, int hostID)
       #endif
       {
         oprot_.WriteMessageBegin(new TMessage("init", TMessageType.Call, seqid_));
         init_args args = new init_args();
+        args.Topology = topology;
+        args.Addresses = addresses;
+        args.HostID = hostID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -174,7 +185,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public HiveState recv_init()
+      public ServiceState recv_init()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -196,9 +207,9 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_join(AsyncCallback callback, object state, int hostID, HiveState hiveState)
+      public IAsyncResult Begin_join(AsyncCallback callback, object state, HiveState hiveState, NetworkAddress address, int hostID)
       {
-        return send_join(callback, state, hostID, hiveState);
+        return send_join(callback, state, hiveState, address, hostID);
       }
 
       public ServiceState End_join(IAsyncResult asyncResult)
@@ -212,30 +223,32 @@ namespace Alphora.Fastore
       /// <summary>
       /// Associates the service with the given logical host ID within the given hive.
       /// </summary>
-      /// <param name="hostID"></param>
       /// <param name="hiveState"></param>
-      public ServiceState join(int hostID, HiveState hiveState)
+      /// <param name="address"></param>
+      /// <param name="hostID"></param>
+      public ServiceState join(HiveState hiveState, NetworkAddress address, int hostID)
       {
         #if !SILVERLIGHT
-        send_join(hostID, hiveState);
+        send_join(hiveState, address, hostID);
         return recv_join();
 
         #else
-        var asyncResult = Begin_join(null, null, hostID, hiveState);
+        var asyncResult = Begin_join(null, null, hiveState, address, hostID);
         return End_join(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_join(AsyncCallback callback, object state, int hostID, HiveState hiveState)
+      public IAsyncResult send_join(AsyncCallback callback, object state, HiveState hiveState, NetworkAddress address, int hostID)
       #else
-      public void send_join(int hostID, HiveState hiveState)
+      public void send_join(HiveState hiveState, NetworkAddress address, int hostID)
       #endif
       {
         oprot_.WriteMessageBegin(new TMessage("join", TMessageType.Call, seqid_));
         join_args args = new join_args();
-        args.HostID = hostID;
         args.HiveState = hiveState;
+        args.Address = address;
+        args.HostID = hostID;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -331,9 +344,9 @@ namespace Alphora.Fastore
 
       
       #if SILVERLIGHT
-      public IAsyncResult Begin_getHiveState(AsyncCallback callback, object state, )
+      public IAsyncResult Begin_getHiveState(AsyncCallback callback, object state, bool forceUpdate)
       {
-        return send_getHiveState(callback, state);
+        return send_getHiveState(callback, state, forceUpdate);
       }
 
       public HiveState End_getHiveState(IAsyncResult asyncResult)
@@ -347,26 +360,28 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the current status of all services in the hive as understood by this service.
       /// </summary>
-      public HiveState getHiveState()
+      /// <param name="forceUpdate"></param>
+      public HiveState getHiveState(bool forceUpdate)
       {
         #if !SILVERLIGHT
-        send_getHiveState();
+        send_getHiveState(forceUpdate);
         return recv_getHiveState();
 
         #else
-        var asyncResult = Begin_getHiveState(null, null, );
+        var asyncResult = Begin_getHiveState(null, null, forceUpdate);
         return End_getHiveState(asyncResult);
 
         #endif
       }
       #if SILVERLIGHT
-      public IAsyncResult send_getHiveState(AsyncCallback callback, object state, )
+      public IAsyncResult send_getHiveState(AsyncCallback callback, object state, bool forceUpdate)
       #else
-      public void send_getHiveState()
+      public void send_getHiveState(bool forceUpdate)
       #endif
       {
         oprot_.WriteMessageBegin(new TMessage("getHiveState", TMessageType.Call, seqid_));
         getHiveState_args args = new getHiveState_args();
+        args.ForceUpdate = forceUpdate;
         args.Write(oprot_);
         oprot_.WriteMessageEnd();
         #if SILVERLIGHT
@@ -804,7 +819,7 @@ namespace Alphora.Fastore
         iprot.ReadMessageEnd();
         init_result result = new init_result();
         try {
-          result.Success = iface_.init();
+          result.Success = iface_.init(args.Topology, args.Addresses, args.HostID);
         } catch (AlreadyJoined alreadyJoined) {
           result.AlreadyJoined = alreadyJoined;
         }
@@ -821,7 +836,7 @@ namespace Alphora.Fastore
         iprot.ReadMessageEnd();
         join_result result = new join_result();
         try {
-          result.Success = iface_.join(args.HostID, args.HiveState);
+          result.Success = iface_.join(args.HiveState, args.Address, args.HostID);
         } catch (AlreadyJoined alreadyJoined) {
           result.AlreadyJoined = alreadyJoined;
         }
@@ -855,7 +870,7 @@ namespace Alphora.Fastore
         iprot.ReadMessageEnd();
         getHiveState_result result = new getHiveState_result();
         try {
-          result.Success = iface_.getHiveState();
+          result.Success = iface_.getHiveState(args.ForceUpdate);
         } catch (NotJoined notJoined) {
           result.NotJoined = notJoined;
         }
@@ -968,6 +983,59 @@ namespace Alphora.Fastore
     #endif
     public partial class init_args : TBase
     {
+      private Topology _topology;
+      private Dictionary<int, NetworkAddress> _addresses;
+      private int _hostID;
+
+      public Topology Topology
+      {
+        get
+        {
+          return _topology;
+        }
+        set
+        {
+          __isset.topology = true;
+          this._topology = value;
+        }
+      }
+
+      public Dictionary<int, NetworkAddress> Addresses
+      {
+        get
+        {
+          return _addresses;
+        }
+        set
+        {
+          __isset.addresses = true;
+          this._addresses = value;
+        }
+      }
+
+      public int HostID
+      {
+        get
+        {
+          return _hostID;
+        }
+        set
+        {
+          __isset.hostID = true;
+          this._hostID = value;
+        }
+      }
+
+
+      public Isset __isset;
+      #if !SILVERLIGHT
+      [Serializable]
+      #endif
+      public struct Isset {
+        public bool topology;
+        public bool addresses;
+        public bool hostID;
+      }
 
       public init_args() {
       }
@@ -984,6 +1052,41 @@ namespace Alphora.Fastore
           }
           switch (field.ID)
           {
+            case 1:
+              if (field.Type == TType.Struct) {
+                Topology = new Topology();
+                Topology.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 2:
+              if (field.Type == TType.Map) {
+                {
+                  Addresses = new Dictionary<int, NetworkAddress>();
+                  TMap _map65 = iprot.ReadMapBegin();
+                  for( int _i66 = 0; _i66 < _map65.Count; ++_i66)
+                  {
+                    int _key67;
+                    NetworkAddress _val68;
+                    _key67 = iprot.ReadI32();
+                    _val68 = new NetworkAddress();
+                    _val68.Read(iprot);
+                    Addresses[_key67] = _val68;
+                  }
+                  iprot.ReadMapEnd();
+                }
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 3:
+              if (field.Type == TType.I32) {
+                HostID = iprot.ReadI32();
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
             default: 
               TProtocolUtil.Skip(iprot, field.Type);
               break;
@@ -996,12 +1099,51 @@ namespace Alphora.Fastore
       public void Write(TProtocol oprot) {
         TStruct struc = new TStruct("init_args");
         oprot.WriteStructBegin(struc);
+        TField field = new TField();
+        if (Topology != null && __isset.topology) {
+          field.Name = "topology";
+          field.Type = TType.Struct;
+          field.ID = 1;
+          oprot.WriteFieldBegin(field);
+          Topology.Write(oprot);
+          oprot.WriteFieldEnd();
+        }
+        if (Addresses != null && __isset.addresses) {
+          field.Name = "addresses";
+          field.Type = TType.Map;
+          field.ID = 2;
+          oprot.WriteFieldBegin(field);
+          {
+            oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Addresses.Count));
+            foreach (int _iter69 in Addresses.Keys)
+            {
+              oprot.WriteI32(_iter69);
+              Addresses[_iter69].Write(oprot);
+            }
+            oprot.WriteMapEnd();
+          }
+          oprot.WriteFieldEnd();
+        }
+        if (__isset.hostID) {
+          field.Name = "hostID";
+          field.Type = TType.I32;
+          field.ID = 3;
+          oprot.WriteFieldBegin(field);
+          oprot.WriteI32(HostID);
+          oprot.WriteFieldEnd();
+        }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
         StringBuilder sb = new StringBuilder("init_args(");
+        sb.Append("Topology: ");
+        sb.Append(Topology== null ? "<null>" : Topology.ToString());
+        sb.Append(",Addresses: ");
+        sb.Append(Addresses);
+        sb.Append(",HostID: ");
+        sb.Append(HostID);
         sb.Append(")");
         return sb.ToString();
       }
@@ -1014,10 +1156,10 @@ namespace Alphora.Fastore
     #endif
     public partial class init_result : TBase
     {
-      private HiveState _success;
+      private ServiceState _success;
       private AlreadyJoined _alreadyJoined;
 
-      public HiveState Success
+      public ServiceState Success
       {
         get
         {
@@ -1070,7 +1212,7 @@ namespace Alphora.Fastore
           {
             case 0:
               if (field.Type == TType.Struct) {
-                Success = new HiveState();
+                Success = new ServiceState();
                 Success.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
@@ -1139,21 +1281,9 @@ namespace Alphora.Fastore
     #endif
     public partial class join_args : TBase
     {
-      private int _hostID;
       private HiveState _hiveState;
-
-      public int HostID
-      {
-        get
-        {
-          return _hostID;
-        }
-        set
-        {
-          __isset.hostID = true;
-          this._hostID = value;
-        }
-      }
+      private NetworkAddress _address;
+      private int _hostID;
 
       public HiveState HiveState
       {
@@ -1168,14 +1298,41 @@ namespace Alphora.Fastore
         }
       }
 
+      public NetworkAddress Address
+      {
+        get
+        {
+          return _address;
+        }
+        set
+        {
+          __isset.address = true;
+          this._address = value;
+        }
+      }
+
+      public int HostID
+      {
+        get
+        {
+          return _hostID;
+        }
+        set
+        {
+          __isset.hostID = true;
+          this._hostID = value;
+        }
+      }
+
 
       public Isset __isset;
       #if !SILVERLIGHT
       [Serializable]
       #endif
       public struct Isset {
-        public bool hostID;
         public bool hiveState;
+        public bool address;
+        public bool hostID;
       }
 
       public join_args() {
@@ -1194,16 +1351,24 @@ namespace Alphora.Fastore
           switch (field.ID)
           {
             case 1:
-              if (field.Type == TType.I32) {
-                HostID = iprot.ReadI32();
+              if (field.Type == TType.Struct) {
+                HiveState = new HiveState();
+                HiveState.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
               break;
-            case 2:
+            case 3:
               if (field.Type == TType.Struct) {
-                HiveState = new HiveState();
-                HiveState.Read(iprot);
+                Address = new NetworkAddress();
+                Address.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            case 4:
+              if (field.Type == TType.I32) {
+                HostID = iprot.ReadI32();
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1221,20 +1386,28 @@ namespace Alphora.Fastore
         TStruct struc = new TStruct("join_args");
         oprot.WriteStructBegin(struc);
         TField field = new TField();
-        if (__isset.hostID) {
-          field.Name = "hostID";
-          field.Type = TType.I32;
-          field.ID = 1;
-          oprot.WriteFieldBegin(field);
-          oprot.WriteI32(HostID);
-          oprot.WriteFieldEnd();
-        }
         if (HiveState != null && __isset.hiveState) {
           field.Name = "hiveState";
           field.Type = TType.Struct;
-          field.ID = 2;
+          field.ID = 1;
           oprot.WriteFieldBegin(field);
           HiveState.Write(oprot);
+          oprot.WriteFieldEnd();
+        }
+        if (Address != null && __isset.address) {
+          field.Name = "address";
+          field.Type = TType.Struct;
+          field.ID = 3;
+          oprot.WriteFieldBegin(field);
+          Address.Write(oprot);
+          oprot.WriteFieldEnd();
+        }
+        if (__isset.hostID) {
+          field.Name = "hostID";
+          field.Type = TType.I32;
+          field.ID = 4;
+          oprot.WriteFieldBegin(field);
+          oprot.WriteI32(HostID);
           oprot.WriteFieldEnd();
         }
         oprot.WriteFieldStop();
@@ -1243,10 +1416,12 @@ namespace Alphora.Fastore
 
       public override string ToString() {
         StringBuilder sb = new StringBuilder("join_args(");
-        sb.Append("HostID: ");
-        sb.Append(HostID);
-        sb.Append(",HiveState: ");
+        sb.Append("HiveState: ");
         sb.Append(HiveState== null ? "<null>" : HiveState.ToString());
+        sb.Append(",Address: ");
+        sb.Append(Address== null ? "<null>" : Address.ToString());
+        sb.Append(",HostID: ");
+        sb.Append(HostID);
         sb.Append(")");
         return sb.ToString();
       }
@@ -1521,8 +1696,32 @@ namespace Alphora.Fastore
     #endif
     public partial class getHiveState_args : TBase
     {
+      private bool _forceUpdate;
+
+      public bool ForceUpdate
+      {
+        get
+        {
+          return _forceUpdate;
+        }
+        set
+        {
+          __isset.forceUpdate = true;
+          this._forceUpdate = value;
+        }
+      }
+
+
+      public Isset __isset;
+      #if !SILVERLIGHT
+      [Serializable]
+      #endif
+      public struct Isset {
+        public bool forceUpdate;
+      }
 
       public getHiveState_args() {
+        this._forceUpdate = false;
       }
 
       public void Read (TProtocol iprot)
@@ -1537,6 +1736,13 @@ namespace Alphora.Fastore
           }
           switch (field.ID)
           {
+            case 1:
+              if (field.Type == TType.Bool) {
+                ForceUpdate = iprot.ReadBool();
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
             default: 
               TProtocolUtil.Skip(iprot, field.Type);
               break;
@@ -1549,12 +1755,23 @@ namespace Alphora.Fastore
       public void Write(TProtocol oprot) {
         TStruct struc = new TStruct("getHiveState_args");
         oprot.WriteStructBegin(struc);
+        TField field = new TField();
+        if (__isset.forceUpdate) {
+          field.Name = "forceUpdate";
+          field.Type = TType.Bool;
+          field.ID = 1;
+          oprot.WriteFieldBegin(field);
+          oprot.WriteBool(ForceUpdate);
+          oprot.WriteFieldEnd();
+        }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
       }
 
       public override string ToString() {
         StringBuilder sb = new StringBuilder("getHiveState_args(");
+        sb.Append("ForceUpdate: ");
+        sb.Append(ForceUpdate);
         sb.Append(")");
         return sb.ToString();
       }

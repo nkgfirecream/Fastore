@@ -11,10 +11,11 @@ namespace Fastore.Client.Test
     public class DataAccessTest : TestSetup
     {
         [TestMethod]
-        public void TestCreateTable(){
-        string hostname1 = "localhost";
-            const int port1 = 8064; 
-            Database _db = Alphora.Fastore.Client.Client.Connect(hostname1, port1);
+        public void TestCreateTable()
+		{
+			string hostname1 = "localhost";
+            const int port1 = 8765;
+			Database _db = Alphora.Fastore.Client.Client.Connect(new[] { new ServiceAddress { Name = hostname1, Port = port1 } });
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
             int[] _cols = new int[] { 2000, 2001, 2002, 2003, 2004, 2005 };

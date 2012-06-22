@@ -9,9 +9,9 @@ namespace Alphora.Fastore.Client
 {
     public static class Client
     {
-		public static Database Connect(string address, int port)
+		public static Database Connect(ServiceAddress[] addresses)
 		{
-			return new Database(address, port);
+			return new Database(addresses);
 		}
     }
 }

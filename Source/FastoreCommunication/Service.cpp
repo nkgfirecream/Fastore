@@ -28,6 +28,45 @@ uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
     }
     switch (fid)
     {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->topology.read(iprot);
+          this->__isset.topology = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_MAP) {
+          {
+            this->addresses.clear();
+            uint32_t _size102;
+            ::apache::thrift::protocol::TType _ktype103;
+            ::apache::thrift::protocol::TType _vtype104;
+            iprot->readMapBegin(_ktype103, _vtype104, _size102);
+            uint32_t _i106;
+            for (_i106 = 0; _i106 < _size102; ++_i106)
+            {
+              HostID _key107;
+              xfer += iprot->readI32(_key107);
+              NetworkAddress& _val108 = this->addresses[_key107];
+              xfer += _val108.read(iprot);
+            }
+            iprot->readMapEnd();
+          }
+          this->__isset.addresses = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 3:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->hostID);
+          this->__isset.hostID = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -44,6 +83,27 @@ uint32_t Service_init_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_init_args");
 
+  xfer += oprot->writeFieldBegin("topology", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->topology.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
+  {
+    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->addresses.size()));
+    std::map<HostID, NetworkAddress> ::const_iterator _iter109;
+    for (_iter109 = this->addresses.begin(); _iter109 != this->addresses.end(); ++_iter109)
+    {
+      xfer += oprot->writeI32(_iter109->first);
+      xfer += _iter109->second.write(oprot);
+    }
+    xfer += oprot->writeMapEnd();
+  }
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 3);
+  xfer += oprot->writeI32(this->hostID);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -52,6 +112,27 @@ uint32_t Service_init_args::write(::apache::thrift::protocol::TProtocol* oprot) 
 uint32_t Service_init_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_init_pargs");
+
+  xfer += oprot->writeFieldBegin("topology", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->topology)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
+  {
+    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->addresses)).size()));
+    std::map<HostID, NetworkAddress> ::const_iterator _iter110;
+    for (_iter110 = (*(this->addresses)).begin(); _iter110 != (*(this->addresses)).end(); ++_iter110)
+    {
+      xfer += oprot->writeI32(_iter110->first);
+      xfer += _iter110->second.write(oprot);
+    }
+    xfer += oprot->writeMapEnd();
+  }
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 3);
+  xfer += oprot->writeI32((*(this->hostID)));
+  xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -195,17 +276,25 @@ uint32_t Service_join_args::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->hostID);
-          this->__isset.hostID = true;
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->hiveState.read(iprot);
+          this->__isset.hiveState = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 2:
+      case 3:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->hiveState.read(iprot);
-          this->__isset.hiveState = true;
+          xfer += this->address.read(iprot);
+          this->__isset.address = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 4:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->hostID);
+          this->__isset.hostID = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -226,12 +315,16 @@ uint32_t Service_join_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_join_args");
 
-  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->hostID);
+  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += this->hiveState.write(oprot);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 2);
-  xfer += this->hiveState.write(oprot);
+  xfer += oprot->writeFieldBegin("address", ::apache::thrift::protocol::T_STRUCT, 3);
+  xfer += this->address.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32(this->hostID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -243,12 +336,16 @@ uint32_t Service_join_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_join_pargs");
 
-  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32((*(this->hostID)));
+  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 1);
+  xfer += (*(this->hiveState)).write(oprot);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 2);
-  xfer += (*(this->hiveState)).write(oprot);
+  xfer += oprot->writeFieldBegin("address", ::apache::thrift::protocol::T_STRUCT, 3);
+  xfer += (*(this->address)).write(oprot);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 4);
+  xfer += oprot->writeI32((*(this->hostID)));
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -538,6 +635,14 @@ uint32_t Service_getHiveState_args::read(::apache::thrift::protocol::TProtocol* 
     }
     switch (fid)
     {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_BOOL) {
+          xfer += iprot->readBool(this->forceUpdate);
+          this->__isset.forceUpdate = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -554,6 +659,10 @@ uint32_t Service_getHiveState_args::write(::apache::thrift::protocol::TProtocol*
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_getHiveState_args");
 
+  xfer += oprot->writeFieldBegin("forceUpdate", ::apache::thrift::protocol::T_BOOL, 1);
+  xfer += oprot->writeBool(this->forceUpdate);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -562,6 +671,10 @@ uint32_t Service_getHiveState_args::write(::apache::thrift::protocol::TProtocol*
 uint32_t Service_getHiveState_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_getHiveState_pargs");
+
+  xfer += oprot->writeFieldBegin("forceUpdate", ::apache::thrift::protocol::T_BOOL, 1);
+  xfer += oprot->writeBool((*(this->forceUpdate)));
+  xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -880,9 +993,9 @@ uint32_t Service_acquireLock_args::read(::apache::thrift::protocol::TProtocol* i
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast80;
-          xfer += iprot->readI32(ecast80);
-          this->mode = (LockMode::type)ecast80;
+          int32_t ecast111;
+          xfer += iprot->readI32(ecast111);
+          this->mode = (LockMode::type)ecast111;
           this->__isset.mode = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -1668,18 +1781,21 @@ uint32_t Service_releaseLock_presult::read(::apache::thrift::protocol::TProtocol
   return xfer;
 }
 
-void ServiceClient::init(HiveState& _return)
+void ServiceClient::init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID)
 {
-  send_init();
+  send_init(topology, addresses, hostID);
   recv_init(_return);
 }
 
-void ServiceClient::send_init()
+void ServiceClient::send_init(const Topology& topology, const HostAddresses& addresses, const HostID hostID)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("init", ::apache::thrift::protocol::T_CALL, cseqid);
 
   Service_init_pargs args;
+  args.topology = &topology;
+  args.addresses = &addresses;
+  args.hostID = &hostID;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1687,7 +1803,7 @@ void ServiceClient::send_init()
   oprot_->getTransport()->flush();
 }
 
-void ServiceClient::recv_init(HiveState& _return)
+void ServiceClient::recv_init(ServiceState& _return)
 {
 
   int32_t rseqid = 0;
@@ -1728,20 +1844,21 @@ void ServiceClient::recv_init(HiveState& _return)
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "init failed: unknown result");
 }
 
-void ServiceClient::join(ServiceState& _return, const HostID hostID, const HiveState& hiveState)
+void ServiceClient::join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID)
 {
-  send_join(hostID, hiveState);
+  send_join(hiveState, address, hostID);
   recv_join(_return);
 }
 
-void ServiceClient::send_join(const HostID hostID, const HiveState& hiveState)
+void ServiceClient::send_join(const HiveState& hiveState, const NetworkAddress& address, const HostID hostID)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("join", ::apache::thrift::protocol::T_CALL, cseqid);
 
   Service_join_pargs args;
-  args.hostID = &hostID;
   args.hiveState = &hiveState;
+  args.address = &address;
+  args.hostID = &hostID;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -1845,18 +1962,19 @@ void ServiceClient::recv_leave()
   return;
 }
 
-void ServiceClient::getHiveState(HiveState& _return)
+void ServiceClient::getHiveState(HiveState& _return, const bool forceUpdate)
 {
-  send_getHiveState();
+  send_getHiveState(forceUpdate);
   recv_getHiveState(_return);
 }
 
-void ServiceClient::send_getHiveState()
+void ServiceClient::send_getHiveState(const bool forceUpdate)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("getHiveState", ::apache::thrift::protocol::T_CALL, cseqid);
 
   Service_getHiveState_pargs args;
+  args.forceUpdate = &forceUpdate;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -2254,7 +2372,7 @@ void ServiceProcessor::process_init(int32_t seqid, ::apache::thrift::protocol::T
 
   Service_init_result result;
   try {
-    iface_->init(result.success);
+    iface_->init(result.success, args.topology, args.addresses, args.hostID);
     result.__isset.success = true;
   } catch (AlreadyJoined &alreadyJoined) {
     result.alreadyJoined = alreadyJoined;
@@ -2311,7 +2429,7 @@ void ServiceProcessor::process_join(int32_t seqid, ::apache::thrift::protocol::T
 
   Service_join_result result;
   try {
-    iface_->join(result.success, args.hostID, args.hiveState);
+    iface_->join(result.success, args.hiveState, args.address, args.hostID);
     result.__isset.success = true;
   } catch (AlreadyJoined &alreadyJoined) {
     result.alreadyJoined = alreadyJoined;
@@ -2424,7 +2542,7 @@ void ServiceProcessor::process_getHiveState(int32_t seqid, ::apache::thrift::pro
 
   Service_getHiveState_result result;
   try {
-    iface_->getHiveState(result.success);
+    iface_->getHiveState(result.success, args.forceUpdate);
     result.__isset.success = true;
   } catch (NotJoined &notJoined) {
     result.notJoined = notJoined;

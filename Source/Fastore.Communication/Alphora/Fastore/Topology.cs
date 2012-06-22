@@ -23,23 +23,23 @@ namespace Alphora.Fastore
   #endif
   public partial class Topology : TBase
   {
-    private int _id;
-    private Dictionary<int, Host> _hosts;
+    private int _topologyID;
+    private Dictionary<int, Dictionary<int, List<int>>> _hosts;
 
-    public int Id
+    public int TopologyID
     {
       get
       {
-        return _id;
+        return _topologyID;
       }
       set
       {
-        __isset.id = true;
-        this._id = value;
+        __isset.topologyID = true;
+        this._topologyID = value;
       }
     }
 
-    public Dictionary<int, Host> Hosts
+    public Dictionary<int, Dictionary<int, List<int>>> Hosts
     {
       get
       {
@@ -58,7 +58,7 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
-      public bool id;
+      public bool topologyID;
       public bool hosts;
     }
 
@@ -79,7 +79,7 @@ namespace Alphora.Fastore
         {
           case 1:
             if (field.Type == TType.I32) {
-              Id = iprot.ReadI32();
+              TopologyID = iprot.ReadI32();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -87,16 +87,37 @@ namespace Alphora.Fastore
           case 2:
             if (field.Type == TType.Map) {
               {
-                Hosts = new Dictionary<int, Host>();
-                TMap _map9 = iprot.ReadMapBegin();
-                for( int _i10 = 0; _i10 < _map9.Count; ++_i10)
+                Hosts = new Dictionary<int, Dictionary<int, List<int>>>();
+                TMap _map15 = iprot.ReadMapBegin();
+                for( int _i16 = 0; _i16 < _map15.Count; ++_i16)
                 {
-                  int _key11;
-                  Host _val12;
-                  _key11 = iprot.ReadI32();
-                  _val12 = new Host();
-                  _val12.Read(iprot);
-                  Hosts[_key11] = _val12;
+                  int _key17;
+                  Dictionary<int, List<int>> _val18;
+                  _key17 = iprot.ReadI32();
+                  {
+                    _val18 = new Dictionary<int, List<int>>();
+                    TMap _map19 = iprot.ReadMapBegin();
+                    for( int _i20 = 0; _i20 < _map19.Count; ++_i20)
+                    {
+                      int _key21;
+                      List<int> _val22;
+                      _key21 = iprot.ReadI32();
+                      {
+                        _val22 = new List<int>();
+                        TList _list23 = iprot.ReadListBegin();
+                        for( int _i24 = 0; _i24 < _list23.Count; ++_i24)
+                        {
+                          int _elem25 = 0;
+                          _elem25 = iprot.ReadI32();
+                          _val22.Add(_elem25);
+                        }
+                        iprot.ReadListEnd();
+                      }
+                      _val18[_key21] = _val22;
+                    }
+                    iprot.ReadMapEnd();
+                  }
+                  Hosts[_key17] = _val18;
                 }
                 iprot.ReadMapEnd();
               }
@@ -117,12 +138,12 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("Topology");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
-      if (__isset.id) {
-        field.Name = "id";
+      if (__isset.topologyID) {
+        field.Name = "topologyID";
         field.Type = TType.I32;
         field.ID = 1;
         oprot.WriteFieldBegin(field);
-        oprot.WriteI32(Id);
+        oprot.WriteI32(TopologyID);
         oprot.WriteFieldEnd();
       }
       if (Hosts != null && __isset.hosts) {
@@ -131,11 +152,26 @@ namespace Alphora.Fastore
         field.ID = 2;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Hosts.Count));
-          foreach (int _iter13 in Hosts.Keys)
+          oprot.WriteMapBegin(new TMap(TType.I32, TType.Map, Hosts.Count));
+          foreach (int _iter26 in Hosts.Keys)
           {
-            oprot.WriteI32(_iter13);
-            Hosts[_iter13].Write(oprot);
+            oprot.WriteI32(_iter26);
+            {
+              oprot.WriteMapBegin(new TMap(TType.I32, TType.List, Hosts[_iter26].Count));
+              foreach (int _iter27 in Hosts[_iter26].Keys)
+              {
+                oprot.WriteI32(_iter27);
+                {
+                  oprot.WriteListBegin(new TList(TType.I32, Hosts[_iter26][_iter27].Count));
+                  foreach (int _iter28 in Hosts[_iter26][_iter27])
+                  {
+                    oprot.WriteI32(_iter28);
+                  }
+                  oprot.WriteListEnd();
+                }
+              }
+              oprot.WriteMapEnd();
+            }
           }
           oprot.WriteMapEnd();
         }
@@ -147,8 +183,8 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("Topology(");
-      sb.Append("Id: ");
-      sb.Append(Id);
+      sb.Append("TopologyID: ");
+      sb.Append(TopologyID);
       sb.Append(",Hosts: ");
       sb.Append(Hosts);
       sb.Append(")");

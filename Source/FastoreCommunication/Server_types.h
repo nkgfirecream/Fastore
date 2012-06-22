@@ -40,8 +40,8 @@ class ServiceStartup {
   virtual ~ServiceStartup() throw() {}
 
   Path path;
-   ::fastore::communication::NetworkAddress address;
-   ::fastore::communication::NetworkPort port;
+  std::string address;
+  int32_t port;
   std::map<WorkerNumber, std::string>  workerPaths;
 
   _ServiceStartup__isset __isset;
@@ -50,12 +50,12 @@ class ServiceStartup {
     path = val;
   }
 
-  void __set_address(const  ::fastore::communication::NetworkAddress& val) {
+  void __set_address(const std::string& val) {
     address = val;
     __isset.address = true;
   }
 
-  void __set_port(const  ::fastore::communication::NetworkPort val) {
+  void __set_port(const int32_t val) {
     port = val;
     __isset.port = true;
   }
@@ -155,17 +155,16 @@ typedef struct _ServiceConfig__isset {
 class ServiceConfig {
  public:
 
-  static const char* ascii_fingerprint; // = "8EE1223182BF9C484B7D25C25407A085";
-  static const uint8_t binary_fingerprint[16]; // = {0x8E,0xE1,0x22,0x31,0x82,0xBF,0x9C,0x48,0x4B,0x7D,0x25,0xC2,0x54,0x07,0xA0,0x85};
+  static const char* ascii_fingerprint; // = "D3217A03F7C15A8AA899518E3E42EE89";
+  static const uint8_t binary_fingerprint[16]; // = {0xD3,0x21,0x7A,0x03,0xF7,0xC1,0x5A,0x8A,0xA8,0x99,0x51,0x8E,0x3E,0x42,0xEE,0x89};
 
-  ServiceConfig() : path(), port(0), address() {
+  ServiceConfig() : path() {
   }
 
   virtual ~ServiceConfig() throw() {}
 
   Path path;
   std::map<WorkerNumber, Path>  workerPaths;
-   ::fastore::communication::NetworkPort port;
    ::fastore::communication::NetworkAddress address;
   JoinedTopology joinedTopology;
 
@@ -177,10 +176,6 @@ class ServiceConfig {
 
   void __set_workerPaths(const std::map<WorkerNumber, Path> & val) {
     workerPaths = val;
-  }
-
-  void __set_port(const  ::fastore::communication::NetworkPort val) {
-    port = val;
   }
 
   void __set_address(const  ::fastore::communication::NetworkAddress& val) {
@@ -197,8 +192,6 @@ class ServiceConfig {
     if (!(path == rhs.path))
       return false;
     if (!(workerPaths == rhs.workerPaths))
-      return false;
-    if (!(port == rhs.port))
       return false;
     if (!(address == rhs.address))
       return false;

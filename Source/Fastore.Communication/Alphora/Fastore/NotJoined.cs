@@ -23,6 +23,29 @@ namespace Alphora.Fastore
   #endif
   public partial class NotJoined : Exception, TBase
   {
+    private int _potentialWorkers;
+
+    public int PotentialWorkers
+    {
+      get
+      {
+        return _potentialWorkers;
+      }
+      set
+      {
+        __isset.potentialWorkers = true;
+        this._potentialWorkers = value;
+      }
+    }
+
+
+    public Isset __isset;
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public struct Isset {
+      public bool potentialWorkers;
+    }
 
     public NotJoined() {
     }
@@ -39,6 +62,13 @@ namespace Alphora.Fastore
         }
         switch (field.ID)
         {
+          case 1:
+            if (field.Type == TType.I32) {
+              PotentialWorkers = iprot.ReadI32();
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
           default: 
             TProtocolUtil.Skip(iprot, field.Type);
             break;
@@ -51,12 +81,23 @@ namespace Alphora.Fastore
     public void Write(TProtocol oprot) {
       TStruct struc = new TStruct("NotJoined");
       oprot.WriteStructBegin(struc);
+      TField field = new TField();
+      if (__isset.potentialWorkers) {
+        field.Name = "potentialWorkers";
+        field.Type = TType.I32;
+        field.ID = 1;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteI32(PotentialWorkers);
+        oprot.WriteFieldEnd();
+      }
       oprot.WriteFieldStop();
       oprot.WriteStructEnd();
     }
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("NotJoined(");
+      sb.Append("PotentialWorkers: ");
+      sb.Append(PotentialWorkers);
       sb.Append(")");
       return sb.ToString();
     }

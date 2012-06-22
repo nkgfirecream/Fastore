@@ -15,10 +15,10 @@ namespace fastore { namespace communication {
 class ServiceIf {
  public:
   virtual ~ServiceIf() {}
-  virtual void init(HiveState& _return) = 0;
-  virtual void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) = 0;
+  virtual void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) = 0;
+  virtual void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) = 0;
   virtual void leave() = 0;
-  virtual void getHiveState(HiveState& _return) = 0;
+  virtual void getHiveState(HiveState& _return, const bool forceUpdate) = 0;
   virtual void getState(ServiceState& _return) = 0;
   virtual LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) = 0;
   virtual void keepLock(const LockID lockID) = 0;
@@ -53,16 +53,16 @@ class ServiceIfSingletonFactory : virtual public ServiceIfFactory {
 class ServiceNull : virtual public ServiceIf {
  public:
   virtual ~ServiceNull() {}
-  void init(HiveState& /* _return */) {
+  void init(ServiceState& /* _return */, const Topology& /* topology */, const HostAddresses& /* addresses */, const HostID /* hostID */) {
     return;
   }
-  void join(ServiceState& /* _return */, const HostID /* hostID */, const HiveState& /* hiveState */) {
+  void join(ServiceState& /* _return */, const HiveState& /* hiveState */, const NetworkAddress& /* address */, const HostID /* hostID */) {
     return;
   }
   void leave() {
     return;
   }
-  void getHiveState(HiveState& /* _return */) {
+  void getHiveState(HiveState& /* _return */, const bool /* forceUpdate */) {
     return;
   }
   void getState(ServiceState& /* _return */) {
@@ -83,18 +83,47 @@ class ServiceNull : virtual public ServiceIf {
   }
 };
 
+typedef struct _Service_init_args__isset {
+  _Service_init_args__isset() : topology(false), addresses(false), hostID(false) {}
+  bool topology;
+  bool addresses;
+  bool hostID;
+} _Service_init_args__isset;
 
 class Service_init_args {
  public:
 
-  Service_init_args() {
+  Service_init_args() : hostID(0) {
   }
 
   virtual ~Service_init_args() throw() {}
 
+  Topology topology;
+  HostAddresses addresses;
+  HostID hostID;
 
-  bool operator == (const Service_init_args & /* rhs */) const
+  _Service_init_args__isset __isset;
+
+  void __set_topology(const Topology& val) {
+    topology = val;
+  }
+
+  void __set_addresses(const HostAddresses& val) {
+    addresses = val;
+  }
+
+  void __set_hostID(const HostID val) {
+    hostID = val;
+  }
+
+  bool operator == (const Service_init_args & rhs) const
   {
+    if (!(topology == rhs.topology))
+      return false;
+    if (!(addresses == rhs.addresses))
+      return false;
+    if (!(hostID == rhs.hostID))
+      return false;
     return true;
   }
   bool operator != (const Service_init_args &rhs) const {
@@ -115,6 +144,9 @@ class Service_init_pargs {
 
   virtual ~Service_init_pargs() throw() {}
 
+  const Topology* topology;
+  const HostAddresses* addresses;
+  const HostID* hostID;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -134,12 +166,12 @@ class Service_init_result {
 
   virtual ~Service_init_result() throw() {}
 
-  HiveState success;
+  ServiceState success;
   AlreadyJoined alreadyJoined;
 
   _Service_init_result__isset __isset;
 
-  void __set_success(const HiveState& val) {
+  void __set_success(const ServiceState& val) {
     success = val;
   }
 
@@ -178,7 +210,7 @@ class Service_init_presult {
 
   virtual ~Service_init_presult() throw() {}
 
-  HiveState* success;
+  ServiceState* success;
   AlreadyJoined alreadyJoined;
 
   _Service_init_presult__isset __isset;
@@ -188,9 +220,10 @@ class Service_init_presult {
 };
 
 typedef struct _Service_join_args__isset {
-  _Service_join_args__isset() : hostID(false), hiveState(false) {}
-  bool hostID;
+  _Service_join_args__isset() : hiveState(false), address(false), hostID(false) {}
   bool hiveState;
+  bool address;
+  bool hostID;
 } _Service_join_args__isset;
 
 class Service_join_args {
@@ -201,24 +234,31 @@ class Service_join_args {
 
   virtual ~Service_join_args() throw() {}
 
-  HostID hostID;
   HiveState hiveState;
+  NetworkAddress address;
+  HostID hostID;
 
   _Service_join_args__isset __isset;
-
-  void __set_hostID(const HostID val) {
-    hostID = val;
-  }
 
   void __set_hiveState(const HiveState& val) {
     hiveState = val;
   }
 
+  void __set_address(const NetworkAddress& val) {
+    address = val;
+  }
+
+  void __set_hostID(const HostID val) {
+    hostID = val;
+  }
+
   bool operator == (const Service_join_args & rhs) const
   {
-    if (!(hostID == rhs.hostID))
-      return false;
     if (!(hiveState == rhs.hiveState))
+      return false;
+    if (!(address == rhs.address))
+      return false;
+    if (!(hostID == rhs.hostID))
       return false;
     return true;
   }
@@ -240,8 +280,9 @@ class Service_join_pargs {
 
   virtual ~Service_join_pargs() throw() {}
 
-  const HostID* hostID;
   const HiveState* hiveState;
+  const NetworkAddress* address;
+  const HostID* hostID;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -408,18 +449,31 @@ class Service_leave_presult {
 
 };
 
+typedef struct _Service_getHiveState_args__isset {
+  _Service_getHiveState_args__isset() : forceUpdate(true) {}
+  bool forceUpdate;
+} _Service_getHiveState_args__isset;
 
 class Service_getHiveState_args {
  public:
 
-  Service_getHiveState_args() {
+  Service_getHiveState_args() : forceUpdate(false) {
   }
 
   virtual ~Service_getHiveState_args() throw() {}
 
+  bool forceUpdate;
 
-  bool operator == (const Service_getHiveState_args & /* rhs */) const
+  _Service_getHiveState_args__isset __isset;
+
+  void __set_forceUpdate(const bool val) {
+    forceUpdate = val;
+  }
+
+  bool operator == (const Service_getHiveState_args & rhs) const
   {
+    if (!(forceUpdate == rhs.forceUpdate))
+      return false;
     return true;
   }
   bool operator != (const Service_getHiveState_args &rhs) const {
@@ -440,6 +494,7 @@ class Service_getHiveState_pargs {
 
   virtual ~Service_getHiveState_pargs() throw() {}
 
+  const bool* forceUpdate;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -1155,17 +1210,17 @@ class ServiceClient : virtual public ServiceIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
-  void init(HiveState& _return);
-  void send_init();
-  void recv_init(HiveState& _return);
-  void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState);
-  void send_join(const HostID hostID, const HiveState& hiveState);
+  void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID);
+  void send_init(const Topology& topology, const HostAddresses& addresses, const HostID hostID);
+  void recv_init(ServiceState& _return);
+  void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID);
+  void send_join(const HiveState& hiveState, const NetworkAddress& address, const HostID hostID);
   void recv_join(ServiceState& _return);
   void leave();
   void send_leave();
   void recv_leave();
-  void getHiveState(HiveState& _return);
-  void send_getHiveState();
+  void getHiveState(HiveState& _return, const bool forceUpdate);
+  void send_getHiveState(const bool forceUpdate);
   void recv_getHiveState(HiveState& _return);
   void getState(ServiceState& _return);
   void send_getState();
@@ -1246,23 +1301,23 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_.push_back(iface);
   }
  public:
-  void init(HiveState& _return) {
+  void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->init(_return);
+      ifaces_[i]->init(_return, topology, addresses, hostID);
     }
-    ifaces_[i]->init(_return);
+    ifaces_[i]->init(_return, topology, addresses, hostID);
     return;
   }
 
-  void join(ServiceState& _return, const HostID hostID, const HiveState& hiveState) {
+  void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->join(_return, hostID, hiveState);
+      ifaces_[i]->join(_return, hiveState, address, hostID);
     }
-    ifaces_[i]->join(_return, hostID, hiveState);
+    ifaces_[i]->join(_return, hiveState, address, hostID);
     return;
   }
 
@@ -1275,13 +1330,13 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_[i]->leave();
   }
 
-  void getHiveState(HiveState& _return) {
+  void getHiveState(HiveState& _return, const bool forceUpdate) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->getHiveState(_return);
+      ifaces_[i]->getHiveState(_return, forceUpdate);
     }
-    ifaces_[i]->getHiveState(_return);
+    ifaces_[i]->getHiveState(_return, forceUpdate);
     return;
   }
 
