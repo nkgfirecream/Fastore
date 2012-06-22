@@ -29,17 +29,19 @@ enum RepositoryStatus
 
 enum ServiceStatus
 {
-	Offline = 1,
-	Online = 2,
-	Unreachable = 3
+	Unknown = 1,
+	Offline = 2,
+	Online = 3,
+	Unreachable = 4
 }
 
 typedef i64 TimeStamp
 
 struct WorkerState
 {
-	1: required map<ColumnID, RepositoryStatus> repositoryStatus,
-	2: required i32 port
+	1: required PodID podID,
+	2: required map<ColumnID, RepositoryStatus> repositoryStatus,
+	3: required i32 port
 }
 
 struct ServiceState
@@ -47,7 +49,7 @@ struct ServiceState
 	1: required ServiceStatus status,
 	2: required TimeStamp timeStamp,
 	3: required NetworkAddress address,
-	5: required map<PodID, WorkerState> workers
+	4: required list<WorkerState> workers
 }
 
 struct HiveState

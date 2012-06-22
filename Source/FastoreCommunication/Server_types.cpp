@@ -10,8 +10,8 @@
 
 namespace fastore { namespace server {
 
-const char* ServiceStartup::ascii_fingerprint = "B04C5F620A67663D1E5AAA3FB7A73C67";
-const uint8_t ServiceStartup::binary_fingerprint[16] = {0xB0,0x4C,0x5F,0x62,0x0A,0x67,0x66,0x3D,0x1E,0x5A,0xAA,0x3F,0xB7,0xA7,0x3C,0x67};
+const char* ServiceStartup::ascii_fingerprint = "832E8A20B071B2E4044DD24CD4C9F209";
+const uint8_t ServiceStartup::binary_fingerprint[16] = {0x83,0x2E,0x8A,0x20,0xB0,0x71,0xB2,0xE4,0x04,0x4D,0xD2,0x4C,0xD4,0xC9,0xF2,0x09};
 
 uint32_t ServiceStartup::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -59,22 +59,19 @@ uint32_t ServiceStartup::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 4:
-        if (ftype == ::apache::thrift::protocol::T_MAP) {
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->workerPaths.clear();
             uint32_t _size0;
-            ::apache::thrift::protocol::TType _ktype1;
-            ::apache::thrift::protocol::TType _vtype2;
-            iprot->readMapBegin(_ktype1, _vtype2, _size0);
+            ::apache::thrift::protocol::TType _etype3;
+            iprot->readListBegin(_etype3, _size0);
+            this->workerPaths.resize(_size0);
             uint32_t _i4;
             for (_i4 = 0; _i4 < _size0; ++_i4)
             {
-              WorkerNumber _key5;
-              xfer += iprot->readI32(_key5);
-              std::string& _val6 = this->workerPaths[_key5];
-              xfer += iprot->readString(_val6);
+              xfer += iprot->readString(this->workerPaths[_i4]);
             }
-            iprot->readMapEnd();
+            iprot->readListEnd();
           }
           this->__isset.workerPaths = true;
         } else {
@@ -114,16 +111,15 @@ uint32_t ServiceStartup::write(::apache::thrift::protocol::TProtocol* oprot) con
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.workerPaths) {
-    xfer += oprot->writeFieldBegin("workerPaths", ::apache::thrift::protocol::T_MAP, 4);
+    xfer += oprot->writeFieldBegin("workerPaths", ::apache::thrift::protocol::T_LIST, 4);
     {
-      xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->workerPaths.size()));
-      std::map<WorkerNumber, std::string> ::const_iterator _iter7;
-      for (_iter7 = this->workerPaths.begin(); _iter7 != this->workerPaths.end(); ++_iter7)
+      xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->workerPaths.size()));
+      std::vector<std::string> ::const_iterator _iter5;
+      for (_iter5 = this->workerPaths.begin(); _iter5 != this->workerPaths.end(); ++_iter5)
       {
-        xfer += oprot->writeI32(_iter7->first);
-        xfer += oprot->writeString(_iter7->second);
+        xfer += oprot->writeString((*_iter5));
       }
-      xfer += oprot->writeMapEnd();
+      xfer += oprot->writeListEnd();
     }
     xfer += oprot->writeFieldEnd();
   }
@@ -141,128 +137,8 @@ void swap(ServiceStartup &a, ServiceStartup &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* JoinedTopology::ascii_fingerprint = "C7A49BCE8D210A50A152CFEB94E29623";
-const uint8_t JoinedTopology::binary_fingerprint[16] = {0xC7,0xA4,0x9B,0xCE,0x8D,0x21,0x0A,0x50,0xA1,0x52,0xCF,0xEB,0x94,0xE2,0x96,0x23};
-
-uint32_t JoinedTopology::read(::apache::thrift::protocol::TProtocol* iprot) {
-
-  uint32_t xfer = 0;
-  std::string fname;
-  ::apache::thrift::protocol::TType ftype;
-  int16_t fid;
-
-  xfer += iprot->readStructBegin(fname);
-
-  using ::apache::thrift::protocol::TProtocolException;
-
-  bool isset_topologyID = false;
-  bool isset_hostID = false;
-  bool isset_workerPodIDs = false;
-
-  while (true)
-  {
-    xfer += iprot->readFieldBegin(fname, ftype, fid);
-    if (ftype == ::apache::thrift::protocol::T_STOP) {
-      break;
-    }
-    switch (fid)
-    {
-      case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->topologyID);
-          isset_topologyID = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 2:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->hostID);
-          isset_hostID = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 3:
-        if (ftype == ::apache::thrift::protocol::T_MAP) {
-          {
-            this->workerPodIDs.clear();
-            uint32_t _size8;
-            ::apache::thrift::protocol::TType _ktype9;
-            ::apache::thrift::protocol::TType _vtype10;
-            iprot->readMapBegin(_ktype9, _vtype10, _size8);
-            uint32_t _i12;
-            for (_i12 = 0; _i12 < _size8; ++_i12)
-            {
-              WorkerNumber _key13;
-              xfer += iprot->readI32(_key13);
-               ::fastore::communication::PodID& _val14 = this->workerPodIDs[_key13];
-              xfer += iprot->readI32(_val14);
-            }
-            iprot->readMapEnd();
-          }
-          isset_workerPodIDs = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      default:
-        xfer += iprot->skip(ftype);
-        break;
-    }
-    xfer += iprot->readFieldEnd();
-  }
-
-  xfer += iprot->readStructEnd();
-
-  if (!isset_topologyID)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_hostID)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_workerPodIDs)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
-  return xfer;
-}
-
-uint32_t JoinedTopology::write(::apache::thrift::protocol::TProtocol* oprot) const {
-  uint32_t xfer = 0;
-  xfer += oprot->writeStructBegin("JoinedTopology");
-
-  xfer += oprot->writeFieldBegin("topologyID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->topologyID);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 2);
-  xfer += oprot->writeI32(this->hostID);
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldBegin("workerPodIDs", ::apache::thrift::protocol::T_MAP, 3);
-  {
-    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->workerPodIDs.size()));
-    std::map<WorkerNumber,  ::fastore::communication::PodID> ::const_iterator _iter15;
-    for (_iter15 = this->workerPodIDs.begin(); _iter15 != this->workerPodIDs.end(); ++_iter15)
-    {
-      xfer += oprot->writeI32(_iter15->first);
-      xfer += oprot->writeI32(_iter15->second);
-    }
-    xfer += oprot->writeMapEnd();
-  }
-  xfer += oprot->writeFieldEnd();
-
-  xfer += oprot->writeFieldStop();
-  xfer += oprot->writeStructEnd();
-  return xfer;
-}
-
-void swap(JoinedTopology &a, JoinedTopology &b) {
-  using ::std::swap;
-  swap(a.topologyID, b.topologyID);
-  swap(a.hostID, b.hostID);
-  swap(a.workerPodIDs, b.workerPodIDs);
-}
-
-const char* ServiceConfig::ascii_fingerprint = "D3217A03F7C15A8AA899518E3E42EE89";
-const uint8_t ServiceConfig::binary_fingerprint[16] = {0xD3,0x21,0x7A,0x03,0xF7,0xC1,0x5A,0x8A,0xA8,0x99,0x51,0x8E,0x3E,0x42,0xEE,0x89};
+const char* ServiceConfig::ascii_fingerprint = "D1C5092D0652BFDF79DC31165EAE3E47";
+const uint8_t ServiceConfig::binary_fingerprint[16] = {0xD1,0xC5,0x09,0x2D,0x06,0x52,0xBF,0xDF,0x79,0xDC,0x31,0x16,0x5E,0xAE,0x3E,0x47};
 
 uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -277,7 +153,6 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   bool isset_path = false;
   bool isset_workerPaths = false;
-  bool isset_address = false;
 
   while (true)
   {
@@ -296,22 +171,19 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 2:
-        if (ftype == ::apache::thrift::protocol::T_MAP) {
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->workerPaths.clear();
-            uint32_t _size16;
-            ::apache::thrift::protocol::TType _ktype17;
-            ::apache::thrift::protocol::TType _vtype18;
-            iprot->readMapBegin(_ktype17, _vtype18, _size16);
-            uint32_t _i20;
-            for (_i20 = 0; _i20 < _size16; ++_i20)
+            uint32_t _size6;
+            ::apache::thrift::protocol::TType _etype9;
+            iprot->readListBegin(_etype9, _size6);
+            this->workerPaths.resize(_size6);
+            uint32_t _i10;
+            for (_i10 = 0; _i10 < _size6; ++_i10)
             {
-              WorkerNumber _key21;
-              xfer += iprot->readI32(_key21);
-              Path& _val22 = this->workerPaths[_key21];
-              xfer += iprot->readString(_val22);
+              xfer += iprot->readString(this->workerPaths[_i10]);
             }
-            iprot->readMapEnd();
+            iprot->readListEnd();
           }
           isset_workerPaths = true;
         } else {
@@ -321,15 +193,15 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
       case 3:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += this->address.read(iprot);
-          isset_address = true;
+          this->__isset.address = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 4:
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->joinedTopology.read(iprot);
-          this->__isset.joinedTopology = true;
+          xfer += this->joinedHive.read(iprot);
+          this->__isset.joinedHive = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -347,8 +219,6 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_workerPaths)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_address)
-    throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
 
@@ -360,26 +230,26 @@ uint32_t ServiceConfig::write(::apache::thrift::protocol::TProtocol* oprot) cons
   xfer += oprot->writeString(this->path);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("workerPaths", ::apache::thrift::protocol::T_MAP, 2);
+  xfer += oprot->writeFieldBegin("workerPaths", ::apache::thrift::protocol::T_LIST, 2);
   {
-    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->workerPaths.size()));
-    std::map<WorkerNumber, Path> ::const_iterator _iter23;
-    for (_iter23 = this->workerPaths.begin(); _iter23 != this->workerPaths.end(); ++_iter23)
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRING, static_cast<uint32_t>(this->workerPaths.size()));
+    std::vector<Path> ::const_iterator _iter11;
+    for (_iter11 = this->workerPaths.begin(); _iter11 != this->workerPaths.end(); ++_iter11)
     {
-      xfer += oprot->writeI32(_iter23->first);
-      xfer += oprot->writeString(_iter23->second);
+      xfer += oprot->writeString((*_iter11));
     }
-    xfer += oprot->writeMapEnd();
+    xfer += oprot->writeListEnd();
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("address", ::apache::thrift::protocol::T_STRUCT, 3);
-  xfer += this->address.write(oprot);
-  xfer += oprot->writeFieldEnd();
-
-  if (this->__isset.joinedTopology) {
-    xfer += oprot->writeFieldBegin("joinedTopology", ::apache::thrift::protocol::T_STRUCT, 4);
-    xfer += this->joinedTopology.write(oprot);
+  if (this->__isset.address) {
+    xfer += oprot->writeFieldBegin("address", ::apache::thrift::protocol::T_STRUCT, 3);
+    xfer += this->address.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
+  if (this->__isset.joinedHive) {
+    xfer += oprot->writeFieldBegin("joinedHive", ::apache::thrift::protocol::T_STRUCT, 4);
+    xfer += this->joinedHive.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -392,7 +262,7 @@ void swap(ServiceConfig &a, ServiceConfig &b) {
   swap(a.path, b.path);
   swap(a.workerPaths, b.workerPaths);
   swap(a.address, b.address);
-  swap(a.joinedTopology, b.joinedTopology);
+  swap(a.joinedHive, b.joinedHive);
   swap(a.__isset, b.__isset);
 }
 

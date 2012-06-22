@@ -19,8 +19,6 @@ namespace fastore { namespace server {
 
 typedef std::string Path;
 
-typedef int32_t WorkerNumber;
-
 typedef struct _ServiceStartup__isset {
   _ServiceStartup__isset() : address(false), port(false), workerPaths(false) {}
   bool address;
@@ -31,8 +29,8 @@ typedef struct _ServiceStartup__isset {
 class ServiceStartup {
  public:
 
-  static const char* ascii_fingerprint; // = "B04C5F620A67663D1E5AAA3FB7A73C67";
-  static const uint8_t binary_fingerprint[16]; // = {0xB0,0x4C,0x5F,0x62,0x0A,0x67,0x66,0x3D,0x1E,0x5A,0xAA,0x3F,0xB7,0xA7,0x3C,0x67};
+  static const char* ascii_fingerprint; // = "832E8A20B071B2E4044DD24CD4C9F209";
+  static const uint8_t binary_fingerprint[16]; // = {0x83,0x2E,0x8A,0x20,0xB0,0x71,0xB2,0xE4,0x04,0x4D,0xD2,0x4C,0xD4,0xC9,0xF2,0x09};
 
   ServiceStartup() : path(), address(), port(0) {
   }
@@ -42,7 +40,7 @@ class ServiceStartup {
   Path path;
   std::string address;
   int32_t port;
-  std::map<WorkerNumber, std::string>  workerPaths;
+  std::vector<std::string>  workerPaths;
 
   _ServiceStartup__isset __isset;
 
@@ -60,7 +58,7 @@ class ServiceStartup {
     __isset.port = true;
   }
 
-  void __set_workerPaths(const std::map<WorkerNumber, std::string> & val) {
+  void __set_workerPaths(const std::vector<std::string> & val) {
     workerPaths = val;
     __isset.workerPaths = true;
   }
@@ -96,67 +94,17 @@ class ServiceStartup {
 
 void swap(ServiceStartup &a, ServiceStartup &b);
 
-
-class JoinedTopology {
- public:
-
-  static const char* ascii_fingerprint; // = "C7A49BCE8D210A50A152CFEB94E29623";
-  static const uint8_t binary_fingerprint[16]; // = {0xC7,0xA4,0x9B,0xCE,0x8D,0x21,0x0A,0x50,0xA1,0x52,0xCF,0xEB,0x94,0xE2,0x96,0x23};
-
-  JoinedTopology() : topologyID(0), hostID(0) {
-  }
-
-  virtual ~JoinedTopology() throw() {}
-
-   ::fastore::communication::TopologyID topologyID;
-   ::fastore::communication::HostID hostID;
-  std::map<WorkerNumber,  ::fastore::communication::PodID>  workerPodIDs;
-
-  void __set_topologyID(const  ::fastore::communication::TopologyID val) {
-    topologyID = val;
-  }
-
-  void __set_hostID(const  ::fastore::communication::HostID val) {
-    hostID = val;
-  }
-
-  void __set_workerPodIDs(const std::map<WorkerNumber,  ::fastore::communication::PodID> & val) {
-    workerPodIDs = val;
-  }
-
-  bool operator == (const JoinedTopology & rhs) const
-  {
-    if (!(topologyID == rhs.topologyID))
-      return false;
-    if (!(hostID == rhs.hostID))
-      return false;
-    if (!(workerPodIDs == rhs.workerPodIDs))
-      return false;
-    return true;
-  }
-  bool operator != (const JoinedTopology &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const JoinedTopology & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(JoinedTopology &a, JoinedTopology &b);
-
 typedef struct _ServiceConfig__isset {
-  _ServiceConfig__isset() : joinedTopology(false) {}
-  bool joinedTopology;
+  _ServiceConfig__isset() : address(false), joinedHive(false) {}
+  bool address;
+  bool joinedHive;
 } _ServiceConfig__isset;
 
 class ServiceConfig {
  public:
 
-  static const char* ascii_fingerprint; // = "D3217A03F7C15A8AA899518E3E42EE89";
-  static const uint8_t binary_fingerprint[16]; // = {0xD3,0x21,0x7A,0x03,0xF7,0xC1,0x5A,0x8A,0xA8,0x99,0x51,0x8E,0x3E,0x42,0xEE,0x89};
+  static const char* ascii_fingerprint; // = "D1C5092D0652BFDF79DC31165EAE3E47";
+  static const uint8_t binary_fingerprint[16]; // = {0xD1,0xC5,0x09,0x2D,0x06,0x52,0xBF,0xDF,0x79,0xDC,0x31,0x16,0x5E,0xAE,0x3E,0x47};
 
   ServiceConfig() : path() {
   }
@@ -164,9 +112,9 @@ class ServiceConfig {
   virtual ~ServiceConfig() throw() {}
 
   Path path;
-  std::map<WorkerNumber, Path>  workerPaths;
+  std::vector<Path>  workerPaths;
    ::fastore::communication::NetworkAddress address;
-  JoinedTopology joinedTopology;
+   ::fastore::communication::HiveState joinedHive;
 
   _ServiceConfig__isset __isset;
 
@@ -174,17 +122,18 @@ class ServiceConfig {
     path = val;
   }
 
-  void __set_workerPaths(const std::map<WorkerNumber, Path> & val) {
+  void __set_workerPaths(const std::vector<Path> & val) {
     workerPaths = val;
   }
 
   void __set_address(const  ::fastore::communication::NetworkAddress& val) {
     address = val;
+    __isset.address = true;
   }
 
-  void __set_joinedTopology(const JoinedTopology& val) {
-    joinedTopology = val;
-    __isset.joinedTopology = true;
+  void __set_joinedHive(const  ::fastore::communication::HiveState& val) {
+    joinedHive = val;
+    __isset.joinedHive = true;
   }
 
   bool operator == (const ServiceConfig & rhs) const
@@ -193,11 +142,13 @@ class ServiceConfig {
       return false;
     if (!(workerPaths == rhs.workerPaths))
       return false;
-    if (!(address == rhs.address))
+    if (__isset.address != rhs.__isset.address)
       return false;
-    if (__isset.joinedTopology != rhs.__isset.joinedTopology)
+    else if (__isset.address && !(address == rhs.address))
       return false;
-    else if (__isset.joinedTopology && !(joinedTopology == rhs.joinedTopology))
+    if (__isset.joinedHive != rhs.__isset.joinedHive)
+      return false;
+    else if (__isset.joinedHive && !(joinedHive == rhs.joinedHive))
       return false;
     return true;
   }

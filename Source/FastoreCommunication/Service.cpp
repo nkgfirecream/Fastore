@@ -40,17 +40,17 @@ uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->addresses.clear();
-            uint32_t _size102;
-            ::apache::thrift::protocol::TType _ktype103;
-            ::apache::thrift::protocol::TType _vtype104;
-            iprot->readMapBegin(_ktype103, _vtype104, _size102);
-            uint32_t _i106;
-            for (_i106 = 0; _i106 < _size102; ++_i106)
+            uint32_t _size100;
+            ::apache::thrift::protocol::TType _ktype101;
+            ::apache::thrift::protocol::TType _vtype102;
+            iprot->readMapBegin(_ktype101, _vtype102, _size100);
+            uint32_t _i104;
+            for (_i104 = 0; _i104 < _size100; ++_i104)
             {
-              HostID _key107;
-              xfer += iprot->readI32(_key107);
-              NetworkAddress& _val108 = this->addresses[_key107];
-              xfer += _val108.read(iprot);
+              HostID _key105;
+              xfer += iprot->readI32(_key105);
+              NetworkAddress& _val106 = this->addresses[_key105];
+              xfer += _val106.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -90,11 +90,11 @@ uint32_t Service_init_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->addresses.size()));
-    std::map<HostID, NetworkAddress> ::const_iterator _iter109;
-    for (_iter109 = this->addresses.begin(); _iter109 != this->addresses.end(); ++_iter109)
+    std::map<HostID, NetworkAddress> ::const_iterator _iter107;
+    for (_iter107 = this->addresses.begin(); _iter107 != this->addresses.end(); ++_iter107)
     {
-      xfer += oprot->writeI32(_iter109->first);
-      xfer += _iter109->second.write(oprot);
+      xfer += oprot->writeI32(_iter107->first);
+      xfer += _iter107->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -120,11 +120,11 @@ uint32_t Service_init_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->addresses)).size()));
-    std::map<HostID, NetworkAddress> ::const_iterator _iter110;
-    for (_iter110 = (*(this->addresses)).begin(); _iter110 != (*(this->addresses)).end(); ++_iter110)
+    std::map<HostID, NetworkAddress> ::const_iterator _iter108;
+    for (_iter108 = (*(this->addresses)).begin(); _iter108 != (*(this->addresses)).end(); ++_iter108)
     {
-      xfer += oprot->writeI32(_iter110->first);
-      xfer += _iter110->second.write(oprot);
+      xfer += oprot->writeI32(_iter108->first);
+      xfer += _iter108->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -993,9 +993,9 @@ uint32_t Service_acquireLock_args::read(::apache::thrift::protocol::TProtocol* i
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast111;
-          xfer += iprot->readI32(ecast111);
-          this->mode = (LockMode::type)ecast111;
+          int32_t ecast109;
+          xfer += iprot->readI32(ecast109);
+          this->mode = (LockMode::type)ecast109;
           this->__isset.mode = true;
         } else {
           xfer += iprot->skip(ftype);

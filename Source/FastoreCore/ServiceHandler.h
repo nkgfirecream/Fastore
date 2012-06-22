@@ -25,12 +25,12 @@ private:
 
 	shared_ptr<TSimpleFileTransport> _configFile;
 	shared_ptr<ServiceConfig> _config;
-	std::hash_map<WorkerNumber, shared_ptr<Endpoint>> _workers;
+	std::list<shared_ptr<Endpoint>> _workers;
 	shared_ptr<HiveState> _hiveState;	
 
-	void InitializeJoined(const JoinedTopology& joined);
+	void InitializeWorkers(const std::vector<WorkerState>& workers);
 	void SaveConfiguration();
-	std::string EnsureWorkerPath(int workerNumber);
+	void EnsureWorkerPaths(int numWorkers);
 	int GetRecommendedWorkerCount();
 	void CheckInHive();
 	void CheckNotInHive();

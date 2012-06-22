@@ -202,8 +202,8 @@ namespace Alphora.Fastore.Client
 					foreach (var service in newState.Services)
 						foreach (var worker in service.Value.Workers)
 						{
-							_workerStates.Add(worker.Key, new Tuple<ServiceState, WorkerState>(service.Value, worker.Value));
-							foreach (var repo in worker.Value.RepositoryStatus.Where(r => r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing))
+							_workerStates.Add(worker.PodID, new Tuple<ServiceState, WorkerState>(service.Value, worker));
+							foreach (var repo in worker.RepositoryStatus.Where(r => r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing))
 							{
 								PodMap map;
 								if (!_columnWorkers.TryGetValue(repo.Key, out map))
@@ -211,7 +211,7 @@ namespace Alphora.Fastore.Client
 									map = new PodMap();
 									_columnWorkers.Add(repo.Key, map);
 								}
-								map.Pods.Add(worker.Key);
+								map.Pods.Add(worker.PodID);
 							}
 						}
 			}

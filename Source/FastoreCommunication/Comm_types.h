@@ -30,9 +30,10 @@ extern const std::map<int, const char*> _RepositoryStatus_VALUES_TO_NAMES;
 
 struct ServiceStatus {
   enum type {
-    Offline = 1,
-    Online = 2,
-    Unreachable = 3
+    Unknown = 1,
+    Offline = 2,
+    Online = 3,
+    Unreachable = 4
   };
 };
 
@@ -140,16 +141,21 @@ void swap(NetworkAddress &a, NetworkAddress &b);
 class WorkerState {
  public:
 
-  static const char* ascii_fingerprint; // = "D576A5D4D687D9BDB02F6FC8D2506D9E";
-  static const uint8_t binary_fingerprint[16]; // = {0xD5,0x76,0xA5,0xD4,0xD6,0x87,0xD9,0xBD,0xB0,0x2F,0x6F,0xC8,0xD2,0x50,0x6D,0x9E};
+  static const char* ascii_fingerprint; // = "FD84F91A115D56581604124C0B6B3D24";
+  static const uint8_t binary_fingerprint[16]; // = {0xFD,0x84,0xF9,0x1A,0x11,0x5D,0x56,0x58,0x16,0x04,0x12,0x4C,0x0B,0x6B,0x3D,0x24};
 
-  WorkerState() : port(0) {
+  WorkerState() : podID(0), port(0) {
   }
 
   virtual ~WorkerState() throw() {}
 
+  PodID podID;
   std::map<ColumnID, RepositoryStatus::type>  repositoryStatus;
   int32_t port;
+
+  void __set_podID(const PodID val) {
+    podID = val;
+  }
 
   void __set_repositoryStatus(const std::map<ColumnID, RepositoryStatus::type> & val) {
     repositoryStatus = val;
@@ -161,6 +167,8 @@ class WorkerState {
 
   bool operator == (const WorkerState & rhs) const
   {
+    if (!(podID == rhs.podID))
+      return false;
     if (!(repositoryStatus == rhs.repositoryStatus))
       return false;
     if (!(port == rhs.port))
@@ -184,8 +192,8 @@ void swap(WorkerState &a, WorkerState &b);
 class ServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "8B2EF7533FE7CD5FF58CED94F3CDCE73";
-  static const uint8_t binary_fingerprint[16]; // = {0x8B,0x2E,0xF7,0x53,0x3F,0xE7,0xCD,0x5F,0xF5,0x8C,0xED,0x94,0xF3,0xCD,0xCE,0x73};
+  static const char* ascii_fingerprint; // = "AE98C326F1D501E0750917B29756621D";
+  static const uint8_t binary_fingerprint[16]; // = {0xAE,0x98,0xC3,0x26,0xF1,0xD5,0x01,0xE0,0x75,0x09,0x17,0xB2,0x97,0x56,0x62,0x1D};
 
   ServiceState() : status((ServiceStatus::type)0), timeStamp(0) {
   }
@@ -195,7 +203,7 @@ class ServiceState {
   ServiceStatus::type status;
   TimeStamp timeStamp;
   NetworkAddress address;
-  std::map<PodID, WorkerState>  workers;
+  std::vector<WorkerState>  workers;
 
   void __set_status(const ServiceStatus::type val) {
     status = val;
@@ -209,7 +217,7 @@ class ServiceState {
     address = val;
   }
 
-  void __set_workers(const std::map<PodID, WorkerState> & val) {
+  void __set_workers(const std::vector<WorkerState> & val) {
     workers = val;
   }
 
@@ -242,8 +250,8 @@ void swap(ServiceState &a, ServiceState &b);
 class HiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "EB7D21473380080E55471C125F7E739C";
-  static const uint8_t binary_fingerprint[16]; // = {0xEB,0x7D,0x21,0x47,0x33,0x80,0x08,0x0E,0x55,0x47,0x1C,0x12,0x5F,0x7E,0x73,0x9C};
+  static const char* ascii_fingerprint; // = "E5BEEF2EC9A3602FBD778958F04C31BA";
+  static const uint8_t binary_fingerprint[16]; // = {0xE5,0xBE,0xEF,0x2E,0xC9,0xA3,0x60,0x2F,0xBD,0x77,0x89,0x58,0xF0,0x4C,0x31,0xBA};
 
   HiveState() : topologyID(0), reportingHostID(0) {
   }
