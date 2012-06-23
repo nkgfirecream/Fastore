@@ -103,7 +103,6 @@
   <ItemGroup>
     <ClCompile Include="BTree.cpp" />
     <ClCompile Include="Endpoint.cpp" />
-    <ClCompile Include="FastoreHost.cpp" />
     <ClCompile Include="KeyTree.cpp" />
     <ClCompile Include="Logging\Log.cpp" />
     <ClCompile Include="Repository.cpp" />
@@ -126,7 +125,6 @@
     <ClInclude Include="Column\UniqueBuffer.h" />
     <ClInclude Include="Endpoint.h" />
     <ClInclude Include="EndpointConfig.h" />
-    <ClInclude Include="FastoreHost.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="Logging\Log.h" />
     <ClInclude Include="Order.h" />

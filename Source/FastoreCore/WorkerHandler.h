@@ -1,8 +1,8 @@
 #pragma once
-#include "FastoreHost.h"
 #include "../FastoreCommunication/Worker.h"
 #include "../FastoreCommunication/Comm_types.h"
 #include <thrift/server/TServer.h>
+#include <hash_map>
 #include "Repository.h"
 
 using namespace ::apache::thrift;
@@ -27,6 +27,9 @@ private:
 	void DestroyRepo(ColumnID id);
 
 	void AddColumnToSchema(ColumnDef def);
+	ColumnDef GetDefFromSchema(ColumnID id);
+
+	ScalarType GetTypeFromName(std::string typeName);
 	
 public:
 	WorkerHandler(const PodID podId, const string path);

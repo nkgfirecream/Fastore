@@ -4,6 +4,8 @@
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <utility>
+#include <hash_set>
+#include "Schema\standardtypes.h"
 
 
 WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podId), _path(path)
@@ -143,17 +145,222 @@ void WorkerHandler::DestroyRepo(ColumnID id)
 {
 	Repository* repo = _repositories[id];
 	repo->destroy();
+	delete repo;
 	_repositories.erase(id);
 }
 
 void WorkerHandler::SyncToSchema()
 {
+	//pull all columns associated with this pod
+	std::string podId;
+	podId.assign((char*)&_podId, sizeof(ColumnID));
 
+	RangeBound first;
+	first.__set_inclusive(true);
+	first.__set_value(podId);
+
+	RangeBound last;
+	last.__set_inclusive(true);
+	last.__set_value(podId);
+
+	
+	//I doubt there will be more than 200000 columns associated with this pod.. But we should
+	//add handling for that just in case
+	RangeRequest range;
+	range.__set_limit(200000);
+	range.__set_ascending(true);
+	range.__set_first(first);
+	range.__set_last(last);
+
+	std::vector<RangeRequest> ranges;
+	ranges.push_back(range);
+
+	Query query;
+	query.__set_ranges(ranges);
+	Answer answer = _repositories[400]->query(query);
+
+	//Got all the rows associated with this pod, now get their columnIds
+	//(since the result should only have one value in it, so just be able to pass it right back in.
+	query = Query();
+	query.__set_rowIDs(answer.rangeValues.at(0).valueRowsList.at(0).rowIDs);
+
+	answer = _repositories[401]->query(query);
+
+	std::hash_set<ColumnID> schemaIds;
+
+	for (int i = 0; i < answer.rowIDValues.size(); i++)
+	{
+		schemaIds.insert(*(ColumnID*)(answer.rowIDValues.at(i).data()));
+	}
+
+	//see what repos we currently have instantiated
+	std::vector<ColumnID> curIds;
+	auto cs = _repositories.begin();
+	while (cs != _repositories.end())
+	{
+		ColumnID id = (*cs).first;
+
+		curIds.push_back(id);
+		cs++;
+	}
+
+	//delete repos that we dont need
+	//(if there's a way to difference hashes in c++, that would be clearer)
+	for (int i = 0; i < curIds.size(); i++)
+	{
+		ColumnID id = curIds.at(i);
+
+		if (schemaIds.find(id) == schemaIds.end())
+			DestroyRepo(id);
+	}
+
+	//create repos we do need
+	auto ss = schemaIds.begin();
+	while (ss != schemaIds.end())
+	{
+		ColumnID id = (*ss);
+
+		if (_repositories.find(id) == _repositories.end())
+		{
+			ColumnDef def = GetDefFromSchema(id);
+			CreateRepo(def);
+		}
+
+		ss++;
+	}	
 }
 
 void WorkerHandler::AddColumnToSchema(ColumnDef def)
 {
+	ColumnWrites writes;
 
+	//id column
+	std::string columnId;
+	columnId.assign((char*)&def.ColumnID, sizeof(ColumnID));
+
+	std::vector<Include> includes;
+	Include include;
+	include.__set_value(columnId);
+	include.__set_rowID(columnId);
+
+	includes.push_back(include);
+	writes.__set_includes(includes);
+
+	_repositories[0]->apply(0, writes);
+
+
+	//name column
+	includes.clear();
+
+	include.__set_value(def.Name);
+	include.__set_rowID(columnId);
+
+	includes.push_back(include);
+	writes.__set_includes(includes);
+
+	_repositories[1]->apply(0, writes);
+
+
+	//valueType column
+	includes.clear();
+
+	include.__set_value(def.ValueType.Name);
+	include.__set_rowID(columnId);
+
+	includes.push_back(include);
+	writes.__set_includes(includes);
+
+	_repositories[2]->apply(0, writes);
+
+
+	//rowType column
+	includes.clear();
+
+	include.__set_value(def.RowIDType.Name);
+	include.__set_rowID(columnId);
+
+	includes.push_back(include);
+	writes.__set_includes(includes);
+
+	_repositories[3]->apply(0, writes);
+
+
+	//unique column
+	includes.clear();
+
+	std::string unique;
+	columnId.assign((char*)&def.IsUnique, sizeof(bool));
+
+	include.__set_value(unique);
+	include.__set_rowID(columnId);
+
+	includes.push_back(include);
+	writes.__set_includes(includes);
+
+	_repositories[4]->apply(0, writes);	
+}
+
+ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
+{
+	//for the columns table, the rowId is the columnId
+	ColumnDef def;
+	def.ColumnID = id;	
+
+	std::string rowId;
+	rowId.assign((char*)&id, sizeof(ColumnID));
+
+	std::vector<std::string> rowIds;
+	rowIds.push_back(rowId);
+
+	Query query;
+	query.__set_rowIDs(rowIds);	
+
+	//Name column
+	Answer answer = _repositories[1]->query(query);
+	def.Name = answer.rowIDValues.at(0);
+
+	//ValueType
+	answer = _repositories[2]->query(query);
+	def.ValueType = GetTypeFromName(answer.rowIDValues.at(0));
+
+	//RowType
+	answer = _repositories[3]->query(query);
+	def.RowIDType = GetTypeFromName(answer.rowIDValues.at(0));
+
+	//Unique
+	answer = _repositories[4]->query(query);
+	def.IsUnique = *(bool*)(answer.rowIDValues.at(0).data());
+
+	return def;
+}
+
+ScalarType WorkerHandler::GetTypeFromName(std::string typeName)
+{
+	//TODO: Consider putting this into a hash to avoid branches.
+	if (typeName == "WString")
+	{
+		return standardtypes::WString;
+	}
+	else if (typeName == "String")
+	{
+		return standardtypes::String;
+	}
+	else if (typeName == "Int")
+	{
+		return standardtypes::Int;
+	}
+	else if (typeName == "Long")
+	{
+		return standardtypes::Long;
+	}
+	else if (typeName == "Bool")
+	{
+		return standardtypes::Bool;
+	}
+	else
+	{
+		throw "TypeName not recognized";
+	}
 }
 
 void WorkerHandler::CheckState()
@@ -182,7 +389,7 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 		fastore::communication::ColumnID id = (*start).first;
 
 		//If pod or column table changes we need to check and see if we should update.
-		if (id == 0)
+		if (id == 400 || id == 401)
 			syncSchema = true;
 
 		Repository repo = *_repositories[id];

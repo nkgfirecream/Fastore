@@ -1,5 +1,4 @@
 #pragma once
-#include "FastoreHost.h"
 #include "../FastoreCommunication/Service.h"
 #include "../FastoreCommunication/Server_types.h"
 #include "Endpoint.h"
