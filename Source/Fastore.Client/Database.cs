@@ -60,27 +60,92 @@ namespace Alphora.Fastore.Client
 
 		public Database(ServiceAddress[] addresses)
         {
-			// TODO: check for new vs. existing, create hive if necessary
+			// Convert from service addresses to network addresses
+			var networkAddresses = (from a in addresses select new NetworkAddress { Name = a.Name, Port = a.Port }).ToArray();
 
-			var service = ConnectToService(new NetworkAddress { Name = addresses[0].Name, Port = addresses[0].Port });
-			try
+			// Number of potential workers for each service (in case we nee to create the hive)
+			var serviceWorkers = new int[networkAddresses.Length];
+
+			for (int i = 0; i < networkAddresses.Length; i++)
 			{
-				// Discover the state of the entire hive from the given service
-				var hiveState = service.getHiveState(false);
-				UpdateHiveState(hiveState);
+				var service = ConnectToService(networkAddresses[i]);
+				try
+				{
+					HiveState hiveState;
+					try
+					{
+						// Discover the state of the entire hive from the given service
+						hiveState = service.getHiveState(false);
 
-				// Add the service to our collection to avoid re-connection if needed
-				_services.Add(hiveState.ReportingHostID, service);
+						// Ensure that all services are not joined (if the first one wasn't)
+						if (i > 0)
+							throw new Exception(String.Format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.", networkAddresses[i].Name, hiveState.TopologyID));
+					}
+					catch (NotJoined nj)
+					{
+						serviceWorkers[i] = nj.PotentialWorkers;
+						ReleaseService(service);
+						continue;
+					}
 
-				BootStrapSchema();
+					UpdateHiveState(hiveState);
+
+					// Add the service to our collection to avoid re-connection if needed
+					_services.Add(hiveState.ReportingHostID, service);
+
+					BootStrapSchema();
+				}
+				catch
+				{
+					// If anything goes wrong, be sure to release the service client
+					_services.Clear();
+					ReleaseService(service);
+					throw;
+				}
 			}
-			catch
+
+			var newTopology = CreateTopology(serviceWorkers);
+
+			var addressesByHost = new Dictionary<int, NetworkAddress>();
+			for (var hostID = 0; hostID < networkAddresses.Length; hostID++)
+				addressesByHost.Add(hostID, networkAddresses[hostID]);
+
+			var newHive = new HiveState { TopologyID = newTopology.TopologyID, Services = new Dictionary<int, ServiceState>() };
+			for (var hostID = 0; hostID < networkAddresses.Length; hostID++)
 			{
-				// If anything goes wrong, be sure to release the service client
-				ReleaseService(service);
-				throw;
+				var service = ConnectToService(networkAddresses[hostID]);
+				try
+				{
+					var serviceState = service.init(newTopology, addressesByHost, hostID);
+					newHive.Services.Add(hostID, serviceState);
+				}
+				finally
+				{
+					ReleaseService(service);
+				}
 			}
-        }
+
+			UpdateHiveState(newHive);
+			BootStrapSchema();
+		}
+
+		private static Topology CreateTopology(int[] serviceWorkers)
+		{
+			var newTopology = new Topology { TopologyID = Guid.NewGuid().GetHashCode() };
+			newTopology.Hosts = new Dictionary<int, Dictionary<int, List<int>>>();
+			var podID = 0;
+			for (var hostID = 0; hostID < serviceWorkers.Length; hostID++)
+			{
+				var pods = new Dictionary<int, List<int>>();
+				for (int i = 0; i < serviceWorkers[hostID]; i++)
+				{
+					pods.Add(podID, new List<int>());	// No no columns initially 
+					podID++;
+				}
+				newTopology.Hosts.Add(hostID, pods);
+			}
+			return newTopology;
+		}
 
 		public void Dispose()
 		{
