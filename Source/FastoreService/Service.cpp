@@ -6,8 +6,10 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <tchar.h>
 #include <string>
 #include <strsafe.h>
+
 
 #include "Service.h"
 #include "errors.h"
