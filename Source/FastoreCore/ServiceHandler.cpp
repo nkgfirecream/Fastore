@@ -36,7 +36,7 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		cout << "New instance:" << startup.path;
 
 		// Create new configuration
-		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), false));
+		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), false, true));
 		_config = boost::shared_ptr<ServiceConfig>(new ServiceConfig());
 	}
 
