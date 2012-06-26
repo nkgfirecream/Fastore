@@ -11,6 +11,8 @@ namespace Alphora.Fastore.Client
 	// TODO: concurrency
     public class Database : IDataAccess, IDisposable
     {
+		public const int MaxSystemColumnID = 9999;
+
 		private class PodMap
 		{
 			public PodMap()
@@ -34,6 +36,9 @@ namespace Alphora.Fastore.Client
 
 		// Pod map (round robin pod IDs) per column
 		private Dictionary<int, PodMap> _columnWorkers = new Dictionary<int, PodMap>();
+
+		// The next worker to use to retrieve system columns from
+		private int _nextSystemWorker = 0;
 
 		// Latest known state of the hive
 		private HiveState _hiveState;
@@ -355,6 +360,14 @@ namespace Alphora.Fastore.Client
 		/// <remarks> This method is thread-safe. </remarks>
 		private KeyValuePair<int, Worker.Client> GetWorker(int columnID)
 		{
+			if (columnID <= MaxSystemColumnID)
+				return GetWorkerForSystemColumn();
+			else
+				return GetWorkerForColumn(columnID);
+		}
+
+		private KeyValuePair<int, Worker.Client> GetWorkerForColumn(int columnID)
+		{
 			Monitor.Enter(_mapLock);
 			var taken = true;
 			try
@@ -379,6 +392,16 @@ namespace Alphora.Fastore.Client
 			{
 				if (taken)
 					Monitor.Exit(_mapLock);
+			}
+		}
+
+		private KeyValuePair<int, Worker.Client> GetWorkerForSystemColumn()
+		{
+			// For a system column, any worker will do, so just use an already connected worker
+			lock (_mapLock)
+			{
+				_nextSystemWorker = (_nextSystemWorker + 1) % _workers.Count;
+				return _workers.ElementAt(_nextSystemWorker);
 			}
 		}
 
