@@ -1064,15 +1064,15 @@ namespace Alphora.Fastore
               if (field.Type == TType.Map) {
                 {
                   Addresses = new Dictionary<int, NetworkAddress>();
-                  TMap _map65 = iprot.ReadMapBegin();
-                  for( int _i66 = 0; _i66 < _map65.Count; ++_i66)
+                  TMap _map64 = iprot.ReadMapBegin();
+                  for( int _i65 = 0; _i65 < _map64.Count; ++_i65)
                   {
-                    int _key67;
-                    NetworkAddress _val68;
-                    _key67 = iprot.ReadI32();
-                    _val68 = new NetworkAddress();
-                    _val68.Read(iprot);
-                    Addresses[_key67] = _val68;
+                    int _key66;
+                    NetworkAddress _val67;
+                    _key66 = iprot.ReadI32();
+                    _val67 = new NetworkAddress();
+                    _val67.Read(iprot);
+                    Addresses[_key66] = _val67;
                   }
                   iprot.ReadMapEnd();
                 }
@@ -1115,10 +1115,10 @@ namespace Alphora.Fastore
           oprot.WriteFieldBegin(field);
           {
             oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Addresses.Count));
-            foreach (int _iter69 in Addresses.Keys)
+            foreach (int _iter68 in Addresses.Keys)
             {
-              oprot.WriteI32(_iter69);
-              Addresses[_iter69].Write(oprot);
+              oprot.WriteI32(_iter68);
+              Addresses[_iter68].Write(oprot);
             }
             oprot.WriteMapEnd();
           }

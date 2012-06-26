@@ -9,8 +9,9 @@ namespace Alphora.Fastore
 {
   public enum ServiceStatus
   {
-    Offline = 1,
-    Online = 2,
-    Unreachable = 3,
+    Unknown = 1,
+    Offline = 2,
+    Online = 3,
+    Unreachable = 4,
   }
 }

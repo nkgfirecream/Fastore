@@ -111,7 +111,7 @@ inline void TreeBuffer::Apply(const ColumnWrites& writes)
 	}
 }
 
-inline bool TreeBuffer::Include(void* value, void* rowId)
+inline bool TreeBuffer::Include(void* rowId, void* value)
 {
 	//TODO: Return Undo Information
 	auto rowpath = _rows->GetPath(rowId);

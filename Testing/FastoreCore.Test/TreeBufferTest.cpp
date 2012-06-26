@@ -12,9 +12,46 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 using namespace std;
 
+template <class T>
+inline std::string to_string(const T& t)
+{
+	std::stringstream ss;
+	ss << t;
+	return ss.str();
+
+}
+
 TEST_CLASS(TreeBufferTest)
 {
 public:
+
+	TEST_METHOD(StringTest)
+	{
+		TreeBuffer buf(standardtypes::Int, standardtypes::String);
+
+		ColumnWrites cw;
+		std:vector<Include> includes;
+
+		//Insert values 0 - 98 (inclusive) in increments of 2 into buffer
+		for (int i = 0; i < 100; i += 2)
+		{
+			Include inc;
+			//TODO: Create thrift strings
+			string rowId;
+			AssignString(rowId, i);
+
+			string value;
+			value = to_string<int>(i);
+
+			inc.__set_rowID(rowId);
+			inc.__set_value(value);
+			includes.push_back(inc); 
+		}
+
+		cw.__set_includes(includes);
+		buf.Apply(cw);
+
+	}
 	
 	TEST_METHOD(RangeTests)
 	{
@@ -25,7 +62,7 @@ public:
 		// -- one key has one or more values
 		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
-	ColumnWrites cw;
+		ColumnWrites cw;
 		std:vector<Include> includes;
 
 		//Insert values 0 - 98 (inclusive) in increments of 2 into buffer

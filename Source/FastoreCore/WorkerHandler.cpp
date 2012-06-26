@@ -138,6 +138,7 @@ void WorkerHandler::Bootstrap()
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
 	Repository* repo = new Repository(def.ColumnID, _path);
+	repo->create(def);
 	_repositories.insert(std::pair<ColumnID, Repository*>(def.ColumnID, repo));
 }
 
@@ -209,6 +210,9 @@ void WorkerHandler::SyncToSchema()
 	for (int i = 0; i < curIds.size(); i++)
 	{
 		ColumnID id = curIds.at(i);
+
+		if (id < 1000)
+			continue;
 
 		if (schemaIds.find(id) == schemaIds.end())
 			DestroyRepo(id);

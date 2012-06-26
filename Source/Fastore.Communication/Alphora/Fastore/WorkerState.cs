@@ -23,8 +23,22 @@ namespace Alphora.Fastore
   #endif
   public partial class WorkerState : TBase
   {
+    private int _podID;
     private Dictionary<int, RepositoryStatus> _repositoryStatus;
     private int _port;
+
+    public int PodID
+    {
+      get
+      {
+        return _podID;
+      }
+      set
+      {
+        __isset.podID = true;
+        this._podID = value;
+      }
+    }
 
     public Dictionary<int, RepositoryStatus> RepositoryStatus
     {
@@ -58,6 +72,7 @@ namespace Alphora.Fastore
     [Serializable]
     #endif
     public struct Isset {
+      public bool podID;
       public bool repositoryStatus;
       public bool port;
     }
@@ -78,6 +93,13 @@ namespace Alphora.Fastore
         switch (field.ID)
         {
           case 1:
+            if (field.Type == TType.I32) {
+              PodID = iprot.ReadI32();
+            } else { 
+              TProtocolUtil.Skip(iprot, field.Type);
+            }
+            break;
+          case 2:
             if (field.Type == TType.Map) {
               {
                 RepositoryStatus = new Dictionary<int, RepositoryStatus>();
@@ -96,7 +118,7 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 2:
+          case 3:
             if (field.Type == TType.I32) {
               Port = iprot.ReadI32();
             } else { 
@@ -116,10 +138,18 @@ namespace Alphora.Fastore
       TStruct struc = new TStruct("WorkerState");
       oprot.WriteStructBegin(struc);
       TField field = new TField();
+      if (__isset.podID) {
+        field.Name = "podID";
+        field.Type = TType.I32;
+        field.ID = 1;
+        oprot.WriteFieldBegin(field);
+        oprot.WriteI32(PodID);
+        oprot.WriteFieldEnd();
+      }
       if (RepositoryStatus != null && __isset.repositoryStatus) {
         field.Name = "repositoryStatus";
         field.Type = TType.Map;
-        field.ID = 1;
+        field.ID = 2;
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteMapBegin(new TMap(TType.I32, TType.I32, RepositoryStatus.Count));
@@ -135,7 +165,7 @@ namespace Alphora.Fastore
       if (__isset.port) {
         field.Name = "port";
         field.Type = TType.I32;
-        field.ID = 2;
+        field.ID = 3;
         oprot.WriteFieldBegin(field);
         oprot.WriteI32(Port);
         oprot.WriteFieldEnd();
@@ -146,7 +176,9 @@ namespace Alphora.Fastore
 
     public override string ToString() {
       StringBuilder sb = new StringBuilder("WorkerState(");
-      sb.Append("RepositoryStatus: ");
+      sb.Append("PodID: ");
+      sb.Append(PodID);
+      sb.Append(",RepositoryStatus: ");
       sb.Append(RepositoryStatus);
       sb.Append(",Port: ");
       sb.Append(Port);

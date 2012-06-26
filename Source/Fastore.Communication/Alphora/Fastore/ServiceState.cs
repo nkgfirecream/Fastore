@@ -26,7 +26,7 @@ namespace Alphora.Fastore
     private ServiceStatus _status;
     private long _timeStamp;
     private NetworkAddress _address;
-    private Dictionary<int, WorkerState> _workers;
+    private List<WorkerState> _workers;
 
     /// <summary>
     /// 
@@ -71,7 +71,7 @@ namespace Alphora.Fastore
       }
     }
 
-    public Dictionary<int, WorkerState> Workers
+    public List<WorkerState> Workers
     {
       get
       {
@@ -133,21 +133,19 @@ namespace Alphora.Fastore
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
-          case 5:
-            if (field.Type == TType.Map) {
+          case 4:
+            if (field.Type == TType.List) {
               {
-                Workers = new Dictionary<int, WorkerState>();
-                TMap _map5 = iprot.ReadMapBegin();
-                for( int _i6 = 0; _i6 < _map5.Count; ++_i6)
+                Workers = new List<WorkerState>();
+                TList _list5 = iprot.ReadListBegin();
+                for( int _i6 = 0; _i6 < _list5.Count; ++_i6)
                 {
-                  int _key7;
-                  WorkerState _val8;
-                  _key7 = iprot.ReadI32();
-                  _val8 = new WorkerState();
-                  _val8.Read(iprot);
-                  Workers[_key7] = _val8;
+                  WorkerState _elem7 = new WorkerState();
+                  _elem7 = new WorkerState();
+                  _elem7.Read(iprot);
+                  Workers.Add(_elem7);
                 }
-                iprot.ReadMapEnd();
+                iprot.ReadListEnd();
               }
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
@@ -192,17 +190,16 @@ namespace Alphora.Fastore
       }
       if (Workers != null && __isset.workers) {
         field.Name = "workers";
-        field.Type = TType.Map;
-        field.ID = 5;
+        field.Type = TType.List;
+        field.ID = 4;
         oprot.WriteFieldBegin(field);
         {
-          oprot.WriteMapBegin(new TMap(TType.I32, TType.Struct, Workers.Count));
-          foreach (int _iter9 in Workers.Keys)
+          oprot.WriteListBegin(new TList(TType.Struct, Workers.Count));
+          foreach (WorkerState _iter8 in Workers)
           {
-            oprot.WriteI32(_iter9);
-            Workers[_iter9].Write(oprot);
+            _iter8.Write(oprot);
           }
-          oprot.WriteMapEnd();
+          oprot.WriteListEnd();
         }
         oprot.WriteFieldEnd();
       }

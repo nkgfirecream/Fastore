@@ -88,12 +88,12 @@ namespace Alphora.Fastore
             if (field.Type == TType.List) {
               {
                 ColumnIDs = new List<int>();
-                TList _list61 = iprot.ReadListBegin();
-                for( int _i62 = 0; _i62 < _list61.Count; ++_i62)
+                TList _list60 = iprot.ReadListBegin();
+                for( int _i61 = 0; _i61 < _list60.Count; ++_i61)
                 {
-                  int _elem63 = 0;
-                  _elem63 = iprot.ReadI32();
-                  ColumnIDs.Add(_elem63);
+                  int _elem62 = 0;
+                  _elem62 = iprot.ReadI32();
+                  ColumnIDs.Add(_elem62);
                 }
                 iprot.ReadListEnd();
               }
@@ -129,9 +129,9 @@ namespace Alphora.Fastore
         oprot.WriteFieldBegin(field);
         {
           oprot.WriteListBegin(new TList(TType.I32, ColumnIDs.Count));
-          foreach (int _iter64 in ColumnIDs)
+          foreach (int _iter63 in ColumnIDs)
           {
-            oprot.WriteI32(_iter64);
+            oprot.WriteI32(_iter63);
           }
           oprot.WriteListEnd();
         }
