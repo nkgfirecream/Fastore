@@ -89,7 +89,7 @@ namespace Alphora.Fastore.Client
 					catch (NotJoined nj)
 					{
 						serviceWorkers[i] = nj.PotentialWorkers;
-						ReleaseService(service);
+						DisposeService(service);
 						continue;
 					}
 
@@ -104,7 +104,7 @@ namespace Alphora.Fastore.Client
 				{
 					// If anything goes wrong, be sure to release the service client
 					_services.Clear();
-					ReleaseService(service);
+					DisposeService(service);
 					throw;
 				}
 			}
@@ -126,7 +126,7 @@ namespace Alphora.Fastore.Client
 				}
 				finally
 				{
-					ReleaseService(service);
+					DisposeService(service);
 				}
 			}
 
@@ -159,7 +159,7 @@ namespace Alphora.Fastore.Client
 			{
 				try
 				{
-					ReleaseService(service.Value);
+					DisposeService(service.Value);
 				}
 				catch (Exception e)
 				{
@@ -174,7 +174,7 @@ namespace Alphora.Fastore.Client
 			{
 				try
 				{
-					ReleaseWorker(worker.Value);
+					DisposeWorker(worker.Value);
 				}
 				catch (Exception e)
 				{
@@ -210,20 +210,10 @@ namespace Alphora.Fastore.Client
 					taken = false;
 
 					result = ConnectToService(serviceState.Address);
-
-					// Take the lock again
-					Monitor.Enter(_mapLock);
-					taken = true;
-
-					// Verify that the service hasn't been found in the mean-time
-					if (_services.ContainsKey(hostID))
-					{
-						ReleaseService(result);
-						return _services[hostID];
-					}
-					else
-						_services.Add(hostID, result);
 				}
+				else
+					_services.Remove(hostID);
+
 				return result;
 			}
 			finally
@@ -233,7 +223,23 @@ namespace Alphora.Fastore.Client
 			}
 		}
 
-		private void ReleaseService(Service.Client client)
+		/// <summary> Releases the given service client back into the pool. </summary>
+		private void ReleaseService(KeyValuePair<int, Service.Client> service)
+		{
+			lock (_mapLock)
+			{
+				Service.Client oldService;
+				if (_services.TryGetValue(service.Key, out oldService))
+				{
+					DisposeService(oldService);
+					_services[service.Key] = service.Value;
+				}
+				else
+					_services.Add(service.Key, service.Value);
+			}
+		}
+
+		private void DisposeService(Service.Client client)
 		{
 			client.InputProtocol.Transport.Close();
 		}
@@ -309,20 +315,10 @@ namespace Alphora.Fastore.Client
 					taken = false;
 
 					result = ConnectToWorker(new NetworkAddress { Name = workerState.Item1.Address.Name, Port = workerState.Item2.Port }, podID);
-
-					// Take the lock again
-					Monitor.Enter(_mapLock);
-					taken = true;
-
-					// Verify that the worker hasn't been found in the mean-time
-					if (_workers.ContainsKey(podID))
-					{
-						ReleaseWorker(result);
-						return _workers[podID];
-					}
-					else
-						_workers.Add(podID, result);
 				}
+				else
+					_workers.Remove(podID);
+
 				return result;
 			}
 			finally
@@ -332,7 +328,24 @@ namespace Alphora.Fastore.Client
 			}
 		}
 
-		private void ReleaseWorker(Worker.Client client)
+		/// <summary> Releases the given worker client back into the pool. </summary>
+		private void ReleaseWorker(KeyValuePair<int, Worker.Client> worker)
+		{
+			lock (_mapLock)
+			{
+				Worker.Client oldWorker;
+				if (_workers.TryGetValue(worker.Key, out oldWorker))
+				{
+					DisposeWorker(oldWorker);
+					_workers[worker.Key] = worker.Value;
+				}
+				else
+					_workers.Add(worker.Key, worker.Value);
+			}
+		}
+
+		/// <summary> Disposes the given worker client. </summary>
+		private void DisposeWorker(Worker.Client client)
 		{
 			client.InputProtocol.Transport.Close();
 		}
@@ -400,10 +413,11 @@ namespace Alphora.Fastore.Client
 			// For a system column, any worker will do, so just use an already connected worker
 			lock (_mapLock)
 			{
-				if (_workers.Count == 0)
-					EnsureWorker(_workerStates.Keys.First());
-				_nextSystemWorker = (_nextSystemWorker + 1) % _workers.Count;
-				return _workers.ElementAt(_nextSystemWorker);
+				var hostID = _workerStates.Keys.First();
+				return new KeyValuePair<int,Worker.Client>(hostID, EnsureWorker(hostID));
+				// TODO: Rotate through workers for system columns
+				//_nextSystemWorker = (_nextSystemWorker + 1) % _workers.Count;
+				//return _workers.ElementAt(_nextSystemWorker);
 			}
 		}
 
@@ -467,40 +481,46 @@ namespace Alphora.Fastore.Client
 			{
 				// Determine the (next) worker to use
 				var worker = GetWorker(columnId);
-
-				// If we've already failed with this worker, give up
-				if (errors != null && errors.ContainsKey(worker.Key))
-				{
-					TrackErrors(errors);
-					throw new AggregateException(from e in errors select e.Value);
-				}
-
 				try
 				{
-					elapsed.Restart();
-					work(worker.Value);
-					elapsed.Stop();
+					// If we've already failed with this worker, give up
+					if (errors != null && errors.ContainsKey(worker.Key))
+					{
+						TrackErrors(errors);
+						throw new AggregateException(from e in errors select e.Value);
+					}
+
+					try
+					{
+						elapsed.Restart();
+						work(worker.Value);
+						elapsed.Stop();
+					}
+					catch (Exception e)
+					{
+						// If the exception is an entity (exception coming from the remote), rethrow
+						if (e is Thrift.Protocol.TBase)
+							throw;
+
+						if (errors == null)
+							errors = new Dictionary<int, Exception>();
+						errors.Add(worker.Key, e);
+						continue;
+					}
+
+					// Succeeded, track any errors we received
+					if (errors != null)
+						TrackErrors(errors);
+
+					// Succeeded, track the elapsed time
+					TrackTime(worker.Key, elapsed.ElapsedTicks);
+
+					break;
 				}
-				catch (Exception e)
+				finally
 				{
-					// If the exception is an entity (exception coming from the remote), rethrow
-					if (e is Thrift.Protocol.TBase)
-						throw;
-
-					if (errors == null)
-						errors = new Dictionary<int, Exception>();
-					errors.Add(worker.Key, e);
-					continue;
+					ReleaseWorker(worker);
 				}
-
-				// Succeeded, track any errors we received
-				if (errors != null)
-					TrackErrors(errors);
-
-				// Succeeded, track the elapsed time
-				TrackTime(worker.Key, elapsed.ElapsedTicks);
-
-				break;
 			}
 		}
 
@@ -561,57 +581,36 @@ namespace Alphora.Fastore.Client
 			Query rowIdQuery = GetRowsQuery(rangeResult);
 
 			// Make the query request against all columns except for the range column
-            //var tasks = new List<Task<Dictionary<int, ReadResult>>>(columnIds.Length);
-            //for (int i = 0; i < columnIds.Length; i++)
-            //{
-            //    var columnId = columnIds[i];
-            //    if (columnId != range.ColumnID)
-            //    {
-            //        tasks.Add
-            //        (
-            //            Task.Factory.StartNew
-            //            (
-            //                ()=> 
-            //                {
-            //                    Dictionary<int, ReadResult> result = null;
-            //                    AttemptRead
-            //                    (
-            //                        columnId,
-            //                        (worker) => { result = worker.query(new Dictionary<int, Query>() { { columnId, rowIdQuery } }); }
-            //                    );
-            //                    return result;
-            //                }
-            //            )
-            //        );
-            //    }
-            //}
-
-            var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
-            for (int i = 0; i < columnIds.Length; i++)
-            {
-                var columnId = columnIds[i];
-                if (columnId != range.ColumnID)
-                {
-
-                    Dictionary<int, ReadResult> result = null;
-                    AttemptRead
-                    (
-                        columnId,
-                        (worker) => { result = worker.query(new Dictionary<int, Query>() { { columnId, rowIdQuery } }); }
-                    );
-
-                    foreach (var item in result)
-                    {
-                        resultsByColumn.Add(item.Key, item.Value);
-                    }
-                }
-            }
-			
+			var tasks = new List<Task<Dictionary<int, ReadResult>>>(columnIds.Length);
+			for (int i = 0; i < columnIds.Length; i++)
+			{
+				var columnId = columnIds[i];
+				if (columnId != range.ColumnID)
+				{
+					tasks.Add
+					(
+						Task.Factory.StartNew
+						(
+							() =>
+							{
+								Dictionary<int, ReadResult> result = null;
+								AttemptRead
+								(
+									columnId,
+									(worker) => { result = worker.query(new Dictionary<int, Query>() { { columnId, rowIdQuery } }); }
+								);
+								return result;
+							}
+						)
+					);
+				}
+			}
+		
 			// Combine all results into a single dictionary by column
-            //var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
-            //foreach (var task in tasks)
-            //    foreach (var result in task.Result)
-            //        resultsByColumn.Add(result.Key, result.Value);
+			var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
+			foreach (var task in tasks)
+				foreach (var result in task.Result)
+					resultsByColumn.Add(result.Key, result.Value);
 			
 			return RangeResultsToDataSet(columnIds, rowIdQuery.RowIDs, range.ColumnID, rangeResult, resultsByColumn);
 		}
