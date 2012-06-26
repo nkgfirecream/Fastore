@@ -7,6 +7,7 @@
 #include <hash_set>
 #include "Schema\standardtypes.h"
 
+const int MaxSystemColumnID = 9999;
 
 WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podId), _path(path)
 {
@@ -211,7 +212,7 @@ void WorkerHandler::SyncToSchema()
 	{
 		ColumnID id = curIds.at(i);
 
-		if (id < 1000)
+		if (id <= MaxSystemColumnID)
 			continue;
 
 		if (schemaIds.find(id) == schemaIds.end())
@@ -293,7 +294,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.clear();
 
 	std::string unique;
-	columnId.assign((char*)&def.IsUnique, sizeof(bool));
+	unique.assign((char*)&def.IsUnique, sizeof(bool));
 
 	include.__set_value(unique);
 	include.__set_rowID(columnId);

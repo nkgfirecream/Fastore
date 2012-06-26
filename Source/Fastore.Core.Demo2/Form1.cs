@@ -55,7 +55,7 @@ namespace Fastore.Core.Demo2
             _columns = new int[] {1000, 1001, 1002, 1003, 1004, 1005};
 
 
-			var fileName = @"e:\Ancestry\owt\owt.xml.gz";
+			var fileName = @"g:\Ancestry\owt\owt.xml.gz";
 			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
 				var deflated = Path.GetExtension(fileName) == ".gz" 

@@ -1,5 +1,6 @@
 #include "Endpoint.h"
 #include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/protocol/TJSONProtocol.h>
 #include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
@@ -25,7 +26,7 @@ public:
 		_processor = processor;
 		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
 		_transportFactory = boost::shared_ptr<TTransportFactory>(new TBufferedTransportFactory());
-		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
+		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TJSONProtocolFactory());
 		_server = boost::shared_ptr<TSimpleServer>(new TSimpleServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
 	}
 

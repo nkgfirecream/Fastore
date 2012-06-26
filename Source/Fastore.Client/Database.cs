@@ -247,7 +247,7 @@ namespace Alphora.Fastore.Client
 			transport.Open();
 			try
 			{
-				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
+				var protocol = new Thrift.Protocol.TJSONProtocol(transport);
 
 				return new Service.Client(protocol);
 			}
@@ -345,7 +345,7 @@ namespace Alphora.Fastore.Client
 			transport.Open();
 			try
 			{
-				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
+				var protocol = new Thrift.Protocol.TJSONProtocol(transport);
 
 				return new Worker.Client(protocol);
 			}
@@ -561,36 +561,57 @@ namespace Alphora.Fastore.Client
 			Query rowIdQuery = GetRowsQuery(rangeResult);
 
 			// Make the query request against all columns except for the range column
-			var tasks = new List<Task<Dictionary<int, ReadResult>>>(columnIds.Length);
-			for (int i = 0; i < columnIds.Length; i++)
-			{
-				var columnId = columnIds[i];
-				if (columnId != range.ColumnID)
-				{
-					tasks.Add
-					(
-						Task.Factory.StartNew
-						(
-							()=> 
-							{
-								Dictionary<int, ReadResult> result = null;
-								AttemptRead
-								(
-									columnId,
-									(worker) => { result = worker.query(new Dictionary<int, Query>() { { columnId, rowIdQuery } }); }
-								);
-								return result;
-							}
-						)
-					);
-				}
-			}
+            //var tasks = new List<Task<Dictionary<int, ReadResult>>>(columnIds.Length);
+            //for (int i = 0; i < columnIds.Length; i++)
+            //{
+            //    var columnId = columnIds[i];
+            //    if (columnId != range.ColumnID)
+            //    {
+            //        tasks.Add
+            //        (
+            //            Task.Factory.StartNew
+            //            (
+            //                ()=> 
+            //                {
+            //                    Dictionary<int, ReadResult> result = null;
+            //                    AttemptRead
+            //                    (
+            //                        columnId,
+            //                        (worker) => { result = worker.query(new Dictionary<int, Query>() { { columnId, rowIdQuery } }); }
+            //                    );
+            //                    return result;
+            //                }
+            //            )
+            //        );
+            //    }
+            //}
+
+            var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
+            for (int i = 0; i < columnIds.Length; i++)
+            {
+                var columnId = columnIds[i];
+                if (columnId != range.ColumnID)
+                {
+
+                    Dictionary<int, ReadResult> result = null;
+                    AttemptRead
+                    (
+                        columnId,
+                        (worker) => { result = worker.query(new Dictionary<int, Query>() { { columnId, rowIdQuery } }); }
+                    );
+
+                    foreach (var item in result)
+                    {
+                        resultsByColumn.Add(item.Key, item.Value);
+                    }
+                }
+            }
 			
 			// Combine all results into a single dictionary by column
-			var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
-			foreach (var task in tasks)
-				foreach (var result in task.Result)
-					resultsByColumn.Add(result.Key, result.Value);
+            //var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
+            //foreach (var task in tasks)
+            //    foreach (var result in task.Result)
+            //        resultsByColumn.Add(result.Key, result.Value);
 			
 			return RangeResultsToDataSet(columnIds, rowIdQuery.RowIDs, range.ColumnID, rangeResult, resultsByColumn);
 		}
@@ -648,7 +669,7 @@ namespace Alphora.Fastore.Client
 		{
 			RangeRequest rangeRequest = new RangeRequest();
 			rangeRequest.Ascending = range.Ascending;
-			rangeRequest.__isset.limit = true;
+            rangeRequest.Limit = limit;
 
 			if (range.Start.HasValue)
 			{
@@ -684,7 +705,7 @@ namespace Alphora.Fastore.Client
 
 			while (true)
 			{
-				var transactionID = new TransactionID();
+                var transactionID = new TransactionID() { Key = 0, Revision = 0 };
 
 				var workers = GetWorkers(columnIds);
 
@@ -893,7 +914,7 @@ namespace Alphora.Fastore.Client
 				(
 					new[] { 0, 1, 2, 3, 4 },
 					new Range { ColumnID = 0, Ascending = true },
-					int.MaxValue
+					200000
 				);
 			foreach (var column in columns)
 			{

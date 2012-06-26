@@ -25,7 +25,7 @@ boost::shared_ptr<Endpoint> endpoint;
 
 typedef void (*ServiceEventCallback)();
 
-void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const EndpointConfig& endpointConfig, const StartupConfig& coreConfig)
+void RunService(ServiceEventCallback started, ServiceEventCallback stopping, const EndpointConfig& endpointConfig, const StartupConfig& startupConfig)
 {
 	//Open windows sockets
 	WORD wVersionRequested;
@@ -62,6 +62,9 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	try
 	{
 		ServiceStartup startup;
+		startup.__set_path(startupConfig.dataPath);
+		startup.__set_port(endpointConfig.port);
+
 		auto handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(startup));
 		auto processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(handler));
 		endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endpointConfig, processor));

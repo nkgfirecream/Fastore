@@ -45,6 +45,7 @@
     <IntDir>obj\$(Configuration)\</IntDir>
     <CustomBuildBeforeTargets>Rebuild</CustomBuildBeforeTargets>
     <IncludePath>$(WindowsSdkDir)include\shared;$(WindowsSdkDir)include\um;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
+    <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\</OutDir>
