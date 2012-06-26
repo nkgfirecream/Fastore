@@ -76,7 +76,7 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		auto numPods = thisService->second.workers.size();
 
 		// Report the number of configured pods
-		cout << "Number of Pods: " << numPods << "	Recommended workers: " << GetRecommendedWorkerCount() << " (these should be the same)";
+		cout << "Number of Pods: " << numPods << "	Recommended workers: " << GetRecommendedWorkerCount() << " (these should be the same)\r\n";
 	
 		// Initialize the workers, if joined
 		InitializeWorkers(thisService->second.workers);
@@ -84,7 +84,7 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 	else
 	{
 		// Display worker recommendations
-		cout << "Hardware cores/threads: " << (int)boost::thread::hardware_concurrency() << "	Recommended workers: " << GetRecommendedWorkerCount();
+		cout << "Hardware cores/threads: " << (int)boost::thread::hardware_concurrency() << "	Recommended workers: " << GetRecommendedWorkerCount() << "\r\n";
 	}
 }
 

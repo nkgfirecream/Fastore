@@ -400,6 +400,8 @@ namespace Alphora.Fastore.Client
 			// For a system column, any worker will do, so just use an already connected worker
 			lock (_mapLock)
 			{
+				if (_workers.Count == 0)
+					EnsureWorker(_workerStates.Keys.First());
 				_nextSystemWorker = (_nextSystemWorker + 1) % _workers.Count;
 				return _workers.ElementAt(_nextSystemWorker);
 			}
@@ -646,6 +648,7 @@ namespace Alphora.Fastore.Client
 		{
 			RangeRequest rangeRequest = new RangeRequest();
 			rangeRequest.Ascending = range.Ascending;
+			rangeRequest.__isset.limit = true;
 
 			if (range.Start.HasValue)
 			{

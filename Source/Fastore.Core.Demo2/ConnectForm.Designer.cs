@@ -97,7 +97,7 @@
 			this.PortBox.Size = new System.Drawing.Size(132, 22);
 			this.PortBox.TabIndex = 3;
 			this.PortBox.Value = new decimal(new int[] {
-            8064,
+            8765,
             0,
             0,
             0});
