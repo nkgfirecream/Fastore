@@ -5,6 +5,7 @@
 #include <thrift/server/TServer.h>
 #include <thrift/transport/TServerTransport.h>
 
+using namespace apache::thrift;
 using namespace apache::thrift::server;
 
 class TMultiConnectionServer : public TServer {

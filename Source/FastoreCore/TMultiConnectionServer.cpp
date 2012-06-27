@@ -8,6 +8,7 @@ using namespace std;
 using namespace apache::thrift;
 using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
+
 using boost::shared_ptr;
 
 /**
@@ -16,11 +17,11 @@ using boost::shared_ptr;
  */
 void TMultiConnectionServer::serve() {
 
-  shared_ptr<TTransport> client;
-  shared_ptr<TTransport> inputTransport;
-  shared_ptr<TTransport> outputTransport;
-  shared_ptr<TProtocol> inputProtocol;
-  shared_ptr<TProtocol> outputProtocol;
+  boost::shared_ptr<TTransport> client;
+  boost::shared_ptr<TTransport> inputTransport;
+  boost::shared_ptr<TTransport> outputTransport;
+  boost::shared_ptr<TProtocol> inputProtocol;
+  boost::shared_ptr<TProtocol> outputProtocol;
 
   // Start the server listening
   serverTransport_->listen();
@@ -64,7 +65,7 @@ void TMultiConnectionServer::serve() {
     }
 
     // Get the processor
-    shared_ptr<TProcessor> processor = getProcessor(inputProtocol,
+    boost::shared_ptr<TProcessor> processor = getProcessor(inputProtocol,
                                                     outputProtocol, client);
 
     void* connectionContext = NULL;
