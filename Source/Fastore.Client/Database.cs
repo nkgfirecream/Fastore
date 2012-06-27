@@ -413,11 +413,9 @@ namespace Alphora.Fastore.Client
 			// For a system column, any worker will do, so just use an already connected worker
 			lock (_mapLock)
 			{
-				var hostID = _workerStates.Keys.First();
-				return new KeyValuePair<int,Worker.Client>(hostID, EnsureWorker(hostID));
-				// TODO: Rotate through workers for system columns
-				//_nextSystemWorker = (_nextSystemWorker + 1) % _workers.Count;
-				//return _workers.ElementAt(_nextSystemWorker);
+                var hostID = _workerStates.Keys.ElementAt(_nextSystemWorker);
+                _nextSystemWorker = (_nextSystemWorker + 1) % _workerStates.Count;
+				return new KeyValuePair<int,Worker.Client>(hostID, EnsureWorker(hostID));				
 			}
 		}
 
@@ -519,7 +517,8 @@ namespace Alphora.Fastore.Client
 				}
 				finally
 				{
-					ReleaseWorker(worker);
+					//ReleaseWorker(worker);
+                    DisposeWorker(worker.Value);
 				}
 			}
 		}

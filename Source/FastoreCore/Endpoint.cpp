@@ -31,12 +31,12 @@ public:
 		_transportFactory = boost::shared_ptr<TTransportFactory>(new TBufferedTransportFactory());
 		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TJSONProtocolFactory());
 
-		boost::shared_ptr<ThreadManager> threadManager = ThreadManager::newSimpleThreadManager(15);
-		boost::shared_ptr<BoostThreadFactory> threadFactory = boost::shared_ptr<BoostThreadFactory>(new BoostThreadFactory());
-		threadManager->threadFactory(threadFactory);
-		threadManager->start();
+		//boost::shared_ptr<ThreadManager> threadManager = ThreadManager::newSimpleThreadManager(15);
+		//boost::shared_ptr<BoostThreadFactory> threadFactory = boost::shared_ptr<BoostThreadFactory>(new BoostThreadFactory());
+		//threadManager->threadFactory(threadFactory);
+		//threadManager->start();
 
-		_server = boost::shared_ptr<TThreadPoolServer>(new TThreadPoolServer(_processor,  _serverTransport, _transportFactory, _protocolFactory, threadManager));
+		_server = boost::shared_ptr<TSimpleServer>(new TSimpleServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
 	}
 
 	~impl()
