@@ -727,7 +727,7 @@ namespace Alphora.Fastore.Client
 		{
 			var stopWatch = new Stopwatch();
 			stopWatch.Start();
-			var workersByTransaction = new SortedDictionary<TransactionID, List<WorkerInfo>>();
+			var workersByTransaction = new SortedDictionary<TransactionID, List<WorkerInfo>>(TransactionIDComparer.Default);
 			for (int i = 0; i < tasks.Count; i++)
 			{
 				if (tasks[i].IsCompleted)

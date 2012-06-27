@@ -60,6 +60,7 @@
     <Compile Include="ServiceAddress.cs" />
     <Compile Include="Statistic.cs" />
     <Compile Include="Transaction.cs" />
+    <Compile Include="TransactionIDComparer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fastore.Communication\Fastore.Communication.csproj">
