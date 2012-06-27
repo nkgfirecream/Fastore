@@ -6,6 +6,7 @@
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/server/TThreadPoolServer.h>
 #include <thrift/concurrency/BoostThreadFactory.h>
+#include "TMultiConnectionServer.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -36,7 +37,7 @@ public:
 		//threadManager->threadFactory(threadFactory);
 		//threadManager->start();
 
-		_server = boost::shared_ptr<TSimpleServer>(new TSimpleServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
+		_server = boost::shared_ptr<TMultiConnectionServer>(new TMultiConnectionServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
 	}
 
 	~impl()

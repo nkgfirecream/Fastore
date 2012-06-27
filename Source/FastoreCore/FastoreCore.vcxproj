@@ -113,6 +113,7 @@
     <ClCompile Include="Schema\StringTypes.cpp" />
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
+    <ClCompile Include="TMultiConnectionServer.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
     <ClCompile Include="WorkerHandler.cpp" />
@@ -127,6 +128,7 @@
     <ClInclude Include="EndpointConfig.h" />
     <ClInclude Include="KeyTree.h" />
     <ClInclude Include="Logging\Log.h" />
+    <ClInclude Include=".\TMultiConnectionServer.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="Repository.h" />
     <ClInclude Include="Schema\BaseTypes.h" />
