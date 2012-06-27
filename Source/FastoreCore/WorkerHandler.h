@@ -18,13 +18,12 @@ class WorkerHandler : virtual public WorkerIf
 private: 
 	PodID _podId;
 	string _path;
-	hash_map<ColumnID, Repository*> _repositories;
+	hash_map<ColumnID, shared_ptr<Repository>> _repositories;
 	void CheckState();
 	void Bootstrap();
 	void SyncToSchema();
 
 	void CreateRepo(ColumnDef def);
-	void DestroyRepo(ColumnID id);
 
 	void AddColumnToSchema(ColumnDef def);
 	ColumnDef GetDefFromSchema(ColumnID id);

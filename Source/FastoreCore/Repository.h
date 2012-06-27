@@ -44,8 +44,8 @@ public:
 	//Initializes the repo matching the definition
 	void create(ColumnDef def);
 
-	//Frees memory, erases physical files
-	void destroy();
+	//Frees buffer, erases physical files
+	void drop();
 
 	//Saves to disk
 	void checkpoint();

@@ -138,17 +138,9 @@ void WorkerHandler::Bootstrap()
 
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
-	Repository* repo = new Repository(def.ColumnID, _path);
+	shared_ptr<Repository> repo(new Repository(def.ColumnID, _path));
 	repo->create(def);
-	_repositories.insert(std::pair<ColumnID, Repository*>(def.ColumnID, repo));
-}
-
-void WorkerHandler::DestroyRepo(ColumnID id)
-{
-	Repository* repo = _repositories[id];
-	repo->destroy();
-	delete repo;
-	_repositories.erase(id);
+	_repositories.insert(std::pair<ColumnID, shared_ptr<Repository>>(def.ColumnID, repo));
 }
 
 void WorkerHandler::SyncToSchema()
@@ -195,43 +187,26 @@ void WorkerHandler::SyncToSchema()
 		schemaIds.insert(*(ColumnID*)(answer.rowIDValues.at(i).data()));
 	}
 
-	//see what repos we currently have instantiated
-	std::vector<ColumnID> curIds;
-	auto cs = _repositories.begin();
-	while (cs != _repositories.end())
+	// drop repos that we should no longer have
+	for (auto repo = _repositorites.begin(); repo != _repositories.end(); ) 
 	{
-		ColumnID id = (*cs).first;
-
-		curIds.push_back(id);
-		cs++;
-	}
-
-	//delete repos that we dont need
-	//(if there's a way to difference hashes in c++, that would be clearer)
-	for (int i = 0; i < curIds.size(); i++)
-	{
-		ColumnID id = curIds.at(i);
-
-		if (id <= MaxSystemColumnID)
-			continue;
-
-		if (schemaIds.find(id) == schemaIds.end())
-			DestroyRepo(id);
+		if (schemaIds.find(id) == schemaIds.end() && (repo->id > MaxSystemColumnID)
+		{
+			repo->drop();
+			repo = _repositories.erase(repo);
+		}
+		else
+			 ++repo;
 	}
 
 	//create repos we do need
-	auto ss = schemaIds.begin();
-	while (ss != schemaIds.end())
+	for (auto id = schemaIds.begin(); id != schemaIds.end(); ++id)
 	{
-		ColumnID id = (*ss);
-
-		if (_repositories.find(id) == _repositories.end())
+		if (_repositories.find(*id) == _repositories.end())
 		{
-			ColumnDef def = GetDefFromSchema(id);
+			ColumnDef def = GetDefFromSchema(*id);
 			CreateRepo(def);
 		}
-
-		ss++;
 	}	
 }
 
@@ -391,16 +366,16 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 
 	while(start != writes.end())
 	{
-		fastore::communication::ColumnID id = (*start).first;
+		fastore::communication::ColumnID id = start->first;
 
 		//If pod or column table changes we need to check and see if we should update.
 		if (id == 400 || id == 401)
 			syncSchema = true;
 
-		Repository repo = *_repositories[id];
-		ColumnWrites writes = (*start).second;
+		shared_ptr<Repository> repo = _repositories[id];
+		ColumnWrites writes = start->second;
 
-		repo.apply(transactionID.revision, writes);
+		repo->apply(transactionID.revision, writes);
 		
 		start++;
 	}
@@ -447,12 +422,12 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 	auto start = queries.begin();
 	while (start != queries.end())
 	{
-		ColumnID id = (*start).first;
-		Repository repo = *_repositories[id];
+		ColumnID id = start->first;
+		shared_ptr<Repository> repo = _repositories[id];
 
-		Query query = (*start).second;
-		Answer answer = repo.query(query);
-		Revision rev = repo.getRevision();
+		Query query = start->second;
+		Answer answer = repo->query(query);
+		Revision rev = repo->getRevision();
 
 		ReadResult result;
 		result.__set_answer(answer);
@@ -468,8 +443,8 @@ void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::v
 {	
 	for (int i = 0; i < columnIDs.size(); i++)
 	{		
-		Repository repo = *_repositories[columnIDs[i]];
-		Statistic stat = repo.getStatistic();
+		shared_ptr<Repository> repo = _repositories[columnIDs[i]];
+		Statistic stat = repo->getStatistic();
 		_return.push_back(stat);
 	}
 }

@@ -149,7 +149,7 @@ Statistic Repository::getStatistic()
 	return _buffer->GetStatistic();
 }
 
-void Repository::destroy()
+void Repository::drop()
 {
 	_status = RepositoryStatus::Offline;
 }
