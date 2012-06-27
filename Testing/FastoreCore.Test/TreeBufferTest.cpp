@@ -59,7 +59,6 @@ public:
 		//--- THIS SUBSET OF BEHAVIOR SHOULD BE IDENTICAL TO UNIQUE BUFFER ---
 
 		//TODO: Update limited behavior to reflect BoF/EoF semantics.
-		// -- one key has one or more values
 		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
 		ColumnWrites cw;
@@ -315,7 +314,32 @@ public:
 
 		//--- END UNIQUE BUFFER COPY --
 
-		//Need more thorough tests for multi-id keys...
+
+		//Insert 2 subsequent values from 0 - 98 (inclusive) in increments of 2 into buffer
+		for(int i = 0; i < 100; i += 2){
+			Include inc;
+			string rowId;
+			AssignString(rowId, i);
+
+			string value1;
+			string value2;
+			AssignString(value1, i);
+			i += 2;
+			AssignString(value2, i);
+
+			inc.__set_rowID(rowId);
+			inc.__set_value(value1);
+			includes.push_back(inc);
+
+			inc.__set_value(value2);
+			includes.push_back(inc);
+		}
+
+		cw.__set_includes(includes);
+		buf.Apply(cw);
+
+		Assert::AreEqual<long long>(buf.GetStatistic().total, 25);
+		Assert::AreEqual<long long>(buf.GetStatistic().unique, 25);
 	}
 
 	void AssignString(string& str, int value)
@@ -371,6 +395,40 @@ public:
 			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[0].data());
 
 			expectedNum += increment;
+		}
+
+		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
+		Assert::AreEqual<int>(expectedNum, expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
+		Assert::IsTrue(result.beginOfRange == expectBOF);
+		Assert::IsTrue(result.endOfRange == expectEOF);
+		Assert::IsTrue(result.limited == expectLimited);
+	}
+
+	void TestRangeMultiValue(TreeBuffer& buf, RangeRequest range, int expectedStart, int expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
+	{
+		RangeResult result = buf.GetRows(range);
+		
+		//Right number of values...
+		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
+
+		int expectedNum = expectedStart;
+		for (int i = 0; i < result.valueRowsList.size(); i++)
+		{
+			for(int j = 0; j < result.valueRowsList[i].rowIDs.size(); j++)
+			{
+			//Item is a value-rows  A - 1, 2, 3
+			auto item = result.valueRowsList[i];
+
+			int value = *(int*)item.value.data();
+
+			//Value should be our expected number;
+			Assert::AreEqual<int>(expectedNum, value);
+
+			//id should be expected number
+			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[j].data());
+
+			expectedNum += increment;
+			}
 		}
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
