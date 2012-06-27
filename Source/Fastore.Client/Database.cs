@@ -450,7 +450,7 @@ namespace Alphora.Fastore.Client
 									from r in ws.Value.Item2.RepositoryStatus 
 										where r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing 
 										select r.Key
-								).ToArray() 
+								).Union(from c in _schema.Keys where c <= MaxSystemColumnID select c).ToArray()
 							}
 					).ToArray();
 				
@@ -769,7 +769,7 @@ namespace Alphora.Fastore.Client
 		{
 			if (workersByTransaction.Count > 0)
 			{
-				var max = workersByTransaction.Keys.Max();
+                var max = workersByTransaction.Keys.Max();
 				var successes = workersByTransaction[max];
 				if (successes.Count > (workers.Length / 2))
 				{

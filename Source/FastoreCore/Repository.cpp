@@ -11,6 +11,7 @@ using namespace boost::filesystem;
 Repository::Repository(int columnID, const string& path) : _columnID(columnID), _path(path)
 {
 	//set status to offline.
+	_status = RepositoryStatus::Offline;
 }
 
 string Repository::GetLogFileName()
@@ -59,11 +60,14 @@ void Repository::create(ColumnDef def)
 	_log = auto_ptr<Log>(new Log(GetLogFileName()));
 
 	//Set status to online
+	_status = RepositoryStatus::Online;
 }
 
 void Repository::load()
 {
 	// Update state to loading
+	_status = RepositoryStatus::Loading;
+
 	// Read header from each data file to determine which is newer
 	ifstream dataFile(GetDataFileName(1));
 	// ...
@@ -82,11 +86,13 @@ void Repository::load()
 	// Set revision 
 	
 	// Update state to online
+	_status = RepositoryStatus::Online;
 }
 
 void Repository::checkpoint()
 {
 	// Set state to checkpointing
+	_status = RepositoryStatus::Checkpointing;
 
 	// Pick oldest datafile
 	ofstream dataFile(GetDataFileName(1));
@@ -96,6 +102,7 @@ void Repository::checkpoint()
 	// Truncate log
 
 	// Update state to online
+	_status = RepositoryStatus::Online;
 }
 
 Answer Repository::query(const fastore::communication::Query& query)
@@ -144,6 +151,6 @@ Statistic Repository::getStatistic()
 
 void Repository::destroy()
 {
-
+	_status = RepositoryStatus::Offline;
 }
 

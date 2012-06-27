@@ -15,7 +15,7 @@ class Repository
 private:
 	int _columnID;
 	string _path;
-	RepositoryStatus _status;
+	RepositoryStatus::type _status;
 	ColumnDef _def;
 	boost::shared_ptr<Log> _log;
 	IColumnBuffer* _buffer;
@@ -31,7 +31,7 @@ public:
 
 	int getColumnID() { return _columnID; }
 	string getPath() { return _path; }
-	RepositoryStatus getStatus() { return _status; }
+	RepositoryStatus::type getStatus() { return _status; }
 	ColumnDef getDef() { return _def; }
 	Revision getRevision() { return _revision; }
 
