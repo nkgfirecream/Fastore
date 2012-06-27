@@ -734,37 +734,34 @@ namespace Alphora.Fastore.Client
 			var workersByTransaction = new SortedDictionary<TransactionID, List<WorkerInfo>>(TransactionIDComparer.Default);
 			for (int i = 0; i < tasks.Count; i++)
 			{
-				if (tasks[i].IsCompleted)
+				// Attempt to fetch the result for each task
+				TransactionID resultId;
+				try
 				{
-					// Attempt to fetch the result for each task
-					TransactionID resultId;
-					try
+					// if the task doesn't complete in time, assume failure; move on to the next one...
+					if (!tasks[i].Wait(Math.Max(0, WriteTimeout - (int)stopWatch.ElapsedMilliseconds)))
 					{
-						// if the task doesn't complete in time, assume failure; move on to the next one...
-						if (!tasks[i].Wait(Math.Max(0, WriteTimeout - (int)stopWatch.ElapsedMilliseconds)))
-						{
-							failedWorkers.Add(i, null);
-							continue;
-						}
-						resultId = tasks[i].Result;
-					}
-					catch (Exception e)
-					{
-						if (e is Thrift.Protocol.TBase)
-							failedWorkers.Add(i, e as Thrift.Protocol.TBase);
-						// else: Other errors were managed by AttemptWrite
+						failedWorkers.Add(i, null);
 						continue;
 					}
-
-					// If successful, group with other workers that returned the same revision
-					List<WorkerInfo> transactionBucket;
-					if (!workersByTransaction.TryGetValue(resultId, out transactionBucket))
-					{
-						transactionBucket = new List<WorkerInfo>();
-						workersByTransaction.Add(resultId, transactionBucket);
-					}
-					transactionBucket.Add(workers[i]);
+					resultId = tasks[i].Result;
 				}
+				catch (Exception e)
+				{
+					if (e is Thrift.Protocol.TBase)
+						failedWorkers.Add(i, e as Thrift.Protocol.TBase);
+					// else: Other errors were managed by AttemptWrite
+					continue;
+				}
+
+				// If successful, group with other workers that returned the same revision
+				List<WorkerInfo> transactionBucket;
+				if (!workersByTransaction.TryGetValue(resultId, out transactionBucket))
+				{
+					transactionBucket = new List<WorkerInfo>();
+					workersByTransaction.Add(resultId, transactionBucket);
+				}
+				transactionBucket.Add(workers[i]);
 			}
 			return workersByTransaction;
 		}
