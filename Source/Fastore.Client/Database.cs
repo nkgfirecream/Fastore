@@ -331,20 +331,17 @@ namespace Alphora.Fastore.Client
 		/// <summary> Releases the given worker client back into the pool. </summary>
 		private void ReleaseWorker(KeyValuePair<int, Worker.Client> worker)
 		{
-			DisposeWorker(worker.Value);
-			// TODO: enable connection pooling when server allows connections to be left open
-			//lock (_mapLock)
-			//{
-			//	Worker.Client oldWorker;
-			//	if (_workers.TryGetValue(worker.Key, out oldWorker))
-			//	{
-			//		// TODO: bucketed connections
-			//		DisposeWorker(oldWorker);
-			//		_workers[worker.Key] = worker.Value;
-			//	}
-			//	else
-			//		_workers.Add(worker.Key, worker.Value);
-			//}
+			lock (_mapLock)
+			{
+				Worker.Client oldWorker;
+				if (_workers.TryGetValue(worker.Key, out oldWorker))
+				{
+					DisposeWorker(oldWorker);
+					_workers[worker.Key] = worker.Value;
+				}
+				else
+					_workers.Add(worker.Key, worker.Value);
+			}
 		}
 
 		/// <summary> Disposes the given worker client. </summary>
@@ -425,6 +422,7 @@ namespace Alphora.Fastore.Client
 		struct WorkerInfo
 		{
 			public int PodID;
+			public Worker.Client Client;
 			public int[] Columns;
 		}
 
@@ -458,6 +456,10 @@ namespace Alphora.Fastore.Client
 				Monitor.Exit(_mapLock);
 				taken = false;
 
+				// Ensure a connections to all pods
+				for (int i = 0; i < results.Length; i++)
+					results[i].Client = EnsureWorker(results[i].PodID);
+				
 				return results;
 			}
 			finally
@@ -515,20 +517,21 @@ namespace Alphora.Fastore.Client
 				}
 				finally
 				{
-					ReleaseWorker(worker);
+					//ReleaseWorker(worker);
+                    DisposeWorker(worker.Value);
 				}
 			}
 		}
 
 		/// <summary> Performs a write operation against a specific worker; manages errors and retries. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private void AttemptWrite(int podId, Action<Worker.Client> work)
+		private void AttemptWrite(int podId, Action work)
 		{
 		    var elapsed = new Stopwatch();
 		    try
 		    {
 		        elapsed.Start();
-		        WorkerInvoke(podId, work);
+		        work();
 		        elapsed.Stop();
 		    }
 		    catch (Exception e)
@@ -694,6 +697,11 @@ namespace Alphora.Fastore.Client
 			return rangeQuery;
 		}
 
+        public void Include(Dictionary<int, ColumnWrites> writes)
+        {
+           //Do stuff...
+        }
+
         public void Include(int[] columnIds, object rowId, object[] row)
 		{
 			var writes = EncodeIncludes(columnIds, rowId, row);
@@ -772,11 +780,11 @@ namespace Alphora.Fastore.Client
 					// Transaction successful, commit all reached workers
 					foreach (var group in workersByTransaction)
 						foreach (var worker in group.Value)
-							WorkerInvoke(worker.PodID, (client) => { client.commit(max); });
+							worker.Client.commit(max);
 				
 					// Also send out a commit to workers that timed-out
 					foreach (var worker in failedWorkers.Where(w => w.Value == null))
-						WorkerInvoke(worker.Key, (client) => { client.commit(max); });
+						workers[worker.Key].Client.commit(max);
 					return true;
 				}
 				else
@@ -784,24 +792,10 @@ namespace Alphora.Fastore.Client
 					// Failure, roll-back successful prepares
 					foreach (var group in workersByTransaction)
 						foreach (var worker in group.Value)
-							WorkerInvoke(worker.PodID, (client) => { client.rollback(group.Key); });
+							worker.Client.rollback(group.Key);
 				}
 			}
 			return false;
-		}
-
-		/// <summary> Invokes a given command against a worker. </summary>
-		private void WorkerInvoke(int podID, Action<Worker.Client> work)
-		{
-			var client = EnsureWorker(podID);
-			try
-			{
-				work(client);
-			}
-			finally
-			{
-				ReleaseWorker(new KeyValuePair<int, Worker.Client>(podID, client));
-			}
 		}
 
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
@@ -826,7 +820,7 @@ namespace Alphora.Fastore.Client
 							AttemptWrite
 							(
 								worker.PodID,
-								(client) => { result = client.apply(transactionID, work); }
+								() => { result = worker.Client.apply(transactionID, work); }
 							);
 							return result;
 						}
