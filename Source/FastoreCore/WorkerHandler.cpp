@@ -129,7 +129,6 @@ void WorkerHandler::Bootstrap()
 	AddColumnToSchema(unique);
 	AddColumnToSchema(topo);
 	AddColumnToSchema(hostId);
-	AddColumnToSchema(hostTopoId);
 	AddColumnToSchema(podId);
 	AddColumnToSchema(podHostId);
 	AddColumnToSchema(podColPodId);
@@ -147,7 +146,7 @@ void WorkerHandler::SyncToSchema()
 {
 	//pull all columns associated with this pod
 	std::string podId;
-	podId.assign((char*)&_podId, sizeof(ColumnID));
+	podId.assign((char*)&_podId, sizeof(PodID));
 
 	RangeBound first;
 	first.__set_inclusive(true);
@@ -173,41 +172,44 @@ void WorkerHandler::SyncToSchema()
 	query.__set_ranges(ranges);
 	Answer answer = _repositories[400]->query(query);
 
-	//Got all the rows associated with this pod, now get their columnIds
-	//(since the result should only have one value in it, so just be able to pass it right back in.
-	query = Query();
-	query.__set_rowIDs(answer.rangeValues.at(0).valueRowsList.at(0).rowIDs);
-
-	answer = _repositories[401]->query(query);
-
-	std::hash_set<ColumnID> schemaIds;
-
-	for (int i = 0; i < answer.rowIDValues.size(); i++)
+	if (answer.rangeValues.at(0).valueRowsList.size() > 0)
 	{
-		schemaIds.insert(*(ColumnID*)(answer.rowIDValues.at(i).data()));
-	}
+		//Got all the rows associated with this pod, now get their columnIds
+		//(since the result should only have one value in it, so just be able to pass it right back in.
+		query = Query();
+		query.__set_rowIDs(answer.rangeValues.at(0).valueRowsList.at(0).rowIDs);
 
-	// drop repos that we should no longer have
-	for (auto repo = _repositories.begin(); repo != _repositories.end(); ) 
-	{
-		if (schemaIds.find(repo->first) == schemaIds.end() && repo->first > MaxSystemColumnID)
+		answer = _repositories[401]->query(query);
+
+		std::hash_set<ColumnID> schemaIds;
+
+		for (int i = 0; i < answer.rowIDValues.size(); i++)
 		{
-			repo->second->drop();
-			repo = _repositories.erase(repo);
+			schemaIds.insert(*(ColumnID*)(answer.rowIDValues.at(i).data()));
 		}
-		else
-			 ++repo;
-	}
 
-	//create repos we do need
-	for (auto id = schemaIds.begin(); id != schemaIds.end(); ++id)
-	{
-		if (_repositories.find(*id) == _repositories.end())
+		// drop repos that we should no longer have
+		for (auto repo = _repositories.begin(); repo != _repositories.end(); ) 
 		{
-			ColumnDef def = GetDefFromSchema(*id);
-			CreateRepo(def);
+			if (schemaIds.find(repo->first) == schemaIds.end() && repo->first > MaxSystemColumnID)
+			{
+				repo->second->drop();
+				repo = _repositories.erase(repo);
+			}
+			else
+				 ++repo;
 		}
-	}	
+
+		//create repos we do need
+		for (auto id = schemaIds.begin(); id != schemaIds.end(); ++id)
+		{
+			if (_repositories.find(*id) == _repositories.end())
+			{
+				ColumnDef def = GetDefFromSchema(*id);
+				CreateRepo(def);
+			}
+		}	
+	}
 }
 
 void WorkerHandler::AddColumnToSchema(ColumnDef def)

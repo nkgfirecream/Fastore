@@ -161,13 +161,13 @@ namespace Alphora.Fastore.Client
 			foreach (var h in newTopology.Hosts)
 				foreach (var p in h.Value)
 					podWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(p.Key) });
-			writes.Add(300, hostWrites);
+			writes.Add(300, podWrites);
 
 			var podHostWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
 			foreach (var h in newTopology.Hosts)
 				foreach (var p in h.Value)
 					podHostWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(h.Key) });
-			writes.Add(301, hostWrites);
+			writes.Add(301, podHostWrites);
 
 			Apply(writes);
 		}
@@ -921,11 +921,11 @@ namespace Alphora.Fastore.Client
 		public Statistic[] GetStatistics(int[] columnIds)
 		{
 			throw new NotImplementedException();
-			//return 
-			//(
-			//    from s in Service.getStatistics(columnIds.ToList()) 
-			//        select new Statistic { Total = s.Total, Unique = s.Unique }
-			//).ToArray();
+            //return
+            //(
+            //    from s in Service.getStatistics(columnIds.ToList())
+            //    select new Statistic { Total = s.Total, Unique = s.Unique }
+            //).ToArray();
 		}
 
 		public Schema GetSchema()

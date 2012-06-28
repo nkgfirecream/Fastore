@@ -157,9 +157,9 @@ namespace Fastore.Core.Demo2
         {
             string results = "";
 
-            var stats = _database.GetStatistics(_columns);
-            for (var i = 0; i < stats.Length; i++)
-                results += "Column: " + _columns[i].ToString() + " Unique: " + stats[i].Unique + " Total: " + stats[i].Total + " Avg Density: " + (double)stats[i].Total / (double)stats[i].Unique + "\n";
+            //var stats = _database.GetStatistics(_columns);
+            //for (var i = 0; i < stats.Length; i++)
+            //    results += "Column: " + _columns[i].ToString() + " Unique: " + stats[i].Unique + " Total: " + stats[i].Total + " Avg Density: " + (double)stats[i].Total / (double)stats[i].Unique + "\n";
 
             return results;
         }
