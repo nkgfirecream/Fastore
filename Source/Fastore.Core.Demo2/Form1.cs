@@ -146,11 +146,9 @@ namespace Fastore.Core.Demo2
 					if (count % 1000 == 0)
 					{
 
+						//Wait until task is done.
 						if (_commitTask != null)
-						{
-							//Wait until task is done.
-							while (!_commitTask.IsCompleted) { Thread.Sleep(10); };
-						}
+							_commitTask.Wait();
 						_commitTask = Task.Factory.StartNew
 							(
 								(t) =>
@@ -170,11 +168,9 @@ namespace Fastore.Core.Demo2
 					}
 				}
 
+				//Wait until task is done.
 				if (_commitTask != null)
-				{
-					//Wait until task is done.
-					while (!_commitTask.IsCompleted) { Thread.Sleep(10); };
-				}
+					_commitTask.Wait();
 
 				watch.Stop();
 
