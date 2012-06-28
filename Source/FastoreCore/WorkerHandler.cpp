@@ -7,6 +7,14 @@
 #include <hash_set>
 #include "Schema\standardtypes.h"
 
+using namespace ::apache::thrift;
+using namespace ::apache::thrift::protocol;
+using namespace ::apache::thrift::transport;
+using namespace ::apache::thrift::server;
+using boost::shared_ptr;
+using namespace ::fastore::communication;
+using namespace std;
+
 const int MaxSystemColumnID = 9999;
 
 WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podId), _path(path)
@@ -190,7 +198,7 @@ void WorkerHandler::SyncToSchema()
 	// drop repos that we should no longer have
 	for (auto repo = _repositories.begin(); repo != _repositories.end(); ) 
 	{
-		if (schemaIds.find(repo->first) == schemaIds.end() && (repo->first > MaxSystemColumnID))
+		if (schemaIds.find(repo->first) == schemaIds.end() && repo->first > MaxSystemColumnID)
 		{
 			repo->second->drop();
 			repo = _repositories.erase(repo);
@@ -435,7 +443,7 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 
 		_return.insert(std::pair<ColumnID, ReadResult>(id, result));
 
-		++start;
+		start++;
 	}
 }
 

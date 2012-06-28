@@ -7,42 +7,32 @@
 #include <hash_map>
 #include <string>
 
-using namespace ::apache::thrift;
-using namespace ::apache::thrift::protocol;
-using namespace ::apache::thrift::transport;
-using namespace ::apache::thrift::server;
-
-using boost::shared_ptr;
-
-using namespace ::fastore::communication;
-using namespace ::fastore::server;
-
-class ServiceHandler : virtual public ServiceIf 
+class ServiceHandler : virtual public fastore::communication::ServiceIf 
 {
 private: 
 	static const char* const ConfigFileName;
 
-	shared_ptr<TSimpleFileTransport> _configFile;
-	shared_ptr<ServiceConfig> _config;
-	std::list<shared_ptr<Endpoint>> _workers;
-	shared_ptr<HiveState> _hiveState;	
+	boost::shared_ptr<apache::thrift::transport::TSimpleFileTransport> _configFile;
+	boost::shared_ptr<fastore::server::ServiceConfig> _config;
+	std::list<boost::shared_ptr<Endpoint>> _workers;
+	boost::shared_ptr<fastore::communication::HiveState> _hiveState;	
 
-	void InitializeWorkers(const std::vector<WorkerState>& workers);
+	void InitializeWorkers(const std::vector<fastore::communication::WorkerState>& workers);
 	void SaveConfiguration();
 	void EnsureWorkerPaths(int numWorkers);
 	int GetRecommendedWorkerCount();
 	void CheckInHive();
 	void CheckNotInHive();
 public:
-	ServiceHandler(const ServiceStartup& startup);
+	ServiceHandler(const fastore::server::ServiceStartup& startup);
 
-	void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID);
-	void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID);
+	void init(fastore::communication::ServiceState& _return, const fastore::communication::Topology& topology, const fastore::communication::HostAddresses& addresses, const fastore::communication::HostID hostID);
+	void join(fastore::communication::ServiceState& _return, const fastore::communication::HiveState& hiveState, const fastore::communication::NetworkAddress& address, const fastore::communication::HostID hostID);
 	void leave();
-	void getHiveState(HiveState& _return, const bool forceUpdate);
-	void getState(ServiceState& _return);
-	LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
-	void keepLock(const LockID lockID);
-	void escalateLock(const LockID lockID, const LockTimeout timeout);
-	void releaseLock(const LockID lockID);
+	void getHiveState(fastore::communication::HiveState& _return, const bool forceUpdate);
+	void getState(fastore::communication::ServiceState& _return);
+	fastore::communication::LockID acquireLock(const fastore::communication::LockName& name, const fastore::communication::LockMode::type mode, const fastore::communication::LockTimeout timeout);
+	void keepLock(const fastore::communication::LockID lockID);
+	void escalateLock(const fastore::communication::LockID lockID, const fastore::communication::LockTimeout timeout);
+	void releaseLock(const fastore::communication::LockID lockID);
 };

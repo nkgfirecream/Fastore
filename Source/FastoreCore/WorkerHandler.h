@@ -5,20 +5,12 @@
 #include <hash_map>
 #include "Repository.h"
 
-using namespace ::apache::thrift;
-using namespace ::apache::thrift::protocol;
-using namespace ::apache::thrift::transport;
-using namespace ::apache::thrift::server;
-using boost::shared_ptr;
-using namespace ::fastore::communication;
-using namespace std;
-
-class WorkerHandler : virtual public WorkerIf 
+class WorkerHandler : virtual public fastore::communication::WorkerIf 
 {
 private: 
-	PodID _podId;
-	string _path;
-	hash_map<ColumnID, boost::shared_ptr<Repository>> _repositories;
+	fastore::communication::PodID _podId;
+	std::string _path;
+	std::hash_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
 	void CheckState();
 	void Bootstrap();
 	void SyncToSchema();
@@ -33,14 +25,14 @@ private:
 public:
 	WorkerHandler(const PodID podId, const string path);
 
-	Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-	void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);
-	void commit(const TransactionID& transactionID);
-	void rollback(const TransactionID& transactionID);
-	void flush(const TransactionID& transactionID);
-	bool doesConflict(const Reads& reads, const Revision source, const Revision target);
-	void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-	void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target);
-	void query(ReadResults& _return, const Queries& queries);
+	Revision prepare(const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes, const fastore::communication::Reads& reads);
+	void apply(fastore::communication::TransactionID& _return, const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes);
+	void commit(const fastore::communication::TransactionID& transactionID);
+	void rollback(const fastore::communication::TransactionID& transactionID);
+	void flush(const fastore::communication::TransactionID& transactionID);
+	bool doesConflict(const fastore::communication::Reads& reads, const fastore::communication::Revision source, const fastore::communication::Revision target);
+	void update(fastore::communication::TransactionID& _return, const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes, const fastore::communication::Reads& reads);
+	void transgrade(fastore::communication::Reads& _return, const fastore::communication::Reads& reads, const fastore::communication::Revision source, const fastore::communication::Revision target);
+	void query(fastore::communication::ReadResults& _return, const fastore::communication::Queries& queries);
 	void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
 };

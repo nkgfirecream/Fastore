@@ -9,7 +9,14 @@
 #include <ctime>
 
 using namespace boost::filesystem;
+using boost::shared_ptr;
 using namespace std;
+using namespace ::apache::thrift;
+using namespace ::apache::thrift::protocol;
+using namespace ::apache::thrift::transport;
+using namespace ::apache::thrift::server;
+using namespace ::fastore::communication;
+using namespace ::fastore::server;
 
 const char* const ServiceHandler::ConfigFileName = "config.json";
 
