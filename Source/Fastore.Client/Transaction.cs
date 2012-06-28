@@ -138,6 +138,31 @@ namespace Alphora.Fastore.Client
             }
 
             // TODO: handle includes - probably need to keep a shadow of column buffers to do the merging with
+            // Cases for a given range
+            // 1 - Local exclusions within range
+            // 2 - Local inclusions within range
+            // 3 - Local updates to a row that:
+            //      A - Move a row into the range
+            //      B - Move a row out of the range
+
+            //Update case: a change to a value in a row
+            //This could cause the rows to get out of order if you've updated a row in the range.
+            //foreach (var row in resultRows)
+            //{
+            //    for (int i = 0; i < row.Values.Length; i++)
+            //    {
+            //        LogColumn col = changeMap[i];
+            //        if (col != null)
+            //        {
+            //            if (col.Includes.ContainsKey(row.ID))
+            //            {
+            //                row.Values[i] = col.Includes[row.ID];
+            //            }
+            //        }
+            //    }
+            //}
+
+            //Insert case: Include new rows that are not present in our get range.
 
             // Turn the rows back into a dataset
             var result = new DataSet(resultRows.Count, columnIds.Length);

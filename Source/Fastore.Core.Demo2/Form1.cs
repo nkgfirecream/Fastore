@@ -45,19 +45,19 @@ namespace Fastore.Core.Demo2
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
 
-            _columns = new int[] {1000, 1001, 1002, 1003, 1004, 1005};
+            _columns = new int[] {10000, 10001, 10002, 10003, 10004, 10005};
 
-            _database.Include(_schemaColumns, 1000, new object[] { 1000, "ID", "Int", "Int", true });
-            _database.Include(_schemaColumns, 1001, new object[] { 1001, "Given", "String", "Int", false });
-            _database.Include(_schemaColumns, 1002, new object[] { 1002, "Surname", "String", "Int", false });
-            _database.Include(_schemaColumns, 1003, new object[] { 1003, "Gender", "Bool", "Int", false });
-            _database.Include(_schemaColumns, 1004, new object[] { 1004, "BirthDate", "String", "Int", false });
-            _database.Include(_schemaColumns, 1005, new object[] { 1005, "BirthPlace", "String", "Int", false });
+            _database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", true });
+            _database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", false });
+            _database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", false });
+            _database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", false });
+            _database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", false });
+            _database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", false });
 
             int[] _podIdColumn = new int[] { 300 };
             Range podIdRange = new Range();
             podIdRange.Ascending = true;
-            podIdRange.ColumnID = 300;
+            podIdRange.ColumnID = _podIdColumn[0];
 
             var podIds = _database.GetRange(_podIdColumn, podIdRange, 500);
 
@@ -67,7 +67,7 @@ namespace Fastore.Core.Demo2
                 _database.Include(_podColumnColumns, i, new object[] { podIds[i % podIds.Count].Values[0], _columns[i] });
             }
 
-			var fileName = @"g:\Ancestry\owt\owt.xml.gz";
+			var fileName = @"e:\Ancestry\owt\owt.xml.gz";
 			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
             {
 				var deflated = Path.GetExtension(fileName) == ".gz" 
@@ -131,12 +131,12 @@ namespace Fastore.Core.Demo2
 						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
-                    //if (count % 500 == 0)
-                    //{
-                    //    _transaction.Commit();
-                    //    _transaction = _database.Begin(true, true);
-                    //    Application.DoEvents();
-                    //}
+                    if (count % 500 == 0)
+                    {
+                        _transaction.Commit();
+                        _transaction = _database.Begin(true, true);
+                        Application.DoEvents();
+                    }
 				}
                 watch.Stop();
 
@@ -156,10 +156,10 @@ namespace Fastore.Core.Demo2
         private string GetStats()
         {
             string results = "";
-            
-            //var stats = _database.GetStatistics(_columns);
-            //for (var i = 0; i < stats.Length; i++)
-            //    results += "Column: " + _columns[i].ToString() + " Unique: " + stats[i].Unique + " Total: " + stats[i].Total + " Avg Density: " + (double)stats[i].Total / (double)stats[i].Unique + "\n";
+
+            var stats = _database.GetStatistics(_columns);
+            for (var i = 0; i < stats.Length; i++)
+                results += "Column: " + _columns[i].ToString() + " Unique: " + stats[i].Unique + " Total: " + stats[i].Total + " Avg Density: " + (double)stats[i].Total / (double)stats[i].Unique + "\n";
 
             return results;
         }
@@ -174,8 +174,8 @@ namespace Fastore.Core.Demo2
                 record[4] = record[4] ?? "";
                 record[5] = record[5] ?? "";
 
-				//_transaction.Include(_columns, _ids, record);
-				_database.Include(_columns, _ids, record);
+				_transaction.Include(_columns, _ids, record);
+				//_database.Include(_columns, _ids, record);
                 _ids++;
             }
         }
@@ -222,7 +222,7 @@ namespace Fastore.Core.Demo2
                 start = new RangeBound { Bound = value, Inclusive = true };
             }
 
-			var orderColumn = comboBox1.SelectedIndex + 1000;
+			var orderColumn = comboBox1.SelectedIndex + 10000;
             var set = 
 				_database.GetRange
 				(
