@@ -15,6 +15,7 @@ namespace fastore { namespace communication {
 class WorkerIf {
  public:
   virtual ~WorkerIf() {}
+  virtual void getState(WorkerState& _return) = 0;
   virtual Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
   virtual void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) = 0;
   virtual void commit(const TransactionID& transactionID) = 0;
@@ -54,6 +55,9 @@ class WorkerIfSingletonFactory : virtual public WorkerIfFactory {
 class WorkerNull : virtual public WorkerIf {
  public:
   virtual ~WorkerNull() {}
+  void getState(WorkerState& /* _return */) {
+    return;
+  }
   Revision prepare(const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
     Revision _return = 0;
     return _return;
@@ -86,6 +90,100 @@ class WorkerNull : virtual public WorkerIf {
   void getStatistics(std::vector<Statistic> & /* _return */, const std::vector<ColumnID> & /* columnIDs */) {
     return;
   }
+};
+
+
+class Worker_getState_args {
+ public:
+
+  Worker_getState_args() {
+  }
+
+  virtual ~Worker_getState_args() throw() {}
+
+
+  bool operator == (const Worker_getState_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_getState_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_getState_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_getState_pargs {
+ public:
+
+
+  virtual ~Worker_getState_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Worker_getState_result__isset {
+  _Worker_getState_result__isset() : success(false) {}
+  bool success;
+} _Worker_getState_result__isset;
+
+class Worker_getState_result {
+ public:
+
+  Worker_getState_result() {
+  }
+
+  virtual ~Worker_getState_result() throw() {}
+
+  WorkerState success;
+
+  _Worker_getState_result__isset __isset;
+
+  void __set_success(const WorkerState& val) {
+    success = val;
+  }
+
+  bool operator == (const Worker_getState_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    return true;
+  }
+  bool operator != (const Worker_getState_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_getState_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _Worker_getState_presult__isset {
+  _Worker_getState_presult__isset() : success(false) {}
+  bool success;
+} _Worker_getState_presult__isset;
+
+class Worker_getState_presult {
+ public:
+
+
+  virtual ~Worker_getState_presult() throw() {}
+
+  WorkerState* success;
+
+  _Worker_getState_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
 };
 
 typedef struct _Worker_prepare_args__isset {
@@ -1195,6 +1293,9 @@ class WorkerClient : virtual public WorkerIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void getState(WorkerState& _return);
+  void send_getState();
+  void recv_getState(WorkerState& _return);
   Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
   void send_prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
   Revision recv_prepare();
@@ -1238,6 +1339,7 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef  void (WorkerProcessor::*ProcessFunction)(int32_t, apache::thrift::protocol::TProtocol*, apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
+  void process_getState(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_prepare(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_apply(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_commit(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -1251,6 +1353,7 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
  public:
   WorkerProcessor(boost::shared_ptr<WorkerIf> iface) :
     iface_(iface) {
+    processMap_["getState"] = &WorkerProcessor::process_getState;
     processMap_["prepare"] = &WorkerProcessor::process_prepare;
     processMap_["apply"] = &WorkerProcessor::process_apply;
     processMap_["commit"] = &WorkerProcessor::process_commit;
@@ -1289,6 +1392,16 @@ class WorkerMultiface : virtual public WorkerIf {
     ifaces_.push_back(iface);
   }
  public:
+  void getState(WorkerState& _return) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->getState(_return);
+    }
+    ifaces_[i]->getState(_return);
+    return;
+  }
+
   Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
     size_t sz = ifaces_.size();
     size_t i = 0;

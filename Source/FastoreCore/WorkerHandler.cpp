@@ -388,7 +388,7 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 
 void WorkerHandler::commit(const TransactionID& transactionID) {
 // Your implementation goes here
-printf("Commit\n");
+//printf("Commit\n");
 }
 
 void WorkerHandler::rollback(const TransactionID& transactionID) {
@@ -449,4 +449,18 @@ void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::v
 		Statistic stat = repo->getStatistic();
 		_return.push_back(stat);
 	}
+}
+
+void WorkerHandler::getState(WorkerState& _return)
+{
+	_return.__set_podID(_podId);
+	
+	std::map<ColumnID, RepositoryStatus::type> statuses;
+
+	for (auto iter = _repositories.begin(); iter != _repositories.end(); ++iter)
+	{
+		statuses.insert(pair<ColumnID, RepositoryStatus::type>(iter->first, iter->second->getStatus()));
+	}
+	
+	_return.__set_repositoryStatus(statuses);
 }

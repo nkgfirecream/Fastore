@@ -22,6 +22,11 @@ class WorkerHandler : virtual public WorkerIf {
     // Your initialization goes here
   }
 
+  void getState(WorkerState& _return) {
+    // Your implementation goes here
+    printf("getState\n");
+  }
+
   Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
     // Your implementation goes here
     printf("prepare\n");

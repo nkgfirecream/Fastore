@@ -2,6 +2,7 @@
 #include <iostream>
 #include <thrift/transport/TSimpleFileTransport.h>
 #include <thrift/protocol/TJSONProtocol.h>
+#include <thrift/transport/TSocket.h>
 #include "WorkerHandler.h"
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -269,9 +270,44 @@ void ServiceHandler::getHiveState(HiveState& _return, const bool forceUpdate)
 	// TODO: implement force
 }
 
-void ServiceHandler::getState(ServiceState& _return) {
-// Your implementation goes here
-printf("GetState\n");
+void ServiceHandler::getState(ServiceState& _return)
+{
+	auto currentState = _hiveState->services.find(_hiveState->reportingHostID);
+
+	_return.__set_status(ServiceStatus::Online);
+	_return.__set_timeStamp((TimeStamp)time(nullptr));
+	_return.__set_address(currentState->second.address);
+
+	std::vector<WorkerState> workerStates;
+
+	auto workers = currentState->second.workers;
+
+	for (auto iter = workers.begin(); iter != workers.end(); ++iter)
+	{
+		boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
+		boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+		boost::shared_ptr<TProtocol> protocol(new TJSONProtocol(transport));
+
+		WorkerClient client(protocol);
+		try
+		{
+			transport->open();
+			WorkerState state;
+			client.getState(state);
+			state.__set_port(iter->port);
+			transport->close();
+			workerStates.push_back(state);
+		}
+		catch (...)
+		{
+			WorkerState state;
+			state.__set_podID(iter->podID);
+			state.__set_port(iter->port);
+			workerStates.push_back(state);			
+		}		
+	}
+
+	_return.__set_workers(workerStates);
 }
 
 LockID ServiceHandler::acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) {

@@ -303,6 +303,48 @@ namespace Alphora.Fastore.Client
 			}
 		}
 
+        private HiveState GetHiveState()
+        {
+            //TODO: Need to actually try to get new worker information, update topologyID, etc.
+            //This just assumes that we won't add any workers once we are up and running
+            var newHive = new HiveState() { TopologyID = 0, Services = new Dictionary<int, ServiceState>() };
+
+            var tasks = new List<Task<KeyValuePair<int, ServiceState>>>();
+            foreach (var service in _hiveState.Services)
+            {
+                tasks.Add
+                (
+                    Task.Factory.StartNew
+                    (
+                        () =>
+                        {
+                            var serviceClient = EnsureService(service.Key);
+                            ServiceState state = serviceClient.getState();
+                            DisposeService(serviceClient);
+                            return new KeyValuePair<int, ServiceState>(service.Key, state);
+                        }
+                    )
+                );
+            }
+
+            foreach (var task in tasks)
+            {
+                var statePair = task.Result;
+                newHive.Services.Add(statePair.Key, statePair.Value);
+            }
+
+            //Don't care for now...
+            newHive.ReportingHostID = newHive.Services.Keys.First();
+
+            return newHive;
+        }
+
+        private void RefreshHiveState()
+        {
+            HiveState newState = GetHiveState();
+            UpdateHiveState(newState);
+        }
+
 		private void UpdateHiveState(HiveState newState)
 		{
 			lock(_mapLock)
@@ -318,7 +360,8 @@ namespace Alphora.Fastore.Client
 						foreach (var worker in service.Value.Workers)
 						{
 							_workerStates.Add(worker.PodID, new Tuple<ServiceState, WorkerState>(service.Value, worker));
-							foreach (var repo in worker.RepositoryStatus.Where(r => r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing))
+                            //TODO: Don't assume all repos are online.
+							foreach (var repo in worker.RepositoryStatus) //.Where(r => r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing)
 							{
 								PodMap map;
 								if (!_columnWorkers.TryGetValue(repo.Key, out map))
@@ -749,8 +792,11 @@ namespace Alphora.Fastore.Client
 				if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
 				{
 					// If we've inserted/deleted system table(s), force a schema refresh
-					if (writes.ContainsKey(0))
-						RefreshSchema();
+                    if (writes.Keys.Min() < 10000)
+                    {
+                        RefreshSchema();
+                        RefreshHiveState();
+                    }
 					break;
 				}
 			}

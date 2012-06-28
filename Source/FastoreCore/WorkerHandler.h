@@ -35,4 +35,5 @@ public:
 	void transgrade(fastore::communication::Reads& _return, const fastore::communication::Reads& reads, const fastore::communication::Revision source, const fastore::communication::Revision target);
 	void query(fastore::communication::ReadResults& _return, const fastore::communication::Queries& queries);
 	void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
+	void getState(WorkerState& _return);	
 };
