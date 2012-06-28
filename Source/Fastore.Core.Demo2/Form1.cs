@@ -46,134 +46,143 @@ namespace Fastore.Core.Demo2
 
 			_database = Client.Connect(new[] { new ServiceAddress { Name = address, Port = port } });
 
-            int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
+			CreateSchema();
 
-            _columns = new int[] {10000, 10001, 10002, 10003, 10004, 10005};
+			LoadData();
 
-            _database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", true });
-            _database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", false });
-            _database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", false });
-            _database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", false });
-            _database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", false });
-            _database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", false });
+			StopButton.Visible = false;
+			comboBox1.SelectedIndex = 0;
+            comboBox2.SelectedIndex = 0;
+		}
 
-            int[] _podIdColumn = new int[] { 300 };
-            Range podIdRange = new Range();
-            podIdRange.Ascending = true;
-            podIdRange.ColumnID = _podIdColumn[0];
+		private void CreateSchema()
+		{
+			int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
 
-            var podIds = _database.GetRange(_podIdColumn, podIdRange, 500);
+			_columns = new int[] { 10000, 10001, 10002, 10003, 10004, 10005 };
 
-            int[] _podColumnColumns = new int[] { 400, 401 };
-            for (int i = 0; i < _columns.Length; i++)
-            {
-                _database.Include(_podColumnColumns, i, new object[] { podIds[i % podIds.Count].Values[0], _columns[i] });
-            }
+			_database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", true });
+			_database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", false });
+			_database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", false });
+			_database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", false });
+			_database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", false });
+			_database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", false });
 
+			int[] _podIdColumn = new int[] { 300 };
+			Range podIdRange = new Range();
+			podIdRange.Ascending = true;
+			podIdRange.ColumnID = _podIdColumn[0];
+
+			var podIds = _database.GetRange(_podIdColumn, podIdRange, 500);
+
+			int[] _podColumnColumns = new int[] { 400, 401 };
+			for (int i = 0; i < _columns.Length; i++)
+			{
+				_database.Include(_podColumnColumns, i, new object[] { podIds[i % podIds.Count].Values[0], _columns[i] });
+			}
+		}
+
+		private void LoadData()
+		{
 			var fileName = @"e:\Ancestry\owt\owt.xml.gz";
 			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
-            {
-				var deflated = Path.GetExtension(fileName) == ".gz" 
+			{
+				var deflated = Path.GetExtension(fileName) == ".gz"
 					? (Stream)new GZipStream(fileStream, CompressionMode.Decompress)
 					: fileStream;
 
-                var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
-                var xmlReader = XmlReader.Create(deflated, xrs);
+				var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
+				var xmlReader = XmlReader.Create(deflated, xrs);
 
 				_transaction = _database.Begin(true, true);
-               
-                var count = 0;
+
+				var count = 0;
 				long lastMilliseconds = 0;
-                Stopwatch watch = new Stopwatch();
-                watch.Start();
-                while (!Canceled)
-                { 
-                    xmlReader.MoveToContent();
-                    if (xmlReader.EOF)
-                        break;
+				Stopwatch watch = new Stopwatch();
+				watch.Start();
+				while (!Canceled)
+				{
+					xmlReader.MoveToContent();
+					if (xmlReader.EOF)
+						break;
 
 					count++;
 
-                    var subReader = xmlReader.ReadSubtree();
-                    object[] record = null;
-                    while (subReader.Read())
-                    {
-                        if (subReader.NodeType == XmlNodeType.Element)
-                        {
-                            if (subReader.Name == "d")
-                            {
-                                InsertRecord(record);
+					var subReader = xmlReader.ReadSubtree();
+					object[] record = null;
+					while (subReader.Read())
+					{
+						if (subReader.NodeType == XmlNodeType.Element)
+						{
+							if (subReader.Name == "d")
+							{
+								InsertRecord(record);
 
-                                record = new object[_columns.Length];
+								record = new object[_columns.Length];
 
-                                if (subReader.MoveToAttribute("p"))
-                                    record[0] = int.Parse(subReader.Value);
-                            }
-                            else if (subReader.Name == "f" && subReader.MoveToAttribute("i"))
-                            {
-                                var code = subReader.Value;
-                                subReader.MoveToContent();
-                                switch (code)
-                                {
-                                    case "80004002": record[1] = subReader.ReadString(); break;
-                                    case "80004003": record[2] = subReader.ReadString(); break;
-                                    case "83004003": record[3] = subReader.ReadString().StartsWith("M", StringComparison.OrdinalIgnoreCase); break;
-                                    case "81004010": record[4] = subReader.ReadString(); break;
-                                    case "82004010": record[5] = subReader.ReadString(); break;
-                                }
-                            }
-                        }
+								if (subReader.MoveToAttribute("p"))
+									record[0] = int.Parse(subReader.Value);
+							}
+							else if (subReader.Name == "f" && subReader.MoveToAttribute("i"))
+							{
+								var code = subReader.Value;
+								subReader.MoveToContent();
+								switch (code)
+								{
+									case "80004002": record[1] = subReader.ReadString(); break;
+									case "80004003": record[2] = subReader.ReadString(); break;
+									case "83004003": record[3] = subReader.ReadString().StartsWith("M", StringComparison.OrdinalIgnoreCase); break;
+									case "81004010": record[4] = subReader.ReadString(); break;
+									case "82004010": record[5] = subReader.ReadString(); break;
+								}
+							}
+						}
 					}
 
-                    InsertRecord(record);
+					InsertRecord(record);
 
-                    xmlReader.Read();
-				
-                    if (count % 1000 == 0)
-                    {
+					xmlReader.Read();
 
-                        if (_commitTask != null)
-                        {
-                            //Wait until task is done.
-                            while (!_commitTask.IsCompleted) { Thread.Sleep(10); };                          
-                        }
-                        _commitTask = Task.Factory.StartNew
-                            (                            
-                                (t) => 
-                                { 
-                                    ((Transaction)t).Commit();
-                                },
-                                _transaction
-                            );
-                        //_transaction.Commit();
-                        _transaction = _database.Begin(true, true);
-                        Application.DoEvents();
-                    }
-                    if (count % 1000 == 0)
-                    {
-                        StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
-                        lastMilliseconds = watch.ElapsedMilliseconds;
-                    }
+					if (count % 1000 == 0)
+					{
+
+						if (_commitTask != null)
+						{
+							//Wait until task is done.
+							while (!_commitTask.IsCompleted) { Thread.Sleep(10); };
+						}
+						_commitTask = Task.Factory.StartNew
+							(
+								(t) =>
+								{
+									((Transaction)t).Commit();
+								},
+								_transaction
+							);
+						//_transaction.Commit();
+						_transaction = _database.Begin(true, true);
+						Application.DoEvents();
+					}
+					if (count % 1000 == 0)
+					{
+						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
+						lastMilliseconds = watch.ElapsedMilliseconds;
+					}
 				}
-                
-                if (_commitTask != null)
-                {
-                    //Wait until task is done.
-                    while (!_commitTask.IsCompleted) { Thread.Sleep(10); };
-                }
 
-                watch.Stop();				
+				if (_commitTask != null)
+				{
+					//Wait until task is done.
+					while (!_commitTask.IsCompleted) { Thread.Sleep(10); };
+				}
 
-                string result = GetStats();
+				watch.Stop();
+
+				string result = GetStats();
 				StatusBox.AppendText("\r\n" + result);
-                StatusBox.AppendText("\r\nRow per second : " + (count / (watch.ElapsedMilliseconds / 1000.0)));
+				StatusBox.AppendText("\r\nRow per second : " + (count / (watch.ElapsedMilliseconds / 1000.0)));
 				StatusBox.AppendText("\r\nLoad time: " + watch.Elapsed.ToString());
-
-				StopButton.Visible = false;
-            }        
-
-            comboBox1.SelectedIndex = 0;
-            comboBox2.SelectedIndex = 0;
+			}
 		}
 
         private string GetStats()
@@ -259,7 +268,7 @@ namespace Fastore.Core.Demo2
 				(
 					_columns,
 					range,
-					100
+					50
 				);
 
             return ParseDataSet(set);
