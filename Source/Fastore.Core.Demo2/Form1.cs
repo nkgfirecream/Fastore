@@ -45,6 +45,8 @@ namespace Fastore.Core.Demo2
 
             int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
 
+            _columns = new int[] {1000, 1001, 1002, 1003, 1004, 1005};
+
             _database.Include(_schemaColumns, 1000, new object[] { 1000, "ID", "Int", "Int", true });
             _database.Include(_schemaColumns, 1001, new object[] { 1001, "Given", "String", "Int", false });
             _database.Include(_schemaColumns, 1002, new object[] { 1002, "Surname", "String", "Int", false });
@@ -52,7 +54,18 @@ namespace Fastore.Core.Demo2
             _database.Include(_schemaColumns, 1004, new object[] { 1004, "BirthDate", "String", "Int", false });
             _database.Include(_schemaColumns, 1005, new object[] { 1005, "BirthPlace", "String", "Int", false });
 
-            _columns = new int[] {1000, 1001, 1002, 1003, 1004, 1005};
+            int[] _podIdColumn = new int[] { 300 };
+            Range podIdRange;
+            podIdRange.Ascending = true;
+            podIdRange.ColumnID = 300;
+
+            var result = _database.GetRange(_podIdColumn, podIdRange, 500);
+
+            List<int> podIds = new List<int>();
+
+            //for(int i 
+
+            //int[] _podColumnColumns = new int[] { 400, 401 };
 
 
 			var fileName = @"g:\Ancestry\owt\owt.xml.gz";

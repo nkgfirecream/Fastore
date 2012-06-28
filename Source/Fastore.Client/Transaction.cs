@@ -39,7 +39,6 @@ namespace Alphora.Fastore.Client
 
         public void Commit()
         {
-            throw new NotImplementedException();
             Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
 
             // Gather changes for each column
@@ -76,7 +75,9 @@ namespace Alphora.Fastore.Client
                     writes.Add(entry.Key, wt);
             }
 
-            Database.Include(writes);
+            int[] columnIds = writes.Keys.ToArray();
+
+            Database.Include(columnIds, writes);
 
             _log.Clear();
             _completed = true;

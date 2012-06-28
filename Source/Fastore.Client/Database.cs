@@ -694,11 +694,9 @@ namespace Alphora.Fastore.Client
 			return rangeQuery;
 		}
 
-        public void Include(int[] columnIds, object rowId, object[] row)
-		{
-			var writes = EncodeIncludes(columnIds, rowId, row);
-
-			while (true)
+        public void Include(int[] columnIds, Dictionary<int, ColumnWrites> writes)
+        {
+            while (true)
 			{
                 var transactionID = new TransactionID() { Key = 0, Revision = 0 };
 
@@ -717,6 +715,12 @@ namespace Alphora.Fastore.Client
 					break;
 				}
 			}
+        }
+
+        public void Include(int[] columnIds, object rowId, object[] row)
+		{
+			var writes = EncodeIncludes(columnIds, rowId, row);
+            Include(columnIds, writes);
 		}
 
 		private SortedDictionary<TransactionID, List<WorkerInfo>> ProcessWriteResults(WorkerInfo[] workers, List<Task<TransactionID>> tasks, Dictionary<int, Thrift.Protocol.TBase> failedWorkers)
