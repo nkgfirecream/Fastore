@@ -89,14 +89,6 @@ void WorkerHandler::Bootstrap()
 	hostId.IsUnique = true;	
 	CreateRepo(hostId);	
 
-	ColumnDef hostTopoId;
-	hostTopoId.ColumnID = 201;
-	hostTopoId.Name = "Host.TopologyID";
-	hostTopoId.ValueType = standardtypes::Int;
-	hostTopoId.RowIDType = standardtypes::Int;
-	hostTopoId.IsUnique = false;	
-	CreateRepo(hostTopoId);	
-
 	ColumnDef podId;
 	podId.ColumnID = 300;
 	podId.Name = "Pod.ID";

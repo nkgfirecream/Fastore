@@ -75,9 +75,7 @@ namespace Alphora.Fastore.Client
                     writes.Add(entry.Key, wt);
             }
 
-            int[] columnIds = writes.Keys.ToArray();
-
-            Database.Include(columnIds, writes);
+            Database.Apply(writes);
 
             _log.Clear();
             _completed = true;

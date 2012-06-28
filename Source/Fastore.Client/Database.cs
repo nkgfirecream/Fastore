@@ -132,7 +132,46 @@ namespace Alphora.Fastore.Client
 
 			UpdateHiveState(newHive);
 			BootStrapSchema();
+			UpdateTopologySchema(newTopology);
 		}
+
+		private void UpdateTopologySchema(Topology newTopology)
+		{
+			var writes = new Dictionary<int, ColumnWrites>();
+
+			// Insert the topology
+			writes.Add
+			(
+				100, 
+				new ColumnWrites 
+				{ 
+					Includes = new List<Fastore.Include> 
+					{ 
+						new Fastore.Include { RowID = Encoder.Encode(0), Value = Encoder.Encode(newTopology.TopologyID) } 
+					} 
+				}
+			);
+
+			var hostWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
+			foreach (var h in newTopology.Hosts)
+				hostWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(h.Key), Value = Encoder.Encode(h.Key) });
+			writes.Add(200, hostWrites);
+
+			var podWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
+			foreach (var h in newTopology.Hosts)
+				foreach (var p in h.Value)
+					podWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(p.Key) });
+			writes.Add(300, hostWrites);
+
+			var podHostWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
+			foreach (var h in newTopology.Hosts)
+				foreach (var p in h.Value)
+					podHostWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(h.Key) });
+			writes.Add(301, hostWrites);
+
+			Apply(writes);
+		}
+
 
 		private static Topology CreateTopology(int[] serviceWorkers)
 		{
@@ -430,7 +469,7 @@ namespace Alphora.Fastore.Client
 
 		/// <summary> Get the workers to write-to for the given column IDs. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private WorkerInfo[] GetWorkers(int[] columnIDs)
+		private WorkerInfo[] GetWorkers(Dictionary<int, ColumnWrites> writes)
 		{
 			Monitor.Enter(_mapLock);
 			var taken = true;
@@ -694,13 +733,13 @@ namespace Alphora.Fastore.Client
 			return rangeQuery;
 		}
 
-        public void Include(int[] columnIds, Dictionary<int, ColumnWrites> writes)
+        internal void Apply(Dictionary<int, ColumnWrites> writes)
         {
             while (true)
 			{
                 var transactionID = new TransactionID() { Key = 0, Revision = 0 };
 
-				var workers = GetWorkers(columnIds);
+				var workers = GetWorkers(writes);
 
 				var tasks = StartWorkerWrites(writes, transactionID, workers);
 
@@ -720,7 +759,7 @@ namespace Alphora.Fastore.Client
         public void Include(int[] columnIds, object rowId, object[] row)
 		{
 			var writes = EncodeIncludes(columnIds, rowId, row);
-            Include(columnIds, writes);
+            Apply(writes);
 		}
 
 		private SortedDictionary<TransactionID, List<WorkerInfo>> ProcessWriteResults(WorkerInfo[] workers, List<Task<TransactionID>> tasks, Dictionary<int, Thrift.Protocol.TBase> failedWorkers)
@@ -858,27 +897,7 @@ namespace Alphora.Fastore.Client
 
 		public void Exclude(int[] columnIds, object rowId)
 		{
-            var writes = EncodeExcludes(columnIds, rowId);
-
-            while (true)
-            {
-                var transactionID = new TransactionID();
-
-                var workers = GetWorkers(columnIds);
-
-                var tasks = StartWorkerWrites(writes, transactionID, workers);
-
-                var failedWorkers = new Dictionary<int, Thrift.Protocol.TBase>();
-                var workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
-
-                if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
-                {
-                    // If we've inserted/deleted system table(s), force a schema refresh
-                    if (writes.ContainsKey(0))
-                        RefreshSchema();
-                    break;
-                }
-            }
+            Apply(EncodeExcludes(columnIds, rowId));
 		}
 
         private Dictionary<int, ColumnWrites> EncodeExcludes(int[] columnIds, object rowId)
