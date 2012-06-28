@@ -903,26 +903,26 @@ class RangeResult {
   static const char* ascii_fingerprint; // = "A6BFD4A548133149EF24E6ED4F1025B8";
   static const uint8_t binary_fingerprint[16]; // = {0xA6,0xBF,0xD4,0xA5,0x48,0x13,0x31,0x49,0xEF,0x24,0xE6,0xED,0x4F,0x10,0x25,0xB8};
 
-  RangeResult() : endOfRange(0), beginOfRange(0), limited(0) {
+  RangeResult() : eof(0), bof(0), limited(0) {
   }
 
   virtual ~RangeResult() throw() {}
 
   ValueRowsList valueRowsList;
-  bool endOfRange;
-  bool beginOfRange;
+  bool eof;
+  bool bof;
   bool limited;
 
   void __set_valueRowsList(const ValueRowsList& val) {
     valueRowsList = val;
   }
 
-  void __set_endOfRange(const bool val) {
-    endOfRange = val;
+  void __set_eof(const bool val) {
+    eof = val;
   }
 
-  void __set_beginOfRange(const bool val) {
-    beginOfRange = val;
+  void __set_bof(const bool val) {
+    bof = val;
   }
 
   void __set_limited(const bool val) {
@@ -933,9 +933,9 @@ class RangeResult {
   {
     if (!(valueRowsList == rhs.valueRowsList))
       return false;
-    if (!(endOfRange == rhs.endOfRange))
+    if (!(eof == rhs.eof))
       return false;
-    if (!(beginOfRange == rhs.beginOfRange))
+    if (!(bof == rhs.bof))
       return false;
     if (!(limited == rhs.limited))
       return false;

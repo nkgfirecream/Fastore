@@ -201,8 +201,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 	RangeResult result;	
 
-	result.__set_beginOfRange(begin == firstMarker);
-	result.__set_endOfRange(end == lastMarker);
+	result.__set_bof(begin == firstMarker);
+	result.__set_eof(end == lastMarker);
 
 	//Nothing in this range, so return empty result
 	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
@@ -211,7 +211,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 	if (!bInclusive && beginMatch)
 	{
 		//reset BOF Marker since we are excluding
-		result.__set_beginOfRange(false);
+		result.__set_bof(false);
 		++begin;
 	}
 
@@ -219,7 +219,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 	{
 		++end;
 		//reset EOF Marker since we are including
-		result.__set_endOfRange(end == lastMarker);
+		result.__set_eof(end == lastMarker);
 	}	
 
 	bool startFound = startId == NULL;	
@@ -235,7 +235,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{				
-				result.__set_beginOfRange(false);
+				result.__set_bof(false);
 				startFound = true;
 				begin++;
 				continue;
@@ -260,8 +260,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 		}
 
 		//if we didn't make it through the entire set, reset the eof marker.
-		if (result.limited && result.endOfRange)
-			result.__set_endOfRange(false);
+		if (result.limited && result.eof)
+			result.__set_eof(false);
 	}
 	else
 	{
@@ -274,7 +274,7 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 			if (!startFound && _rowType.Compare(rowId, startId) == 0)
 			{
-				result.__set_endOfRange(false);
+				result.__set_eof(false);
 				startFound = true;
 				continue;
 			}
@@ -296,8 +296,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 		}
 
 		//if we didn't make it through the entire set, reset the bof marker.
-		if (result.limited && result.beginOfRange)
-			result.__set_beginOfRange(false);
+		if (result.limited && result.bof)
+			result.__set_bof(false);
 	}	
 
 	result.__set_valueRowsList(vrl);

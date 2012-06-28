@@ -77,7 +77,7 @@ bool BufferSerializer::writeNextChunk()
 		_lastValue = lastValueRows.value;
 		_lastRowId = lastValueRows.rowIDs.at(lastValueRows.rowIDs.size() - 1);
 
-		return result.endOfRange;
+		return result.eof;
 	}
 	else
 		return true;

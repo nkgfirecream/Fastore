@@ -24,8 +24,8 @@ namespace Alphora.Fastore
   public partial class RangeResult : TBase
   {
     private List<ValueRows> _valueRowsList;
-    private bool _endOfRange;
-    private bool _beginOfRange;
+    private bool _eof;
+    private bool _bof;
     private bool _limited;
 
     public List<ValueRows> ValueRowsList
@@ -41,29 +41,29 @@ namespace Alphora.Fastore
       }
     }
 
-    public bool EndOfRange
+    public bool Eof
     {
       get
       {
-        return _endOfRange;
+        return _eof;
       }
       set
       {
-        __isset.endOfRange = true;
-        this._endOfRange = value;
+        __isset.eof = true;
+        this._eof = value;
       }
     }
 
-    public bool BeginOfRange
+    public bool Bof
     {
       get
       {
-        return _beginOfRange;
+        return _bof;
       }
       set
       {
-        __isset.beginOfRange = true;
-        this._beginOfRange = value;
+        __isset.bof = true;
+        this._bof = value;
       }
     }
 
@@ -87,8 +87,8 @@ namespace Alphora.Fastore
     #endif
     public struct Isset {
       public bool valueRowsList;
-      public bool endOfRange;
-      public bool beginOfRange;
+      public bool eof;
+      public bool bof;
       public bool limited;
     }
 
@@ -127,14 +127,14 @@ namespace Alphora.Fastore
             break;
           case 2:
             if (field.Type == TType.Bool) {
-              EndOfRange = iprot.ReadBool();
+              Eof = iprot.ReadBool();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
             break;
           case 3:
             if (field.Type == TType.Bool) {
-              BeginOfRange = iprot.ReadBool();
+              Bof = iprot.ReadBool();
             } else { 
               TProtocolUtil.Skip(iprot, field.Type);
             }
@@ -174,20 +174,20 @@ namespace Alphora.Fastore
         }
         oprot.WriteFieldEnd();
       }
-      if (__isset.endOfRange) {
-        field.Name = "endOfRange";
+      if (__isset.eof) {
+        field.Name = "eof";
         field.Type = TType.Bool;
         field.ID = 2;
         oprot.WriteFieldBegin(field);
-        oprot.WriteBool(EndOfRange);
+        oprot.WriteBool(Eof);
         oprot.WriteFieldEnd();
       }
-      if (__isset.beginOfRange) {
-        field.Name = "beginOfRange";
+      if (__isset.bof) {
+        field.Name = "bof";
         field.Type = TType.Bool;
         field.ID = 3;
         oprot.WriteFieldBegin(field);
-        oprot.WriteBool(BeginOfRange);
+        oprot.WriteBool(Bof);
         oprot.WriteFieldEnd();
       }
       if (__isset.limited) {
@@ -206,10 +206,10 @@ namespace Alphora.Fastore
       StringBuilder sb = new StringBuilder("RangeResult(");
       sb.Append("ValueRowsList: ");
       sb.Append(ValueRowsList);
-      sb.Append(",EndOfRange: ");
-      sb.Append(EndOfRange);
-      sb.Append(",BeginOfRange: ");
-      sb.Append(BeginOfRange);
+      sb.Append(",Eof: ");
+      sb.Append(Eof);
+      sb.Append(",Bof: ");
+      sb.Append(Bof);
       sb.Append(",Limited: ");
       sb.Append(Limited);
       sb.Append(")");

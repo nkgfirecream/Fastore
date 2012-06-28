@@ -696,8 +696,8 @@ namespace Alphora.Fastore.Client
 		private DataSet RangeResultsToDataSet(int[] columnIds, List<byte[]> rowIDs, int rangeColumnID, RangeResult rangeResult, Dictionary<int, ReadResult> rowResults)
 		{
 			DataSet result = new DataSet(rowIDs.Count, columnIds.Length);
-			result.EndOfRange = rangeResult.EndOfRange;
-			result.BeginOfRange = rangeResult.BeginOfRange;
+            result.Eof = rangeResult.Eof;
+            result.Bof = rangeResult.Bof;
 
 			int valueRowValue = 0;
 			int valueRowRow = 0;

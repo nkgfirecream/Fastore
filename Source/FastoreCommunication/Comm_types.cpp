@@ -1628,8 +1628,8 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
   using ::apache::thrift::protocol::TProtocolException;
 
   bool isset_valueRowsList = false;
-  bool isset_endOfRange = false;
-  bool isset_beginOfRange = false;
+  bool isset_eof = false;
+  bool isset_bof = false;
   bool isset_limited = false;
 
   while (true)
@@ -1662,16 +1662,16 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool(this->endOfRange);
-          isset_endOfRange = true;
+          xfer += iprot->readBool(this->eof);
+          isset_eof = true;
         } else {
           xfer += iprot->skip(ftype);
         }
         break;
       case 3:
         if (ftype == ::apache::thrift::protocol::T_BOOL) {
-          xfer += iprot->readBool(this->beginOfRange);
-          isset_beginOfRange = true;
+          xfer += iprot->readBool(this->bof);
+          isset_bof = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1695,9 +1695,9 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   if (!isset_valueRowsList)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_endOfRange)
+  if (!isset_eof)
     throw TProtocolException(TProtocolException::INVALID_DATA);
-  if (!isset_beginOfRange)
+  if (!isset_bof)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_limited)
     throw TProtocolException(TProtocolException::INVALID_DATA);
@@ -1720,12 +1720,12 @@ uint32_t RangeResult::write(::apache::thrift::protocol::TProtocol* oprot) const 
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("endOfRange", ::apache::thrift::protocol::T_BOOL, 2);
-  xfer += oprot->writeBool(this->endOfRange);
+  xfer += oprot->writeFieldBegin("eof", ::apache::thrift::protocol::T_BOOL, 2);
+  xfer += oprot->writeBool(this->eof);
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("beginOfRange", ::apache::thrift::protocol::T_BOOL, 3);
-  xfer += oprot->writeBool(this->beginOfRange);
+  xfer += oprot->writeFieldBegin("bof", ::apache::thrift::protocol::T_BOOL, 3);
+  xfer += oprot->writeBool(this->bof);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldBegin("limited", ::apache::thrift::protocol::T_BOOL, 4);
@@ -1740,8 +1740,8 @@ uint32_t RangeResult::write(::apache::thrift::protocol::TProtocol* oprot) const 
 void swap(RangeResult &a, RangeResult &b) {
   using ::std::swap;
   swap(a.valueRowsList, b.valueRowsList);
-  swap(a.endOfRange, b.endOfRange);
-  swap(a.beginOfRange, b.beginOfRange);
+  swap(a.eof, b.eof);
+  swap(a.bof, b.bof);
   swap(a.limited, b.limited);
 }
 

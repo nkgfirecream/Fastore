@@ -201,8 +201,8 @@ typedef list<ValueRows> ValueRowsList
 struct RangeResult
 {
 	1: required ValueRowsList valueRowsList,
-	2: required bool endOfRange,
-	3: required bool beginOfRange,
+	2: required bool eof,
+	3: required bool bof,
 	4: required bool limited
 }
 
