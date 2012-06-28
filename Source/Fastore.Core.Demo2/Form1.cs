@@ -13,6 +13,8 @@ using System.Diagnostics;
 using Microsoft.VisualBasic.FileIO;
 
 using Alphora.Fastore.Client;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace Fastore.Core.Demo2
 {
@@ -27,6 +29,7 @@ namespace Fastore.Core.Demo2
 		private Transaction _transaction;
         private int[] _columns;
         private int _ids = 0;
+        private Task _commitTask;
 		public bool Canceled { get; set; }
 
 		private void Form1_Shown(object sender, EventArgs e)
@@ -128,7 +131,21 @@ namespace Fastore.Core.Demo2
 				
                     if (count % 1000 == 0)
                     {
-                        _transaction.Commit();
+
+                        if (_commitTask != null)
+                        {
+                            //Wait until task is done.
+                            while (!_commitTask.IsCompleted) { Thread.Sleep(10); };                          
+                        }
+                        _commitTask = Task.Factory.StartNew
+                            (                            
+                                (t) => 
+                                { 
+                                    ((Transaction)t).Commit();
+                                },
+                                _transaction
+                            );
+                        //_transaction.Commit();
                         _transaction = _database.Begin(true, true);
                         Application.DoEvents();
                     }
@@ -138,13 +155,18 @@ namespace Fastore.Core.Demo2
                         lastMilliseconds = watch.ElapsedMilliseconds;
                     }
 				}
-                watch.Stop();
+                
+                if (_commitTask != null)
+                {
+                    //Wait until task is done.
+                    while (!_commitTask.IsCompleted) { Thread.Sleep(10); };
+                }
 
-				StatusBox.AppendText("\r\nRow per second : " + (count / (watch.ElapsedMilliseconds / 1000.0)));
+                watch.Stop();				
 
                 string result = GetStats();
 				StatusBox.AppendText("\r\n" + result);
-
+                StatusBox.AppendText("\r\nRow per second : " + (count / (watch.ElapsedMilliseconds / 1000.0)));
 				StatusBox.AppendText("\r\nLoad time: " + watch.Elapsed.ToString());
 
 				StopButton.Visible = false;
