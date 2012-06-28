@@ -55,18 +55,17 @@ namespace Fastore.Core.Demo2
             _database.Include(_schemaColumns, 1005, new object[] { 1005, "BirthPlace", "String", "Int", false });
 
             int[] _podIdColumn = new int[] { 300 };
-            Range podIdRange;
+            Range podIdRange = new Range();
             podIdRange.Ascending = true;
             podIdRange.ColumnID = 300;
 
-            var result = _database.GetRange(_podIdColumn, podIdRange, 500);
+            var podIds = _database.GetRange(_podIdColumn, podIdRange, 500);
 
-            List<int> podIds = new List<int>();
-
-            //for(int i 
-
-            //int[] _podColumnColumns = new int[] { 400, 401 };
-
+            int[] _podColumnColumns = new int[] { 400, 401 };
+            for (int i = 0; i < _columns.Length; i++)
+            {
+                _database.Include(_podColumnColumns, i, new object[] { podIds[i % podIds.Count].Values[0], _columns[i] });
+            }
 
 			var fileName = @"g:\Ancestry\owt\owt.xml.gz";
 			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
