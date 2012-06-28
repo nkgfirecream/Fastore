@@ -20,6 +20,14 @@ namespace Alphora.Fastore
   public partial class Worker {
     public interface Iface {
       /// <summary>
+      /// Retreives current state of the worker and its repositories
+      /// </summary>
+      WorkerState getState();
+      #if SILVERLIGHT
+      IAsyncResult Begin_getState(AsyncCallback callback, object state, );
+      WorkerState End_getState(IAsyncResult asyncResult);
+      #endif
+      /// <summary>
       /// Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED.
       /// </summary>
       /// <param name="transactionID"></param>
@@ -145,6 +153,70 @@ namespace Alphora.Fastore
         get { return oprot_; }
       }
 
+
+      
+      #if SILVERLIGHT
+      public IAsyncResult Begin_getState(AsyncCallback callback, object state, )
+      {
+        return send_getState(callback, state);
+      }
+
+      public WorkerState End_getState(IAsyncResult asyncResult)
+      {
+        oprot_.Transport.EndFlush(asyncResult);
+        return recv_getState();
+      }
+
+      #endif
+
+      /// <summary>
+      /// Retreives current state of the worker and its repositories
+      /// </summary>
+      public WorkerState getState()
+      {
+        #if !SILVERLIGHT
+        send_getState();
+        return recv_getState();
+
+        #else
+        var asyncResult = Begin_getState(null, null, );
+        return End_getState(asyncResult);
+
+        #endif
+      }
+      #if SILVERLIGHT
+      public IAsyncResult send_getState(AsyncCallback callback, object state, )
+      #else
+      public void send_getState()
+      #endif
+      {
+        oprot_.WriteMessageBegin(new TMessage("getState", TMessageType.Call, seqid_));
+        getState_args args = new getState_args();
+        args.Write(oprot_);
+        oprot_.WriteMessageEnd();
+        #if SILVERLIGHT
+        return oprot_.Transport.BeginFlush(callback, state);
+        #else
+        oprot_.Transport.Flush();
+        #endif
+      }
+
+      public WorkerState recv_getState()
+      {
+        TMessage msg = iprot_.ReadMessageBegin();
+        if (msg.Type == TMessageType.Exception) {
+          TApplicationException x = TApplicationException.Read(iprot_);
+          iprot_.ReadMessageEnd();
+          throw x;
+        }
+        getState_result result = new getState_result();
+        result.Read(iprot_);
+        iprot_.ReadMessageEnd();
+        if (result.__isset.success) {
+          return result.Success;
+        }
+        throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getState failed: unknown result");
+      }
 
       
       #if SILVERLIGHT
@@ -805,6 +877,7 @@ namespace Alphora.Fastore
       public Processor(Iface iface)
       {
         iface_ = iface;
+        processMap_["getState"] = getState_Process;
         processMap_["prepare"] = prepare_Process;
         processMap_["apply"] = apply_Process;
         processMap_["commit"] = commit_Process;
@@ -845,6 +918,19 @@ namespace Alphora.Fastore
           return false;
         }
         return true;
+      }
+
+      public void getState_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      {
+        getState_args args = new getState_args();
+        args.Read(iprot);
+        iprot.ReadMessageEnd();
+        getState_result result = new getState_result();
+        result.Success = iface_.getState();
+        oprot.WriteMessageBegin(new TMessage("getState", TMessageType.Reply, seqid)); 
+        result.Write(oprot);
+        oprot.WriteMessageEnd();
+        oprot.Transport.Flush();
       }
 
       public void prepare_Process(int seqid, TProtocol iprot, TProtocol oprot)
@@ -987,6 +1073,143 @@ namespace Alphora.Fastore
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class getState_args : TBase
+    {
+
+      public getState_args() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("getState_args");
+        oprot.WriteStructBegin(struc);
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("getState_args(");
+        sb.Append(")");
+        return sb.ToString();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class getState_result : TBase
+    {
+      private WorkerState _success;
+
+      public WorkerState Success
+      {
+        get
+        {
+          return _success;
+        }
+        set
+        {
+          __isset.success = true;
+          this._success = value;
+        }
+      }
+
+
+      public Isset __isset;
+      #if !SILVERLIGHT
+      [Serializable]
+      #endif
+      public struct Isset {
+        public bool success;
+      }
+
+      public getState_result() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            case 0:
+              if (field.Type == TType.Struct) {
+                Success = new WorkerState();
+                Success.Read(iprot);
+              } else { 
+                TProtocolUtil.Skip(iprot, field.Type);
+              }
+              break;
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("getState_result");
+        oprot.WriteStructBegin(struc);
+        TField field = new TField();
+
+        if (this.__isset.success) {
+          if (Success != null) {
+            field.Name = "Success";
+            field.Type = TType.Struct;
+            field.ID = 0;
+            oprot.WriteFieldBegin(field);
+            Success.Write(oprot);
+            oprot.WriteFieldEnd();
+          }
+        }
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("getState_result(");
+        sb.Append("Success: ");
+        sb.Append(Success== null ? "<null>" : Success.ToString());
+        sb.Append(")");
+        return sb.ToString();
       }
 
     }

@@ -227,7 +227,7 @@ namespace Fastore.Core.Demo2
 				_database.GetRange
 				(
 					_columns,
-					new Range { ColumnID = orderColumn, Ascending = true },
+					new Range { ColumnID = orderColumn, Ascending = true, Start = start },
 					100
 				);
 
