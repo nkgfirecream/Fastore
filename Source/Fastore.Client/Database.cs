@@ -292,7 +292,7 @@ namespace Alphora.Fastore.Client
 			transport.Open();
 			try
 			{
-				var protocol = new Thrift.Protocol.TJSONProtocol(transport);
+				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
 
 				return new Service.Client(protocol);
 			}
@@ -443,7 +443,7 @@ namespace Alphora.Fastore.Client
 			transport.Open();
 			try
 			{
-				var protocol = new Thrift.Protocol.TJSONProtocol(transport);
+				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
 
 				return new Worker.Client(protocol);
 			}

@@ -30,7 +30,7 @@ public:
 		_processor = processor;
 		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
 		_transportFactory = boost::shared_ptr<TTransportFactory>(new TBufferedTransportFactory());
-		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TJSONProtocolFactory());
+		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
 
 		//boost::shared_ptr<ThreadManager> threadManager = ThreadManager::newSimpleThreadManager(15);
 		//boost::shared_ptr<BoostThreadFactory> threadFactory = boost::shared_ptr<BoostThreadFactory>(new BoostThreadFactory());

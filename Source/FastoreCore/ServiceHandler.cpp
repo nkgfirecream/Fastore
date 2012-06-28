@@ -286,7 +286,7 @@ void ServiceHandler::getState(ServiceState& _return)
 	{
 		boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
 		boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-		boost::shared_ptr<TProtocol> protocol(new TJSONProtocol(transport));
+		boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 
 		WorkerClient client(protocol);
 		try
