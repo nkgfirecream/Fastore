@@ -138,9 +138,9 @@ void WorkerHandler::Bootstrap()
 
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
-	shared_ptr<Repository> repo(new Repository(def.ColumnID, _path));
+	boost::shared_ptr<Repository> repo(new Repository(def.ColumnID, _path));
 	repo->create(def);
-	_repositories.insert(std::pair<ColumnID, shared_ptr<Repository>>(def.ColumnID, repo));
+	_repositories.insert(std::pair<ColumnID, boost::shared_ptr<Repository>>(def.ColumnID, repo));
 }
 
 void WorkerHandler::SyncToSchema()
@@ -188,11 +188,11 @@ void WorkerHandler::SyncToSchema()
 	}
 
 	// drop repos that we should no longer have
-	for (auto repo = _repositorites.begin(); repo != _repositories.end(); ) 
+	for (auto repo = _repositories.begin(); repo != _repositories.end(); ) 
 	{
-		if (schemaIds.find(id) == schemaIds.end() && (repo->id > MaxSystemColumnID)
+		if (schemaIds.find(repo->first) == schemaIds.end() && (repo->first > MaxSystemColumnID))
 		{
-			repo->drop();
+			repo->second->drop();
 			repo = _repositories.erase(repo);
 		}
 		else
@@ -372,12 +372,12 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 		if (id == 400 || id == 401)
 			syncSchema = true;
 
-		shared_ptr<Repository> repo = _repositories[id];
+		boost::shared_ptr<Repository> repo = _repositories[id];
 		ColumnWrites writes = start->second;
 
 		repo->apply(transactionID.revision, writes);
 		
-		start++;
+		++start;
 	}
 
 	if (syncSchema)
@@ -423,7 +423,7 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 	while (start != queries.end())
 	{
 		ColumnID id = start->first;
-		shared_ptr<Repository> repo = _repositories[id];
+		boost::shared_ptr<Repository> repo = _repositories[id];
 
 		Query query = start->second;
 		Answer answer = repo->query(query);
@@ -435,7 +435,7 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 
 		_return.insert(std::pair<ColumnID, ReadResult>(id, result));
 
-		start++;
+		++start;
 	}
 }
 
@@ -443,7 +443,7 @@ void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::v
 {	
 	for (int i = 0; i < columnIDs.size(); i++)
 	{		
-		shared_ptr<Repository> repo = _repositories[columnIDs[i]];
+		boost::shared_ptr<Repository> repo = _repositories[columnIDs[i]];
 		Statistic stat = repo->getStatistic();
 		_return.push_back(stat);
 	}

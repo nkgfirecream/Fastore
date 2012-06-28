@@ -18,7 +18,7 @@ class WorkerHandler : virtual public WorkerIf
 private: 
 	PodID _podId;
 	string _path;
-	hash_map<ColumnID, shared_ptr<Repository>> _repositories;
+	hash_map<ColumnID, boost::shared_ptr<Repository>> _repositories;
 	void CheckState();
 	void Bootstrap();
 	void SyncToSchema();
