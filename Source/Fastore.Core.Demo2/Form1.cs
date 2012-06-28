@@ -151,6 +151,7 @@ namespace Fastore.Core.Demo2
             }        
 
             comboBox1.SelectedIndex = 0;
+            comboBox2.SelectedIndex = 0;
 		}
 
         private string GetStats()
@@ -223,11 +224,19 @@ namespace Fastore.Core.Demo2
             }
 
 			var orderColumn = comboBox1.SelectedIndex + 10000;
+            Range range = new Range();
+            range.ColumnID = orderColumn;
+            range.Ascending = comboBox2.SelectedIndex == 0;
+            if (range.Ascending)
+                range.Start = start;
+            else
+                range.End = start;
+
             var set = 
 				_database.GetRange
 				(
 					_columns,
-					new Range { ColumnID = orderColumn, Ascending = true, Start = start },
+					range,
 					100
 				);
 
@@ -257,6 +266,11 @@ namespace Fastore.Core.Demo2
 		{
 			Canceled = true;
 		}
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshItems();
+        }
 
 
 	}
