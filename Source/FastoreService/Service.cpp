@@ -20,6 +20,12 @@
 
 
 using namespace std;
+using namespace ::fastore::communication;
+using namespace ::fastore::server;
+using namespace ::apache::thrift;
+using namespace ::apache::thrift::protocol;
+using namespace ::apache::thrift::transport;
+using namespace ::apache::thrift::server;
 
 boost::shared_ptr<Endpoint> endpoint;
 
