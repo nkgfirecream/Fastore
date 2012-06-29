@@ -6,44 +6,40 @@ using System.Collections;
 
 namespace Alphora.Fastore.Client
 {
-    public class DataSet : IEnumerable<DataSetRow>
+    public class DataSet : IEnumerable<DataSet.DataSetRow>
     {
-        private object[][] _data = null;
-		private object[] _rowIds = null;
-        private int _columns;
+        private DataSetRow[] _rows;
+        private int _columnCount;
 
-        public DataSet(int rows, int columns)
+        public DataSet(int rows, int columnCount)
         {
-            _data = new object[rows][];
-			_rowIds = new object[rows];
-            _columns = columns;
+            _rows = new DataSetRow[rows];
+            _columnCount = columnCount;
         }
 
         public DataSetRow this[int index]
         {
             get
             {
-                if (_data[index] == null)
-                    _data[index] = new object[_columns];
-
-                return new DataSetRow(_rowIds[index], _data[index]);
+                var result = _rows[index];
+				if (result.Values == null)
+                    result.Values[index] = new object[_columnCount];
+                return result;
             }
-
             set
             {
-                _data[index] = value.Values;
-				_rowIds[index] = value.ID;
+				_rows[index] = value;
             }
         }
 
         public int Count
         {
-            get { return _data.Length; }
+            get { return _rows.Length; }
         }
 
         public IEnumerator<DataSetRow> GetEnumerator()
 		{
-			for (int i = 0; i < _data.Length; i++)
+			for (int i = 0; i < _rows.Length; i++)
 				yield return this[i];
 		}
 
@@ -52,22 +48,12 @@ namespace Alphora.Fastore.Client
 			return this.GetEnumerator();
 		}
 
-        //This is with regards to the range that was used to request the dataset.
-        //We need a better way to tie the two together.
-        public bool Eof = false;
-        public bool Bof = false;
-        public bool Limited = false;
+		public struct DataSetRow
+		{
+			public object[] Values;
+			public object ID;
+		}	
 	}
 
-    public struct DataSetRow
-    {
-        public DataSetRow(object id, object[] values)
-        {
-            Values = values;
-			ID = id;
-        }
 
-        public object[] Values;
-        public object ID;
-    }
 }

@@ -84,7 +84,7 @@ namespace Alphora.Fastore.Client
 
 						// Ensure that all services are not joined (if the first one wasn't)
 						if (i > 0)
-							throw new Exception(String.Format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.", networkAddresses[i].Name, hiveState.TopologyID));
+							throw new ClientException(String.Format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.", networkAddresses[i].Name, hiveState.TopologyID));
 					}
 					catch (NotJoined nj)
 					{
@@ -242,7 +242,7 @@ namespace Alphora.Fastore.Client
 				{
 					ServiceState serviceState;
 					if (!_hiveState.Services.TryGetValue(hostID, out serviceState))
-						throw new Exception(String.Format("No service is currently associated with host ID ({0}).", hostID));
+						throw new ClientException(String.Format("No service is currently associated with host ID ({0}).", hostID));
 
 					// Release the lock during connection
 					Monitor.Exit(_mapLock);
@@ -390,7 +390,7 @@ namespace Alphora.Fastore.Client
 					// Attempt to find a worker for the given pod
 					Tuple<ServiceState, WorkerState> workerState;
 					if (!_workerStates.TryGetValue(podID, out workerState))
-						throw new Exception(String.Format("No Worker is currently associated with pod ID ({0}).", podID));
+						throw new ClientException(String.Format("No Worker is currently associated with pod ID ({0}).", podID));
 
 					// Release the lock during connection
 					Monitor.Exit(_mapLock);
@@ -474,7 +474,10 @@ namespace Alphora.Fastore.Client
 				if (!_columnWorkers.TryGetValue(columnID, out map))
 				{
 					// TODO: Update the hive state before erroring.
-					throw new Exception(String.Format("No worker is currently available for column ID ({0}).", columnID));
+
+					var error = new ClientException(String.Format("No worker is currently available for column ID ({0}).", columnID), ClientException.Codes.NoWorkerForColumn);
+					error.Data.Add("ColumnID", columnID);
+					throw error;
 				}
 
 				map.Next = (map.Next + 1) % map.Pods.Count;
@@ -644,8 +647,8 @@ namespace Alphora.Fastore.Client
 			return new Transaction(this, readIsolation, writeIsolation);
 		}
 
-		//Hit the thrift API to build range.
-		public DataSet GetRange(int[] columnIds, Range range, int limit, object startId = null)
+		/// <summary> Given a set of column IDs and range criteria, retrieve a set of values. </summary>
+		public RangeSet GetRange(int[] columnIds, Range range, int limit, object startId = null)
 		{
 			// Create the range query
 			var query = CreateQuery(range, limit, startId);
@@ -658,12 +661,21 @@ namespace Alphora.Fastore.Client
 			// Create the row ID query
 			Query rowIdQuery = GetRowsQuery(rangeResult);
 
+			// Get the values for all but the range
+			var result = InternalGetValues(columnIds, range.ColumnID, rowIdQuery);
+
+			// Add the range values into the result
+			return ResultsToRangeSet(result, range.ColumnID, Array.IndexOf(columnIds, range.ColumnID), rangeResult);
+		}
+
+		private DataSet InternalGetValues(int[] columnIds, int exclusionColumnId, Query rowIdQuery)
+		{
 			// Make the query request against all columns except for the range column
 			var tasks = new List<Task<Dictionary<int, ReadResult>>>(columnIds.Length);
 			for (int i = 0; i < columnIds.Length; i++)
 			{
 				var columnId = columnIds[i];
-				if (columnId != range.ColumnID)
+				if (columnId != exclusionColumnId)
 				{
 					tasks.Add
 					(
@@ -683,48 +695,77 @@ namespace Alphora.Fastore.Client
 					);
 				}
 			}
-		
+
 			// Combine all results into a single dictionary by column
 			var resultsByColumn = new Dictionary<int, ReadResult>(columnIds.Length);
 			foreach (var task in tasks)
 				foreach (var result in task.Result)
 					resultsByColumn.Add(result.Key, result.Value);
-			
-			return RangeResultsToDataSet(columnIds, rowIdQuery.RowIDs, range.ColumnID, rangeResult, resultsByColumn);
+
+			return ResultsToDataSet(columnIds, rowIdQuery.RowIDs, resultsByColumn);
 		}
 
-		private DataSet RangeResultsToDataSet(int[] columnIds, List<byte[]> rowIDs, int rangeColumnID, RangeResult rangeResult, Dictionary<int, ReadResult> rowResults)
+		public DataSet GetValues(int[] columnIds, object[] rowIds)
+		{
+			// Create the row ID query
+			Query rowIdQuery = new Query { RowIDs = EncodeRowIds(rowIds) };
+
+			// Make the query
+			return InternalGetValues(columnIds, -1, rowIdQuery); 
+		}
+
+		private static List<byte[]> EncodeRowIds(object[] rowIds)
+		{
+			var encodedRowIds = new List<byte[]>();
+			for (int i = 0; i < rowIds.Length; i++)
+				encodedRowIds[i] = Encoder.Encode(rowIds[i]);
+			return encodedRowIds;
+		}
+
+		private DataSet ResultsToDataSet(int[] columnIds, List<byte[]> rowIDs, Dictionary<int, ReadResult> rowResults)
 		{
 			DataSet result = new DataSet(rowIDs.Count, columnIds.Length);
-            result.Eof = rangeResult.Eof;
-            result.Bof = rangeResult.Bof;
 
-			int valueRowValue = 0;
-			int valueRowRow = 0;
 			for (int y = 0; y < rowIDs.Count; y++)
 			{
 				object[] rowData = new object[columnIds.Length];
 				object rowId = Fastore.Client.Encoder.Decode(rowIDs[y], _schema[columnIds[0]].IDType);
-				
+
 				for (int x = 0; x < columnIds.Length; x++)
 				{
 					var columnId = columnIds[x];
-					if (columnId == rangeColumnID)
-					{
-						// Column is the range column
-						rowData[x] = Fastore.Client.Encoder.Decode(rangeResult.ValueRowsList[valueRowValue].Value, _schema[columnId].Type);
-						valueRowRow++;
-						if (valueRowRow >= rangeResult.ValueRowsList[valueRowValue].RowIDs.Count)
-						{
-							valueRowValue++;
-							valueRowRow = 0;
-						}
-					}
-					else
+					if (rowResults.ContainsKey(columnId))
 						rowData[x] = Fastore.Client.Encoder.Decode(rowResults[columnId].Answer.RowIDValues[y], _schema[columnId].Type);
 				}
 
-				result[y] = new DataSetRow(rowId, rowData);
+				result[y] = new DataSet.DataSetRow { ID = rowId, Values = rowData };
+			}
+
+			return result;
+		}
+
+		private RangeSet ResultsToRangeSet(DataSet set, int rangeColumnId, int rangeColumnIndex, RangeResult rangeResult)
+		{
+			var result = 
+				new RangeSet 
+				{ 
+					Eof = rangeResult.Eof, 
+					Bof = rangeResult.Bof, 
+					Limited = rangeResult.Limited,
+					Data = set
+				};
+
+			int valueRowValue = 0;
+			int valueRowRow = 0;
+			for (int y = 0; y < set.Count; y++)
+			{
+				set[y].Values[rangeColumnIndex] = Fastore.Client.Encoder.Decode(rangeResult.ValueRowsList[valueRowValue].Value, _schema[rangeColumnId].Type);
+				valueRowRow++;
+				if (valueRowRow >= rangeResult.ValueRowsList[valueRowValue].RowIDs.Count)
+				{
+					valueRowValue++;
+					valueRowRow = 0;
+				}
             }
 
 			return result;
@@ -991,7 +1032,7 @@ namespace Alphora.Fastore.Client
 					new Range { ColumnID = 0, Ascending = true },
 					200000
 				);
-			foreach (var column in columns)
+			foreach (var column in columns.Data)
 			{
 				var def =
 					new ColumnDef

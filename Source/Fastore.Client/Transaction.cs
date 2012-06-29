@@ -87,7 +87,7 @@ namespace Alphora.Fastore.Client
 			_completed = true;
 		}
 
-        public DataSet GetRange(int[] columnIds, Range range, int limit, object startId = null)
+        public RangeSet GetRange(int[] columnIds, Range range, int limit, object startId = null)
         {
             // Get the raw results
             var raw = Database.GetRange(columnIds, range, limit, startId);
@@ -112,10 +112,10 @@ namespace Alphora.Fastore.Client
                 return raw;
 
             // Process excludes from results
-            var resultRows = new List<DataSetRow>();
-            foreach (var row in raw)
+            var resultRows = new List<DataSet.DataSetRow>();
+            foreach (var row in raw.Data)
             {
-                var newRow = new DataSetRow(row.ID, row.Values);
+				var newRow = new DataSet.DataSetRow { ID = row.ID, Values = row.Values };
                 var allNull = true;
                 for (int i = 0; i < row.Values.Length; i++)
                 {
@@ -168,10 +168,18 @@ namespace Alphora.Fastore.Client
             var result = new DataSet(resultRows.Count, columnIds.Length);
             for (var i = 0; i < result.Count; i++)
                 result[i] = resultRows[i];
-            return result;
+            raw.Data = result;
+
+			return raw;
         }
 
-        public void Include(int[] columnIds, object rowId, object[] row)
+		public DataSet GetValues(int[] columnIds, object[] rowIds)
+		{
+			// TODO: Filter/augment data for the transaction
+			return Database.GetValues(columnIds, rowIds);
+		}
+		
+		public void Include(int[] columnIds, object rowId, object[] row)
         {
 			for (var i = 0; i < columnIds.Length; i++)
 				EnsureColumnLog(columnIds[i]).Includes[rowId] = row[i];

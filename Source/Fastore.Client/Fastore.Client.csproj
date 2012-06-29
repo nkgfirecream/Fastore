@@ -47,15 +47,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClientException.cs" />
+    <Compile Include="ColumnDictionary.cs" />
     <Compile Include="ColumnDef.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DataSet.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Encoder.cs" />
+    <Compile Include="Generator.cs" />
     <Compile Include="IDataAccess.cs" />
+    <Compile Include="IDGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Range.cs" />
     <Compile Include="RangeBound.cs" />
+    <Compile Include="RangeSet.cs" />
     <Compile Include="Schema.cs" />
     <Compile Include="ServiceAddress.cs" />
     <Compile Include="Statistic.cs" />

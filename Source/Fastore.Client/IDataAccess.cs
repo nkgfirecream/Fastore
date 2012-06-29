@@ -7,7 +7,8 @@ namespace Alphora.Fastore.Client
 {
     interface IDataAccess
     {
-        DataSet GetRange(int[] columnIds, Range range, int limit, object startId = null);
+        RangeSet GetRange(int[] columnIds, Range range, int limit, object startId = null);
+		DataSet GetValues(int[] columnIds, object[] rowIds);
         
         void Include(int[] columnIds, object rowId, object[] row);
         void Exclude(int[] columnIds, object rowId);
