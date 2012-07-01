@@ -109,7 +109,7 @@ KeyTree::iterator::iterator(const KeyTree::Path& path, bool eofOnEmpty = false)
 		_eof = true;
 }
 
-bool KeyTree::iterator::MoveNext()
+void KeyTree::iterator::MoveNext()
 {
 	if(_eof)
 		throw "Iteration past end of tree";
@@ -153,7 +153,7 @@ bool KeyTree::iterator::MoveNext()
 		++_path.LeafIndex;
 }
 
-bool KeyTree::iterator::MovePrior()
+void KeyTree::iterator::MovePrior()
 {
 	if (_path.LeafIndex == 0)
 	{

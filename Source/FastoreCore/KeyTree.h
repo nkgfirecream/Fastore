@@ -86,8 +86,8 @@ class KeyTree
 				TreeEntry operator*();
 
 			private:
-				bool MoveNext();
-				bool MovePrior();
+				void MoveNext();
+				void MovePrior();
 				bool _eof;
 
 			friend class KeyTree;
