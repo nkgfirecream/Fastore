@@ -27,8 +27,8 @@ namespace Fastore.Client.Test
 
             var tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 8);
-            Assert.AreEqual(tData.Count, 8);
+			Assert.AreEqual(data.Data.Count, 8);
+			Assert.AreEqual(tData.Data.Count, 8);
 
             _database.Exclude(_columns, 8);
 
@@ -38,8 +38,8 @@ namespace Fastore.Client.Test
 
             tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 7);
-            Assert.AreEqual(tData.Count, 7);
+			Assert.AreEqual(data.Data.Count, 7);
+			Assert.AreEqual(tData.Data.Count, 7);
         }
 
         [TestMethod]
@@ -55,8 +55,8 @@ namespace Fastore.Client.Test
 
             var tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 7);
-            Assert.AreEqual(tData.Count, 7);
+			Assert.AreEqual(data.Data.Count, 7);
+			Assert.AreEqual(tData.Data.Count, 7);
 
             _transaction.Commit();
 
@@ -81,8 +81,8 @@ namespace Fastore.Client.Test
 
             tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 7);
-            Assert.AreEqual(tData.Count, 8);
+			Assert.AreEqual(data.Data.Count, 7);
+			Assert.AreEqual(tData.Data.Count, 8);
 
             _transaction.Commit();
 
@@ -92,8 +92,8 @@ namespace Fastore.Client.Test
 
             tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 8);
-            Assert.AreEqual(tData.Count, 8);
+			Assert.AreEqual(data.Data.Count, 8);
+			Assert.AreEqual(tData.Data.Count, 8);
 
             _transaction.Exclude(_columns, 8);
 
@@ -101,8 +101,8 @@ namespace Fastore.Client.Test
 
             tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 8);
-            Assert.AreEqual(tData.Count, 7);
+			Assert.AreEqual(data.Data.Count, 8);
+			Assert.AreEqual(tData.Data.Count, 7);
 
             _transaction.Commit();
 
@@ -111,8 +111,8 @@ namespace Fastore.Client.Test
             _transaction = _database.Begin(false, false);
 
             tData = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
-            Assert.AreEqual(data.Count, 7);
-            Assert.AreEqual(tData.Count, 7);
+			Assert.AreEqual(data.Data.Count, 7);
+			Assert.AreEqual(tData.Data.Count, 7);
         }
 
         [TestMethod]
@@ -149,7 +149,7 @@ namespace Fastore.Client.Test
 
             var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
 
-            Assert.AreEqual(data.Count, 6);
+			Assert.AreEqual(data.Data.Count, 6);
 
             _transaction = _database.Begin(false, false);
 
@@ -162,7 +162,7 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
-            Assert.AreEqual(data.Count, 9);
+			Assert.AreEqual(data.Data.Count, 9);
         }
 
         [TestMethod]
@@ -182,13 +182,13 @@ namespace Fastore.Client.Test
 
             var data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
-            Assert.AreEqual(data.Count, 8);
+			Assert.AreEqual(data.Data.Count, 8);
 
             _transaction2.Commit();
 
             data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
-            Assert.AreEqual(data.Count, 9);
+			Assert.AreEqual(data.Data.Count, 9);
 
             _database.Exclude(_columns, 8);
             _database.Exclude(_columns, 9);
@@ -229,7 +229,7 @@ namespace Fastore.Client.Test
 
             data = _database.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 9);
 
-            Assert.AreEqual(data.Count, 9);
+			Assert.AreEqual(data.Data.Count, 9);
         }
 
         [TestMethod]
@@ -244,7 +244,7 @@ namespace Fastore.Client.Test
             _transaction.Rollback();
 
             var data = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
-            Assert.AreEqual(data.Count, 7);
+			Assert.AreEqual(data.Data.Count, 7);
         }
         
         [TestMethod]
@@ -259,7 +259,7 @@ namespace Fastore.Client.Test
             _transaction.Dispose();
 
             var data = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
-            Assert.AreEqual(data.Count, 7);
+			Assert.AreEqual(data.Data.Count, 7);
 
             _transaction = _database.Begin(false, false);
             _transaction.Include(_columns, 8, new object[] { 8, "Martha", "Stewart", false, "4/10/1967", "San Jose" });
@@ -267,7 +267,7 @@ namespace Fastore.Client.Test
             _transaction.Dispose();
 
             data = _transaction.GetRange(_columns, new Range { ColumnID = 1000, Ascending = true }, 8);
-            Assert.AreEqual(data.Count, 7);
+			Assert.AreEqual(data.Data.Count, 7);
         }
     }//end class
 }//end namespace

@@ -78,7 +78,7 @@ namespace Fastore.Core.Demo2
 			int[] _podColumnColumns = new int[] { 400, 401 };
 			for (int i = 0; i < _columns.Length; i++)
 			{
-				_database.Include(_podColumnColumns, i, new object[] { podIds[i % podIds.Count].Values[0], _columns[i] });
+				_database.Include(_podColumnColumns, i, new object[] { podIds.Data[i % podIds.Data.Count].Values[0], _columns[i] });
 			}
 		}
 
@@ -271,9 +271,9 @@ namespace Fastore.Core.Demo2
         }
 
 		// Convert each column to a string
-		private IEnumerable<string[]> ParseDataSet(Alphora.Fastore.Client.DataSet set)
+		private IEnumerable<string[]> ParseDataSet(Alphora.Fastore.Client.RangeSet set)
 		{
-			foreach (var item in set)
+			foreach (var item in set.Data)
 			{
                 yield return (from c in item.Values select (c == null ? "" : c.ToString())).ToArray();
 			}

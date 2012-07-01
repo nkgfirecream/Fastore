@@ -108,8 +108,8 @@ public:
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
 		Assert::AreEqual<int>(expectedNum, expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
-		Assert::AreEqual<bool>(result.beginOfRange, expectBOF);
-		Assert::AreEqual<bool>(result.endOfRange, expectEOF);
+		Assert::AreEqual<bool>(result.bof, expectBOF);
+		Assert::AreEqual<bool>(result.eof, expectEOF);
 		Assert::AreEqual<bool>(result.limited, expectLimited);
 	}
 };
