@@ -27,7 +27,8 @@ namespace Fastore.Core.Demo2
 
         private Database _database;
 		private Transaction _transaction;
-        private int[] _columns;
+        private int[] _columns = new int[] { 10000, 10001, 10002, 10003, 10004, 10005 };
+        private int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };	
         private int _ids = 0;
         private Task _commitTask;
 		public bool Canceled { get; set; }
@@ -46,7 +47,14 @@ namespace Fastore.Core.Demo2
 
 			_database = Client.Connect(new[] { new ServiceAddress { Name = address, Port = port } });
 
-			CreateSchema();
+            if (connect.Detect)
+            {
+                DetectSchema();
+            }
+            else
+            {
+                CreateSchema();
+            }
 
 			LoadData();
 
@@ -55,12 +63,38 @@ namespace Fastore.Core.Demo2
             comboBox2.SelectedIndex = 0;
 		}
 
+        private void DetectSchema()
+        {
+            _columns[0] = GetColumnID("ID");
+            _columns[1] = GetColumnID("Given");
+            _columns[2] = GetColumnID("Surname");
+            _columns[3] = GetColumnID("Gender");
+            _columns[4] = GetColumnID("BirthDate");
+            _columns[5] = GetColumnID("BirthPlace");
+        }
+
+        private int GetColumnID(string columnName)
+        {
+            var nameBound = new RangeBound();
+            nameBound.Bound = columnName;
+            nameBound.Inclusive = true;
+
+            var nameRange = new Range();
+            nameRange.Ascending = true;
+            nameRange.ColumnID = 1;
+            nameRange.Start = nameBound;
+            nameRange.End = nameBound;
+
+            var result = _database.GetRange(new int[] { 1, 0 }, nameRange, 1);
+
+            if (result.Data.Count == 0)
+                throw new Exception(String.Format("Column {0} not found in hive", columnName));
+
+            return (int)result.Data[0].Values[1];
+        }
+
 		private void CreateSchema()
-		{
-			int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };
-
-			_columns = new int[] { 10000, 10001, 10002, 10003, 10004, 10005 };
-
+		{		
 			_database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", true });
 			_database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", false });
 			_database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", false });
@@ -250,7 +284,7 @@ namespace Fastore.Core.Demo2
                 start = new RangeBound { Bound = value, Inclusive = true };
             }
 
-			var orderColumn = comboBox1.SelectedIndex + 10000;
+			var orderColumn = _columns[comboBox1.SelectedIndex];
             Range range = new Range();
             range.ColumnID = orderColumn;
             range.Ascending = comboBox2.SelectedIndex == 0;

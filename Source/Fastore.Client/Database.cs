@@ -93,12 +93,9 @@ namespace Alphora.Fastore.Client
 						continue;
 					}
 
-					UpdateHiveState(hiveState);
-
-					// Add the service to our collection to avoid re-connection if needed
-					_services.Add(hiveState.ReportingHostID, service);
-
-					BootStrapSchema();
+                    UpdateHiveState(hiveState);
+                    BootStrapSchema();
+                    RefreshHiveState();
                     
                     //Everything worked... exit function
                     return;

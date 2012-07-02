@@ -25,5 +25,10 @@ namespace Fastore.Core.Demo2
 		{
 			get { return (int)PortBox.Value; }
 		}
+
+        public bool Detect
+        {
+            get { return DetectCheck.Checked; }
+        }
 	}
 }
