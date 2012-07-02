@@ -12,7 +12,7 @@ namespace Alphora.Fastore.Client
 		public ClientException(string message) : base(message) { }
 		public ClientException(string message, Codes code) : base(message) 
 		{
-			Data.Add("Code", (int)code);
+			Data.Add("Code", code);
 		}
 		protected ClientException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 		public ClientException(string message, Exception innerException) : base(message, innerException) { }
@@ -20,7 +20,8 @@ namespace Alphora.Fastore.Client
 		public enum Codes
 		{
 			/// <summary> There is no worker for the present column. </summary>
-			NoWorkerForColumn = 10000
+			NoWorkerForColumn = 10000,
+            NoWorkersInHive = 10001
 
 			// TODO: fill out rest of codes and update throw sites
 		}

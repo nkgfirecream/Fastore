@@ -9,13 +9,15 @@ namespace Alphora.Fastore.Client
     {
         public static byte[] WriteString(string item)
         {
-            byte[] s = Encoding.UTF8.GetBytes(item);
-            return s;
+            return Encoding.UTF8.GetBytes(item);
         }
 
         public static string ReadString(byte[] item)
         {
-            return Encoding.UTF8.GetString(item); 
+            if (item.Length > 0)
+                return Encoding.UTF8.GetString(item);
+            else
+                return null;
         }
 
         public static byte[] WriteBool(bool item)
@@ -23,9 +25,12 @@ namespace Alphora.Fastore.Client
             return BitConverter.GetBytes(item);
         }
 
-        public static bool ReadBool(byte[] item)
+        public static bool? ReadBool(byte[] item)
         {
-            return BitConverter.ToBoolean(item, 0);
+            if (item.Length > 0)
+                return BitConverter.ToBoolean(item, 0);
+            else
+                return null;
         }
 
         public static byte[] WriteLong(long item)
@@ -33,9 +38,12 @@ namespace Alphora.Fastore.Client
             return BitConverter.GetBytes(item);
         }
 
-        public static long ReadLong(byte[] item)
+        public static long? ReadLong(byte[] item)
         {
-            return BitConverter.ToInt64(item, 0);
+            if (item.Length > 0)
+                return BitConverter.ToInt64(item, 0);
+            else
+                return null;
         }
 
         public static byte[] WriteInt(int item)
@@ -43,9 +51,12 @@ namespace Alphora.Fastore.Client
             return BitConverter.GetBytes(item);
         }
 
-        public static int ReadInt(byte[] item)
+        public static int? ReadInt(byte[] item)
         {
-            return BitConverter.ToInt32(item, 0);
+            if (item.Length > 0)
+                return BitConverter.ToInt32(item, 0);
+            else
+                return null;
         }
 
         public static byte[] Encode(object item)

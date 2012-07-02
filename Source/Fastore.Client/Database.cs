@@ -99,6 +99,9 @@ namespace Alphora.Fastore.Client
 					_services.Add(hiveState.ReportingHostID, service);
 
 					BootStrapSchema();
+                    
+                    //Everything worked... exit function
+                    return;
 				}
 				catch
 				{
@@ -109,6 +112,7 @@ namespace Alphora.Fastore.Client
 				}
 			}
 
+            //Create a new topology instead.
 			var newTopology = CreateTopology(serviceWorkers);
 
 			var addressesByHost = new Dictionary<int, NetworkAddress>();
@@ -390,7 +394,7 @@ namespace Alphora.Fastore.Client
 					// Attempt to find a worker for the given pod
 					Tuple<ServiceState, WorkerState> workerState;
 					if (!_workerStates.TryGetValue(podID, out workerState))
-						throw new ClientException(String.Format("No Worker is currently associated with pod ID ({0}).", podID));
+						throw new ClientException(String.Format("No Worker is currently associated with pod ID ({0}).", podID), ClientException.Codes.NoWorkerForColumn);
 
 					// Release the lock during connection
 					Monitor.Exit(_mapLock);
@@ -716,9 +720,9 @@ namespace Alphora.Fastore.Client
 
 		private static List<byte[]> EncodeRowIds(object[] rowIds)
 		{
-			var encodedRowIds = new List<byte[]>();
+			var encodedRowIds = new List<byte[]>(rowIds.Length);
 			for (int i = 0; i < rowIds.Length; i++)
-				encodedRowIds[i] = Encoder.Encode(rowIds[i]);
+				encodedRowIds.Add(Encoder.Encode(rowIds[i]));
 			return encodedRowIds;
 		}
 

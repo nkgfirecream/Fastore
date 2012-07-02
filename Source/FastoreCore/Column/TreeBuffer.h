@@ -63,7 +63,9 @@ inline vector<std::string> TreeBuffer::GetValues(const vector<std::string>& rowI
 	vector<std::string> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
-		 _valueType.CopyOut(GetValue(_rowType.GetPointer(rowIds[i])), values[i]);
+		auto result = GetValue(_rowType.GetPointer(rowIds[i]));
+		if (result != NULL)
+			_valueType.CopyOut(result, values[i]);
 	}
 
 	return values;
