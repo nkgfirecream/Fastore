@@ -444,7 +444,8 @@ namespace Alphora.Fastore.Client
 			transport.Open();
 			try
 			{
-				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
+                var bufferedTransport = new Thrift.Transport.TBufferedTransport(transport);
+				var protocol = new Thrift.Protocol.TBinaryProtocol(bufferedTransport);
 
 				return new Worker.Client(protocol);
 			}
