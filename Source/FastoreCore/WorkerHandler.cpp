@@ -38,7 +38,7 @@ void WorkerHandler::Bootstrap()
 	id.Name = "Column.ID";
 	id.ValueType = standardtypes::Int;
 	id.RowIDType = standardtypes::Int;
-	id.IsUnique = true;
+	id.BufferType = BufferType::Identity;
 	CreateRepo(id);	
 
 	ColumnDef name;
@@ -46,7 +46,7 @@ void WorkerHandler::Bootstrap()
 	name.Name = "Column.Name";
 	name.ValueType = standardtypes::String;
 	name.RowIDType = standardtypes::Int;
-	name.IsUnique = false;
+	name.BufferType = BufferType::Unique;
 	CreateRepo(name);
 
 	ColumnDef vt;
@@ -54,7 +54,7 @@ void WorkerHandler::Bootstrap()
 	vt.Name = "Column.ValueType";
 	vt.ValueType = standardtypes::String;
 	vt.RowIDType = standardtypes::Int;
-	vt.IsUnique = false;
+	vt.BufferType = BufferType::Multi;
 	CreateRepo(vt);	
 
 	ColumnDef idt;
@@ -62,15 +62,15 @@ void WorkerHandler::Bootstrap()
 	idt.Name = "Column.RowIDType";
 	idt.ValueType = standardtypes::String;
 	idt.RowIDType = standardtypes::Int;
-	idt.IsUnique = false;
+	idt.BufferType = BufferType::Multi;
 	CreateRepo(idt);	
 
 	ColumnDef unique;
 	unique.ColumnID = 4;
-	unique.Name = "Column.IsUnique";
-	unique.ValueType = standardtypes::Bool;
+	unique.Name = "Column.BufferType";
+	unique.ValueType = standardtypes::Int;
 	unique.RowIDType = standardtypes::Int;
-	unique.IsUnique = false;	
+	unique.BufferType == BufferType::Multi;
 	CreateRepo(unique);	
 
 	ColumnDef topo;
@@ -78,7 +78,7 @@ void WorkerHandler::Bootstrap()
 	topo.Name = "Topology.ID";
 	topo.ValueType = standardtypes::Int;
 	topo.RowIDType = standardtypes::Int;
-	topo.IsUnique = true;	
+	topo.BufferType = BufferType::Identity;
 	CreateRepo(topo);
 
 	ColumnDef hostId;
@@ -86,7 +86,7 @@ void WorkerHandler::Bootstrap()
 	hostId.Name = "Host.ID";
 	hostId.ValueType = standardtypes::Int;
 	hostId.RowIDType = standardtypes::Int;
-	hostId.IsUnique = true;	
+	hostId.BufferType = BufferType::Identity;
 	CreateRepo(hostId);	
 
 	ColumnDef podId;
@@ -94,7 +94,7 @@ void WorkerHandler::Bootstrap()
 	podId.Name = "Pod.ID";
 	podId.ValueType = standardtypes::Int;
 	podId.RowIDType = standardtypes::Int;
-	podId.IsUnique = true;	
+	podId.BufferType = BufferType::Unique;
 	CreateRepo(podId);	
 
 	ColumnDef podHostId;
@@ -102,7 +102,7 @@ void WorkerHandler::Bootstrap()
 	podHostId.Name = "Pod.HostID";
 	podHostId.ValueType = standardtypes::Int;
 	podHostId.RowIDType = standardtypes::Int;
-	podHostId.IsUnique = false;	
+	podHostId.BufferType = BufferType::Multi;
 	CreateRepo(podHostId);	
 
 	ColumnDef podColPodId;
@@ -110,7 +110,7 @@ void WorkerHandler::Bootstrap()
 	podColPodId.Name = "PodColumn.PodID";
 	podColPodId.ValueType = standardtypes::Int;
 	podColPodId.RowIDType = standardtypes::Int;
-	podColPodId.IsUnique = false;	
+	podColPodId.BufferType = BufferType::Multi;
 	CreateRepo(podColPodId);	
 
 	ColumnDef podColColId;
@@ -118,7 +118,7 @@ void WorkerHandler::Bootstrap()
 	podColColId.Name = "PodColumn.ColumnID";
 	podColColId.ValueType = standardtypes::Int;
 	podColColId.RowIDType = standardtypes::Int;
-	podColColId.IsUnique = false;	
+	podColColId.BufferType = BufferType::Multi;
 	CreateRepo(podColColId);
 
 	//This must come after the repos are initialized. Can't add a column to the schema if the schema doesn't exist
@@ -271,7 +271,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.clear();
 
 	std::string unique;
-	unique.assign((char*)&def.IsUnique, sizeof(bool));
+	unique.assign((char*)&def.BufferType, sizeof(int));
 
 	include.__set_value(unique);
 	include.__set_rowID(columnId);
@@ -311,7 +311,7 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 
 	//Unique
 	answer = _repositories[4]->query(query);
-	def.IsUnique = *(bool*)(answer.rowIDValues.at(0).data());
+	def.BufferType = (BufferType)*(int*)(answer.rowIDValues.at(0).data());
 
 	return def;
 }

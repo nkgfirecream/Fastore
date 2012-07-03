@@ -122,6 +122,7 @@
     <ClInclude Include="BTree.h" />
     <ClInclude Include="Column\IColumnBuffer.h" />
     <ClInclude Include="Column\ColumnManager.h" />
+    <ClInclude Include="Column\IdentityBuffer.h" />
     <ClInclude Include="Column\TreeBuffer.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
     <ClInclude Include="Endpoint.h" />

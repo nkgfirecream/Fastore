@@ -29,7 +29,6 @@ namespace Fastore.Core.Demo2
 		private Transaction _transaction;
         private int[] _columns = new int[] { 10000, 10001, 10002, 10003, 10004, 10005 };
         private int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };	
-        private int _ids = 0;
         private Task _commitTask;
 		public bool Canceled { get; set; }
 
@@ -96,12 +95,12 @@ namespace Fastore.Core.Demo2
 
 		private void CreateSchema()
 		{		
-			_database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", true });
-			_database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", false });
-			_database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", false });
-			_database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", false });
-			_database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", false });
-			_database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", false });
+			_database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", BufferType.Identity });
+			_database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", BufferType.Multi });
+            _database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", BufferType.Multi });
+            _database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", BufferType.Multi });
+            _database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", BufferType.Multi });
+            _database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", BufferType.Multi });
 
 			int[] _podIdColumn = new int[] { 300 };
 			Range podIdRange = new Range();
@@ -178,7 +177,7 @@ namespace Fastore.Core.Demo2
 
 					xmlReader.Read();
 
-					if (count % 1000 == 0)
+					if (count % 5000 == 0)
 					{
 
 						//Wait until task is done.
@@ -196,9 +195,9 @@ namespace Fastore.Core.Demo2
 						_transaction = _database.Begin(true, true);
 						Application.DoEvents();
 					}
-					if (count % 1000 == 0)
+					if (count % 5000 == 0)
 					{
-						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
+						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 5000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
 				}
@@ -237,9 +236,8 @@ namespace Fastore.Core.Demo2
                 record[4] = record[4] ?? "";
                 record[5] = record[5] ?? "";
 
-				_transaction.Include(_columns, _ids, record);
+				_transaction.Include(_columns, record[0], record);
 				//_database.Include(_columns, _ids, record);
-                _ids++;
             }
         }
 

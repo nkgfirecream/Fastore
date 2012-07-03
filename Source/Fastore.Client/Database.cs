@@ -148,7 +148,7 @@ namespace Alphora.Fastore.Client
 				{ 
 					Includes = new List<Fastore.Include> 
 					{ 
-						new Fastore.Include { RowID = Encoder.Encode(0), Value = Encoder.Encode(newTopology.TopologyID) } 
+						new Fastore.Include { RowID = Encoder.Encode(newTopology.TopologyID), Value = Encoder.Encode(newTopology.TopologyID) } 
 					} 
 				}
 			);
@@ -1043,7 +1043,7 @@ namespace Alphora.Fastore.Client
 						Name = (string)column.Values[1],
 						Type = (string)column.Values[2],
 						IDType = (string)column.Values[3],
-						IsUnique = (bool)column.Values[4]
+						BufferType = (BufferType)column.Values[4]
 					};
 				schema.Add(def.ColumnID, def);
 			}
@@ -1068,31 +1068,31 @@ namespace Alphora.Fastore.Client
             id.Name = "Column.ID";
             id.Type = "Int";
             id.IDType = "Int";
-            id.IsUnique = true;
+            id.BufferType = BufferType.Identity;
 
             name.ColumnID = 1;
             name.Name = "Column.Name";
             name.Type = "String";
             name.IDType = "Int";
-            name.IsUnique = false;
+            name.BufferType = BufferType.Unique;
 
             vt.ColumnID = 2;
             vt.Name = "Column.ValueType";
             vt.Type = "String";
             vt.IDType = "Int";
-            vt.IsUnique = false;
+            vt.BufferType = BufferType.Multi;
 
             idt.ColumnID = 3;
             idt.Name = "Column.RowIDType";
             idt.Type = "String";
             idt.IDType = "Int";
-            idt.IsUnique = false;
+            idt.BufferType = BufferType.Multi;
 
             unique.ColumnID = 4;
-            unique.Name = "Column.IsUnique";
-            unique.Type = "Bool";
+            unique.Name = "Column.BufferType";
+            unique.Type = "Int";
             unique.IDType = "Int";
-            unique.IsUnique = false;
+            unique.BufferType = BufferType.Multi;
 
             _schema = new Schema();
 

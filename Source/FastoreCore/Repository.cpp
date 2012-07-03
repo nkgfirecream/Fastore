@@ -5,6 +5,7 @@
 
 #include "Column\UniqueBuffer.h"
 #include "Column\TreeBuffer.h"
+#include "Column\IdentityBuffer.h"
 
 using namespace boost::filesystem;
 
@@ -51,10 +52,22 @@ void Repository::create(ColumnDef def)
 	_def = def;
 	
 	//Instatiante buffer
-	if (_def.IsUnique)
+	if (_def.BufferType == BufferType::Identity)
+	{
+		if (_def.RowIDType.Name != _def.ValueType.Name)
+			throw "Identity Buffers require rowType and ValueType to be the same";
+
+		_buffer = new IdentityBuffer(_def.RowIDType);
+	}
+	else if(_def.BufferType == BufferType::Unique)
+	{
 		_buffer = new UniqueBuffer(_def.RowIDType, _def.ValueType);
+	}
 	else
+	{
 		_buffer = new TreeBuffer(_def.RowIDType, _def.ValueType);
+	}
+
 
 	// Initialize the log file
 	_log = auto_ptr<Log>(new Log(GetLogFileName()));

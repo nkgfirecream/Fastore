@@ -62,6 +62,8 @@ namespace Alphora.Fastore.Client
         public static byte[] Encode(object item)
         {
             var type = item.GetType();
+            if (type == typeof(BufferType))
+                return WriteInt((int)item);
             if (type == typeof(int))
                 return WriteInt((int)item);
             if (type == typeof(string))
