@@ -41,11 +41,10 @@ namespace Fastore.Core.Demo2
 				Close();
 				return;
 			}
-			var address = connect.Address;
-			var port = connect.Port;
+			var addresses = connect.Addresses;
 			connect.Dispose();
 
-			_database = Client.Connect(new[] { new ServiceAddress { Name = address, Port = port } });
+			_database = Client.Connect(addresses);
 
             if (connect.Detect)
             {
@@ -61,6 +60,8 @@ namespace Fastore.Core.Demo2
 			StopButton.Visible = false;
 			comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
+
+			//listView1.VirtualListSize = (int)_database.GetStatistics(new[] { 10000 })[0].Total;
 		}
 
         private void DetectSchema()
@@ -134,7 +135,7 @@ namespace Fastore.Core.Demo2
 				long lastMilliseconds = 0;
 				Stopwatch watch = new Stopwatch();
 				watch.Start();
-				while (!Canceled)
+				while (!Canceled && count < 85000000)
 				{
 					xmlReader.MoveToContent();
 					if (xmlReader.EOF)
@@ -332,6 +333,20 @@ namespace Fastore.Core.Demo2
         {
             RefreshItems();
         }
+
+		private void listView1_SearchForVirtualItem(object sender, SearchForVirtualItemEventArgs e)
+		{
+			
+		}
+
+		private void listView1_RetrieveVirtualItem(object sender, RetrieveVirtualItemEventArgs e)
+		{
+		}
+
+		private void listView1_CacheVirtualItems(object sender, CacheVirtualItemsEventArgs e)
+		{
+
+		}
 
 
 	}
