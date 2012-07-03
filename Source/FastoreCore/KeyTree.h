@@ -280,7 +280,7 @@ class KeyNode
 		//Valid for leaves only (type 0)
 		bool Delete(short index)
 		{
-			short size = _count - index;
+			short size = _count - index - 1;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
 
 			// Deallocate and shift keys

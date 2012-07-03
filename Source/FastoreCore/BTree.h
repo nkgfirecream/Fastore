@@ -286,7 +286,7 @@ class Node
 		//Only valid for leaves!
 		bool Delete(short index)
 		{	
-			short size = _count - index;
+			short size = _count - index - 1;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
 
 			// Deallocate and shift keys
@@ -294,7 +294,7 @@ class Node
 			memmove(&_keys[index *_keyType.Size], &_keys[(index + 1) *_keyType.Size], size *_keyType.Size);
 
 			// Deallocate and shift values
-			_valueType.Deallocate(&_values[index + _type *_valueType.Size], 1);
+			_valueType.Deallocate(&_values[index *_valueType.Size], 1);
 			memmove(&_values[index *_valueType.Size], &_values[(index + 1) *_valueType.Size], size * _valueType.Size);
 
 			_count--;
