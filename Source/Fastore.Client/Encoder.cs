@@ -17,7 +17,7 @@ namespace Alphora.Fastore.Client
             if (item.Length > 0)
                 return Encoding.UTF8.GetString(item);
             else
-                return null;
+                return "";
         }
 
         public static byte[] WriteBool(bool item)
@@ -61,6 +61,10 @@ namespace Alphora.Fastore.Client
 
         public static byte[] Encode(object item)
         {
+            //TODO: Fix this hack! Nulls should not be and empty string
+            if (item == null)
+                return WriteString("");
+
             var type = item.GetType();
             if (type == typeof(BufferType))
                 return WriteInt((int)item);
