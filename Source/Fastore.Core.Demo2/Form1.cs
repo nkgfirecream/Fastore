@@ -60,8 +60,14 @@ namespace Fastore.Core.Demo2
 			comboBox1.SelectedIndex = 0;
             comboBox2.SelectedIndex = 0;
 
+            listView1.SelectedIndexChanged += listView1_SelectedIndexChanged;
 			//listView1.VirtualListSize = (int)_database.GetStatistics(new[] { 10000 })[0].Total;
 		}
+
+        void listView1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+                GetMoreItems();
+        }
 
         private void DetectSchema()
         {
@@ -244,19 +250,35 @@ namespace Fastore.Core.Demo2
 		private void RefreshItems()
 		{
 			listView1.Items.Clear();
-			foreach (var item in SelectData())
-			{
-				listView1.Items.Add
-				(
-					new ListViewItem
-					(
-						item
-					)
-				);
-			}
+            GetMoreItems();
+			
 		}
 
-        private IEnumerable<string[]> SelectData()
+        private void GetMoreItems()
+        {
+            object startId = null;
+            if (listView1.Items.Count > 0)
+            {
+                int id;
+                string stringid = listView1.Items[listView1.Items.Count - 1].SubItems[0].Text;
+                if (int.TryParse(stringid, out id))
+                {
+                    startId = id;
+                }
+            }
+            foreach (var item in SelectData(startId))
+            {
+                listView1.Items.Add
+                (
+                    new ListViewItem
+                    (
+                        item
+                    )
+                );
+            }
+        }
+
+        private IEnumerable<string[]> SelectData(object startId = null)
         {
             RangeBound? start = null;
             if (!String.IsNullOrWhiteSpace(Search.Text))
@@ -297,7 +319,8 @@ namespace Fastore.Core.Demo2
 				(
 					_columns,
 					range,
-					50
+					50,
+                    startId
 				);
 
             return ParseDataSet(set);

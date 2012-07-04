@@ -233,8 +233,15 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	bool beginMatch = false;
 	bool endMatch = false;
 
-	BTree::iterator begin = range.__isset.first ? _values->findNearest(firstp, beginMatch) : firstMarker;
-	BTree::iterator end =  range.__isset.last ? _values->findNearest(lastp, endMatch) : lastMarker;
+	BTree::iterator begin = 
+		startId != NULL && range.ascending ? _values->findNearest(GetValue(startId), beginMatch) :
+		range.__isset.first ? _values->findNearest(firstp, beginMatch) :
+		firstMarker;
+
+	BTree::iterator end =  
+		startId != NULL && !range.ascending ? _values->findNearest(GetValue(startId), endMatch) :
+		range.__isset.last ? _values->findNearest(lastp, endMatch) :
+		lastMarker;
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;

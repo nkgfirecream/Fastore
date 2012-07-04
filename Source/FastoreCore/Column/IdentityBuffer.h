@@ -125,8 +125,15 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 	bool beginMatch = false;
 	bool endMatch = false;
 
-	KeyTree::iterator begin = range.__isset.first ? _rows->findNearest(firstp, beginMatch) : firstMarker;
-	KeyTree::iterator end =  range.__isset.last ? _rows->findNearest(lastp, endMatch) : lastMarker;
+	KeyTree::iterator begin = 
+		startId != NULL && range.ascending ? _rows->findNearest(startId, beginMatch) :
+		range.__isset.first ? _rows->findNearest(firstp, beginMatch) :
+		firstMarker;
+
+	KeyTree::iterator end =  
+		startId != NULL && !range.ascending ? _rows->findNearest(startId, endMatch) :
+		range.__isset.last ? _rows->findNearest(lastp, endMatch) :
+		lastMarker;
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
