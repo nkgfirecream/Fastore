@@ -1,5 +1,6 @@
 #include "StringTypes.h"
 #include <functional>
+#include <algorithm>
 
 using namespace std;
 
@@ -18,7 +19,7 @@ void CopyOutOfArray<std::string>(const void* arrpointer, std::string& destinatio
 
 int StringCompare(const void* left, const void* right)
 {
-	return ((std::string*)left)->compare(*(std::string*)right);
+	return stricmp(((std::string*)left)->data(), ((std::string*)right)->data());
 }
 
 std::wstring StringString(const void* item)
