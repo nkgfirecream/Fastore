@@ -2,7 +2,6 @@
 
 #include "..\Schema\standardtypes.h"
 #include "..\BTree.h"
-#include "..\KeyTree.h"
 #include "..\Column\IColumnBuffer.h"
 
 class TreeBuffer : public IColumnBuffer
@@ -38,7 +37,7 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &value
 	_valueType = valueType;
 	_nodeType = NoOpNodeType();
 	_rows = new BTree(_rowType, _nodeType);
-	_values = new BTree(_valueType, standardtypes::StandardKeyTree);
+	_values = new BTree(_valueType, standardtypes::StandardBTreeType);
 	_unique = 0;
 	_total = 0;
 	_values->setValuesMovedCallback
@@ -83,7 +82,7 @@ inline void* TreeBuffer::GetValue(void* rowId)
 		(
 			[rowId](void* kt) -> bool
 			{
-				return (*(KeyTree**)kt)->GetPath(rowId).Match;
+				return (*(BTree**)kt)->GetPath(rowId).Match;
 			}
 		);
 	}
@@ -123,10 +122,10 @@ inline bool TreeBuffer::Include(void* rowId, void* value)
 	BTree::Path  path = _values->GetPath(value);
 	if (path.Match)
 	{
-		KeyTree* existing = *(KeyTree**)(*path.Leaf)[path.LeafIndex].value;
+		BTree* existing = *(BTree**)(*path.Leaf)[path.LeafIndex].value;
 		
 		auto keypath = existing->GetPath(rowId);
-		existing->Insert(keypath, rowId);			
+		existing->Insert(keypath, rowId, rowId);			
 
 		_rows->Insert(rowpath, rowId, &path.Leaf);
 
@@ -135,11 +134,11 @@ inline bool TreeBuffer::Include(void* rowId, void* value)
 	}
 	else
 	{
-		KeyTree* newRows = new KeyTree(_rowType);
+		BTree* newRows = new BTree(_rowType);
 
 		auto keypath = newRows->GetPath(rowId);
 
-		newRows->Insert(keypath, rowId);
+		newRows->Insert(keypath, rowId, rowId);
 		_rows->Insert(rowpath, rowId, &path.Leaf);		
 		//Insert may generate a different leaf that the value gets inserted into,
 		//so the above may be incorrect momentarily. If the value gets inserted
@@ -162,7 +161,7 @@ inline bool TreeBuffer::Exclude(void* value, void* rowId)
 	//If existing is NULL, that row id did not exist under that value
 	if (path.Match)
 	{
-		KeyTree* existing = *(KeyTree**)(*path.Leaf)[path.LeafIndex].value;
+		BTree* existing = *(BTree**)(*path.Leaf)[path.LeafIndex].value;
 		auto keypath = existing->GetPath(rowId);
 		existing->Delete(keypath);
 		if (existing->Count() == 0)
@@ -188,7 +187,7 @@ inline bool TreeBuffer::Exclude(void* rowId)
 
 inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 {
-	KeyTree* existingValues = *(KeyTree**)(value);
+	BTree* existingValues = *(BTree**)(value);
 
 	auto start = existingValues->begin();
 	auto end = existingValues->end();
@@ -256,27 +255,10 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 
 	bool startFound = startId == NULL;
 
-	//So many functions... Helps avoid branches.
-	std::function<void()> moveBegin = [](){};
-	std::function<void()> moveEnd = [](){};
-	std::function<void()> moveId = [](){};
-
-	std::function<void(KeyTree::iterator&)> idMoveBegin = [](KeyTree::iterator& iter){ };
-	std::function<void(KeyTree::iterator&)> idMoveEnd = [](KeyTree::iterator& iter){ };
-
-	std::function<KeyTree::iterator(KeyTree*)> getStartIterator;
-	std::function<KeyTree::iterator(KeyTree*)> getEndIterator;
-
 	//Set up bounds to point to correct values, setup lambdas to move iterator (and avoid branches/cleanup code)
 	//TODO : Figure out cost of branches vs lambdas... Could make a lot of use of them in the Tree code...
 	if (range.ascending)
 	{
-		moveId = [&](){ ++begin; };
-		moveEnd = moveId;
-		idMoveEnd =  [](KeyTree::iterator& iter){ ++iter; };
-		getStartIterator = [](KeyTree* ktree) { return ktree->begin(); };
-		getEndIterator = [](KeyTree* ktree) { return ktree->end(); };
-
 		//ascending iterates AFTER grabbing value.
 		if (!bInclusive && beginMatch)
 		{
@@ -295,11 +277,6 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	}
 	else
 	{
-		moveBegin =  [&](){ --begin; };
-		idMoveBegin =  [](KeyTree::iterator& iter){ --iter; };
-		getStartIterator = [](KeyTree* ktree) { return ktree->end(); };
-		getEndIterator = [](KeyTree* ktree) { return ktree->begin(); };
-
 		//descending iterates BEFORE grabbing value...
 		if (bInclusive && beginMatch)
 		{
@@ -321,13 +298,14 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 
 	while (begin != end && !result.limited)
 	{
-		moveBegin();
+		if (!range.ascending)
+			--begin;
 
-		auto rowIdTree = (KeyTree*)*(void**)((*begin).value);			
+		auto rowIdTree = (BTree*)*(void**)((*begin).value);			
 		auto key = (void*)((*begin).key);
 
-		auto idStart = !startFound ?  rowIdTree->find(startId) : getStartIterator(rowIdTree);
-		auto idEnd = getEndIterator(rowIdTree);
+		auto idStart = !startFound ?  rowIdTree->find(startId) :  range.ascending ? rowIdTree->begin() : rowIdTree->end();
+		auto idEnd = range.ascending ? rowIdTree->end() : rowIdTree->begin();
 
 		if (!startFound)
 		{
@@ -335,7 +313,8 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 			{
 				startFound = true;
 				result.__set_bof(false);
-				idMoveEnd(idStart);	
+				if (range.ascending)
+					++idStart;
 			}
 			else
 			{
@@ -346,12 +325,17 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 		std::vector<std::string> rowIds;
 		while (idStart != idEnd && !result.limited)
 		{
-			idMoveBegin(idStart);
+			if (!range.ascending)
+					--idStart;
+
 			string rowId;
 			_rowType.CopyOut((*idStart).key, rowId);
 			rowIds.push_back(rowId);
 			++num;
-			idMoveEnd(idStart);
+
+			if (range.ascending)
+					++idStart;
+
 			result.__set_limited(num == range.limit);
 		}
 
@@ -366,7 +350,8 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 			vrl.push_back(vr);
 		}
 
-		moveEnd();
+		if (range.ascending)
+			++begin;
 	}
 
 	//if we didn't make it through the entire set, reset the eof marker.

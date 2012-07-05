@@ -1,6 +1,5 @@
 #include "InternalTypes.h"
 #include <hash_set>
-#include "..\KeyTree.h"
 #include "..\BTree.h"
 
 void DeallocateHashSet(void* items, int count)
@@ -20,42 +19,16 @@ HashSetType::HashSetType()
 	Deallocate = DeallocateHashSet;
 }
 
-template<> void CopyToArray<KeyTree*>(const void* item, void* arrpointer)
-{
-	memcpy(arrpointer, item, sizeof(KeyTree*));
-}
 
 template<> void CopyToArray<BTree*>(const void* item, void* arrpointer)
 {
 	memcpy(arrpointer, item, sizeof(BTree*));
 }
 
-std::wstring KeyTreeString(const void* item)
-{
-	wstringstream result;
-	result << (*(KeyTree**)item)->ToString();
-	return result.str();
-}
-
-void DeallocateKeyTree(void* items, int count)
-{
-	for (int i = 0; i < count; i++)
-		(*(KeyTree**)items)[i].~KeyTree();
-}
-
 void DeallocateBTree(void* items, int count)
 {
 	for (int i = 0; i < count; i++)
 		(*(BTree**)items)[i].~BTree();
-}
-
-KeyTreeType::KeyTreeType()
-{
-	CopyIn = CopyToArray<KeyTree*>;
-	Size = sizeof(KeyTree*);
-	ToString = KeyTreeString;
-	Name = "KeyTreeType";
-	Deallocate = DeallocateKeyTree;
 }
 
 BTreeType::BTreeType()

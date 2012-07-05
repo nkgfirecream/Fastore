@@ -1,7 +1,6 @@
 #pragma once
 
 #include "..\Schema\standardtypes.h"
-#include "..\KeyTree.h"
 #include "..\Column\IColumnBuffer.h"
 
 class IdentityBuffer : public IColumnBuffer
@@ -19,14 +18,14 @@ class IdentityBuffer : public IColumnBuffer
 		bool Exclude(void* rowId);
 
 		ScalarType _type;
-		KeyTree* _rows;
+		BTree* _rows;
 		long long _count;
 };
 
 inline IdentityBuffer::IdentityBuffer(const ScalarType& type)
 {
 	_type = type;
-	_rows = new KeyTree(_type);
+	_rows = new BTree(_type);
 	_count = 0;
 }
 
@@ -83,7 +82,7 @@ inline bool IdentityBuffer::Include(void* rowId)
 		return false;
 	else
 	{		
-		_rows->Insert(rowpath, rowId);
+		_rows->Insert(rowpath, rowId, rowId);
 		_count++;
 		return true;
 	}
@@ -122,8 +121,8 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 	}
 
 	//cache markers since we will use it several times
-	KeyTree::iterator lastMarker = range.ascending ? _rows->end() : _rows->begin();
-	KeyTree::iterator firstMarker = range.ascending ? _rows->begin() : _rows->end();
+	BTree::iterator lastMarker = range.ascending ? _rows->end() : _rows->begin();
+	BTree::iterator firstMarker = range.ascending ? _rows->begin() : _rows->end();
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
@@ -131,12 +130,12 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 	bool beginMatch = false;
 	bool endMatch = false;	
 		
-	KeyTree::iterator begin = 
+	BTree::iterator begin = 
 	startId != NULL  ? _rows->findNearest(startId, beginMatch) :
 	range.__isset.first ? _rows->findNearest(firstp, beginMatch) :
 	firstMarker;
 
-	KeyTree::iterator end = 
+	BTree::iterator end = 
 	range.__isset.last ? _rows->findNearest(lastp, endMatch) :
 	lastMarker;
 
@@ -148,24 +147,16 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 
 	bool startFound = startId == NULL;
 
-	std::function<void()> moveBegin = [](){};
-	std::function<void()> moveEnd = [](){};
-	std::function<void()> moveId = [](){};
-
 	//Set up bounds to point to correct values, setup lambdas to move iterator (and avoid branches/cleanup code)
 	//TODO : Figure out cost of branches vs lambdas... Could make a lot of use of them in the Tree code...
 	if (range.ascending)
 	{
-		moveId = [&](){ ++begin; };
-		moveEnd = moveId;
-
 		//ascending iterates AFTER grabbing value.
 		if (!bInclusive && beginMatch)
 		{
 			++begin;
 			//reset BOF Marker since we are excluding
 			result.__set_bof(false);
-
 		}
 
 		if (eInclusive && endMatch)
@@ -177,15 +168,12 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 	}
 	else
 	{
-		moveBegin =  [&](){ --begin; };
-
 		//descending iterates BEFORE grabbing value...
 		if (bInclusive && beginMatch)
 		{
 			++begin;
 			//reset BOF Marker since we are excluding
 			result.__set_bof(false);
-
 		}
 
 		if (!eInclusive && endMatch)
@@ -198,7 +186,8 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 
 	while (begin != end && !result.limited)
 	{
-		moveBegin();
+		if (!range.ascending)
+			--begin;
 
 		auto rowId = (void*)((*begin).key);
 
@@ -206,7 +195,9 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 		{				
 			result.__set_bof(false);
 			startFound = true;
-			moveId();
+			if (range.ascending)
+				++begin;
+
 			continue;
 		}
 			
@@ -225,7 +216,8 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 		vrl.push_back(vr);
 		result.__set_limited(vrl.size() == range.limit);
 
-		moveEnd();
+		if (range.ascending)
+				++begin;
 	}
 
 	//if we didn't make it through the entire set, reset the eof marker.

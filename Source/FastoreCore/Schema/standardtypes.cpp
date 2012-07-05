@@ -10,5 +10,4 @@ BoolType standardtypes::Bool;
 	
 // Internal Types
 HashSetType standardtypes::StandardHashSet;
-KeyTreeType standardtypes::StandardKeyTree;
 BTreeType standardtypes::StandardBTreeType;

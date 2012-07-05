@@ -218,24 +218,16 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 	bool startFound = startId == NULL;
 
-	std::function<void()> moveBegin = [](){};
-	std::function<void()> moveEnd = [](){};
-	std::function<void()> moveId = [](){};
-
 	//Set up bounds to point to correct values, setup lambdas to move iterator (and avoid branches/cleanup code)
 	//TODO : Figure out cost of branches vs lambdas... Could make a lot of use of them in the Tree code...
 	if (range.ascending)
 	{
-		moveId = [&](){ ++begin; };
-		moveEnd = moveId;
-
 		//ascending iterates AFTER grabbing value.
 		if (!bInclusive && beginMatch)
 		{
 			++begin;
 			//reset BOF Marker since we are excluding
 			result.__set_bof(false);
-
 		}
 
 		if (eInclusive && endMatch)
@@ -247,15 +239,12 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 	}
 	else
 	{
-		moveBegin =  [&](){ --begin; };
-
 		//descending iterates BEFORE grabbing value...
 		if (bInclusive && beginMatch)
 		{
 			++begin;
 			//reset BOF Marker since we are excluding
 			result.__set_bof(false);
-
 		}
 
 		if (!eInclusive && endMatch)
@@ -268,7 +257,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 	while (begin != end && !result.limited)
 	{
-		moveBegin();
+		if(!range.ascending)
+			--begin;
 
 		auto valuep = (void*)((*begin).key);
 		auto rowIdp = (void*)((*begin).value);
@@ -277,7 +267,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 		{				
 			result.__set_bof(false);
 			startFound = true;
-			moveId();
+			if(range.ascending)
+				++begin;
 			continue;
 		}
 			
@@ -296,7 +287,8 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 		vrl.push_back(vr);
 		result.__set_limited(vrl.size() == range.limit);
 
-		moveEnd();
+		if(range.ascending)
+				++begin;
 	}
 
 	//if we didn't make it through the entire set, reset the eof marker.

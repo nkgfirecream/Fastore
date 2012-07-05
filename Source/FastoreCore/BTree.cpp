@@ -13,6 +13,15 @@ using namespace std;
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
 	_keyType(keyType), _valueType(valueType)
 {
+	_keyOnly = false;
+	_nodeType = NodeType();
+	_root = new Node(this);
+}
+
+BTree::BTree(ScalarType keyType) :
+	_keyType(keyType)
+{
+	_keyOnly = true;
 	_nodeType = NodeType();
 	_root = new Node(this);
 }
@@ -39,7 +48,7 @@ void BTree::DoValuesMoved(Node* newLeaf)
 	}
 }
 
-void BTree::setValuesMovedCallback(valuesMovedHandler callback)
+void BTree::setValuesMovedCallback(onevaluesMovedHandler callback)
 {
 	_valuesMovedCallback = callback;
 }
@@ -47,6 +56,11 @@ void BTree::setValuesMovedCallback(valuesMovedHandler callback)
 std::wstring BTree::ToString()
 {
 	return _root->ToString();
+}
+
+int BTree::Count()
+{
+	return _count;
 }
 
 void BTree::Delete(Path& path)
@@ -68,6 +82,8 @@ void BTree::Delete(Path& path)
 		if (result != NULL)
 			_root = result;
 	}
+
+	_count--;
 }
 
 void BTree::Insert(Path& path, void* key, void* value)
@@ -86,9 +102,11 @@ void BTree::Insert(Path& path, void* key, void* value)
 
 	if (result != NULL)
 	{
-		_root = new Node(this, 1, 1, _root, result->right, result->key);
+		_root = new Node(this, true, 1, _root, result->right, result->key);
 		delete result;
 	}
+
+	_count++;
 }
 
 BTree::Path BTree::SeekToFirst()
