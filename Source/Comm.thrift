@@ -82,6 +82,20 @@ enum LockMode { Read = 1, Write = 2 }
 /** Timeout in ms; <= 0 means fail immediately. */
 typedef i32 LockTimeout
 
+/* Specifies the hive state, or if not joined how many potential workers */
+struct OptionalHiveState
+{
+	1: optional HiveState hiveState,
+	2: optional i32 potentialWorkers
+}
+
+/* Specifies the service state, or if not joined how many potential workers */
+struct OptionalServiceState
+{
+	1: optional ServiceState serviceState,
+	2: optional i32 potentialWorkers
+}
+
 exception LockExpired
 {
 	1: LockID lockID
@@ -114,12 +128,10 @@ service Service
 		throws (1:NotJoined notJoined),
 
 	/** Returns the current status of all services in the hive as understood by this service. */
-	HiveState getHiveState(1: bool forceUpdate = false)
-		throws (1:NotJoined notJoined),
+	OptionalHiveState getHiveState(1: bool forceUpdate = false),
 
 	/** Returns the current status of this service. */
-	ServiceState getState()
-		throws (1:NotJoined notJoined),
+	OptionalServiceState getState(),
 
 
 	/** Acquires a given named lock given a mode and timeout. */

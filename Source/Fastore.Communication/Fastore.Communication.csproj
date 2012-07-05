@@ -63,6 +63,8 @@
     <Compile Include="Alphora\Fastore\NetworkAddress.cs" />
     <Compile Include="Alphora\Fastore\NotJoined.cs" />
     <Compile Include="Alphora\Fastore\NotLatest.cs" />
+    <Compile Include="Alphora\Fastore\OptionalHiveState.cs" />
+    <Compile Include="Alphora\Fastore\OptionalServiceState.cs" />
     <Compile Include="Alphora\Fastore\Query.cs" />
     <Compile Include="Alphora\Fastore\RangeBound.cs" />
     <Compile Include="Alphora\Fastore\RangeRequest.cs" />

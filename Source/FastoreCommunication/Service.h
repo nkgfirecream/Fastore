@@ -18,8 +18,8 @@ class ServiceIf {
   virtual void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) = 0;
   virtual void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) = 0;
   virtual void leave() = 0;
-  virtual void getHiveState(HiveState& _return, const bool forceUpdate) = 0;
-  virtual void getState(ServiceState& _return) = 0;
+  virtual void getHiveState(OptionalHiveState& _return, const bool forceUpdate) = 0;
+  virtual void getState(OptionalServiceState& _return) = 0;
   virtual LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) = 0;
   virtual void keepLock(const LockID lockID) = 0;
   virtual void escalateLock(const LockID lockID, const LockTimeout timeout) = 0;
@@ -62,10 +62,10 @@ class ServiceNull : virtual public ServiceIf {
   void leave() {
     return;
   }
-  void getHiveState(HiveState& /* _return */, const bool /* forceUpdate */) {
+  void getHiveState(OptionalHiveState& /* _return */, const bool /* forceUpdate */) {
     return;
   }
-  void getState(ServiceState& /* _return */) {
+  void getState(OptionalServiceState& /* _return */) {
     return;
   }
   LockID acquireLock(const LockName& /* name */, const LockMode::type /* mode */, const LockTimeout /* timeout */) {
@@ -501,9 +501,8 @@ class Service_getHiveState_pargs {
 };
 
 typedef struct _Service_getHiveState_result__isset {
-  _Service_getHiveState_result__isset() : success(false), notJoined(false) {}
+  _Service_getHiveState_result__isset() : success(false) {}
   bool success;
-  bool notJoined;
 } _Service_getHiveState_result__isset;
 
 class Service_getHiveState_result {
@@ -514,24 +513,17 @@ class Service_getHiveState_result {
 
   virtual ~Service_getHiveState_result() throw() {}
 
-  HiveState success;
-  NotJoined notJoined;
+  OptionalHiveState success;
 
   _Service_getHiveState_result__isset __isset;
 
-  void __set_success(const HiveState& val) {
+  void __set_success(const OptionalHiveState& val) {
     success = val;
-  }
-
-  void __set_notJoined(const NotJoined& val) {
-    notJoined = val;
   }
 
   bool operator == (const Service_getHiveState_result & rhs) const
   {
     if (!(success == rhs.success))
-      return false;
-    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -547,9 +539,8 @@ class Service_getHiveState_result {
 };
 
 typedef struct _Service_getHiveState_presult__isset {
-  _Service_getHiveState_presult__isset() : success(false), notJoined(false) {}
+  _Service_getHiveState_presult__isset() : success(false) {}
   bool success;
-  bool notJoined;
 } _Service_getHiveState_presult__isset;
 
 class Service_getHiveState_presult {
@@ -558,8 +549,7 @@ class Service_getHiveState_presult {
 
   virtual ~Service_getHiveState_presult() throw() {}
 
-  HiveState* success;
-  NotJoined notJoined;
+  OptionalHiveState* success;
 
   _Service_getHiveState_presult__isset __isset;
 
@@ -605,9 +595,8 @@ class Service_getState_pargs {
 };
 
 typedef struct _Service_getState_result__isset {
-  _Service_getState_result__isset() : success(false), notJoined(false) {}
+  _Service_getState_result__isset() : success(false) {}
   bool success;
-  bool notJoined;
 } _Service_getState_result__isset;
 
 class Service_getState_result {
@@ -618,24 +607,17 @@ class Service_getState_result {
 
   virtual ~Service_getState_result() throw() {}
 
-  ServiceState success;
-  NotJoined notJoined;
+  OptionalServiceState success;
 
   _Service_getState_result__isset __isset;
 
-  void __set_success(const ServiceState& val) {
+  void __set_success(const OptionalServiceState& val) {
     success = val;
-  }
-
-  void __set_notJoined(const NotJoined& val) {
-    notJoined = val;
   }
 
   bool operator == (const Service_getState_result & rhs) const
   {
     if (!(success == rhs.success))
-      return false;
-    if (!(notJoined == rhs.notJoined))
       return false;
     return true;
   }
@@ -651,9 +633,8 @@ class Service_getState_result {
 };
 
 typedef struct _Service_getState_presult__isset {
-  _Service_getState_presult__isset() : success(false), notJoined(false) {}
+  _Service_getState_presult__isset() : success(false) {}
   bool success;
-  bool notJoined;
 } _Service_getState_presult__isset;
 
 class Service_getState_presult {
@@ -662,8 +643,7 @@ class Service_getState_presult {
 
   virtual ~Service_getState_presult() throw() {}
 
-  ServiceState* success;
-  NotJoined notJoined;
+  OptionalServiceState* success;
 
   _Service_getState_presult__isset __isset;
 
@@ -1219,12 +1199,12 @@ class ServiceClient : virtual public ServiceIf {
   void leave();
   void send_leave();
   void recv_leave();
-  void getHiveState(HiveState& _return, const bool forceUpdate);
+  void getHiveState(OptionalHiveState& _return, const bool forceUpdate);
   void send_getHiveState(const bool forceUpdate);
-  void recv_getHiveState(HiveState& _return);
-  void getState(ServiceState& _return);
+  void recv_getHiveState(OptionalHiveState& _return);
+  void getState(OptionalServiceState& _return);
   void send_getState();
-  void recv_getState(ServiceState& _return);
+  void recv_getState(OptionalServiceState& _return);
   LockID acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
   void send_acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout);
   LockID recv_acquireLock();
@@ -1330,7 +1310,7 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_[i]->leave();
   }
 
-  void getHiveState(HiveState& _return, const bool forceUpdate) {
+  void getHiveState(OptionalHiveState& _return, const bool forceUpdate) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
@@ -1340,7 +1320,7 @@ class ServiceMultiface : virtual public ServiceIf {
     return;
   }
 
-  void getState(ServiceState& _return) {
+  void getState(OptionalServiceState& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {

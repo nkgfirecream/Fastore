@@ -29,8 +29,8 @@ public:
 	void init(fastore::communication::ServiceState& _return, const fastore::communication::Topology& topology, const fastore::communication::HostAddresses& addresses, const fastore::communication::HostID hostID);
 	void join(fastore::communication::ServiceState& _return, const fastore::communication::HiveState& hiveState, const fastore::communication::NetworkAddress& address, const fastore::communication::HostID hostID);
 	void leave();
-	void getHiveState(fastore::communication::HiveState& _return, const bool forceUpdate);
-	void getState(fastore::communication::ServiceState& _return);
+	void getHiveState(fastore::communication::OptionalHiveState& _return, const bool forceUpdate);
+	void getState(fastore::communication::OptionalServiceState& _return);
 	fastore::communication::LockID acquireLock(const fastore::communication::LockName& name, const fastore::communication::LockMode::type mode, const fastore::communication::LockTimeout timeout);
 	void keepLock(const fastore::communication::LockID lockID);
 	void escalateLock(const fastore::communication::LockID lockID, const fastore::communication::LockTimeout timeout);

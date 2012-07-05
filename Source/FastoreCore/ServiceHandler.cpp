@@ -263,51 +263,59 @@ void ServiceHandler::CheckInHive()
 	}
 }
 
-void ServiceHandler::getHiveState(HiveState& _return, const bool forceUpdate) 
+void ServiceHandler::getHiveState(OptionalHiveState& _return, const bool forceUpdate) 
 {
-	CheckInHive();
-	_return = *_hiveState;
+	if (!_hiveState)
+		_return.__set_potentialWorkers(GetRecommendedWorkerCount());
+	else
+		_return.__set_hiveState(*_hiveState);
 	// TODO: implement force
 }
 
-void ServiceHandler::getState(ServiceState& _return)
+void ServiceHandler::getState(OptionalServiceState& _return)
 {
-	auto currentState = _hiveState->services.find(_hiveState->reportingHostID);
-
-	_return.__set_status(ServiceStatus::Online);
-	_return.__set_timeStamp((TimeStamp)time(nullptr));
-	_return.__set_address(currentState->second.address);
-
-	std::vector<WorkerState> workerStates;
-
-	auto workers = currentState->second.workers;
-
-	for (auto iter = workers.begin(); iter != workers.end(); ++iter)
+	if (!_hiveState)
+		_return.__set_potentialWorkers(GetRecommendedWorkerCount());
+	else
 	{
-		boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
-		boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-		boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+		auto currentState = _hiveState->services.find(_hiveState->reportingHostID);
 
-		WorkerClient client(protocol);
-		try
+		_return.__isset.serviceState = true;
+		_return.serviceState.__set_status(ServiceStatus::Online);
+		_return.serviceState.__set_timeStamp((TimeStamp)time(nullptr));
+		_return.serviceState.__set_address(currentState->second.address);
+
+		std::vector<WorkerState> workerStates;
+
+		auto workers = currentState->second.workers;
+
+		for (auto iter = workers.begin(); iter != workers.end(); ++iter)
 		{
-			transport->open();
-			WorkerState state;
-			client.getState(state);
-			state.__set_port(iter->port);
-			transport->close();
-			workerStates.push_back(state);
+			boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
+			boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+			boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+			WorkerClient client(protocol);
+			try
+			{
+				transport->open();
+				WorkerState state;
+				client.getState(state);
+				state.__set_port(iter->port);
+				transport->close();
+				workerStates.push_back(state);
+			}
+			catch (...)
+			{
+				WorkerState state;
+				state.__set_podID(iter->podID);
+				state.__set_port(iter->port);
+				workerStates.push_back(state);			
+			}		
 		}
-		catch (...)
-		{
-			WorkerState state;
-			state.__set_podID(iter->podID);
-			state.__set_port(iter->port);
-			workerStates.push_back(state);			
-		}		
-	}
 
-	_return.__set_workers(workerStates);
+		_return.serviceState.__set_workers(workerStates);
+	}
 }
 
 LockID ServiceHandler::acquireLock(const LockName& name, const LockMode::type mode, const LockTimeout timeout) {

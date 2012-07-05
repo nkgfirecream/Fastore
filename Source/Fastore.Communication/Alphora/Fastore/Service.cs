@@ -53,18 +53,18 @@ namespace Alphora.Fastore
       /// Returns the current status of all services in the hive as understood by this service.
       /// </summary>
       /// <param name="forceUpdate"></param>
-      HiveState getHiveState(bool forceUpdate);
+      OptionalHiveState getHiveState(bool forceUpdate);
       #if SILVERLIGHT
       IAsyncResult Begin_getHiveState(AsyncCallback callback, object state, bool forceUpdate);
-      HiveState End_getHiveState(IAsyncResult asyncResult);
+      OptionalHiveState End_getHiveState(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Returns the current status of this service.
       /// </summary>
-      ServiceState getState();
+      OptionalServiceState getState();
       #if SILVERLIGHT
       IAsyncResult Begin_getState(AsyncCallback callback, object state, );
-      ServiceState End_getState(IAsyncResult asyncResult);
+      OptionalServiceState End_getState(IAsyncResult asyncResult);
       #endif
       /// <summary>
       /// Acquires a given named lock given a mode and timeout.
@@ -349,7 +349,7 @@ namespace Alphora.Fastore
         return send_getHiveState(callback, state, forceUpdate);
       }
 
-      public HiveState End_getHiveState(IAsyncResult asyncResult)
+      public OptionalHiveState End_getHiveState(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
         return recv_getHiveState();
@@ -361,7 +361,7 @@ namespace Alphora.Fastore
       /// Returns the current status of all services in the hive as understood by this service.
       /// </summary>
       /// <param name="forceUpdate"></param>
-      public HiveState getHiveState(bool forceUpdate)
+      public OptionalHiveState getHiveState(bool forceUpdate)
       {
         #if !SILVERLIGHT
         send_getHiveState(forceUpdate);
@@ -391,7 +391,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public HiveState recv_getHiveState()
+      public OptionalHiveState recv_getHiveState()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -405,9 +405,6 @@ namespace Alphora.Fastore
         if (result.__isset.success) {
           return result.Success;
         }
-        if (result.__isset.notJoined) {
-          throw result.NotJoined;
-        }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getHiveState failed: unknown result");
       }
 
@@ -418,7 +415,7 @@ namespace Alphora.Fastore
         return send_getState(callback, state);
       }
 
-      public ServiceState End_getState(IAsyncResult asyncResult)
+      public OptionalServiceState End_getState(IAsyncResult asyncResult)
       {
         oprot_.Transport.EndFlush(asyncResult);
         return recv_getState();
@@ -429,7 +426,7 @@ namespace Alphora.Fastore
       /// <summary>
       /// Returns the current status of this service.
       /// </summary>
-      public ServiceState getState()
+      public OptionalServiceState getState()
       {
         #if !SILVERLIGHT
         send_getState();
@@ -458,7 +455,7 @@ namespace Alphora.Fastore
         #endif
       }
 
-      public ServiceState recv_getState()
+      public OptionalServiceState recv_getState()
       {
         TMessage msg = iprot_.ReadMessageBegin();
         if (msg.Type == TMessageType.Exception) {
@@ -471,9 +468,6 @@ namespace Alphora.Fastore
         iprot_.ReadMessageEnd();
         if (result.__isset.success) {
           return result.Success;
-        }
-        if (result.__isset.notJoined) {
-          throw result.NotJoined;
         }
         throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, "getState failed: unknown result");
       }
@@ -869,11 +863,7 @@ namespace Alphora.Fastore
         args.Read(iprot);
         iprot.ReadMessageEnd();
         getHiveState_result result = new getHiveState_result();
-        try {
-          result.Success = iface_.getHiveState(args.ForceUpdate);
-        } catch (NotJoined notJoined) {
-          result.NotJoined = notJoined;
-        }
+        result.Success = iface_.getHiveState(args.ForceUpdate);
         oprot.WriteMessageBegin(new TMessage("getHiveState", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
@@ -886,11 +876,7 @@ namespace Alphora.Fastore
         args.Read(iprot);
         iprot.ReadMessageEnd();
         getState_result result = new getState_result();
-        try {
-          result.Success = iface_.getState();
-        } catch (NotJoined notJoined) {
-          result.NotJoined = notJoined;
-        }
+        result.Success = iface_.getState();
         oprot.WriteMessageBegin(new TMessage("getState", TMessageType.Reply, seqid)); 
         result.Write(oprot);
         oprot.WriteMessageEnd();
@@ -1784,10 +1770,9 @@ namespace Alphora.Fastore
     #endif
     public partial class getHiveState_result : TBase
     {
-      private HiveState _success;
-      private NotJoined _notJoined;
+      private OptionalHiveState _success;
 
-      public HiveState Success
+      public OptionalHiveState Success
       {
         get
         {
@@ -1800,19 +1785,6 @@ namespace Alphora.Fastore
         }
       }
 
-      public NotJoined NotJoined
-      {
-        get
-        {
-          return _notJoined;
-        }
-        set
-        {
-          __isset.notJoined = true;
-          this._notJoined = value;
-        }
-      }
-
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1820,7 +1792,6 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
-        public bool notJoined;
       }
 
       public getHiveState_result() {
@@ -1840,16 +1811,8 @@ namespace Alphora.Fastore
           {
             case 0:
               if (field.Type == TType.Struct) {
-                Success = new HiveState();
+                Success = new OptionalHiveState();
                 Success.Read(iprot);
-              } else { 
-                TProtocolUtil.Skip(iprot, field.Type);
-              }
-              break;
-            case 1:
-              if (field.Type == TType.Struct) {
-                NotJoined = new NotJoined();
-                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -1877,15 +1840,6 @@ namespace Alphora.Fastore
             Success.Write(oprot);
             oprot.WriteFieldEnd();
           }
-        } else if (this.__isset.notJoined) {
-          if (NotJoined != null) {
-            field.Name = "NotJoined";
-            field.Type = TType.Struct;
-            field.ID = 1;
-            oprot.WriteFieldBegin(field);
-            NotJoined.Write(oprot);
-            oprot.WriteFieldEnd();
-          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -1895,8 +1849,6 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("getHiveState_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
-        sb.Append(",NotJoined: ");
-        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }
@@ -1955,10 +1907,9 @@ namespace Alphora.Fastore
     #endif
     public partial class getState_result : TBase
     {
-      private ServiceState _success;
-      private NotJoined _notJoined;
+      private OptionalServiceState _success;
 
-      public ServiceState Success
+      public OptionalServiceState Success
       {
         get
         {
@@ -1971,19 +1922,6 @@ namespace Alphora.Fastore
         }
       }
 
-      public NotJoined NotJoined
-      {
-        get
-        {
-          return _notJoined;
-        }
-        set
-        {
-          __isset.notJoined = true;
-          this._notJoined = value;
-        }
-      }
-
 
       public Isset __isset;
       #if !SILVERLIGHT
@@ -1991,7 +1929,6 @@ namespace Alphora.Fastore
       #endif
       public struct Isset {
         public bool success;
-        public bool notJoined;
       }
 
       public getState_result() {
@@ -2011,16 +1948,8 @@ namespace Alphora.Fastore
           {
             case 0:
               if (field.Type == TType.Struct) {
-                Success = new ServiceState();
+                Success = new OptionalServiceState();
                 Success.Read(iprot);
-              } else { 
-                TProtocolUtil.Skip(iprot, field.Type);
-              }
-              break;
-            case 1:
-              if (field.Type == TType.Struct) {
-                NotJoined = new NotJoined();
-                NotJoined.Read(iprot);
               } else { 
                 TProtocolUtil.Skip(iprot, field.Type);
               }
@@ -2048,15 +1977,6 @@ namespace Alphora.Fastore
             Success.Write(oprot);
             oprot.WriteFieldEnd();
           }
-        } else if (this.__isset.notJoined) {
-          if (NotJoined != null) {
-            field.Name = "NotJoined";
-            field.Type = TType.Struct;
-            field.ID = 1;
-            oprot.WriteFieldBegin(field);
-            NotJoined.Write(oprot);
-            oprot.WriteFieldEnd();
-          }
         }
         oprot.WriteFieldStop();
         oprot.WriteStructEnd();
@@ -2066,8 +1986,6 @@ namespace Alphora.Fastore
         StringBuilder sb = new StringBuilder("getState_result(");
         sb.Append("Success: ");
         sb.Append(Success== null ? "<null>" : Success.ToString());
-        sb.Append(",NotJoined: ");
-        sb.Append(NotJoined== null ? "<null>" : NotJoined.ToString());
         sb.Append(")");
         return sb.ToString();
       }

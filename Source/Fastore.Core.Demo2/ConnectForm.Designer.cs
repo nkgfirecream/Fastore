@@ -116,8 +116,6 @@
 			// 
 			this.DetectCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.DetectCheck.AutoSize = true;
-			this.DetectCheck.Checked = true;
-			this.DetectCheck.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.DetectCheck.Location = new System.Drawing.Point(17, 215);
 			this.DetectCheck.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
 			this.DetectCheck.Name = "DetectCheck";

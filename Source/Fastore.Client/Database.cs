@@ -76,24 +76,22 @@ namespace Alphora.Fastore.Client
 				var service = ConnectToService(networkAddresses[i]);
 				try
 				{
-					HiveState hiveState;
-					try
+					// Discover the state of the entire hive from the given service
+					var hiveStateResult = service.getHiveState(false);
+					if (!hiveStateResult.__isset.hiveState)
 					{
-						// Discover the state of the entire hive from the given service
-						hiveState = service.getHiveState(false);
-
-						// Ensure that all services are not joined (if the first one wasn't)
-						if (i > 0)
-							throw new ClientException(String.Format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.", networkAddresses[i].Name, hiveState.TopologyID));
-					}
-					catch (NotJoined nj)
-					{
-						serviceWorkers[i] = nj.PotentialWorkers;
+						// If no hive state is given, the service is not joined, we should proceed to discover the number 
+						//  of potential workers for the rest of the services ensuring that they are all not joined.
+						serviceWorkers[i] = hiveStateResult.PotentialWorkers;
 						DisposeService(service);
 						continue;
 					}
 
-                    UpdateHiveState(hiveState);
+					// If we have passed the first host, we are in "discovery" mode for a new topology so we find any services that are joined.
+					if (i > 0)
+						throw new ClientException(String.Format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.", networkAddresses[i].Name, hiveStateResult.HiveState.TopologyID));
+
+                    UpdateHiveState(hiveStateResult.HiveState);
                     BootStrapSchema();
                     RefreshHiveState();
                     
@@ -293,7 +291,8 @@ namespace Alphora.Fastore.Client
 			transport.Open();
 			try
 			{
-				var protocol = new Thrift.Protocol.TBinaryProtocol(transport);
+				var bufferedTransport = new Thrift.Transport.TBufferedTransport(transport);
+				var protocol = new Thrift.Protocol.TBinaryProtocol(bufferedTransport);
 
 				return new Service.Client(protocol);
 			}
@@ -320,9 +319,11 @@ namespace Alphora.Fastore.Client
                         () =>
                         {
                             var serviceClient = EnsureService(service.Key);
-                            ServiceState state = serviceClient.getState();
+                            var state = serviceClient.getState();
+							if (!state.__isset.serviceState)
+								throw new ClientException(String.Format("Host ({0}) is unexpectedly not part of the topology.", service.Key)); 
                             DisposeService(serviceClient);
-                            return new KeyValuePair<int, ServiceState>(service.Key, state);
+                            return new KeyValuePair<int, ServiceState>(service.Key, state.ServiceState);
                         }
                     )
                 );
@@ -862,12 +863,12 @@ namespace Alphora.Fastore.Client
 				TransactionID resultId;
 				try
 				{
-					// if the task doesn't complete in time, assume failure; move on to the next one...
-					if (!tasks[i].Wait(Math.Max(0, WriteTimeout - (int)stopWatch.ElapsedMilliseconds)))
-					{
-						failedWorkers.Add(i, null);
-						continue;
-					}
+					//// if the task doesn't complete in time, assume failure; move on to the next one...
+					//if (!tasks[i].Wait(Math.Max(0, WriteTimeout - (int)stopWatch.ElapsedMilliseconds)))
+					//{
+					//	failedWorkers.Add(i, null);
+					//	continue;
+					//}
 					resultId = tasks[i].Result;
 				}
 				catch (Exception e)

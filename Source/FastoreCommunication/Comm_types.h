@@ -341,6 +341,120 @@ class Topology {
 
 void swap(Topology &a, Topology &b);
 
+typedef struct _OptionalHiveState__isset {
+  _OptionalHiveState__isset() : hiveState(false), potentialWorkers(false) {}
+  bool hiveState;
+  bool potentialWorkers;
+} _OptionalHiveState__isset;
+
+class OptionalHiveState {
+ public:
+
+  static const char* ascii_fingerprint; // = "63624E84E96F444A04F95217FD47D34B";
+  static const uint8_t binary_fingerprint[16]; // = {0x63,0x62,0x4E,0x84,0xE9,0x6F,0x44,0x4A,0x04,0xF9,0x52,0x17,0xFD,0x47,0xD3,0x4B};
+
+  OptionalHiveState() : potentialWorkers(0) {
+  }
+
+  virtual ~OptionalHiveState() throw() {}
+
+  HiveState hiveState;
+  int32_t potentialWorkers;
+
+  _OptionalHiveState__isset __isset;
+
+  void __set_hiveState(const HiveState& val) {
+    hiveState = val;
+    __isset.hiveState = true;
+  }
+
+  void __set_potentialWorkers(const int32_t val) {
+    potentialWorkers = val;
+    __isset.potentialWorkers = true;
+  }
+
+  bool operator == (const OptionalHiveState & rhs) const
+  {
+    if (__isset.hiveState != rhs.__isset.hiveState)
+      return false;
+    else if (__isset.hiveState && !(hiveState == rhs.hiveState))
+      return false;
+    if (__isset.potentialWorkers != rhs.__isset.potentialWorkers)
+      return false;
+    else if (__isset.potentialWorkers && !(potentialWorkers == rhs.potentialWorkers))
+      return false;
+    return true;
+  }
+  bool operator != (const OptionalHiveState &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const OptionalHiveState & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(OptionalHiveState &a, OptionalHiveState &b);
+
+typedef struct _OptionalServiceState__isset {
+  _OptionalServiceState__isset() : serviceState(false), potentialWorkers(false) {}
+  bool serviceState;
+  bool potentialWorkers;
+} _OptionalServiceState__isset;
+
+class OptionalServiceState {
+ public:
+
+  static const char* ascii_fingerprint; // = "F1C97296E97AFFC0B889BA7859100316";
+  static const uint8_t binary_fingerprint[16]; // = {0xF1,0xC9,0x72,0x96,0xE9,0x7A,0xFF,0xC0,0xB8,0x89,0xBA,0x78,0x59,0x10,0x03,0x16};
+
+  OptionalServiceState() : potentialWorkers(0) {
+  }
+
+  virtual ~OptionalServiceState() throw() {}
+
+  ServiceState serviceState;
+  int32_t potentialWorkers;
+
+  _OptionalServiceState__isset __isset;
+
+  void __set_serviceState(const ServiceState& val) {
+    serviceState = val;
+    __isset.serviceState = true;
+  }
+
+  void __set_potentialWorkers(const int32_t val) {
+    potentialWorkers = val;
+    __isset.potentialWorkers = true;
+  }
+
+  bool operator == (const OptionalServiceState & rhs) const
+  {
+    if (__isset.serviceState != rhs.__isset.serviceState)
+      return false;
+    else if (__isset.serviceState && !(serviceState == rhs.serviceState))
+      return false;
+    if (__isset.potentialWorkers != rhs.__isset.potentialWorkers)
+      return false;
+    else if (__isset.potentialWorkers && !(potentialWorkers == rhs.potentialWorkers))
+      return false;
+    return true;
+  }
+  bool operator != (const OptionalServiceState &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const OptionalServiceState & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(OptionalServiceState &a, OptionalServiceState &b);
+
 typedef struct _LockExpired__isset {
   _LockExpired__isset() : lockID(false) {}
   bool lockID;

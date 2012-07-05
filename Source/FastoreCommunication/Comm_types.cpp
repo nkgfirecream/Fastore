@@ -653,6 +653,160 @@ void swap(Topology &a, Topology &b) {
   swap(a.hosts, b.hosts);
 }
 
+const char* OptionalHiveState::ascii_fingerprint = "63624E84E96F444A04F95217FD47D34B";
+const uint8_t OptionalHiveState::binary_fingerprint[16] = {0x63,0x62,0x4E,0x84,0xE9,0x6F,0x44,0x4A,0x04,0xF9,0x52,0x17,0xFD,0x47,0xD3,0x4B};
+
+uint32_t OptionalHiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->hiveState.read(iprot);
+          this->__isset.hiveState = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->potentialWorkers);
+          this->__isset.potentialWorkers = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t OptionalHiveState::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("OptionalHiveState");
+
+  if (this->__isset.hiveState) {
+    xfer += oprot->writeFieldBegin("hiveState", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->hiveState.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
+  if (this->__isset.potentialWorkers) {
+    xfer += oprot->writeFieldBegin("potentialWorkers", ::apache::thrift::protocol::T_I32, 2);
+    xfer += oprot->writeI32(this->potentialWorkers);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(OptionalHiveState &a, OptionalHiveState &b) {
+  using ::std::swap;
+  swap(a.hiveState, b.hiveState);
+  swap(a.potentialWorkers, b.potentialWorkers);
+  swap(a.__isset, b.__isset);
+}
+
+const char* OptionalServiceState::ascii_fingerprint = "F1C97296E97AFFC0B889BA7859100316";
+const uint8_t OptionalServiceState::binary_fingerprint[16] = {0xF1,0xC9,0x72,0x96,0xE9,0x7A,0xFF,0xC0,0xB8,0x89,0xBA,0x78,0x59,0x10,0x03,0x16};
+
+uint32_t OptionalServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->serviceState.read(iprot);
+          this->__isset.serviceState = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          xfer += iprot->readI32(this->potentialWorkers);
+          this->__isset.potentialWorkers = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t OptionalServiceState::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("OptionalServiceState");
+
+  if (this->__isset.serviceState) {
+    xfer += oprot->writeFieldBegin("serviceState", ::apache::thrift::protocol::T_STRUCT, 1);
+    xfer += this->serviceState.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
+  if (this->__isset.potentialWorkers) {
+    xfer += oprot->writeFieldBegin("potentialWorkers", ::apache::thrift::protocol::T_I32, 2);
+    xfer += oprot->writeI32(this->potentialWorkers);
+    xfer += oprot->writeFieldEnd();
+  }
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(OptionalServiceState &a, OptionalServiceState &b) {
+  using ::std::swap;
+  swap(a.serviceState, b.serviceState);
+  swap(a.potentialWorkers, b.potentialWorkers);
+  swap(a.__isset, b.__isset);
+}
+
 const char* LockExpired::ascii_fingerprint = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
 const uint8_t LockExpired::binary_fingerprint[16] = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 

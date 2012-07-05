@@ -709,14 +709,6 @@ uint32_t Service_getHiveState_result::read(::apache::thrift::protocol::TProtocol
           xfer += iprot->skip(ftype);
         }
         break;
-      case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->notJoined.read(iprot);
-          this->__isset.notJoined = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -738,10 +730,6 @@ uint32_t Service_getHiveState_result::write(::apache::thrift::protocol::TProtoco
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
     xfer += this->success.write(oprot);
-    xfer += oprot->writeFieldEnd();
-  } else if (this->__isset.notJoined) {
-    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 1);
-    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -773,14 +761,6 @@ uint32_t Service_getHiveState_presult::read(::apache::thrift::protocol::TProtoco
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->notJoined.read(iprot);
-          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -875,14 +855,6 @@ uint32_t Service_getState_result::read(::apache::thrift::protocol::TProtocol* ip
           xfer += iprot->skip(ftype);
         }
         break;
-      case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->notJoined.read(iprot);
-          this->__isset.notJoined = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -904,10 +876,6 @@ uint32_t Service_getState_result::write(::apache::thrift::protocol::TProtocol* o
   if (this->__isset.success) {
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_STRUCT, 0);
     xfer += this->success.write(oprot);
-    xfer += oprot->writeFieldEnd();
-  } else if (this->__isset.notJoined) {
-    xfer += oprot->writeFieldBegin("notJoined", ::apache::thrift::protocol::T_STRUCT, 1);
-    xfer += this->notJoined.write(oprot);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -939,14 +907,6 @@ uint32_t Service_getState_presult::read(::apache::thrift::protocol::TProtocol* i
         if (ftype == ::apache::thrift::protocol::T_STRUCT) {
           xfer += (*(this->success)).read(iprot);
           this->__isset.success = true;
-        } else {
-          xfer += iprot->skip(ftype);
-        }
-        break;
-      case 1:
-        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
-          xfer += this->notJoined.read(iprot);
-          this->__isset.notJoined = true;
         } else {
           xfer += iprot->skip(ftype);
         }
@@ -1962,7 +1922,7 @@ void ServiceClient::recv_leave()
   return;
 }
 
-void ServiceClient::getHiveState(HiveState& _return, const bool forceUpdate)
+void ServiceClient::getHiveState(OptionalHiveState& _return, const bool forceUpdate)
 {
   send_getHiveState(forceUpdate);
   recv_getHiveState(_return);
@@ -1982,7 +1942,7 @@ void ServiceClient::send_getHiveState(const bool forceUpdate)
   oprot_->getTransport()->flush();
 }
 
-void ServiceClient::recv_getHiveState(HiveState& _return)
+void ServiceClient::recv_getHiveState(OptionalHiveState& _return)
 {
 
   int32_t rseqid = 0;
@@ -2017,13 +1977,10 @@ void ServiceClient::recv_getHiveState(HiveState& _return)
     // _return pointer has now been filled
     return;
   }
-  if (result.__isset.notJoined) {
-    throw result.notJoined;
-  }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getHiveState failed: unknown result");
 }
 
-void ServiceClient::getState(ServiceState& _return)
+void ServiceClient::getState(OptionalServiceState& _return)
 {
   send_getState();
   recv_getState(_return);
@@ -2042,7 +1999,7 @@ void ServiceClient::send_getState()
   oprot_->getTransport()->flush();
 }
 
-void ServiceClient::recv_getState(ServiceState& _return)
+void ServiceClient::recv_getState(OptionalServiceState& _return)
 {
 
   int32_t rseqid = 0;
@@ -2076,9 +2033,6 @@ void ServiceClient::recv_getState(ServiceState& _return)
   if (result.__isset.success) {
     // _return pointer has now been filled
     return;
-  }
-  if (result.__isset.notJoined) {
-    throw result.notJoined;
   }
   throw ::apache::thrift::TApplicationException(::apache::thrift::TApplicationException::MISSING_RESULT, "getState failed: unknown result");
 }
@@ -2544,9 +2498,6 @@ void ServiceProcessor::process_getHiveState(int32_t seqid, ::apache::thrift::pro
   try {
     iface_->getHiveState(result.success, args.forceUpdate);
     result.__isset.success = true;
-  } catch (NotJoined &notJoined) {
-    result.notJoined = notJoined;
-    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.getHiveState");
@@ -2601,9 +2552,6 @@ void ServiceProcessor::process_getState(int32_t seqid, ::apache::thrift::protoco
   try {
     iface_->getState(result.success);
     result.__isset.success = true;
-  } catch (NotJoined &notJoined) {
-    result.notJoined = notJoined;
-    result.__isset.notJoined = true;
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.getState");
