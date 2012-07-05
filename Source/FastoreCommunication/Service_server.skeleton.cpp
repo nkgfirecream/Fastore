@@ -37,12 +37,12 @@ class ServiceHandler : virtual public ServiceIf {
     printf("leave\n");
   }
 
-  void getHiveState(HiveState& _return, const bool forceUpdate) {
+  void getHiveState(OptionalHiveState& _return, const bool forceUpdate) {
     // Your implementation goes here
     printf("getHiveState\n");
   }
 
-  void getState(ServiceState& _return) {
+  void getState(OptionalServiceState& _return) {
     // Your implementation goes here
     printf("getState\n");
   }

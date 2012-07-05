@@ -17,10 +17,10 @@ TEST_CLASS(UniqueBufferTest)
 {
 public:
 	
-	TEST_METHOD(RangeTests)
+	TEST_METHOD(UniqueRangeTests)
 	{
 		
-		//TODO: Update limited behavior to reflect BoF/EoF semantics.
+		///TODO: Update limited behavior to reflect BoF/EoF semantics.
 		//Unique buffer -- one key has one and only one value
 		UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
 
@@ -68,37 +68,39 @@ public:
 
 
 		//Start Exclusive - Non overlapping
-		//Range: 0 (exclusive) - end (inclusive) ascending
+		//Range: 0 (exclusive) - end (inclusive) 
 		//Expected result: values 2 - 98 (inclusive)
 		AssignString(startv, 0);
 		AssignBound(startBound, false, startv);
 		AssignRange(range, true, 500, &startBound);
 		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
 
-		//Range: 0 (exclusive) - end (inclusive) descending
+		//Range:  98 (inc) - 0 (exclusive) 
 		//Expected result: values 98 - 2 (inclusive)
-		AssignString(startv, 0);
-		AssignBound(startBound, false, startv);
-		AssignRange(range, false, 500, &startBound);
-		TestRange(buf, range, 98, 2, 49, -2, false, true, false);
+		AssignString(endv, 0);
+		AssignBound(endBound, false, startv);
+		AssignRange(range, false, 500, NULL, &endBound);
+		TestRange(buf, range, 98, 2, 49, -2, true, false, false);
 
 
 		//End Exclusive - Non overlapping
-		//Range: begin (inclusive) - 98 (exclusive) ascending
+		//Range: begin (inclusive) - 98 (exclusive)
 		//Expected result: values 0 - 96 (inclusive)
 		AssignString(endv, 98);
 		AssignBound(endBound, false, endv);
 		AssignRange(range, true, 500, NULL, &endBound);
 		TestRange(buf, range, 0, 96, 49, 2, true, false, false);
 
-		//Range: begin (inclusive) - 98 (exclusive) descending
+		//Range: 98 (exclusive)  -  0 (inclusive)
 		//Expected result: values 96 - 0 (inclusive)
-		AssignRange(range, false, 500, NULL, &endBound);
-		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
+		AssignString(startv, 98);
+		AssignBound(startBound, false, startv);
+		AssignRange(range, false, 500, &startBound);
+		TestRange(buf, range, 96, 0, 49, -2, false, true, false);
 
-		
+
 		//Two bounds - inclusive, non overlapping
-		//Range: 2 (inclusive) - 96 (inclusive) ascending
+		//Range: 2 (inclusive) - 96 (inclusive)
 		//Expected result: values 2 - 96 (inclusive)
 		AssignString(endv, 96);
 		AssignBound(endBound, true, endv);
@@ -107,14 +109,36 @@ public:
 		AssignRange(range, true, 500, &startBound, &endBound);
 		TestRange(buf, range, 2, 96, 48, 2, false, false, false);
 
-		//Range: 2 (inclusive) - 96 (inclusive) descending
+		//Range: 96 (inclusive) - 2 (inclusive)
 		//Expected result: values 96 - 2 (inclusive)
+		AssignString(endv, 2);
+		AssignBound(endBound, true, endv);
+		AssignString(startv, 96);
+		AssignBound(startBound, true, startv);		
 		AssignRange(range, false, 500, &startBound, &endBound);
 		TestRange(buf, range, 96, 2, 48, -2, false, false, false);
 
+		//Range: 3 (inclusive) - 95 (inclusive)
+		//Expected result: values 4 - 94 (inclusive)
+		AssignString(endv, 95);
+		AssignBound(endBound, true, endv);
+		AssignString(startv, 3);
+		AssignBound(startBound, true, startv);		
+		AssignRange(range, true, 500, &startBound, &endBound);
+		TestRange(buf, range, 4, 94, 46, 2, false, false, false);
+
+		//Range: 95 (inclusive) - 3 (inclusive)
+		//Expected result: values 94 - 4 (inclusive)
+		AssignString(endv, 3);
+		AssignBound(endBound, true, endv);
+		AssignString(startv, 95);
+		AssignBound(startBound, true, startv);		
+		AssignRange(range, false, 500, &startBound, &endBound);
+		TestRange(buf, range, 94, 4, 46, -2, false, false, false);
+
 
 		//Two bounds - exclusive, non overlapping
-		//Range: 2 (exclusive) - 96 (exclusive) ascending
+		//Range: 2 (exclusive) - 96 (exclusive)
 		//Expected result: values 4 - 94 (inclusive)
 		AssignString(endv, 96);
 		AssignBound(endBound, false, endv);
@@ -123,12 +147,34 @@ public:
 		AssignRange(range, true, 500, &startBound, &endBound);
 		TestRange(buf, range, 4, 94, 46, 2, false, false, false);
 
-		//Range: 2 (exclusive) - 96 (exclusive) descending
+		//Range: 96 (exclusive) - 2 (exclusive)
 		//Expected result: values 94 - 4 (inclusive)
+		AssignString(endv, 2);
+		AssignBound(endBound, false, endv);
+		AssignString(startv, 96);
+		AssignBound(startBound, false, startv);		
 		AssignRange(range, false, 500, &startBound, &endBound);
 		TestRange(buf, range, 94, 4, 46, -2, false, false, false);
 
-		
+		//Range: 3 (exclusive) - 95 (exclusive)
+		//Expected result: values 4 - 94 (exclusive)
+		AssignString(endv, 95);
+		AssignBound(endBound, false, endv);
+		AssignString(startv, 3);
+		AssignBound(startBound, false, startv);		
+		AssignRange(range, true, 500, &startBound, &endBound);
+		TestRange(buf, range, 4, 94, 46, 2, false, false, false);
+
+		//Range: 95 (exclusive) - 3 (exclusive)
+		//Expected result: values 94 - 4 (inclusive)
+		AssignString(endv, 3);
+		AssignBound(endBound, false, endv);
+		AssignString(startv, 95);
+		AssignBound(startBound, false, startv);		
+		AssignRange(range, false, 500, &startBound, &endBound);
+		TestRange(buf, range, 94, 4, 46, -2, false, false, false);
+
+
 		//Two bounds - inclusive, overlapping
 		//Range: 50 (inclusive) - 50 (inclusive) ascending
 		//Expected result: 50
@@ -170,6 +216,8 @@ public:
 
 		//Start after data - desc
 		//Expected result: Empty
+		AssignString(startv, -2);
+		AssignBound(startBound, true, startv);
 		AssignRange(range, false, 500, &startBound);
 		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
 
@@ -182,10 +230,13 @@ public:
 		AssignRange(range, true, 500, &startBound);
 		TestRange(buf, range, 98, 98, 1, 0, false, true, false);
 
-		//Range 98 (inclusive) - end asc
-		//Expected result: 98
-		AssignRange(range, false, 500, &startBound);
-		TestRange(buf, range, 98, 98, 1, 0, false, true, false);
+		//Range start - 98
+		//Expected result: 98 desc
+		AssignString(endv, 98);
+		AssignBound(endBound, true, endv);
+		AssignRange(range, false, 500, NULL, &endBound);
+		TestRange(buf, range, 98, 98, 1, 0, true, false, false);
+
 
 		//Range: 98 (exclusive) - end asc
 		//Expected result: Empty
@@ -193,11 +244,13 @@ public:
 		AssignRange(range, true, 500, &startBound);
 		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
 
-		//Range 98 (exclusive) - end desc
+		//Range start - 98 (exclusive) desc
 		//Expected result: Empty
-		AssignRange(range, false, 500, &startBound);
-		TestRange(buf, range, 0, 0, 0, 0, false, true, false);
-		
+		AssignString(endv, 98);
+		AssignBound(endBound, false, endv);
+		AssignRange(range, false, 500, NULL, &endBound);
+		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
+
 
 		//End before data - asc
 		//Expected result: Empty
@@ -208,10 +261,12 @@ public:
 
 		//End before data - desc
 		//Expected result: Empty
+		AssignString(endv, 100);
+		AssignBound(endBound, true, endv);
 		AssignRange(range, false, 500, NULL, &endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
-		
+
 		//End at Start
 		// Range: start - 0 (inclusive) asc
 		//Expected result: 0
@@ -220,23 +275,28 @@ public:
 		AssignRange(range, true, 500, NULL, &endBound);
 		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
 
-		// Range: start - 0 (inclusive) desc
-		//Expected result: 0
+		// Range: start - 98 (inclusive) desc
+		//Expected result: 98
+		AssignString(endv, 98);
+		AssignBound(endBound, true, endv);
 		AssignRange(range, false, 500, NULL, &endBound);
-		TestRange(buf, range, 0, 0, 1, 0, true, false, false);
+		TestRange(buf, range, 98, 98, 1, 0, true, false, false);
 
 		// Range: start - 0 (exclusive) asc
 		//Expected result: Empty
+		AssignString(endv, 0);
 		AssignBound(endBound, false, endv);
 		AssignRange(range, true, 500, NULL, &endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
-		// Range: start - 0 (exclusive) desc
+		// Range: start - 98 (exclusive) desc
 		//Expected result: Empty
+		AssignString(endv, 98);
+		AssignBound(endBound, false, endv);
 		AssignRange(range, false, 500, NULL, &endBound);
 		TestRange(buf, range, 0, 0, 0, 0, true, false, false);
 
-		
+
 		//Limited range
 		//Range: start - end asc, limited to 5
 		//Expected result: 0 - 8 (inclusive)
@@ -246,25 +306,21 @@ public:
 		//Range: end - start desc, limited to 5
 		//Expected result: 98-90 (inclusive)
 		AssignRange(range, false, 5);
-		TestRange(buf, range, 98, 90, 5, -2, false, true, true);
+		TestRange(buf, range, 98, 90, 5, -2, true, false, true);
 
 		//Start on ID
 		//For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
 		//Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
 		AssignString(startv, 0);
-		AssignBound(startBound, true, startv);
-		AssignRange(range, true, 500, &startBound, NULL, &startv);
+		AssignRange(range, true, 500, NULL, NULL, &startv);
 		TestRange(buf, range, 2, 98, 49, 2, false, true, false);
 
 		//Range: end - start desc, start on 98 ( 0 is excluded since it's assumed it's part of the last set)
-		AssignString(endv, 98);
-		AssignBound(endBound, true, endv);
-		
-		AssignRange(range, false, 500, NULL, &endBound, &endv);
-		TestRange(buf, range, 96, 0, 49, -2, true, false, false);
+		AssignString(endv, 98);	
+		AssignRange(range, false, 500, NULL, NULL, &endv);
+		TestRange(buf, range, 96, 0, 49, -2, false, true, false);
 
-
-		//Combination
+		//Combination - asc
 		AssignString(endv, 94);
 		AssignBound(endBound, false, endv);
 		AssignString(startv, 80);
@@ -274,6 +330,17 @@ public:
 
 		AssignRange(range, true, 5, &startBound, &endBound);
 		TestRange(buf, range, 82, 90, 5, 2, false, false, true);
+
+		//Combination - des
+		AssignString(endv, 80);
+		AssignBound(endBound, false, endv);
+		AssignString(startv, 94);
+		AssignBound(startBound, false, startv);
+		AssignRange(range, false, 500, &startBound, &endBound);
+		TestRange(buf, range, 92, 82, 6, -2, false, false, false);
+
+		AssignRange(range, false, 5, &startBound, &endBound);
+		TestRange(buf, range, 92, 84, 5, -2, false, false, true);
 	}
 
 	void AssignString(string& str, int value)
@@ -338,7 +405,7 @@ public:
 		Assert::IsTrue(result.limited == expectLimited);
 	}
 
-	TEST_METHOD(IncludeExclude)
+	TEST_METHOD(UniqueIncludeExclude)
 	{
 		throw "Not yet implemented";
 		//UniqueBuffer buf(standardtypes::Int, standardtypes::Int);

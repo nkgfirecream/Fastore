@@ -183,7 +183,7 @@ namespace Fastore.Core.Demo2
 
 					xmlReader.Read();
 
-					if (count % 5000 == 0)
+					if (count % 1000 == 0)
 					{
 
 						//Wait until task is done.
@@ -201,9 +201,9 @@ namespace Fastore.Core.Demo2
 						_transaction = _database.Begin(true, true);
 						Application.DoEvents();
 					}
-					if (count % 5000 == 0)
+					if (count % 1000 == 0)
 					{
-						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 5000)));
+						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
 				}
@@ -266,6 +266,7 @@ namespace Fastore.Core.Demo2
                     startId = id;
                 }
             }
+
             foreach (var item in SelectData(startId))
             {
                 listView1.Items.Add
@@ -288,14 +289,14 @@ namespace Fastore.Core.Demo2
                 switch (comboBox1.SelectedIndex)
                 {
                     case 0:
-                        bool result = true;
-                        bool.TryParse(Search.Text, out result);
-                        value = result;
-                        break;
-                    case 3:
                         int id = 0;
                         int.TryParse(Search.Text, out id);
                         value = id;
+                        break;
+                    case 3:     
+                        bool result = true;
+                        bool.TryParse(Search.Text, out result);
+                        value = result;
                         break;
                     default:
                         value = Search.Text;
@@ -309,10 +310,7 @@ namespace Fastore.Core.Demo2
             Range range = new Range();
             range.ColumnID = orderColumn;
             range.Ascending = comboBox2.SelectedIndex == 0;
-            if (range.Ascending)
-                range.Start = start;
-            else
-                range.End = start;
+            range.Start = startId == null ? start : null;
 
             var set = 
 				_database.GetRange

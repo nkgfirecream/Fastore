@@ -98,6 +98,7 @@
   <ItemGroup>
     <ClCompile Include="BTreeTest.cpp" />
     <ClCompile Include="BufferSerializationTest.cpp" />
+    <ClCompile Include="IdentityBufferTest.cpp" />
     <ClCompile Include="KeyTreeTest.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

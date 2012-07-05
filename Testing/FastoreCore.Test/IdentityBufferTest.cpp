@@ -8,31 +8,21 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include <algorithm>
 
 #include "Schema\standardtypes.h"
-#include "Column\TreeBuffer.h"
+#include "Column\IdentityBuffer.h"
 
 using namespace std;
 
-template <class T>
-inline std::string to_string(const T& t)
-{
-	std::stringstream ss;
-	ss << t;
-	return ss.str();
 
-}
-
-TEST_CLASS(TreeBufferTest)
+TEST_CLASS(IdentityBufferTest)
 {
 public:
 	
-	TEST_METHOD(TreeBufferRangeTests)
+	TEST_METHOD(IdentityRangeTests)
 	{
-	
-		//--- THIS SUBSET OF BEHAVIOR SHOULD BE IDENTICAL TO UNIQUE BUFFER ---
-
-		///TODO: Update limited behavior to reflect BoF/EoF semantics.
+		
+		//TODO: Update limited behavior to reflect BoF/EoF semantics.
 		//Unique buffer -- one key has one and only one value
-		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
+		IdentityBuffer buf(standardtypes::Int);
 
 		ColumnWrites cw;
 		std:vector<Include> includes;
@@ -351,66 +341,9 @@ public:
 
 		AssignRange(range, false, 5, &startBound, &endBound);
 		TestRange(buf, range, 92, 84, 5, -2, false, false, true);
-
-		//--- END UNIQUE BUFFER COPY --
-
-
-		//Insert 2 subsequent values from 0 - 98 (inclusive) in increments of 2 into buffer
-		for(int i = 0; i < 100; i += 2){
-			Include inc;
-			string rowId;
-			AssignString(rowId, i);
-
-			string value1;
-			string value2;
-			AssignString(value1, i);
-			i += 2;
-			AssignString(value2, i);
-
-			inc.__set_rowID(rowId);
-			inc.__set_value(value1);
-			includes.push_back(inc);
-
-			inc.__set_value(value2);
-			includes.push_back(inc);
-		}
-
-		cw.__set_includes(includes);
-		buf.Apply(cw);
-
-		Assert::AreEqual<long long>(buf.GetStatistic().total, 25);
-		Assert::AreEqual<long long>(buf.GetStatistic().unique, 25);
 	}
 
-	void AssignString(string& str, int value)
-	{
-		str.assign((const char*)&value, sizeof(int));
-	}
-
-	void AssignBound(RangeBound& bound, bool inclusive, string& value)
-	{
-		bound = RangeBound();
-		bound.__set_inclusive(inclusive);
-		bound.__set_value(value);
-	}
-
-	void AssignRange(RangeRequest& range, bool ascending, int limit, RangeBound* start = NULL, RangeBound* end = NULL, string* rowId = NULL)
-	{
-		range = RangeRequest();
-		range.__set_ascending(ascending);
-		range.__set_limit(limit);
-
-		if (start != NULL)
-			range.__set_first(*start);
-
-		if (end != NULL)
-			range.__set_last(*end);
-
-		if (rowId != NULL)
-			range.__set_rowID(*rowId);
-	}
-
-	void TestRange(TreeBuffer& buf, RangeRequest range, int expectedStart, int expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
+	void TestRange(IdentityBuffer& buf, RangeRequest range, int expectedStart, int expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
 	{
 		RangeResult result = buf.GetRows(range);
 		
@@ -444,109 +377,31 @@ public:
 		Assert::IsTrue(result.limited == expectLimited);
 	}
 
-	void TestRangeMultiValue(TreeBuffer& buf, RangeRequest range, int expectedStart, int expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
+	void AssignString(string& str, int value)
 	{
-		RangeResult result = buf.GetRows(range);
-		
-		//Right number of values...
-		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
-
-		int expectedNum = expectedStart;
-		for (int i = 0; i < result.valueRowsList.size(); i++)
-		{
-			for(int j = 0; j < result.valueRowsList[i].rowIDs.size(); j++)
-			{
-			//Item is a value-rows  A - 1, 2, 3
-			auto item = result.valueRowsList[i];
-
-			int value = *(int*)item.value.data();
-
-			//Value should be our expected number;
-			Assert::AreEqual<int>(expectedNum, value);
-
-			//id should be expected number
-			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[j].data());
-
-			expectedNum += increment;
-			}
-		}
-
-		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
-		Assert::AreEqual<int>(expectedNum, expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
-		Assert::IsTrue(result.bof == expectBOF);
-		Assert::IsTrue(result.eof == expectEOF);
-		Assert::IsTrue(result.limited == expectLimited);
+		str.assign((const char*)&value, sizeof(int));
 	}
 
-	TEST_METHOD(TreeBufferIncludeExclude)
+	void AssignBound(RangeBound& bound, bool inclusive, string& value)
 	{
-		throw "Not yet implemented";
-		//TreeBuffer buf(standardtypes::Int, standardtypes::Int);
-
-		//bool result;
-		//int v = 0;
-		//int k = 0;
-
-		////Non existing inserts should be ok
-		//result = buf.Include(&v, &k);
-		//Assert::AreEqual(result == true);
-
-		////Duplicate insertions should not insert
-		//result = buf.Include(&v, &k);
-		//Assert::AreEqual(result == false);
-
-		////Duplicate keys should not insert
-		//v = 2;
-	 //   k = 0;
-		//result = buf.Include(&v, &k);
-		//Assert::AreEqual(result == false);
-
-		////End of this should still be zero
-		//k = 0;
-		//void* value = buf.GetValue(&k);
-		//Assert::AreEqual(*(int*)value == 0);
-
-		////Values not present should not exclude
-		//v = 1;
-		//k = 0;
-		//result = buf.Exclude(&v, &k);
-		//Assert::AreEqual(result == false);
-
-		////Keys not present should not exclude
-		//v = 0;
-		//k = 1;
-		//result = buf.Exclude(&k);
-		//Assert::AreEqual(result == false);
-
-		//result = buf.Exclude(&v, &k);
-		//Assert::AreEqual(result == false);
-
-		////Keys present should exclude
-		//v = 0;
-		//k = 0;
-		//result = buf.Exclude(&v, &k);
-		//Assert::AreEqual(result == true);
-
-		////A bunch of insertions should work...
-		//int numrows = 10000;
-		//for (int i = 0; i <= numrows; i++)
-		//{
-		//	result = buf.Include(&i,&i);
-		//	Assert::AreEqual(result == true);
-		//}
-
-		////A bunch of exclusions should work...
-		//for (int i = numrows / 2; i <= numrows; i++)
-		//{
-		//	result = buf.Exclude(&i,&i);
-		//	Assert::AreEqual(result == true);
-		//}
-
-		////All the values should still be the same...
-		//for (int i = 0; i < numrows / 2; i++)
-		//{
-		//	value = buf.GetValue(&i);
-		//	Assert::AreEqual(*(int*)value == i);
-		//}
+		bound = RangeBound();
+		bound.__set_inclusive(inclusive);
+		bound.__set_value(value);
 	}
+
+	void AssignRange(RangeRequest& range, bool ascending, int limit, RangeBound* start = NULL, RangeBound* end = NULL, string* rowId = NULL)
+	{
+		range = RangeRequest();
+		range.__set_ascending(ascending);
+		range.__set_limit(limit);
+
+		if (start != NULL)
+			range.__set_first(*start);
+
+		if (end != NULL)
+			range.__set_last(*end);
+
+		if (rowId != NULL)
+			range.__set_rowID(*rowId);
+	}	
 };

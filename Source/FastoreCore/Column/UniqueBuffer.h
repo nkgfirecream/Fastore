@@ -181,135 +181,128 @@ inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 
 	if (range.__isset.first && range.__isset.last)
 	{		
-		if (_valueType.Compare(firstp, lastp) > 0)
+		if (range.ascending && _valueType.Compare(firstp, lastp) > 0)
 		{
-			//Start is after end-> Invalid input.
-			throw "Invalid range. Start is after end";
+			throw "Invalid range. Start is after end and the range is ascending";
+		}
+		else if (!range.ascending && _valueType.Compare(firstp, lastp) < 0)
+		{
+			throw "Invalid range. Start is after end and the range is descending";
 		}
 	}
 
 	//cache markers since we will use it several times
-	BTree::iterator lastMarker = _values->end();
-	BTree::iterator firstMarker = _values->begin();
-	
-	bool beginMatch = false;
-	bool endMatch = false;
-
-	BTree::iterator begin = 
-		startId != NULL && range.ascending ? _values->findNearest(GetValue(startId), beginMatch) :
-		range.__isset.first ? _values->findNearest(firstp, beginMatch) :
-		firstMarker;
-
-	BTree::iterator end =  
-		startId != NULL && !range.ascending ? _values->findNearest(GetValue(startId), endMatch) :
-		range.__isset.last ? _values->findNearest(lastp, endMatch) :
-		lastMarker;
+	BTree::iterator lastMarker = range.ascending ? _values->end() : _values->begin();
+	BTree::iterator firstMarker = range.ascending ? _values->begin() : _values->end();
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
 
+	bool beginMatch = false;
+	bool endMatch = false;	
+		
+	BTree::iterator begin = 
+	startId != NULL  ? _values->findNearest(GetValue(startId), beginMatch) :
+	range.__isset.first ? _values->findNearest(firstp, beginMatch) :
+	firstMarker;
+
+	BTree::iterator end = 
+	range.__isset.last ? _values->findNearest(lastp, endMatch) :
+	lastMarker;
+
 	RangeResult result;	
+	ValueRowsList vrl;
 
 	result.__set_bof(begin == firstMarker);
 	result.__set_eof(end == lastMarker);
 
-	//Nothing in this range, so return empty result
-	if ((begin == lastMarker) || ((begin == end) && (!bInclusive || !eInclusive)))
-		return result;	
+	bool startFound = startId == NULL;
 
-	if (!bInclusive && beginMatch)
-	{
-		//reset BOF Marker since we are excluding
-		result.__set_bof(false);
-		++begin;
-	}
+	std::function<void()> moveBegin = [](){};
+	std::function<void()> moveEnd = [](){};
+	std::function<void()> moveId = [](){};
 
-	if (eInclusive && endMatch)
-	{
-		++end;
-		//reset EOF Marker since we are including
-		result.__set_eof(end == lastMarker);
-	}	
-
-	bool startFound = startId == NULL;	
-
-	ValueRowsList vrl;
-
+	//Set up bounds to point to correct values, setup lambdas to move iterator (and avoid branches/cleanup code)
+	//TODO : Figure out cost of branches vs lambdas... Could make a lot of use of them in the Tree code...
 	if (range.ascending)
-	{		
-		while (begin != end && !result.limited)
+	{
+		moveId = [&](){ ++begin; };
+		moveEnd = moveId;
+
+		//ascending iterates AFTER grabbing value.
+		if (!bInclusive && beginMatch)
 		{
-			auto rowId = (void*)((*begin).value);
-			auto key = (void*)((*begin).key);
-
-			if (!startFound && _rowType.Compare(rowId, startId) == 0)
-			{				
-				result.__set_bof(false);
-				startFound = true;
-				begin++;
-				continue;
-			}
-			
-			ValueRows vr;
-			string value;
-			_valueType.CopyOut(key, value);
-			vr.__set_value(value);			
-			
-			string rowIdcopy;
-			_rowType.CopyOut(rowId, rowIdcopy);
-
-			std::vector<string> rowIds;
-			rowIds.push_back(rowIdcopy);
-
-			vr.__set_rowIDs(rowIds);
-			vrl.push_back(vr);
-			result.__set_limited(vrl.size() == range.limit);
-
 			++begin;
+			//reset BOF Marker since we are excluding
+			result.__set_bof(false);
+
 		}
 
-		//if we didn't make it through the entire set, reset the eof marker.
-		if (result.limited && result.eof)
-			result.__set_eof(false);
+		if (eInclusive && endMatch)
+		{
+			++end;
+			//reset EOF Marker since we are including
+			result.__set_eof(end == lastMarker);
+		}
 	}
 	else
 	{
-		while (begin != end && !result.limited)
+		moveBegin =  [&](){ --begin; };
+
+		//descending iterates BEFORE grabbing value...
+		if (bInclusive && beginMatch)
 		{
-			--end;
+			++begin;
+			//reset BOF Marker since we are excluding
+			result.__set_bof(false);
 
-			auto rowId = (void*)((*end).value);
-			auto key = (void*)((*end).key);
-
-			if (!startFound && _rowType.Compare(rowId, startId) == 0)
-			{
-				result.__set_eof(false);
-				startFound = true;
-				continue;
-			}
-		
-			ValueRows vr;
-			string value;
-			_valueType.CopyOut(key, value);
-			vr.__set_value(value);			
-			
-			string rowIdcopy;
-			_rowType.CopyOut(rowId, rowIdcopy);
-
-			std::vector<string> rowIds;
-			rowIds.push_back(rowIdcopy);
-
-			vr.__set_rowIDs(rowIds);
-			vrl.push_back(vr);
-			result.__set_limited(vrl.size() == range.limit);
 		}
 
-		//if we didn't make it through the entire set, reset the bof marker.
-		if (result.limited && result.bof)
+		if (!eInclusive && endMatch)
+		{
+			++end;
+			//reset EOF Marker since we are including
+			result.__set_eof(end == lastMarker);
+		}
+	}
+
+	while (begin != end && !result.limited)
+	{
+		moveBegin();
+
+		auto valuep = (void*)((*begin).key);
+		auto rowIdp = (void*)((*begin).value);
+
+		if (!startFound && _rowType.Compare(rowIdp, startId) == 0)
+		{				
 			result.__set_bof(false);
-	}	
+			startFound = true;
+			moveId();
+			continue;
+		}
+			
+		ValueRows vr;
+		string value;
+		_valueType.CopyOut(valuep, value);
+		vr.__set_value(value);			
+			
+		string rowIdcopy;
+		_rowType.CopyOut(rowIdp, rowIdcopy);
+
+		std::vector<string> rowIds;
+		rowIds.push_back(rowIdcopy);
+
+		vr.__set_rowIDs(rowIds);
+		vrl.push_back(vr);
+		result.__set_limited(vrl.size() == range.limit);
+
+		moveEnd();
+	}
+
+	//if we didn't make it through the entire set, reset the eof marker.
+	if (result.limited && result.eof)
+		result.__set_eof(false);
 
 	result.__set_valueRowsList(vrl);
-
 	return result;
 }
