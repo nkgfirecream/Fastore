@@ -29,9 +29,6 @@
     <ClCompile Include="BTreeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="KeyTreeTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UniqueBufferTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
