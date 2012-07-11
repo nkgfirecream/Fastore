@@ -2,12 +2,6 @@
 #include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-#include <sstream>
-#include <iostream>
-#include <hash_set>
-#include <algorithm>
-
-#include "Schema\standardtypes.h"
 #include "Column\IdentityBuffer.h"
 
 using namespace std;

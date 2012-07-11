@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\Schema\standardtypes.h"
+#include "..\BTree.h"
 #include "..\Column\IColumnBuffer.h"
 
 class IdentityBuffer : public IColumnBuffer

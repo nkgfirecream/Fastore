@@ -68,6 +68,10 @@ class TMultiConnectionServer : public TServer {
     serverTransport_->interrupt();
   }
 
+  //Id is a place holder for
+  void parkConnection(int id);
+  void resumeConnection(int id);
+
  protected:
   bool stop_;
 
