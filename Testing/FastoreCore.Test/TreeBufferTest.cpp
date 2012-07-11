@@ -352,34 +352,281 @@ public:
 		AssignRange(range, false, 5, &startBound, &endBound);
 		TestRange(buf, range, 92, 84, 5, -2, false, false, true);
 
-		//--- END UNIQUE BUFFER COPY --
+	 }
 
+	 //--- END UNIQUE BUFFER COPY --------------------------------
 
-		//Insert 2 subsequent values from 0 - 98 (inclusive) in increments of 2 into buffer
+	TEST_METHOD(RangeMultiRowTests)
+	{										 
+		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
+
+		ColumnWrites cw;
+		std:vector<Include> includes;
+
+		//Insert 2 consecutive values from 0 - 98 (inclusive) in increments of 2 into buffer
+		//e.g.  [
+		//		(0 : [0 ,2]),
+		//		(4 : [4, 6]),
+		//		(8 : [8, 10]),
+		//			etc...
+		//		(96 : [96, 98])
+		//		]
+
 		for(int i = 0; i < 100; i += 2){
 			Include inc;
-			string rowId;
-			AssignString(rowId, i);
+			string rowId1;
+			string rowId2;
+			string value;
+			
+			AssignString(value, i);
+			
+			AssignString(rowId1, i);
 
-			string value1;
-			string value2;
-			AssignString(value1, i);
 			i += 2;
-			AssignString(value2, i);
 
-			inc.__set_rowID(rowId);
-			inc.__set_value(value1);
+			AssignString(rowId2, i);
+
+			inc.__set_value(value);
+			inc.__set_rowID(rowId1);
 			includes.push_back(inc);
 
-			inc.__set_value(value2);
+			inc.__set_value(value);
+			inc.__set_rowID(rowId2);
 			includes.push_back(inc);
 		}
 
 		cw.__set_includes(includes);
 		buf.Apply(cw);
 
-		Assert::AreEqual<long long>(buf.GetStatistic().total, 25);
+		//should have 25 values, from 0-96 in increments of 4
+		Assert::AreEqual<long long>(buf.GetStatistic().total, 50);
 		Assert::AreEqual<long long>(buf.GetStatistic().unique, 25);
+		
+		string startv;
+		string endv;
+		RangeBound startBound;
+		RangeBound endBound;
+		RangeRequest range;
+		
+		
+		//Entire Set
+		//Range: Entire set ascending
+		//Expected result: values 0 - 96 (inclusive) by 4s.
+		AssignRange(range, true, 500);
+		TestRangeMultiValue(buf, range, 0, 96, 25, 2, 50, true, true, false);
+
+		////Range: Entire set descending
+		////Expected result: values 96 - 0 (inclusive) by -4s.
+		//AssignRange(range, false, 500);
+		//TestRangeMultiValue(buf, range, 96, 0, 25, -4, 50, true, true, false);
+
+		////Start Exclusive - Non overlapping
+		////Range: 0 (exclusive) - end (inclusive) ascending
+		////Expected result: values 4 - 96 (inclusive)
+		//AssignString(startv, 0);
+		//AssignBound(startBound, false, startv);
+		//AssignRange(range, true, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 4, 96, 24, 4, 48, false, true, false);
+
+		////Range: 0 (exclusive) - end (inclusive) descending
+		////Expected result: values 96 - 4 (inclusive)
+		//AssignString(startv, 0);
+		//AssignBound(startBound, false, startv);
+		//AssignRange(range, false, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 96, 4, 24, -4, 48, false, true, false);
+
+
+		////End Exclusive - Non overlapping
+		////Range: begin (inclusive) - 96 (exclusive) ascending
+		////Expected result: values 0 - 92 (inclusive)
+		//AssignString(endv, 96);
+		//AssignBound(endBound, false, endv);
+		//AssignRange(range, true, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 92, 24, 4, 48, true, false, false);
+
+		////Range: begin (inclusive) - 96 (exclusive) descending
+		////Expected result: values 92 - 0 (inclusive)
+		//AssignRange(range, false, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 96, 0, 24, -4, 48, true, false, false);
+
+
+		////Two bounds - inclusive, non overlapping
+		////Range: 4 (inclusive) - 92 (inclusive) ascending
+		////Expected result: values 2 - 96 (inclusive)
+		//AssignString(endv, 96);
+		//AssignBound(endBound, true, endv);
+		//AssignString(startv, 2);
+		//AssignBound(startBound, true, startv);		
+		//AssignRange(range, true, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 2, 96, 23, 4, 2, false, false, false);
+
+		////Range: 2 (inclusive) - 96 (inclusive) descending
+		////Expected result: values 96 - 2 (inclusive)
+		//AssignRange(range, false, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 96, 2, 23, -4, -2, false, false, false);
+
+
+		////Two bounds - exclusive, non overlapping
+		////Range: 2 (exclusive) - 96 (exclusive) ascending
+		////Expected result: values 4 - 94 (inclusive)
+		//AssignString(endv, 96);
+		//AssignBound(endBound, false, endv);
+		//AssignString(startv, 2);
+		//AssignBound(startBound, false, startv);		
+		//AssignRange(range, true, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 4, 94, 21, 4, 2, false, false, false);
+
+		////Range: 2 (exclusive) - 96 (exclusive) descending
+		////Expected result: values 94 - 4 (inclusive)
+		//AssignRange(range, false, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 94, 4, 21, -4, -2, false, false, false);
+
+
+		////Two bounds - inclusive, overlapping
+		////Range: 50 (inclusive) - 50 (inclusive) ascending
+		////Expected result: 50
+		//AssignString(endv, 50);
+		//AssignBound(endBound, true, endv);
+		//AssignString(startv, 50);
+		//AssignBound(startBound, true, startv);
+		//AssignRange(range, true, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 50, 50, 1, 0, 0, false, false, false);
+
+		////Range: 50 (inclusive) - 50 (inclusive) desc
+		////Expected result: 50
+		//AssignRange(range, false, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 50, 50, 1, 0, 0, false, false, false);
+
+
+		////Two bounds - exclusive, overlaping
+		////Range: 50 (exclusive) - 50 (exclusive) asc
+		////Expected result: Empty
+		//AssignString(endv, 50);
+		//AssignBound(endBound, true, endv);
+		//AssignString(startv, 50);
+		//AssignBound(startBound, false, startv);
+		//AssignRange(range, true, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, false, false, false);
+
+		////Range: 50 (exclusive) - 50 (exclusive) desc
+		////Expected result: Empty
+		//AssignRange(range, false, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, false, false, false);
+
+
+		////Start after data - asc
+		////Expected result: Empty
+		//AssignString(startv, 100);
+		//AssignBound(startBound, true, startv);
+		//AssignRange(range, true, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, false, true, false);
+
+		////Start after data - desc
+		////Expected result: Empty
+		//AssignRange(range, false, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, false, true, false);
+
+
+		////Start at end
+		////Range 98 (inclusive) - end asc
+		////Expected result: 98
+		//AssignString(startv, 98);
+		//AssignBound(startBound, true, startv);
+		//AssignRange(range, true, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 98, 98, 1, 0, 0, false, true, false);
+
+		////Range 98 (inclusive) - end asc
+		////Expected result: 98
+		//AssignRange(range, false, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 98, 98, 1, 0, 0, false, true, false);
+
+		////Range: 98 (exclusive) - end asc
+		////Expected result: Empty
+		//AssignBound(startBound, false, startv);
+		//AssignRange(range, true, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, false, true, false);
+
+		////Range 98 (exclusive) - end desc
+		////Expected result: Empty
+		//AssignRange(range, false, 500, &startBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, false, true, false);
+
+
+		////End before data - asc
+		////Expected result: Empty
+		//AssignString(endv, -2);
+		//AssignBound(endBound, true, endv);
+		//AssignRange(range, true, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, true, false, false);
+
+		////End before data - desc
+		////Expected result: Empty
+		//AssignRange(range, false, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, true, false, false);
+
+
+		////End at Start
+		//// Range: start - 0 (inclusive) asc
+		////Expected result: 0
+		//AssignString(endv, 0);
+		//AssignBound(endBound, true, endv);
+		//AssignRange(range, true, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 1, 0, 0, true, false, false);
+
+		//// Range: start - 0 (inclusive) desc
+		////Expected result: 0
+		//AssignRange(range, false, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 1, 0, 0, true, false, false);
+
+		//// Range: start - 0 (exclusive) asc
+		////Expected result: Empty
+		//AssignBound(endBound, false, endv);
+		//AssignRange(range, true, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, true, false, false);
+
+		//// Range: start - 0 (exclusive) desc
+		////Expected result: Empty
+		//AssignRange(range, false, 500, NULL, &endBound);
+		//TestRangeMultiValue(buf, range, 0, 0, 0, 0, 0, true, false, false);
+
+
+		////Limited range
+		////Range: start - end asc, limited to 5
+		////Expected result: 0 - 16 (inclusive)
+		//AssignRange(range, true, 5);
+		//TestRangeMultiValue(buf, range, 0, 16, 5, 4, 2, true, false, true);
+
+		////Range: end - start desc, limited to 5
+		////Expected result: 98-80 (inclusive)
+		//AssignRange(range, false, 5);
+		//TestRangeMultiValue(buf, range, 98, 80, 5, -4, -2, false, true, true);
+
+		////Start on ID
+		////For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
+		////Range: start - end asc, start on 0 ( 0 is excluded since it's assumed it's part of the last set)
+		//AssignString(startv, 0);
+		//AssignBound(startBound, true, startv);
+		//AssignRange(range, true, 500, &startBound, NULL, &startv);
+		//TestRangeMultiValue(buf, range, 2, 98, 24, 4, 2, false, true, false);
+
+		////Range: end - start desc, start on 98 ( 0 is excluded since it's assumed it's part of the last set)
+		//AssignString(endv, 98);
+		//AssignBound(endBound, true, endv);
+
+		//AssignRange(range, false, 500, NULL, &endBound, &endv);
+		//TestRangeMultiValue(buf, range, 96, 0, 24, -4, -2, true, false, false);
+
+
+		////Combination
+		//AssignString(endv, 94);
+		//AssignBound(endBound, false, endv);
+		//AssignString(startv, 80);
+		//AssignBound(startBound, false, startv);
+		//AssignRange(range, true, 500, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 80, 94, 4, 4, 2, false, false, false);
+
+		//AssignRange(range, true, 5, &startBound, &endBound);
+		//TestRangeMultiValue(buf, range, 80, 90, 3, 4, 2, false, false, true);
 	}
 
 	void AssignString(string& str, int value)
@@ -444,14 +691,12 @@ public:
 		Assert::IsTrue(result.limited == expectLimited);
 	}
 
-	void TestRangeMultiValue(TreeBuffer& buf, RangeRequest range, int expectedStart, int expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
+	void TestRangeMultiValue(TreeBuffer& buf, RangeRequest range, int expectedValueStart, int expectedValueEnd, int expectedValueCount, int valueIncrement, int expectedTotalRowIds, bool expectBOF, bool expectEOF, bool expectLimited)
 	{
 		RangeResult result = buf.GetRows(range);
-		
-		//Right number of values...
-		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
 
-		int expectedNum = expectedStart;
+		int expectedNum = expectedValueStart;
+		int expectedTotal = 0;
 		for (int i = 0; i < result.valueRowsList.size(); i++)
 		{
 			for(int j = 0; j < result.valueRowsList[i].rowIDs.size(); j++)
@@ -464,15 +709,22 @@ public:
 			//Value should be our expected number;
 			Assert::AreEqual<int>(expectedNum, value);
 
-			//id should be expected number
+			//each id should be expected number
 			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[j].data());
 
-			expectedNum += increment;
+			expectedNum += valueIncrement;
+			expectedTotal++;
 			}
+			
 		}
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
-		Assert::AreEqual<int>(expectedNum, expectedEnd + (result.valueRowsList.size() > 0 ? increment : 0));
+		Assert::AreEqual<int>(expectedNum, expectedValueEnd + (result.valueRowsList.size() > 0 ? valueIncrement : 0));	
+		//Right number of values
+		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValueCount);
+		//Right number of total values & rowIds
+		Assert::AreEqual<int>(expectedTotal, expectedTotalRowIds);
+
 		Assert::IsTrue(result.bof == expectBOF);
 		Assert::IsTrue(result.eof == expectEOF);
 		Assert::IsTrue(result.limited == expectLimited);
