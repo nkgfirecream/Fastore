@@ -1,5 +1,6 @@
 
 #include "TMultiConnectionServer.h"
+#include "ConnectionContext.h"
 #include <thrift/transport/TTransportException.h>
 #include <string>
 #include <iostream>
@@ -11,10 +12,6 @@ using namespace apache::thrift::transport;
 
 using boost::shared_ptr;
 
-/**
-* A simple single-threaded application server. Perfect for unit tests!
-*
-*/
 void TMultiConnectionServer::serve() {
 
 	boost::shared_ptr<TTransport> client;
@@ -63,7 +60,16 @@ void TMultiConnectionServer::serve() {
 		boost::shared_ptr<TProcessor> processor = getProcessor(inputProtocol,
 			outputProtocol, client);
 
-		void* connectionContext = NULL;
+		//context should go out of scope at the end of the loop and release the context unless an event happend and captpured the context;
+		boost::shared_ptr<TMultiConnectionContext>  context = boost::shared_ptr<TMultiConnectionContext>(new TMultiConnectionContext());
+		context->client = client;
+		context->inputProtocol = inputProtocol;
+		context->outputProtocol = outputProtocol;
+		context->inputTransport = inputTransport;
+		context->outputTransport = outputTransport;
+
+		void* connectionContext = &context;
+
 		try {
 			processor->process(inputProtocol, outputProtocol, connectionContext);
 		} catch (const TTransportException& ttx) {

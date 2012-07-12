@@ -113,7 +113,7 @@
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
     <ClCompile Include="TMultiConnectionServer.cpp" />
-    <ClCompile Include=".\TParkableSocket.cpp" />
+    <ClCompile Include=".\TParkableTransport.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
     <ClCompile Include="WorkerHandler.cpp" />
@@ -124,6 +124,7 @@
     <ClInclude Include="Column\IdentityBuffer.h" />
     <ClInclude Include="Column\TreeBuffer.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
+    <ClInclude Include=".\ConnectionContext.h" />
     <ClInclude Include="Endpoint.h" />
     <ClInclude Include="EndpointConfig.h" />
     <ClInclude Include="Logging\Log.h" />
@@ -145,7 +146,7 @@
     <ClInclude Include="Storage\Schema\standardtypes.h" />
     <ClInclude Include="Storage\Schema\tuple.h" />
     <ClInclude Include="Storage\Schema\scalar.h" />
-    <ClInclude Include=".\TParkableSocket.h" />
+    <ClInclude Include=".\TParkableTransport.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="treeentry.h" />

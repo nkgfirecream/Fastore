@@ -720,8 +720,7 @@ public:
 
 				expectedNum += rowIdIncrement;
 				expectedTotal++;
-			}
-			
+			}			
 		}
 
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.

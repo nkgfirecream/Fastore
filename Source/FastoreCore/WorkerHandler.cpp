@@ -464,3 +464,22 @@ void WorkerHandler::getState(WorkerState& _return)
 	
 	_return.__set_repositoryStatus(statuses);
 }
+
+void WorkerHandler::handlerError(void* ctx, const char* fn_name)
+{
+	if (fn_name == "Worker.flush")
+	{
+
+	}
+
+	//Do some cleaning of connections?
+
+	return;
+}
+
+void* WorkerHandler::getContext(const char* fn_name, void* serverContext)
+{
+	_currentContext = *(boost::shared_ptr<TMultiConnectionContext>*)serverContext;
+
+	return serverContext;
+}

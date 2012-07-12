@@ -1,11 +1,7 @@
 #include "Endpoint.h"
 #include <thrift/protocol/TBinaryProtocol.h>
-#include <thrift/protocol/TJSONProtocol.h>
-#include <thrift/server/TSimpleServer.h>
 #include <thrift/transport/TServerSocket.h>
-#include <thrift/transport/TBufferTransports.h>
-#include <thrift/server/TThreadPoolServer.h>
-#include <thrift/concurrency/BoostThreadFactory.h>
+#include "TParkableTransport.h"
 #include "TMultiConnectionServer.h"
 
 using namespace std;
@@ -29,13 +25,8 @@ public:
 	{
 		_processor = processor;
 		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
-		_transportFactory = boost::shared_ptr<TTransportFactory>(new TBufferedTransportFactory());
+		_transportFactory = boost::shared_ptr<TTransportFactory>(new TParkableTransportFactory());
 		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
-
-		//boost::shared_ptr<ThreadManager> threadManager = ThreadManager::newSimpleThreadManager(15);
-		//boost::shared_ptr<BoostThreadFactory> threadFactory = boost::shared_ptr<BoostThreadFactory>(new BoostThreadFactory());
-		//threadManager->threadFactory(threadFactory);
-		//threadManager->start();
 
 		_server = boost::shared_ptr<TMultiConnectionServer>(new TMultiConnectionServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
 	}

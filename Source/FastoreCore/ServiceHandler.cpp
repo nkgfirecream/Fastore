@@ -132,7 +132,10 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
 
 		// Create a handler for the worker
 		auto handler = boost::shared_ptr<WorkerHandler>(new WorkerHandler(podID, _config->workerPaths[i]));
+
 		auto processor = boost::shared_ptr<TProcessor>(new WorkerProcessor(handler));
+
+		processor->setEventHandler(handler);
 		
 		// Create an endpoint for the worker
 		EndpointConfig endPointConfig;
