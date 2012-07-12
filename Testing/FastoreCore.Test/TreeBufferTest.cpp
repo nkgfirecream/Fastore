@@ -413,7 +413,7 @@ public:
 		//Range: Entire set ascending
 		//Expected result: values 0 - 96 (inclusive) by 4s.
 		AssignRange(range, true, 500);
-		TestRangeMultiValue(buf, range, 0, 96, 25, 2, 50, true, true, false);
+		TestRangeMultiValue(buf, range, 0, 96, 25, 4, 2, 50, true, true, false);
 
 		////Range: Entire set descending
 		////Expected result: values 96 - 0 (inclusive) by -4s.
@@ -691,7 +691,7 @@ public:
 		Assert::IsTrue(result.limited == expectLimited);
 	}
 
-	void TestRangeMultiValue(TreeBuffer& buf, RangeRequest range, int expectedValueStart, int expectedValueEnd, int expectedValueCount, int valueIncrement, int expectedTotalRowIds, bool expectBOF, bool expectEOF, bool expectLimited)
+	void TestRangeMultiValue(TreeBuffer& buf, RangeRequest range, int expectedValueStart, int expectedValueEnd, int expectedValueCount, int valueIncrement, int rowIdIncrement, int expectedTotalRowIds, bool expectBOF, bool expectEOF, bool expectLimited)
 	{
 		RangeResult result = buf.GetRows(range);
 
@@ -699,8 +699,6 @@ public:
 		int expectedTotal = 0;
 		for (int i = 0; i < result.valueRowsList.size(); i++)
 		{
-			for(int j = 0; j < result.valueRowsList[i].rowIDs.size(); j++)
-			{
 			//Item is a value-rows  A - 1, 2, 3
 			auto item = result.valueRowsList[i];
 
@@ -709,11 +707,13 @@ public:
 			//Value should be our expected number;
 			Assert::AreEqual<int>(expectedNum, value);
 
-			//each id should be expected number
-			Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[j].data());
+			for(int j = 0; j < item.rowIDs.size(); j++)
+			{
+				//each id should be expected number
+				Assert::AreEqual<int>(expectedNum, *(int*)item.rowIDs[j].data());
 
-			expectedNum += valueIncrement;
-			expectedTotal++;
+				expectedNum += rowIdIncrement;
+				expectedTotal++;
 			}
 			
 		}
