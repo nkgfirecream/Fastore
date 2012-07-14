@@ -60,7 +60,7 @@ void TMultiConnectionServer::serve() {
 		boost::shared_ptr<TProcessor> processor = getProcessor(inputProtocol,
 			outputProtocol, client);
 
-		//context should go out of scope at the end of the loop and release the context unless an event happend and captpured the context;
+		//context should go out of scope at the end of the loop and release the context unless an event happend and captured the context;
 		boost::shared_ptr<TMultiConnectionContext>  context = boost::shared_ptr<TMultiConnectionContext>(new TMultiConnectionContext());
 		context->client = client;
 		context->inputProtocol = inputProtocol;
