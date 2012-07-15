@@ -124,64 +124,29 @@ namespace Fastore.Core.Demo2
 
 		private void LoadData()
 		{
-			var fileName = @"e:\Ancestry\owt\owt.xml.gz";
-			using (var fileStream = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+			var fileName = @"e:\Ancestry\owt\owt.csv";
+			using (var fileStream = new StreamReader(new FileStream(fileName, FileMode.Open, FileAccess.Read)))
 			{
-				var deflated = Path.GetExtension(fileName) == ".gz"
-					? (Stream)new GZipStream(fileStream, CompressionMode.Decompress)
-					: fileStream;
-
-				var xrs = new XmlReaderSettings { ConformanceLevel = ConformanceLevel.Fragment, CheckCharacters = true };
-				var xmlReader = XmlReader.Create(deflated, xrs);
-
 				_transaction = _database.Begin(true, true);
 
 				var count = 0;
 				long lastMilliseconds = 0;
 				Stopwatch watch = new Stopwatch();
 				watch.Start();
-				while (!Canceled && count < 85000000)
+
+				string[] record = new string[8];
+
+				while (!Canceled && !fileStream.EndOfStream)
 				{
-					xmlReader.MoveToContent();
-					if (xmlReader.EOF)
+					var line = fileStream.ReadLine();
+					if (String.IsNullOrWhiteSpace(line))
 						break;
 
 					count++;
 
-					var subReader = xmlReader.ReadSubtree();
-					object[] record = null;
-					while (subReader.Read())
-					{
-						if (subReader.NodeType == XmlNodeType.Element)
-						{
-							if (subReader.Name == "d")
-							{
-								InsertRecord(record);
-
-								record = new object[_columns.Length];
-
-								if (subReader.MoveToAttribute("p"))
-									record[0] = int.Parse(subReader.Value);
-							}
-							else if (subReader.Name == "f" && subReader.MoveToAttribute("i"))
-							{
-								var code = subReader.Value;
-								subReader.MoveToContent();
-								switch (code)
-								{
-									case "80004002": record[1] = subReader.ReadString(); break;
-									case "80004003": record[2] = subReader.ReadString(); break;
-									case "83004003": record[3] = subReader.ReadString().StartsWith("M", StringComparison.OrdinalIgnoreCase); break;
-									case "81004010": record[4] = subReader.ReadString(); break;
-									case "82004010": record[5] = subReader.ReadString(); break;
-								}
-							}
-						}
-					}
+					LineToRecord(line, record);
 
 					InsertRecord(record);
-
-					xmlReader.Read();
 
 					if (count % 1000 == 0)
 					{
@@ -221,6 +186,48 @@ namespace Fastore.Core.Demo2
 			}
 		}
 
+		private void LineToRecord(string line, string[] record)
+		{
+			var cell = 0;
+			var builder = new StringBuilder();
+			var i = 0;
+			while (i < line.Length)
+			{
+				var ch = line[i];
+				if (ch == '\"')
+				{
+					i++;
+					while (i < line.Length && (ch = line[i]) != '\"')
+					{
+						if (ch == '\\')
+						{
+							i++;
+							if (i >= line.Length)
+								throw new Exception("Invalid escape sequence.");
+							ch = line[i];
+							switch (ch)
+							{
+								case 'n': builder.Append('\n'); break;
+								default: builder.Append(ch); break;
+							}
+						}
+						else
+							builder.Append(ch);
+						i++;
+					}
+					if (ch != '\"')
+						throw new Exception("Unterminated quote.");
+				}
+				else if (ch == ',')
+				{
+					record[cell] = builder.ToString();
+					cell++;
+					builder.Clear();
+				}
+				i++;
+			}
+		}
+
         private string GetStats()
         {
             string results = "";
@@ -232,17 +239,19 @@ namespace Fastore.Core.Demo2
             return results;
         }
 
-        private void InsertRecord(object[] record)
+        private void InsertRecord(string[] record)
         {
             if (record != null && record[0] != null) //Filter out junk data..
             {
-                record[1] = record[1] ?? "";
-                record[2] = record[2] ?? "";
-                record[3] = record[3] ?? false;
-                record[4] = record[4] ?? "";
-                record[5] = record[5] ?? "";
+				var data = new object[record.Length];
+				data[0] = Int32.Parse(record[0]);
+                data[1] = record[1] ?? "";
+                data[2] = record[2] ?? "";
+                data[3] = (record[3] ?? "0") == "1";
+                data[4] = record[4] ?? "";
+                data[5] = record[5] ?? "";
 
-				_transaction.Include(_columns, record[0], record);
+				_transaction.Include(_columns, data[0], record);
 				//_database.Include(_columns, _ids, record);
             }
         }
