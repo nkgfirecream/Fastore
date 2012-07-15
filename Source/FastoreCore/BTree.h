@@ -50,12 +50,19 @@ class BTree
 		{
 			PathNode(Node* node, const short index) : Node(node), Index(index) {}
 			PathNode(const PathNode& other) : Node(other.Node), Index(other.Index) {}
+			PathNode() : Node(nullptr), Index(0) {}
 			Node* Node;
 			short Index;
 		};
 
+		const static std::vector<PathNode>::size_type DefaultPathCapacity = 8;
+
 		struct Path
 		{
+			Path() : Branches() 
+			{
+				Branches.reserve(DefaultPathCapacity);
+			}
 			std::vector<PathNode> Branches;
 			Node* Leaf;
 			short LeafIndex;
@@ -668,7 +675,7 @@ class Node
 		ScalarType _valueType;
 		bool _branch;
 
-			short IndexOf(void* key)
+		short IndexOf(void* key)
 		{
 			auto result = _tree->_keyType.IndexOf(_keys, _count, key);
 			return result >= 0 ? result + 1 : ~result;
