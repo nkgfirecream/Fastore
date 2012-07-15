@@ -100,7 +100,11 @@ namespace Fastore.Core.Demo2
 			if (record != null)
 			{
 				for (var i = 0; i < record.Length; i++)
+				{
+					if (i > 0)
+						targetWriter.Write(",");
 					targetWriter.Write("\"" + (record[i] ?? "").Replace("\\", "\\\\").Replace("\n", "\\n").Replace("\"", "\\\"") + "\"");
+				}
 				targetWriter.Write("\r\n");
 			}
 		}
