@@ -243,7 +243,7 @@ namespace Fastore.Core.Demo2
         {
             if (record != null && record[0] != null) //Filter out junk data..
             {
-				var data = new object[record.Length];
+				var data = new object[6];
 				data[0] = Int32.Parse(record[0]);
                 data[1] = record[1] ?? "";
                 data[2] = record[2] ?? "";
@@ -251,7 +251,7 @@ namespace Fastore.Core.Demo2
                 data[4] = record[4] ?? "";
                 data[5] = record[5] ?? "";
 
-				_transaction.Include(_columns, data[0], record);
+				_transaction.Include(_columns, data[0], data);
 				//_database.Include(_columns, _ids, record);
             }
         }
