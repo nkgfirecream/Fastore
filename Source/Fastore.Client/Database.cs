@@ -25,11 +25,11 @@ namespace Alphora.Fastore.Client
 
 		private Object _mapLock = new Object();
 
-		// Connected services by host ID
-		private Dictionary<int, Service.Client> _services = new Dictionary<int, Service.Client>();
+		// Connection pool of services by host ID
+		private ConnectionPool<int, Service.Client> _services;
 
 		// Connected workers by pod ID
-		private Dictionary<int, Worker.Client> _workers = new Dictionary<int, Worker.Client>();
+		private ConnectionPool<int, Worker.Client> _workers;
 
 		// Worker states by pod ID
 		private Dictionary<int, Tuple<ServiceState, WorkerState>> _workerStates = new Dictionary<int, Tuple<ServiceState, WorkerState>>();
@@ -65,6 +65,22 @@ namespace Alphora.Fastore.Client
 
 		public Database(ServiceAddress[] addresses)
         {
+			_services =
+				new ConnectionPool<int, Service.Client>
+				(
+					(proto) => new Service.Client(proto),
+					new Func<int, NetworkAddress>(GetServiceAddress),
+					(client) => { client.InputProtocol.Transport.Close(); }
+				);
+
+			_workers =
+				new ConnectionPool<int, Worker.Client>
+				(
+					(proto) => new Worker.Client(proto),
+					new Func<int, NetworkAddress>(GetWorkerAddress),
+					(client) => { client.InputProtocol.Transport.Close(); }
+				);
+
 			// Convert from service addresses to network addresses
 			var networkAddresses = (from a in addresses select new NetworkAddress { Name = a.Name, Port = a.Port }).ToArray();
 
@@ -73,7 +89,7 @@ namespace Alphora.Fastore.Client
 
 			for (int i = 0; i < networkAddresses.Length; i++)
 			{
-				var service = ConnectToService(networkAddresses[i]);
+				var service = _services.Connect(networkAddresses[i]);
 				try
 				{
 					// Discover the state of the entire hive from the given service
@@ -83,7 +99,7 @@ namespace Alphora.Fastore.Client
 						// If no hive state is given, the service is not joined, we should proceed to discover the number 
 						//  of potential workers for the rest of the services ensuring that they are all not joined.
 						serviceWorkers[i] = hiveStateResult.PotentialWorkers;
-						DisposeService(service);
+						_services.Destroy(service);
 						continue;
 					}
 
@@ -101,8 +117,8 @@ namespace Alphora.Fastore.Client
 				catch
 				{
 					// If anything goes wrong, be sure to release the service client
-					_services.Clear();
-					DisposeService(service);
+					_services.Destroy(service);
+					_services.Dispose();
 					throw;
 				}
 			}
@@ -117,7 +133,7 @@ namespace Alphora.Fastore.Client
 			var newHive = new HiveState { TopologyID = newTopology.TopologyID, Services = new Dictionary<int, ServiceState>() };
 			for (var hostID = 0; hostID < networkAddresses.Length; hostID++)
 			{
-				var service = ConnectToService(networkAddresses[hostID]);
+				var service = _services.Connect(networkAddresses[hostID]);
 				try
 				{
 					var serviceState = service.init(newTopology, addressesByHost, hostID);
@@ -125,7 +141,7 @@ namespace Alphora.Fastore.Client
 				}
 				finally
 				{
-					DisposeService(service);
+					_services.Destroy(service);
 				}
 			}
 
@@ -192,114 +208,23 @@ namespace Alphora.Fastore.Client
 
 		public void Dispose()
 		{
-			var errors = new List<Exception>();
-			foreach (var service in _services.ToArray())
-			{
-				try
-				{
-					DisposeService(service.Value);
-				}
-				catch (Exception e)
-				{
-					errors.Add(e);
-				}
-				finally
-				{
-					_services.Remove(service.Key);
-				}
-			}
-			foreach (var worker in _workers.ToArray())
-			{
-				try
-				{
-					DisposeWorker(worker.Value);
-				}
-				catch (Exception e)
-				{
-					errors.Add(e);
-				}
-				finally
-				{
-					_workers.Remove(worker.Key);
-				}
-			}
-			UpdateHiveState(null);
-			if (errors.Count > 0)
-				throw new AggregateException(errors);
+			ClientException.ForceCleanup
+			(
+				() => { _services.Dispose(); },
+				() => { _workers.Dispose(); },
+				() => { UpdateHiveState(null); }
+			);
 		}
 
-		/// <summary> Ensures that there is a connection to the service for the given host ID and returns it. </summary>
-		/// <remarks> This method is thread-safe. </remarks>
-		private Service.Client EnsureService(int hostID)
-		{
-			Monitor.Enter(_mapLock);
-			bool taken = true;
-			try
-			{
-				Service.Client result;
-				if (!_services.TryGetValue(hostID, out result))
-				{
-					ServiceState serviceState;
-					if (!_hiveState.Services.TryGetValue(hostID, out serviceState))
-						throw new ClientException(String.Format("No service is currently associated with host ID ({0}).", hostID));
-
-					// Release the lock during connection
-					Monitor.Exit(_mapLock);
-					taken = false;
-
-					result = ConnectToService(serviceState.Address);
-				}
-				else
-					_services.Remove(hostID);
-
-				return result;
-			}
-			finally
-			{
-				if (taken)
-					Monitor.Exit(_mapLock);
-			}
-		}
-
-		/// <summary> Releases the given service client back into the pool. </summary>
-		private void ReleaseService(KeyValuePair<int, Service.Client> service)
+		private NetworkAddress GetServiceAddress(int hostID)
 		{
 			lock (_mapLock)
 			{
-				Service.Client oldService;
-				if (_services.TryGetValue(service.Key, out oldService))
-				{
-					DisposeService(oldService);
-					_services[service.Key] = service.Value;
-				}
-				else
-					_services.Add(service.Key, service.Value);
-			}
-		}
+				ServiceState serviceState;
+				if (!_hiveState.Services.TryGetValue(hostID, out serviceState))
+					throw new ClientException(String.Format("No service is currently associated with host ID ({0}).", hostID));
 
-		private void DisposeService(Service.Client client)
-		{
-			client.InputProtocol.Transport.Close();
-		}
-
-		/// <summary> Makes a connection to a service given connection information. </summary>
-		/// <param name="hostID"> The host ID of the service if it is known; if not given the service is asked. </param>
-		/// <returns></returns>
-		private Service.Client ConnectToService(NetworkAddress address)
-		{
-			var transport = new Thrift.Transport.TSocket(address.Name, address.Port);
-			transport.Open();
-			try
-			{
-				var bufferedTransport = new Thrift.Transport.TBufferedTransport(transport);
-				var protocol = new Thrift.Protocol.TBinaryProtocol(bufferedTransport);
-
-				return new Service.Client(protocol);
-			}
-			catch
-			{
-				transport.Close();
-				throw;
+				return serviceState.Address;
 			}
 		}
 
@@ -318,11 +243,11 @@ namespace Alphora.Fastore.Client
                     (
                         () =>
                         {
-                            var serviceClient = EnsureService(service.Key);
+                            var serviceClient = _services[service.Key];
                             var state = serviceClient.getState();
 							if (!state.__isset.serviceState)
 								throw new ClientException(String.Format("Host ({0}) is unexpectedly not part of the topology.", service.Key)); 
-                            DisposeService(serviceClient);
+                            _services.Release(new KeyValuePair<int,Service.Client>(service.Key, serviceClient));
                             return new KeyValuePair<int, ServiceState>(service.Key, state.ServiceState);
                         }
                     )
@@ -377,85 +302,19 @@ namespace Alphora.Fastore.Client
 			}
 		}
 
-		/// <summary> Returns the worker for the given pod ID. </summary>
-		/// <remarks> This method is thread-safe. </remarks>
-		private Worker.Client EnsureWorker(int podID)
+		private NetworkAddress GetWorkerAddress(int podID)
 		{
-			Monitor.Enter(_mapLock);
-			bool taken = true;
-			try
+			lock (_mapLock)
 			{
-				Worker.Client result;
-				// Check for existing known worker
-				if (!_workers.TryGetValue(podID, out result))
-				{
-					// Attempt to find a worker for the given pod
-					Tuple<ServiceState, WorkerState> workerState;
-					if (!_workerStates.TryGetValue(podID, out workerState))
-						throw new ClientException(String.Format("No Worker is currently associated with pod ID ({0}).", podID), ClientException.Codes.NoWorkerForColumn);
+				// Attempt to find a worker for the given pod
+				Tuple<ServiceState, WorkerState> workerState;
+				if (!_workerStates.TryGetValue(podID, out workerState))
+					throw new ClientException(String.Format("No Worker is currently associated with pod ID ({0}).", podID), ClientException.Codes.NoWorkerForColumn);
 
-					// Release the lock during connection
-					Monitor.Exit(_mapLock);
-					taken = false;
-
-					result = ConnectToWorker(new NetworkAddress { Name = workerState.Item1.Address.Name, Port = workerState.Item2.Port }, podID);
-				}
-				else
-					_workers.Remove(podID);
-
-				return result;
-			}
-			finally
-			{
-				if (taken)
-					Monitor.Exit(_mapLock);
+				return new NetworkAddress { Name = workerState.Item1.Address.Name, Port = workerState.Item2.Port };
 			}
 		}
 
-		/// <summary> Releases the given worker client back into the pool. </summary>
-		private void ReleaseWorker(KeyValuePair<int, Worker.Client> worker)
-		{
-			DisposeWorker(worker.Value);
-			// TODO: enable connection pooling when server allows connections to be left open
-			//lock (_mapLock)
-			//{
-			//	Worker.Client oldWorker;
-			//	if (_workers.TryGetValue(worker.Key, out oldWorker))
-			//	{
-			//		// TODO: bucketed connections
-			//		DisposeWorker(oldWorker);
-			//		_workers[worker.Key] = worker.Value;
-			//	}
-			//	else
-			//		_workers.Add(worker.Key, worker.Value);
-			//}
-		}
-
-		/// <summary> Disposes the given worker client. </summary>
-		private void DisposeWorker(Worker.Client client)
-		{
-			client.InputProtocol.Transport.Close();
-		}
-
-		/// <summary> Connects to a given pod ID. </summary>
-		/// <remarks> This method is thread-safe. </remarks>
-		private Worker.Client ConnectToWorker(NetworkAddress address, int podID)
-		{
-			var transport = new Thrift.Transport.TSocket(address.Name, address.Port);
-			transport.Open();
-			try
-			{
-                var bufferedTransport = new Thrift.Transport.TBufferedTransport(transport);
-				var protocol = new Thrift.Protocol.TBinaryProtocol(bufferedTransport);
-
-				return new Worker.Client(protocol);
-			}
-			catch
-			{
-				transport.Close();
-				throw;
-			}
-		}
 
 		/// <summary> Get the next worker to use for the given column ID. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
@@ -490,7 +349,7 @@ namespace Alphora.Fastore.Client
 				Monitor.Exit(_mapLock);
 				taken = false;
 
-				return new KeyValuePair<int, Worker.Client>(podId, EnsureWorker(podId));
+				return new KeyValuePair<int, Worker.Client>(podId, _workers[podId]);
 			}
 			finally
 			{
@@ -502,12 +361,13 @@ namespace Alphora.Fastore.Client
 		private KeyValuePair<int, Worker.Client> GetWorkerForSystemColumn()
 		{
 			// For a system column, any worker will do, so just use an already connected worker
+			int podID;
 			lock (_mapLock)
 			{
-                var hostID = _workerStates.Keys.ElementAt(_nextSystemWorker);
-                _nextSystemWorker = (_nextSystemWorker + 1) % _workerStates.Count;
-				return new KeyValuePair<int,Worker.Client>(hostID, EnsureWorker(hostID));				
+				podID = _workerStates.Keys.ElementAt(_nextSystemWorker);
+				_nextSystemWorker = (_nextSystemWorker + 1) % _workerStates.Count;
 			}
+			return new KeyValuePair<int, Worker.Client>(podID, _workers[podID]);
 		}
 
 		struct WorkerInfo
@@ -603,7 +463,7 @@ namespace Alphora.Fastore.Client
 				}
 				finally
 				{
-					ReleaseWorker(worker);
+					_workers.Release(worker);
 				}
 			}
 		}
@@ -822,28 +682,29 @@ namespace Alphora.Fastore.Client
 
         internal void Apply(Dictionary<int, ColumnWrites> writes)
         {
-            while (true)
-			{
-                var transactionID = new TransactionID() { Key = 0, Revision = 0 };
-
-				var workers = GetWorkers(writes);
-
-				var tasks = StartWorkerWrites(writes, transactionID, workers);
-
-				var failedWorkers = new Dictionary<int, Thrift.Protocol.TBase>();
-				var workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
-
-				if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
+			if (writes.Count > 0)
+				while (true)
 				{
-					// If we've inserted/deleted system table(s), force a schema refresh
-                    if (writes.Keys.Min() < 10000)
-                    {
-                        RefreshSchema();
-                        RefreshHiveState();
-                    }
-					break;
+					var transactionID = new TransactionID() { Key = 0, Revision = 0 };
+
+					var workers = GetWorkers(writes);
+
+					var tasks = StartWorkerWrites(writes, transactionID, workers);
+
+					var failedWorkers = new Dictionary<int, Thrift.Protocol.TBase>();
+					var workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
+
+					if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
+					{
+						// If we've inserted/deleted system table(s), force a schema refresh
+						if (writes.Keys.Min() < 10000)
+						{
+							RefreshSchema();
+							RefreshHiveState();
+						}
+						break;
+					}
 				}
-			}
         }
 
         public void Include(int[] columnIds, object rowId, object[] row)
@@ -923,14 +784,14 @@ namespace Alphora.Fastore.Client
 		/// <summary> Invokes a given command against a worker. </summary>
 		private void WorkerInvoke(int podID, Action<Worker.Client> work)
 		{
-			var client = EnsureWorker(podID);
+			var client = _workers[podID];
 			try
 			{
 				work(client);
 			}
 			finally
 			{
-				ReleaseWorker(new KeyValuePair<int, Worker.Client>(podID, client));
+				_workers.Release(new KeyValuePair<int, Worker.Client>(podID, client));
 			}
 		}
 
@@ -1106,5 +967,55 @@ namespace Alphora.Fastore.Client
             //Boot strapping is done, pull in real schema
             RefreshSchema();
         }
+
+		public Dictionary<int, TimeSpan> Ping()
+		{
+			// Setup the set of hosts
+			int[] hostIDs;
+			lock (_mapLock)
+			{
+				hostIDs = _hiveState.Services.Keys.ToArray();
+			}
+
+			// Start a ping request to each
+			var tasks =
+				from id in hostIDs
+				select Task.Factory.StartNew<KeyValuePair<int, TimeSpan>>
+				(
+					() =>
+					{
+						var service = _services[id];
+						try
+						{
+							var timer = new Stopwatch();
+							timer.Start();
+							service.ping();
+							timer.Stop();
+							return new KeyValuePair<int, TimeSpan>(id, timer.Elapsed);
+						}
+						finally
+						{
+							_services.Release(new KeyValuePair<int, Service.Client>(id, service));
+						}
+					}
+				);
+			
+			// Gather ping results
+			var result = new Dictionary<int, TimeSpan>(hostIDs.Length);
+			foreach (var task in tasks)
+			{
+				try
+				{
+					var item = task.Result;
+					result.Add(item.Key, item.Value);
+				}
+				catch
+				{
+					// TODO: report errors
+				}
+			}
+
+			return result;
+		}
 	}
 }

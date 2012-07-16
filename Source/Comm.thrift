@@ -115,6 +115,8 @@ exception NotJoined
 
 service Service
 {
+	void ping(),
+
 	/** Initialize a new hive including this service */
 	ServiceState init(1:Topology topology, 2:HostAddresses addresses, 3:HostID hostID)
 		throws (1:AlreadyJoined alreadyJoined),

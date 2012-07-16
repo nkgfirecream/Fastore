@@ -50,6 +50,7 @@
     <Compile Include="ClientException.cs" />
     <Compile Include="ColumnDictionary.cs" />
     <Compile Include="ColumnDef.cs" />
+    <Compile Include="ConnectionPool.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="DataSet.cs" />
     <Compile Include="Client.cs" />

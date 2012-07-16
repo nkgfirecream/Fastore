@@ -19,6 +19,11 @@ namespace Alphora.Fastore
 {
   public partial class Service {
     public interface Iface {
+      void ping();
+      #if SILVERLIGHT
+      IAsyncResult Begin_ping(AsyncCallback callback, object state, );
+      void End_ping(IAsyncResult asyncResult);
+      #endif
       /// <summary>
       /// Initialize a new hive including this service
       /// </summary>
@@ -131,6 +136,64 @@ namespace Alphora.Fastore
         get { return oprot_; }
       }
 
+
+      
+      #if SILVERLIGHT
+      public IAsyncResult Begin_ping(AsyncCallback callback, object state, )
+      {
+        return send_ping(callback, state);
+      }
+
+      public void End_ping(IAsyncResult asyncResult)
+      {
+        oprot_.Transport.EndFlush(asyncResult);
+        recv_ping();
+      }
+
+      #endif
+
+      public void ping()
+      {
+        #if !SILVERLIGHT
+        send_ping();
+        recv_ping();
+
+        #else
+        var asyncResult = Begin_ping(null, null, );
+        End_ping(asyncResult);
+
+        #endif
+      }
+      #if SILVERLIGHT
+      public IAsyncResult send_ping(AsyncCallback callback, object state, )
+      #else
+      public void send_ping()
+      #endif
+      {
+        oprot_.WriteMessageBegin(new TMessage("ping", TMessageType.Call, seqid_));
+        ping_args args = new ping_args();
+        args.Write(oprot_);
+        oprot_.WriteMessageEnd();
+        #if SILVERLIGHT
+        return oprot_.Transport.BeginFlush(callback, state);
+        #else
+        oprot_.Transport.Flush();
+        #endif
+      }
+
+      public void recv_ping()
+      {
+        TMessage msg = iprot_.ReadMessageBegin();
+        if (msg.Type == TMessageType.Exception) {
+          TApplicationException x = TApplicationException.Read(iprot_);
+          iprot_.ReadMessageEnd();
+          throw x;
+        }
+        ping_result result = new ping_result();
+        result.Read(iprot_);
+        iprot_.ReadMessageEnd();
+        return;
+      }
 
       
       #if SILVERLIGHT
@@ -765,6 +828,7 @@ namespace Alphora.Fastore
       public Processor(Iface iface)
       {
         iface_ = iface;
+        processMap_["ping"] = ping_Process;
         processMap_["init"] = init_Process;
         processMap_["join"] = join_Process;
         processMap_["leave"] = leave_Process;
@@ -804,6 +868,19 @@ namespace Alphora.Fastore
           return false;
         }
         return true;
+      }
+
+      public void ping_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      {
+        ping_args args = new ping_args();
+        args.Read(iprot);
+        iprot.ReadMessageEnd();
+        ping_result result = new ping_result();
+        iface_.ping();
+        oprot.WriteMessageBegin(new TMessage("ping", TMessageType.Reply, seqid)); 
+        result.Write(oprot);
+        oprot.WriteMessageEnd();
+        oprot.Transport.Flush();
       }
 
       public void init_Process(int seqid, TProtocol iprot, TProtocol oprot)
@@ -959,6 +1036,99 @@ namespace Alphora.Fastore
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class ping_args : TBase
+    {
+
+      public ping_args() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("ping_args");
+        oprot.WriteStructBegin(struc);
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("ping_args(");
+        sb.Append(")");
+        return sb.ToString();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class ping_result : TBase
+    {
+
+      public ping_result() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("ping_result");
+        oprot.WriteStructBegin(struc);
+
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("ping_result(");
+        sb.Append(")");
+        return sb.ToString();
       }
 
     }

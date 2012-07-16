@@ -168,6 +168,11 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
 	}
 }
 
+void ServiceHandler::ping()
+{
+	// Do nothing
+}
+
 void ServiceHandler::init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) 
 {
 	CheckNotInHive();

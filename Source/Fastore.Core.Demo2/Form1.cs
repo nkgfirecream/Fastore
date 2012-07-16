@@ -136,7 +136,7 @@ namespace Fastore.Core.Demo2
 
 				string[] record = new string[8];
 
-				while (!Canceled && !fileStream.EndOfStream)
+				while (!Canceled && !fileStream.EndOfStream && count < 95000000)
 				{
 					var line = fileStream.ReadLine();
 					if (String.IsNullOrWhiteSpace(line))
@@ -159,6 +159,7 @@ namespace Fastore.Core.Demo2
 								(t) =>
 								{
 									((Transaction)t).Commit();
+									//((Transaction)t).Ping();
 								},
 								_transaction
 							);

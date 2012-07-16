@@ -26,6 +26,7 @@ private:
 public:
 	ServiceHandler(const fastore::server::ServiceStartup& startup);
 
+	void ping();
 	void init(fastore::communication::ServiceState& _return, const fastore::communication::Topology& topology, const fastore::communication::HostAddresses& addresses, const fastore::communication::HostID hostID);
 	void join(fastore::communication::ServiceState& _return, const fastore::communication::HiveState& hiveState, const fastore::communication::NetworkAddress& address, const fastore::communication::HostID hostID);
 	void leave();

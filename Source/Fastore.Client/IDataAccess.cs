@@ -14,5 +14,7 @@ namespace Alphora.Fastore.Client
         void Exclude(int[] columnIds, object rowId);
 
 		Statistic[] GetStatistics(int[] columnIds);
+
+		Dictionary<int, TimeSpan> Ping();
     }
 }

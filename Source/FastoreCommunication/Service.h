@@ -15,6 +15,7 @@ namespace fastore { namespace communication {
 class ServiceIf {
  public:
   virtual ~ServiceIf() {}
+  virtual void ping() = 0;
   virtual void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) = 0;
   virtual void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) = 0;
   virtual void leave() = 0;
@@ -53,6 +54,9 @@ class ServiceIfSingletonFactory : virtual public ServiceIfFactory {
 class ServiceNull : virtual public ServiceIf {
  public:
   virtual ~ServiceNull() {}
+  void ping() {
+    return;
+  }
   void init(ServiceState& /* _return */, const Topology& /* topology */, const HostAddresses& /* addresses */, const HostID /* hostID */) {
     return;
   }
@@ -81,6 +85,80 @@ class ServiceNull : virtual public ServiceIf {
   void releaseLock(const LockID /* lockID */) {
     return;
   }
+};
+
+
+class Service_ping_args {
+ public:
+
+  Service_ping_args() {
+  }
+
+  virtual ~Service_ping_args() throw() {}
+
+
+  bool operator == (const Service_ping_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Service_ping_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Service_ping_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_ping_pargs {
+ public:
+
+
+  virtual ~Service_ping_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_ping_result {
+ public:
+
+  Service_ping_result() {
+  }
+
+  virtual ~Service_ping_result() throw() {}
+
+
+  bool operator == (const Service_ping_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Service_ping_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Service_ping_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_ping_presult {
+ public:
+
+
+  virtual ~Service_ping_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
 };
 
 typedef struct _Service_init_args__isset {
@@ -1190,6 +1268,9 @@ class ServiceClient : virtual public ServiceIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void ping();
+  void send_ping();
+  void recv_ping();
   void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID);
   void send_init(const Topology& topology, const HostAddresses& addresses, const HostID hostID);
   void recv_init(ServiceState& _return);
@@ -1232,6 +1313,7 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef  void (ServiceProcessor::*ProcessFunction)(int32_t, apache::thrift::protocol::TProtocol*, apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
+  void process_ping(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_init(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_join(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_leave(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -1244,6 +1326,7 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
  public:
   ServiceProcessor(boost::shared_ptr<ServiceIf> iface) :
     iface_(iface) {
+    processMap_["ping"] = &ServiceProcessor::process_ping;
     processMap_["init"] = &ServiceProcessor::process_init;
     processMap_["join"] = &ServiceProcessor::process_join;
     processMap_["leave"] = &ServiceProcessor::process_leave;
@@ -1281,6 +1364,15 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_.push_back(iface);
   }
  public:
+  void ping() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->ping();
+    }
+    ifaces_[i]->ping();
+  }
+
   void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) {
     size_t sz = ifaces_.size();
     size_t i = 0;

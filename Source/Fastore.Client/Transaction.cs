@@ -212,5 +212,10 @@ namespace Alphora.Fastore.Client
 			public Dictionary<object, object> Includes = new Dictionary<object, object>();
 			public HashSet<object> Excludes = new HashSet<object>();
 		}
+
+		public Dictionary<int, TimeSpan> Ping()
+		{
+			return Database.Ping();
+		}
 	}
 }

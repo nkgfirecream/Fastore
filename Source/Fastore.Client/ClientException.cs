@@ -25,5 +25,31 @@ namespace Alphora.Fastore.Client
 
 			// TODO: fill out rest of codes and update throw sites
 		}
+
+		public static void ThrowErrors(List<Exception> errors)
+		{
+			if (errors.Count > 0)
+			{
+				if (errors.Count == 1)
+					throw errors[0];
+				else
+					throw new AggregateException(errors);
+			}
+		}
+
+		public static void ForceCleanup(params Action[] actions)
+		{
+			var errors = new List<Exception>();
+			foreach (var action in actions)
+				try
+				{
+					action();
+				}
+				catch (Exception e)
+				{
+					errors.Add(e);
+				}
+			ThrowErrors(errors);
+		}
 	}
 }
