@@ -343,7 +343,8 @@ class Node
 					_count = _count - node->_count;
 
 					memcpy(&node->_keys[0], &_keys[node->_count * _tree->_keyType.Size],  node->_count * _tree->_keyType.Size);
-					memcpy(&node->_values[0], &_values[node->_count *_valueType.Size], node->_count * _valueType.Size);
+					if (_values != NULL)
+						memcpy(&node->_values[0], &_values[node->_count *_valueType.Size], node->_count * _valueType.Size);
 				}
 
 				if (index < _count)
