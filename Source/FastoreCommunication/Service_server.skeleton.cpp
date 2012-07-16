@@ -22,6 +22,11 @@ class ServiceHandler : virtual public ServiceIf {
     // Your initialization goes here
   }
 
+  void ping() {
+    // Your implementation goes here
+    printf("ping\n");
+  }
+
   void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) {
     // Your implementation goes here
     printf("init\n");

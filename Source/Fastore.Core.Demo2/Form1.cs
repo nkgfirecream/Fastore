@@ -148,7 +148,7 @@ namespace Fastore.Core.Demo2
 
 					InsertRecord(record);
 
-					if (count % 1000 == 0)
+					if (count % 5000 == 0)
 					{
 
 						//Wait until task is done.
@@ -167,9 +167,9 @@ namespace Fastore.Core.Demo2
 						_transaction = _database.Begin(true, true);
 						Application.DoEvents();
 					}
-					if (count % 1000 == 0)
+					if (count % 5000 == 0)
 					{
-						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 1000)));
+						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 5000)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
 				}
