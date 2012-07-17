@@ -46,14 +46,14 @@
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
     <IncludePath>$(WindowsSdkDir)include\shared;$(WindowsSdkDir)include\um;$(VCInstallDir)include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
-    <LibraryPath>$(SolutionDir)..\External\boost_1_49_0\lib64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
+    <LibraryPath>$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
     <IncludePath>$(WindowsSdkDir)include\shared;$(WindowsSdkDir)include\um;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
-    <LibraryPath>$(SolutionDir)..\External\boost_1_49_0\lib64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
+    <LibraryPath>$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -64,7 +64,7 @@
       <PreprocessorDefinitions>WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\libevent-2.0.19-stable;$(SolutionDir)..\External\libevent-2.0.19-stable\include;$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,6 +76,14 @@
       </Command>
     </CustomBuildStep>
     <CustomBuildStep />
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -87,7 +95,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\libevent-2.0.19-stable;$(SolutionDir)..\External\libevent-2.0.19-stable\include;$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
@@ -112,8 +120,7 @@
     <ClCompile Include="Schema\StringTypes.cpp" />
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
-    <ClCompile Include="TMultiConnectionServer.cpp" />
-    <ClCompile Include=".\TParkableTransport.cpp" />
+    <ClCompile Include="TFastoreServer.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
     <ClCompile Include="WorkerHandler.cpp" />
@@ -124,11 +131,9 @@
     <ClInclude Include="Column\IdentityBuffer.h" />
     <ClInclude Include="Column\TreeBuffer.h" />
     <ClInclude Include="Column\UniqueBuffer.h" />
-    <ClInclude Include=".\ConnectionContext.h" />
     <ClInclude Include="Endpoint.h" />
     <ClInclude Include="EndpointConfig.h" />
     <ClInclude Include="Logging\Log.h" />
-    <ClInclude Include=".\TMultiConnectionServer.h" />
     <ClInclude Include=".\BTree.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="Repository.h" />
@@ -146,7 +151,7 @@
     <ClInclude Include="Storage\Schema\standardtypes.h" />
     <ClInclude Include="Storage\Schema\tuple.h" />
     <ClInclude Include="Storage\Schema\scalar.h" />
-    <ClInclude Include=".\TParkableTransport.h" />
+    <ClInclude Include="TFastoreServer.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
     <ClInclude Include="treeentry.h" />

@@ -4,7 +4,6 @@
 #include <thrift/TProcessor.h>
 #include <hash_map>
 #include "Repository.h"
-#include "ConnectionContext.h"
 
 class WorkerHandler : virtual public fastore::communication::WorkerIf , virtual public apache::thrift::TProcessorEventHandler
 {
@@ -22,8 +21,6 @@ private:
 	ColumnDef GetDefFromSchema(ColumnID id);
 
 	ScalarType GetTypeFromName(std::string typeName);
-
-	boost::shared_ptr<TMultiConnectionContext> _currentContext;
 	
 public:
 	WorkerHandler(const PodID podId, const string path);

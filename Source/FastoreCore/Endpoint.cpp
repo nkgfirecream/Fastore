@@ -1,8 +1,7 @@
 #include "Endpoint.h"
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TServerSocket.h>
-#include "TParkableTransport.h"
-#include "TMultiConnectionServer.h"
+#include "TFastoreServer.h"
 
 using namespace std;
 using namespace apache::thrift;
@@ -24,11 +23,8 @@ public:
 	impl(const EndpointConfig& config, const boost::shared_ptr<TProcessor> processor)	
 	{
 		_processor = processor;
-		_serverTransport = boost::shared_ptr<TServerTransport>(new TServerSocket(config.port));
-		_transportFactory = boost::shared_ptr<TTransportFactory>(new TParkableTransportFactory());
 		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
-
-		_server = boost::shared_ptr<TMultiConnectionServer>(new TMultiConnectionServer(_processor, _serverTransport, _transportFactory, _protocolFactory));
+		_server = boost::shared_ptr<TFastoreServer>(new TFastoreServer(_processor, _protocolFactory, config.port));
 	}
 
 	~impl()

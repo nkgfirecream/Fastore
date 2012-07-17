@@ -9,7 +9,7 @@ namespace Alphora.Fastore.Client
 {
 	public class ConnectionPool<TKey, TClient> : IDisposable
 	{
-		public const int MaxConnectionRetries = 2;
+		public const int MaxConnectionRetries = 3;
 
 		private Object _lock = new Object();
 		private Dictionary<TKey, TClient> _connections = new Dictionary<TKey, TClient>();
@@ -92,18 +92,18 @@ namespace Alphora.Fastore.Client
 
 		public void Release(KeyValuePair<TKey, TClient> connection)
 		{
-			Destroy(connection.Value);
-			//lock (_lock)
-			//{
-			//	TClient oldClient;
-			//	if (_connections.TryGetValue(connection.Key, out oldClient))
-			//	{
-			//		Destroy(oldClient);
-			//		_connections[connection.Key] = connection.Value;
-			//	}
-			//	else
-			//		_connections.Add(connection.Key, connection.Value);
-			//}
+			//Destroy(connection.Value);
+            lock (_lock)
+            {
+                TClient oldClient;
+                if (_connections.TryGetValue(connection.Key, out oldClient))
+                {
+                    Destroy(oldClient);
+                    _connections[connection.Key] = connection.Value;
+                }
+                else
+                    _connections.Add(connection.Key, connection.Value);
+            }
 		}
 
 		public void Destroy(TClient connection)
@@ -133,7 +133,7 @@ namespace Alphora.Fastore.Client
 
 			try
 			{
-				var bufferedTransport = new Thrift.Transport.TBufferedTransport(transport);
+				var bufferedTransport = new Thrift.Transport.TFramedTransport(transport);
 				var protocol = new Thrift.Protocol.TBinaryProtocol(bufferedTransport);
 
 				return _createConnection(protocol);

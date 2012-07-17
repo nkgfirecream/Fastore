@@ -70,7 +70,7 @@ void WorkerHandler::Bootstrap()
 	unique.Name = "Column.BufferType";
 	unique.ValueType = standardtypes::Int;
 	unique.RowIDType = standardtypes::Int;
-	unique.BufferType == BufferType::Multi;
+	unique.BufferType = BufferType::Multi;
 	CreateRepo(unique);	
 
 	ColumnDef topo;
@@ -479,7 +479,5 @@ void WorkerHandler::handlerError(void* ctx, const char* fn_name)
 
 void* WorkerHandler::getContext(const char* fn_name, void* serverContext)
 {
-	_currentContext = *(boost::shared_ptr<TMultiConnectionContext>*)serverContext;
-
-	return serverContext;
+	return NULL;
 }

@@ -300,7 +300,7 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 		for (auto iter = workers.begin(); iter != workers.end(); ++iter)
 		{
 			boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
-			boost::shared_ptr<TTransport> transport(new TBufferedTransport(socket));
+			boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 			boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 
 			WorkerClient client(protocol);
