@@ -91,9 +91,8 @@ enum TAppState {
  */
 class TFastoreServer::TConnection {
  private:
-  /// Server IO Thread handling this connection
-  TNonblockingIOThread* ioThread_;
-
+  TThreadSurrogate* ioThread_;
+ 
   /// Server handle
   TFastoreServer* server_;
 
@@ -205,10 +204,8 @@ class TFastoreServer::TConnection {
 
  public:
 
-  class Task;
-
   /// Constructor
-  TConnection(int socket, TNonblockingIOThread* ioThread,
+  TConnection(int socket, TThreadSurrogate* ioThread,
               const sockaddr* addr, socklen_t addrLen) {
     readBuffer_ = NULL;
     readBufferSize_ = 0;
@@ -238,7 +235,7 @@ class TFastoreServer::TConnection {
   void checkIdleBufferMemLimit(size_t readLimit, size_t writeLimit);
 
   /// Initialize
-  void init(int socket, TNonblockingIOThread* ioThread,
+  void init(int socket, TThreadSurrogate* ioThread,
             const sockaddr* addr, socklen_t addrLen);
 
   /**
@@ -272,14 +269,6 @@ class TFastoreServer::TConnection {
    */
   bool notifyIOThread() {
     return ioThread_->notify(this);
-  }
-
-  /*
-   * Returns the number of this connection's currently assigned IO
-   * thread.
-   */
-  int getIOThreadNumber() const {
-    return ioThread_->getThreadNumber();
   }
 
   /// Force connection shutdown for this connection.
@@ -317,64 +306,8 @@ class TFastoreServer::TConnection {
 
 };
 
-class TFastoreServer::TConnection::Task: public Runnable {
- public:
-  Task(boost::shared_ptr<TProcessor> processor,
-       boost::shared_ptr<TProtocol> input,
-       boost::shared_ptr<TProtocol> output,
-       TConnection* connection) :
-    processor_(processor),
-    input_(input),
-    output_(output),
-    connection_(connection),
-    serverEventHandler_(connection_->getServerEventHandler()),
-    connectionContext_(connection_->getConnectionContext()) {}
-
-  void run() {
-    try {
-      for (;;) {
-        if (serverEventHandler_ != NULL) {
-          serverEventHandler_->processContext(connectionContext_, connection_->getTSocket());
-        }
-        if (!processor_->process(input_, output_, connectionContext_) ||
-            !input_->getTransport()->peek()) {
-          break;
-        }
-      }
-    } catch (const TTransportException& ttx) {
-      GlobalOutput.printf("TFastoreServer: client died: %s", ttx.what());
-    } catch (const bad_alloc&) {
-      GlobalOutput("TFastoreServer: caught bad_alloc exception.");
-      exit(-1);
-    } catch (const std::exception& x) {
-      GlobalOutput.printf("TFastoreServer: process() exception: %s: %s",
-                          typeid(x).name(), x.what());
-    } catch (...) {
-      GlobalOutput.printf(
-        "TFastoreServer: unknown exception while processing.");
-    }
-
-    // Signal completion back to the libevent thread via a pipe
-    if (!connection_->notifyIOThread()) {
-      throw TException("TFastoreServer::Task::run: failed write on notify pipe");
-    }
-  }
-
-  TConnection* getTConnection() {
-    return connection_;
-  }
-
- private:
-  boost::shared_ptr<TProcessor> processor_;
-  boost::shared_ptr<TProtocol> input_;
-  boost::shared_ptr<TProtocol> output_;
-  TConnection* connection_;
-  boost::shared_ptr<TServerEventHandler> serverEventHandler_;
-  void* connectionContext_;
-};
-
 void TFastoreServer::TConnection::init(int socket,
-                                           TNonblockingIOThread* ioThread,
+                                           TThreadSurrogate* ioThread,
                                            const sockaddr* addr,
                                            socklen_t addrLen) {
   tSocket_->setSocketFD(socket);
@@ -572,33 +505,6 @@ void TFastoreServer::TConnection::transition() {
     outputTransport_->wroteBytes(4);
 
     server_->incrementActiveProcessors();
-
-    if (server_->isThreadPoolProcessing()) {
-      // We are setting up a Task to do this work and we will wait on it
-
-      // Create task and dispatch to the thread manager
-      boost::shared_ptr<Runnable> task =
-        boost::shared_ptr<Runnable>(new Task(processor_,
-                                             inputProtocol_,
-                                             outputProtocol_,
-                                             this));
-      // The application is now waiting on the task to finish
-      appState_ = APP_WAIT_TASK;
-
-        try {
-          server_->addTask(task);
-        } catch (IllegalStateException & ise) {
-          // The ThreadManager is not ready to handle any more tasks (it's probably shutting down).
-          GlobalOutput.printf("IllegalStateException: Server::process() %s", ise.what());
-          close();
-        }
-
-      // Set this connection idle so that libevent doesn't process more
-      // data on it while we're still waiting for the threadmanager to
-      // finish this task
-      setIdle();
-      return;
-    } else {
       try {
         // Invoke the processor
         processor_->process(inputProtocol_, outputProtocol_,
@@ -621,7 +527,6 @@ void TFastoreServer::TConnection::transition() {
         close();
         return;
       }
-    }
 
     // Intentionally fall through here, the call to process has written into
     // the writeBuffer_
@@ -862,25 +767,16 @@ TFastoreServer::~TFastoreServer() {
  */
 TFastoreServer::TConnection* TFastoreServer::createConnection(
     int socket, const sockaddr* addr, socklen_t addrLen) {
-  // Check the stack
-  Guard g(connMutex_);
-
-  // pick an IO thread to handle this connection -- currently round robin
-  assert(nextIOThread_ < ioThreads_.size());
-  int selectedThreadIdx = nextIOThread_;
-  nextIOThread_ = (nextIOThread_ + 1) % ioThreads_.size();
-
-  TNonblockingIOThread* ioThread = ioThreads_[selectedThreadIdx].get();
 
   // Check the connection stack to see if we can re-use
   TConnection* result = NULL;
   if (connectionStack_.empty()) {
-    result = new TConnection(socket, ioThread, addr, addrLen);
+    result = new TConnection(socket, _thread, addr, addrLen);
     ++numTConnections_;
   } else {
     result = connectionStack_.top();
     connectionStack_.pop();
-    result->init(socket, ioThread, addr, addrLen);
+    result->init(socket, _thread, addr, addrLen);
   }
   return result;
 }
@@ -889,8 +785,6 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(
  * Returns a connection to the stack
  */
 void TFastoreServer::returnConnection(TConnection* connection) {
-  Guard g(connMutex_);
-
   if (connectionStackLimit_ &&
       (connectionStack_.size() >= connectionStackLimit_)) {
     delete connection;
@@ -925,19 +819,11 @@ void TFastoreServer::handleEvent(int fd, short which) {
   while ((clientSocket = ::accept(fd, addrp, &addrLen)) != -1) {
     // If we're overloaded, take action here
     if (overloadAction_ != T_OVERLOAD_NO_ACTION && serverOverloaded()) {
-      Guard g(connMutex_);
       nConnectionsDropped_++;
       nTotalConnectionsDropped_++;
-      if (overloadAction_ == T_OVERLOAD_CLOSE_ON_ACCEPT) {
+
         ::close(clientSocket);
         return;
-      } else if (overloadAction_ == T_OVERLOAD_DRAIN_TASK_QUEUE) {
-        if (!drainPendingTask()) {
-          // Nothing left to discard, so we drop connection instead.
-          ::close(clientSocket);
-          return;
-        }
-      }
     }
 
     // Explicitly set this socket to NONBLOCK mode
@@ -972,11 +858,8 @@ void TFastoreServer::handleEvent(int fd, short which) {
      * events, so unless the connection has been assigned to thread #0
      * we know it's not on our thread.
      */
-    if (clientConnection->getIOThreadNumber() == 0) {
-      clientConnection->transition();
-    } else {
-      clientConnection->notifyIOThread();
-    }
+    clientConnection->transition();
+ 
 
     // addrLen is written by the accept() call, so needs to be set before the next call.
     addrLen = sizeof(addrStorage);
@@ -1100,16 +983,6 @@ void TFastoreServer::listenSocket(int s) {
   serverSocket_ = s;
 }
 
-void TFastoreServer::setThreadManager(boost::shared_ptr<ThreadManager> threadManager) {
-  threadManager_ = threadManager;
-  if (threadManager != NULL) {
-    threadManager->setExpireCallback(std::tr1::bind(&TFastoreServer::expireClose, this, std::tr1::placeholders::_1));
-    threadPoolProcessing_ = true;
-  } else {
-    threadPoolProcessing_ = false;
-  }
-}
-
 bool  TFastoreServer::serverOverloaded() {
   size_t activeConnections = numTConnections_ - connectionStack_.size();
   if (numActiveProcessors_ > maxActiveProcessors_ ||
@@ -1133,34 +1006,12 @@ bool  TFastoreServer::serverOverloaded() {
   return overloaded_;
 }
 
-bool TFastoreServer::drainPendingTask() {
-  if (threadManager_) {
-    boost::shared_ptr<Runnable> task = threadManager_->removeNextPending();
-    if (task) {
-      TConnection* connection =
-        static_cast<TConnection::Task*>(task.get())->getTConnection();
-      assert(connection && connection->getServer()
-             && connection->getState() == APP_WAIT_TASK);
-      connection->forceClose();
-      return true;
-    }
-  }
-  return false;
-}
-
-void TFastoreServer::expireClose(boost::shared_ptr<Runnable> task) {
-  TConnection* connection =
-    static_cast<TConnection::Task*>(task.get())->getTConnection();
-  assert(connection && connection->getServer() &&
-         connection->getState() == APP_WAIT_TASK);
+void TFastoreServer::expireClose(TConnection* connection) {
   connection->forceClose();
 }
 
 void TFastoreServer::stop() {
-  // Breaks the event loop in all threads so that they end ASAP.
-  for (uint32_t i = 0; i < ioThreads_.size(); ++i) {
-    ioThreads_[i]->stop();
-  }
+	_thread->stop();
 }
 
 /**
@@ -1171,82 +1022,29 @@ void TFastoreServer::serve() {
   // init listen socket
   createAndListenOnSocket();
 
-  // set up the IO threads
-  assert(ioThreads_.empty());
-  if (!numIOThreads_) {
-    numIOThreads_ = DEFAULT_IO_THREADS;
-  }
-
-  for (uint32_t id = 0; id < numIOThreads_; ++id) {
-    // the first IO thread also does the listening on server socket
-    int listenFd = (id == 0 ? serverSocket_ : -1);
-
-    shared_ptr<TNonblockingIOThread> thread(
-      new TNonblockingIOThread(this, id, listenFd, useHighPriorityIOThreads_));
-    ioThreads_.push_back(thread);
-  }
-
   // Notify handler of the preServe event
   if (eventHandler_ != NULL) {
     eventHandler_->preServe();
   }
 
-  // Start all of our helper IO threads. Note that the threads run forever,
-  // only terminating if stop() is called.
-  assert(ioThreads_.size() == numIOThreads_);
-  assert(ioThreads_.size() > 0);
+  _thread = new TThreadSurrogate(this, serverSocket_);
 
-  GlobalOutput.printf("TFastoreServer: Serving on port %d, %d io threads.",
-               port_, ioThreads_.size());
-
-  // Launch all the secondary IO threads in separate threads
-  if (ioThreads_.size() > 1) {
-    ioThreadFactory_.reset(new PlatformThreadFactory(
-#ifndef USE_BOOST_THREAD
-      PlatformThreadFactory::OTHER,  // scheduler
-      PlatformThreadFactory::NORMAL, // priority
-      1,                          // stack size (MB)
-#endif
-      false                       // detached
-    ));
-
-    assert(ioThreadFactory_.get());
-
-    // intentionally starting at thread 1, not 0
-    for (uint32_t i = 1; i < ioThreads_.size(); ++i) {
-      shared_ptr<Thread> thread = ioThreadFactory_->newThread(ioThreads_[i]);
-      ioThreads_[i]->setThread(thread);
-      thread->start();
-    }
-  }
-
-  // Run the primary (listener) IO thread loop in our main thread; this will
-  // only return when the server is shutting down.
-  ioThreads_[0]->run();
-
-  // Ensure all threads are finished before exiting serve()
-  for (uint32_t i = 0; i < ioThreads_.size(); ++i) {
-    ioThreads_[i]->join();
-    GlobalOutput.printf("TNonblocking: join done for IO thread #%d", i);
-  }
+  // Run the listener
+  _thread->run();
 }
 
-TNonblockingIOThread::TNonblockingIOThread(TFastoreServer* server,
-                                           int number,
-                                           int listenSocket,
-                                           bool useHighPriority)
+
+TThreadSurrogate::TThreadSurrogate(TFastoreServer* server,
+                                           int listenSocket)
       : server_(server)
-      , number_(number)
       , listenSocket_(listenSocket)
-      , useHighPriority_(useHighPriority)
-      , eventBase_(NULL) {
+      , eventBase_(NULL)
+{
   notificationPipeFDs_[0] = -1;
   notificationPipeFDs_[1] = -1;
 }
 
-TNonblockingIOThread::~TNonblockingIOThread() {
-  // make sure our associated thread is fully finished
-  join();
+TThreadSurrogate::~TThreadSurrogate() {
 
   if (eventBase_) {
     event_base_free(eventBase_);
@@ -1254,7 +1052,7 @@ TNonblockingIOThread::~TNonblockingIOThread() {
 
   if (listenSocket_ >= 0) {
     if (0 != ::close(listenSocket_)) {
-      GlobalOutput.perror("TNonblockingIOThread listenSocket_ close(): ",
+      GlobalOutput.perror("TThreadSurrogate listenSocket_ close(): ",
                           errno);
     }
     listenSocket_ = TFastoreServer::INVALID_SOCKET_VALUE;
@@ -1263,7 +1061,7 @@ TNonblockingIOThread::~TNonblockingIOThread() {
   for (int i = 0; i < 2; ++i) {
     if (notificationPipeFDs_[i] >= 0) {
       if (0 != ::close(notificationPipeFDs_[i])) {
-        GlobalOutput.perror("TNonblockingIOThread notificationPipe close(): ",
+        GlobalOutput.perror("TThreadSurrogate notificationPipe close(): ",
                             errno);
       }
       notificationPipeFDs_[i] = TFastoreServer::INVALID_SOCKET_VALUE;
@@ -1271,7 +1069,7 @@ TNonblockingIOThread::~TNonblockingIOThread() {
   }
 }
 
-void TNonblockingIOThread::createNotificationPipe() {
+void TThreadSurrogate::createNotificationPipe() {
   if(evutil_socketpair(AF_LOCAL, SOCK_STREAM, 0, notificationPipeFDs_) == -1) {
     GlobalOutput.perror("TFastoreServer::createNotificationPipe ", EVUTIL_SOCKET_ERROR());
     throw TException("can't create notification pipe");
@@ -1301,13 +1099,13 @@ void TNonblockingIOThread::createNotificationPipe() {
 /**
  * Register the core libevent events onto the proper base.
  */
-void TNonblockingIOThread::registerEvents() {
+void TThreadSurrogate::registerEvents() {
   if (listenSocket_ >= 0) {
     // Register the server event
     event_set(&serverEvent_,
               listenSocket_,
               EV_READ | EV_PERSIST,
-              TNonblockingIOThread::listenHandler,
+              TThreadSurrogate::listenHandler,
               server_);
     event_base_set(eventBase_, &serverEvent_);
 
@@ -1316,8 +1114,7 @@ void TNonblockingIOThread::registerEvents() {
       throw TException("TFastoreServer::serve(): "
                        "event_add() failed on server listen event");
     }
-    GlobalOutput.printf("TNonblocking: IO thread #%d registered for listen.",
-                        number_);
+    GlobalOutput.printf("TNonblocking: IO thread #%d registered for listen.");
   }
 
   createNotificationPipe();
@@ -1326,7 +1123,7 @@ void TNonblockingIOThread::registerEvents() {
   event_set(&notificationEvent_,
             getNotificationRecvFD(),
             EV_READ | EV_PERSIST,
-            TNonblockingIOThread::notifyHandler,
+            TThreadSurrogate::notifyHandler,
             this);
 
   // Attach to the base
@@ -1337,11 +1134,10 @@ void TNonblockingIOThread::registerEvents() {
     throw TException("TFastoreServer::serve(): "
                      "event_add() failed on task-done notification event");
   }
-  GlobalOutput.printf("TNonblocking: IO thread #%d registered for notify.",
-                      number_);
+  GlobalOutput.printf("TNonblocking: IO thread #%d registered for notify.");
 }
 
-bool TNonblockingIOThread::notify(TFastoreServer::TConnection* conn) {
+bool TThreadSurrogate::notify(TFastoreServer::TConnection* conn) {
   int fd = getNotificationSendFD();
   if (fd < 0) {
     return false;
@@ -1356,8 +1152,8 @@ bool TNonblockingIOThread::notify(TFastoreServer::TConnection* conn) {
 }
 
 /* static */
-void TNonblockingIOThread::notifyHandler(evutil_socket_t fd, short which, void* v) {
-  TNonblockingIOThread* ioThread = (TNonblockingIOThread*) v;
+void TThreadSurrogate::notifyHandler(evutil_socket_t fd, short which, void* v) {
+  TThreadSurrogate* ioThread = (TThreadSurrogate*) v;
   assert(ioThread);
   (void)which;
 
@@ -1394,10 +1190,10 @@ void TNonblockingIOThread::notifyHandler(evutil_socket_t fd, short which, void* 
   }
 }
 
-void TNonblockingIOThread::breakLoop(bool error) {
+void TThreadSurrogate::breakLoop(bool error) {
   if (error) {
     GlobalOutput.printf(
-      "TFastoreServer: IO thread #%d exiting with error.", number_);
+      "TFastoreServer: IO thread #%d exiting with error.");
     // TODO: figure out something better to do here, but for now kill the
     // whole process.
     GlobalOutput.printf("TFastoreServer: aborting process.");
@@ -1415,82 +1211,37 @@ void TNonblockingIOThread::breakLoop(bool error) {
   // mechanism to stop the thread, but happily if we're running in the
   // same thread, this means the thread can't be blocking in the event
   // loop either.
-  if (!Thread::is_current(threadId_)) {
-    notify(NULL);
-  }
+   notify(NULL);
+
 }
 
-void TNonblockingIOThread::setCurrentThreadHighPriority(bool value) {
-#ifdef HAVE_SCHED_H
-  // Start out with a standard, low-priority setup for the sched params.
-  struct sched_param sp;
-  bzero((void*) &sp, sizeof(sp));
-  int policy = SCHED_OTHER;
-
-  // If desired, set up high-priority sched params structure.
-  if (value) {
-    // FIFO scheduler, ranked above default SCHED_OTHER queue
-    policy = SCHED_FIFO;
-    // The priority only compares us to other SCHED_FIFO threads, so we
-    // just pick a random priority halfway between min & max.
-    const int priority = (sched_get_priority_max(policy) +
-                          sched_get_priority_min(policy)) / 2;
-
-    sp.sched_priority = priority;
-  }
-
-  // Actually set the sched params for the current thread.
-  if (0 == pthread_setschedparam(pthread_self(), policy, &sp)) {
-    GlobalOutput.printf(
-      "TNonblocking: IO Thread #%d using high-priority scheduler!", number_);
-  } else {
-    GlobalOutput.perror("TNonblocking: pthread_setschedparam(): ", errno);
-  }
-#endif
-}
-
-void TNonblockingIOThread::run() {
-  threadId_ = Thread::get_current();
-
+void TThreadSurrogate::run() {
   assert(eventBase_ == 0);
   eventBase_ = event_base_new();
 
-  // Print some libevent stats
-  if (number_ == 0) {
-    GlobalOutput.printf("TFastoreServer: using libevent %s method %s",
-            event_get_version(),
-            event_base_get_method(eventBase_));
-  }
+	GlobalOutput.printf("TFastoreServer: using libevent %s method %s",
+			event_get_version(),
+			event_base_get_method(eventBase_));
 
 
   registerEvents();
 
-  GlobalOutput.printf("TFastoreServer: IO thread #%d entering loop...",
-                      number_);
-
-  if (useHighPriority_) {
-    setCurrentThreadHighPriority(true);
-  }
+  GlobalOutput.printf("TFastoreServer: IO thread entering loop...");
 
   // Run libevent engine, never returns, invokes calls to eventHandler
   event_base_loop(eventBase_, 0);
 
-  if (useHighPriority_) {
-    setCurrentThreadHighPriority(false);
-  }
-
   // cleans up our registered events
   cleanupEvents();
 
-  GlobalOutput.printf("TFastoreServer: IO thread #%d run() done!",
-    number_);
+  GlobalOutput.printf("TFastoreServer: IO thread run() done!");
 }
 
-void TNonblockingIOThread::cleanupEvents() {
+void TThreadSurrogate::cleanupEvents() {
   // stop the listen socket, if any
   if (listenSocket_ >= 0) {
     if (event_del(&serverEvent_) == -1) {
-      GlobalOutput.perror("TNonblockingIOThread::stop() event_del: ", errno);
+      GlobalOutput.perror("TThreadSurrogate::stop() event_del: ", errno);
     }
   }
 
@@ -1498,23 +1249,9 @@ void TNonblockingIOThread::cleanupEvents() {
 }
 
 
-void TNonblockingIOThread::stop() {
+void TThreadSurrogate::stop() {
   // This should cause the thread to fall out of its event loop ASAP.
   breakLoop(false);
-}
-
-void TNonblockingIOThread::join() {
-  // If this was a thread created by a factory (not the thread that called
-  // serve()), we join() it to make sure we shut down fully.
-  if (thread_) {
-    try {
-      // Note that it is safe to both join() ourselves twice, as well as join
-      // the current thread as the pthread implementation checks for deadlock.
-      thread_->join();
-    } catch(...) {
-      // swallow everything
-    }
-  }
 }
 
 }}} // apache::thrift::server

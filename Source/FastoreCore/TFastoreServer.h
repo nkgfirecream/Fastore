@@ -84,18 +84,20 @@ inline SOCKOPT_CAST_T* cast_sockopt(T* v) {
 /// Overload condition actions.
 enum TOverloadAction {
   T_OVERLOAD_NO_ACTION,        ///< Don't handle overload */
-  T_OVERLOAD_CLOSE_ON_ACCEPT,  ///< Drop new connections immediately */
-  T_OVERLOAD_DRAIN_TASK_QUEUE  ///< Drop some tasks from head of task queue */
+  T_OVERLOAD_CLOSE_ON_ACCEPT  ///< Drop new connections immediately */
 };
 
-class TNonblockingIOThread;
+class TThreadSurrogate;
 
 class TFastoreServer : public TServer {
  private:
   class TConnection;
 
-  friend class TNonblockingIOThread;
+  friend class TThreadSurrogate;
  private:
+
+  TThreadSurrogate* _thread;
+
   /// Listen backlog
   static const int LISTEN_BACKLOG = 1024;
 
@@ -129,35 +131,11 @@ class TFastoreServer : public TServer {
   /// File descriptor of an invalid socket
   static const int INVALID_SOCKET_VALUE = -1;
 
-  /// # of IO threads this server will use
-  size_t numIOThreads_;
-
-  /// Whether to set high scheduling priority for IO threads
-  bool useHighPriorityIOThreads_;
-
   /// Server socket file descriptor
   int serverSocket_;
 
   /// Port server runs on
   int port_;
-
-  /// For processing via thread pool, may be NULL
-  boost::shared_ptr<ThreadManager> threadManager_;
-
-  /// Is thread pool processing?
-  bool threadPoolProcessing_;
-
-  // Factory to create the IO threads
-  boost::shared_ptr<PlatformThreadFactory> ioThreadFactory_;
-
-  // Vector of IOThread objects that will handle our IO
-  std::vector<boost::shared_ptr<TNonblockingIOThread> > ioThreads_;
-
-  // Index of next IO Thread to be used (for round-robin)
-  uint32_t nextIOThread_;
-
-  // Synchronizes access to connection stack and similar data
-  Mutex connMutex_;
 
   /// Number of TConnection object we've created
   size_t numTConnections_;
@@ -248,11 +226,7 @@ class TFastoreServer : public TServer {
 
   void init(int port) {
     serverSocket_ = -1;
-    numIOThreads_ = DEFAULT_IO_THREADS;
-    nextIOThread_ = 0;
-    useHighPriorityIOThreads_ = false;
     port_ = port;
-    threadPoolProcessing_ = false;
     numTConnections_ = 0;
     numActiveProcessors_ = 0;
     connectionStackLimit_ = CONNECTION_STACK_LIMIT;
@@ -294,8 +268,6 @@ class TFastoreServer : public TServer {
       const boost::shared_ptr<ProcessorFactory>& processorFactory,
       const boost::shared_ptr<TProtocolFactory>& protocolFactory,
       int port,
-      const boost::shared_ptr<ThreadManager>& threadManager =
-        boost::shared_ptr<ThreadManager>(),
       THRIFT_OVERLOAD_IF(ProcessorFactory, TProcessorFactory)) :
     TServer(processorFactory) {
 
@@ -303,7 +275,6 @@ class TFastoreServer : public TServer {
 
     setInputProtocolFactory(protocolFactory);
     setOutputProtocolFactory(protocolFactory);
-    setThreadManager(threadManager);
   }
 
   template<typename Processor>
@@ -311,8 +282,6 @@ class TFastoreServer : public TServer {
       const boost::shared_ptr<Processor>& processor,
       const boost::shared_ptr<TProtocolFactory>& protocolFactory,
       int port,
-      const boost::shared_ptr<ThreadManager>& threadManager =
-        boost::shared_ptr<ThreadManager>(),
       THRIFT_OVERLOAD_IF(Processor, TProcessor)) :
     TServer(processor) {
 
@@ -320,7 +289,6 @@ class TFastoreServer : public TServer {
 
     setInputProtocolFactory(protocolFactory);
     setOutputProtocolFactory(protocolFactory);
-    setThreadManager(threadManager);
   }
 
   template<typename ProcessorFactory>
@@ -331,8 +299,6 @@ class TFastoreServer : public TServer {
       const boost::shared_ptr<TProtocolFactory>& inputProtocolFactory,
       const boost::shared_ptr<TProtocolFactory>& outputProtocolFactory,
       int port,
-      const boost::shared_ptr<ThreadManager>& threadManager =
-        boost::shared_ptr<ThreadManager>(),
       THRIFT_OVERLOAD_IF(ProcessorFactory, TProcessorFactory)) :
     TServer(processorFactory) {
 
@@ -342,7 +308,6 @@ class TFastoreServer : public TServer {
     setOutputTransportFactory(outputTransportFactory);
     setInputProtocolFactory(inputProtocolFactory);
     setOutputProtocolFactory(outputProtocolFactory);
-    setThreadManager(threadManager);
   }
 
   template<typename Processor>
@@ -353,8 +318,6 @@ class TFastoreServer : public TServer {
       const boost::shared_ptr<TProtocolFactory>& inputProtocolFactory,
       const boost::shared_ptr<TProtocolFactory>& outputProtocolFactory,
       int port,
-      const boost::shared_ptr<ThreadManager>& threadManager =
-        boost::shared_ptr<ThreadManager>(),
       THRIFT_OVERLOAD_IF(Processor, TProcessor)) :
     TServer(processor) {
 
@@ -364,41 +327,9 @@ class TFastoreServer : public TServer {
     setOutputTransportFactory(outputTransportFactory);
     setInputProtocolFactory(inputProtocolFactory);
     setOutputProtocolFactory(outputProtocolFactory);
-    setThreadManager(threadManager);
   }
 
   ~TFastoreServer();
-
-  void setThreadManager(boost::shared_ptr<ThreadManager> threadManager);
-
-  boost::shared_ptr<ThreadManager> getThreadManager() {
-    return threadManager_;
-  }
-
-  /**
-   * Sets the number of IO threads used by this server. Can only be used before
-   * the call to serve() and has no effect afterwards.  We always use a
-   * PosixThreadFactory for the IO worker threads, because they must joinable
-   * for clean shutdown.
-   */
-  void setNumIOThreads(size_t numThreads) {
-    numIOThreads_ = numThreads;
-  }
-
-  /** Return whether the IO threads will get high scheduling priority */
-  bool useHighPriorityIOThreads() const {
-    return useHighPriorityIOThreads_;
-  }
-
-  /** Set whether the IO threads will get high scheduling priority. */
-  void setUseHighPriorityIOThreads(bool val) {
-    useHighPriorityIOThreads_ = val;
-  }
-
-  /** Return the number of IO threads used by this server. */
-  size_t getNumIOThreads() const {
-    return numIOThreads_;
-  }
 
   /**
    * Get the maximum number of unused TConnection we will hold in reserve.
@@ -416,14 +347,6 @@ class TFastoreServer : public TServer {
    */
   void setConnectionStackLimit(size_t sz) {
     connectionStackLimit_ = sz;
-  }
-
-  bool isThreadPoolProcessing() const {
-    return threadPoolProcessing_;
-  }
-
-  void addTask(boost::shared_ptr<Runnable> task) {
-    threadManager_->add(task, 0LL, taskExpireTime_);
   }
 
   /**
@@ -467,13 +390,11 @@ class TFastoreServer : public TServer {
 
   /// Increment the count of connections currently processing.
   void incrementActiveProcessors() {
-    Guard g(connMutex_);
     ++numActiveProcessors_;
   }
 
   /// Decrement the count of connections currently processing.
   void decrementActiveProcessors() {
-    Guard g(connMutex_);
     if (numActiveProcessors_ > 0) {
       --numActiveProcessors_;
     }
@@ -736,7 +657,9 @@ class TFastoreServer : public TServer {
    *
    * @param task the runnable associated with the expired task.
    */
-  void expireClose(boost::shared_ptr<Runnable> task);
+
+	//TODO: Expire a connection....
+  void expireClose(TConnection* connection);
 
   /// Creates a socket to listen on and binds it to the local port.
   void createAndListenOnSocket();
@@ -771,17 +694,16 @@ class TFastoreServer : public TServer {
   void returnConnection(TConnection* connection);
 };
 
-class TNonblockingIOThread : public Runnable {
+class TThreadSurrogate {
  public:
+
   // Creates an IO thread and sets up the event base.  The listenSocket should
   // be a valid FD on which listen() has already been called.  If the
   // listenSocket is < 0, accepting will not be done.
-  TNonblockingIOThread(TFastoreServer* server,
-                       int number,
-                       int listenSocket,
-                       bool useHighPriority);
+  TThreadSurrogate(TFastoreServer* server,
+                       int listenSocket);
 
-  ~TNonblockingIOThread();
+  ~TThreadSurrogate();
 
   // Returns the event-base for this thread.
   event_base* getEventBase() const { return eventBase_; }
@@ -789,30 +711,17 @@ class TNonblockingIOThread : public Runnable {
   // Returns the server for this thread.
   TFastoreServer* getServer() const { return server_; }
 
-  // Returns the number of this IO thread.
-  int getThreadNumber() const { return number_; }
-
-  // Returns the thread id associated with this object.  This should
-  // only be called after the thread has been started.
-  Thread::id_t getThreadId() const { return threadId_; }
-
   // Returns the send-fd for task complete notifications.
   evutil_socket_t getNotificationSendFD() const { return notificationPipeFDs_[1]; }
 
   // Returns the read-fd for task complete notifications.
   evutil_socket_t getNotificationRecvFD() const { return notificationPipeFDs_[0]; }
 
-  // Returns the actual thread object associated with this IO thread.
-  boost::shared_ptr<Thread> getThread() const { return thread_; }
-
-  // Sets the actual thread object associated with this IO thread.
-  void setThread(const boost::shared_ptr<Thread>& t) { thread_ = t; }
-
   // Used by TConnection objects to indicate processing has finished.
   bool notify(TFastoreServer::TConnection* conn);
 
   // Enters the event loop and does not return until a call to stop().
-  virtual void run();
+  void run();
 
   // Exits the event loop as soon as possible.
   void stop();
@@ -862,17 +771,8 @@ class TNonblockingIOThread : public Runnable {
   /// associated server
   TFastoreServer* server_;
 
-  /// thread number (for debugging).
-  const int number_;
-
-  /// The actual physical thread id.
-  Thread::id_t threadId_;
-
   /// If listenSocket_ >= 0, adds an event on the event_base to accept conns
   int listenSocket_;
-
-  /// Sets a high scheduling priority when running
-  bool useHighPriority_;
 
   /// pointer to eventbase to be used for looping
   event_base* eventBase_;
@@ -885,9 +785,6 @@ class TNonblockingIOThread : public Runnable {
 
  /// File descriptors for pipe used for task completion notification.
   evutil_socket_t notificationPipeFDs_[2];
-
-  /// Actual IO Thread
-  boost::shared_ptr<Thread> thread_;
 };
 
 }}} // apache::thrift::server
