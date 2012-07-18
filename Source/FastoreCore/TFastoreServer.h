@@ -5,11 +5,7 @@
 #include <thrift/server/TServer.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/transport/TSocket.h>
-#include <thrift/concurrency/ThreadManager.h>
 #include <climits>
-#include <thrift/concurrency/Thread.h>
-#include <thrift/concurrency/PlatformThreadFactory.h>
-#include <thrift/concurrency/Mutex.h>
 #include <stack>
 #include <vector>
 #include <string>
@@ -27,13 +23,6 @@ namespace apache { namespace thrift { namespace server {
 using apache::thrift::transport::TMemoryBuffer;
 using apache::thrift::transport::TSocket;
 using apache::thrift::protocol::TProtocol;
-using apache::thrift::concurrency::Runnable;
-using apache::thrift::concurrency::ThreadManager;
-using apache::thrift::concurrency::PlatformThreadFactory;
-using apache::thrift::concurrency::ThreadFactory;
-using apache::thrift::concurrency::Thread;
-using apache::thrift::concurrency::Mutex;
-using apache::thrift::concurrency::Guard;
 
 #ifdef LIBEVENT_VERSION_NUMBER
 #define LIBEVENT_VERSION_MAJOR (LIBEVENT_VERSION_NUMBER >> 24)
@@ -97,16 +86,13 @@ class TFastoreServer : public TServer {
   static const int LISTEN_BACKLOG = 1024;
 
   /// Default limit on size of idle connection pool
-  static const size_t CONNECTION_STACK_LIMIT = 1024;
+  static const size_t CONNECTION_POOL_LIMIT = 1024;
 
   /// Default limit on frame size
   static const int MAX_FRAME_SIZE = 256 * 1024 * 1024;
 
   /// Default limit on total number of connected sockets
   static const int MAX_CONNECTIONS = INT_MAX;
-
-  /// Default limit on connections in handler/task processing
-  static const int MAX_ACTIVE_PROCESSORS = INT_MAX;
 
   /// Default size of write buffer
   static const int WRITE_BUFFER_DEFAULT_SIZE = 1024;
@@ -132,17 +118,8 @@ class TFastoreServer : public TServer {
   /// Port server runs on
   int port_;
 
-  /// Number of TConnection object we've created
-  size_t numTConnections_;
-
-  /// Number of Connections processing or waiting to process
-  size_t numActiveProcessors_;
-
   /// Limit for how many TConnection objects to cache
-  size_t connectionStackLimit_;
-
-  /// Limit for number of connections processing or waiting to process
-  size_t maxActiveProcessors_;
+  size_t connectionPoolLimit_;
 
   /// Limit for number of open connections
   size_t maxConnections_;
@@ -202,7 +179,10 @@ class TFastoreServer : public TServer {
   uint64_t nTotalConnectionsDropped_;
 
   //Pool of UNUSED connections
-  std::stack<TConnection*> connectionStack_;
+  std::stack<TConnection*> connectionPool_;
+
+  //List of Active connections
+  std::list<TConnection*> activeConnections_;
 
   /// pointer to eventbase to be used for looping
   event_base* eventBase_;
@@ -230,10 +210,7 @@ class TFastoreServer : public TServer {
   void init(int port) {
     serverSocket_ = -1;
     port_ = port;
-    numTConnections_ = 0;
-    numActiveProcessors_ = 0;
-    connectionStackLimit_ = CONNECTION_STACK_LIMIT;
-    maxActiveProcessors_ = MAX_ACTIVE_PROCESSORS;
+    connectionPoolLimit_ = CONNECTION_POOL_LIMIT;  
     maxConnections_ = MAX_CONNECTIONS;
     maxFrameSize_ = MAX_FRAME_SIZE;
     taskExpireTime_ = 0;
@@ -350,8 +327,8 @@ class TFastoreServer : public TServer {
   ~TFastoreServer();
 
   // Get the maximum number of unused TConnection we will hold in reserve.
-  size_t getConnectionStackLimit() const {
-    return connectionStackLimit_;
+  size_t getConnectionPoolLimit() const {
+    return connectionPoolLimit_;
   }
 
   /**
@@ -359,8 +336,8 @@ class TFastoreServer : public TServer {
    *
    * @param sz the new limit for TConnection pool size.
    */
-  void setConnectionStackLimit(size_t sz) {
-    connectionStackLimit_ = sz;
+  void setConnectionPoolLimit(size_t sz) {
+    connectionPoolLimit_ = sz;
   }
 
   /**
@@ -369,7 +346,7 @@ class TFastoreServer : public TServer {
    * @return count of connected sockets.
    */
   size_t getNumConnections() const {
-    return numTConnections_;
+    return activeConnections_.size();
   }
 
   /**
@@ -387,7 +364,7 @@ class TFastoreServer : public TServer {
    * @return count of idle connection objects.
    */
   size_t getNumIdleConnections() const {
-    return connectionStack_.size();
+    return connectionPool_.size();
   }
 
   /**
@@ -632,8 +609,6 @@ class TFastoreServer : public TServer {
    * @param connection the TConection being returned.
    */
   void returnConnection(TConnection* connection);
-
-
 
 
   // Returns the event-base for this thread.

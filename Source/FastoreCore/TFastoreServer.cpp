@@ -4,13 +4,13 @@
 #include <config.h>
 #endif
 
-
-//TODO: Make this windows dependent...
+#ifdef _WIN32
 #include <thrift/windows/force_inc.h>
+#endif
+
+
 #include "TFastoreServer.h"
-#include <thrift/concurrency/Exception.h>
 #include <thrift/transport/TSocket.h>
-#include <thrift/concurrency/PlatformThreadFactory.h>
 
 #include <iostream>
 
@@ -54,7 +54,6 @@ namespace apache { namespace thrift { namespace server {
 
 using namespace apache::thrift::protocol;
 using namespace apache::thrift::transport;
-using namespace apache::thrift::concurrency;
 using namespace apache::thrift::server;
 using namespace std;
 using apache::thrift::transport::TSocket;
@@ -493,7 +492,6 @@ void TFastoreServer::TConnection::workSocket() {
  */
 void TFastoreServer::TConnection::transition() {
   // ensure this connection is active right now
-  assert(ioThread_);
   assert(server_);
 
   // Switch upon the state that we are currently in and move to a new state
@@ -694,9 +692,7 @@ void TFastoreServer::TConnection::setFlags(short eventFlags) {
    * ev structure for multiple monitored descriptors; each descriptor needs
    * its own ev.
    */
-  event_set(&event_, tSocket_->getSocketFD(), eventFlags_,
-            TConnection::eventHandler, this);
-  event_base_set(server_->getEventBase(), &event_);
+  event_ = *event_new(server_->getEventBase(), tSocket_->getSocketFD(), eventFlags_, TConnection::eventHandler, this);
 
   // Add the event
   if (event_add(&event_, 0) == -1) {
@@ -752,9 +748,9 @@ TFastoreServer::~TFastoreServer() {
   // which is being destroyed.)
 
   // Clean up unused TConnection objects in connectionStack_
-  while (!connectionStack_.empty()) {
-    TConnection* connection = connectionStack_.top();
-    connectionStack_.pop();
+  while (!connectionPool_.empty()) {
+    TConnection* connection = connectionPool_.top();
+    connectionPool_.pop();
     delete connection;
   }
 
@@ -790,14 +786,16 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(
 
   // Check the connection stack to see if we can re-use
   TConnection* result = NULL;
-  if (connectionStack_.empty()) {
+  if (connectionPool_.empty()) {
     result = new TConnection(socket, this, addr, addrLen);
-    ++numTConnections_;
   } else {
-    result = connectionStack_.top();
-    connectionStack_.pop();
+    result = connectionPool_.top();
+    connectionPool_.pop();
     result->init(socket, this, addr, addrLen);
   }
+
+  activeConnections_.push_back(result);
+
   return result;
 }
 
@@ -805,13 +803,15 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(
  * Returns a connection to the stack
  */
 void TFastoreServer::returnConnection(TConnection* connection) {
-  if (connectionStackLimit_ &&
-      (connectionStack_.size() >= connectionStackLimit_)) {
+
+  activeConnections_.remove(connection); 
+	
+  if (connectionPoolLimit_ &&
+      (connectionPool_.size() >= connectionPoolLimit_)) {
     delete connection;
-    --numTConnections_;
   } else {
     connection->checkIdleBufferMemLimit(idleReadBufferLimit_, idleWriteBufferLimit_);
-    connectionStack_.push(connection);
+    connectionPool_.push(connection);
   }
 }
 
@@ -1004,16 +1004,14 @@ void TFastoreServer::listenSocket(int s) {
 }
 
 bool  TFastoreServer::serverOverloaded() {
-  size_t activeConnections = numTConnections_ - connectionStack_.size();
-  if (numActiveProcessors_ > maxActiveProcessors_ ||
-      activeConnections > maxConnections_) {
+  size_t activeConnections = activeConnections_.size();
+  if (activeConnections > maxConnections_) {
     if (!overloaded_) {
        GlobalOutput.printf("TFastoreServer: overload condition begun.");
       overloaded_ = true;
     }
   } else {
     if (overloaded_ &&
-        (numActiveProcessors_ <= overloadHysteresis_ * maxActiveProcessors_) &&
         (activeConnections <= overloadHysteresis_ * maxConnections_)) {
       GlobalOutput.printf("TFastoreServer: overload ended; "
                           "%u dropped (%llu total)",
@@ -1083,12 +1081,7 @@ void TFastoreServer::createNotificationPipe() {
 void TFastoreServer::registerEvents() {
   if (serverSocket_ >= 0) {
     // Register the server event
-    event_set(&serverEvent_,
-              serverSocket_,
-              EV_READ | EV_PERSIST,
-              listenHandler,
-              this);
-    event_base_set(eventBase_, &serverEvent_);
+	serverEvent_ = *event_new(eventBase_, serverSocket_,  EV_READ | EV_PERSIST, listenHandler, this);
 
     // Add the event and start up the server
     if (-1 == event_add(&serverEvent_, 0)) {
@@ -1101,14 +1094,7 @@ void TFastoreServer::registerEvents() {
   createNotificationPipe();
 
   // Create an event to be notified when a task finishes
-  event_set(&notificationEvent_,
-            getNotificationRecvFD(),
-            EV_READ | EV_PERSIST,
-            notifyHandler,
-            this);
-
-  // Attach to the base
-  event_base_set(eventBase_, &notificationEvent_);
+  notificationEvent_ = *event_new(eventBase_, getNotificationRecvFD(), EV_READ | EV_PERSIST, notifyHandler, this);
 
   // Add the event and start up the server
   if (-1 == event_add(&notificationEvent_, 0)) {
