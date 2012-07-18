@@ -14,31 +14,12 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#include <event.h>
-
-
 
 namespace apache { namespace thrift { namespace server {
 
 using apache::thrift::transport::TMemoryBuffer;
 using apache::thrift::transport::TSocket;
 using apache::thrift::protocol::TProtocol;
-
-#ifdef LIBEVENT_VERSION_NUMBER
-#define LIBEVENT_VERSION_MAJOR (LIBEVENT_VERSION_NUMBER >> 24)
-#define LIBEVENT_VERSION_MINOR ((LIBEVENT_VERSION_NUMBER >> 16) & 0xFF)
-#define LIBEVENT_VERSION_REL ((LIBEVENT_VERSION_NUMBER >> 8) & 0xFF)
-#else
-// assume latest version 1 series
-#define LIBEVENT_VERSION_MAJOR 1
-#define LIBEVENT_VERSION_MINOR 14
-#define LIBEVENT_VERSION_REL 13
-#define LIBEVENT_VERSION_NUMBER ((LIBEVENT_VERSION_MAJOR << 24) | (LIBEVENT_VERSION_MINOR << 16) | (LIBEVENT_VERSION_REL << 8))
-#endif
-
-#if LIBEVENT_VERSION_NUMBER < 0x02000000
- typedef int evutil_socket_t;
-#endif
 
 #ifndef SOCKOPT_CAST_T
 #   ifndef _WIN32
@@ -127,8 +108,8 @@ class TFastoreServer : public TServer {
   /// Limit for frame size
   size_t maxFrameSize_;
 
-  /// Time in milliseconds before an unperformed task expires (0 == infinite).
-  int64_t taskExpireTime_;
+  /// Time in milliseconds before a connection expires (0 == infinite).
+  int64_t connectionExpireTime_;
 
   /**
    * Hysteresis for overload state.  This is the fraction of the overload
@@ -182,30 +163,11 @@ class TFastoreServer : public TServer {
   std::stack<TConnection*> connectionPool_;
 
   //List of Active connections
-  std::list<TConnection*> activeConnections_;
+  std::vector<TConnection*> activeConnections_;
 
-  /// pointer to eventbase to be used for looping
-  event_base* eventBase_;
-
-  /// Used with eventBase_ for connection events (only in listener thread)
-  struct event serverEvent_;
-
-  /// Used with eventBase_ for task completion notification
-  struct event notificationEvent_;
-
- /// File descriptors for pipe used for task completion notification.
-  evutil_socket_t notificationPipeFDs_[2];
-
-
-  /**
-   * Called when server socket had something happen.  We accept all waiting
-   * client connections on listen socket fd and assign TConnection objects
-   * to handle those requests.
-   *
-   * @param fd the listen socket.
-   * @param which the event flag that triggered the handler.
-   */
-  void handleEvent(int fd, short which);
+  
+  // Signal to stop
+  bool _break;
 
   void init(int port) {
     serverSocket_ = -1;
@@ -213,7 +175,7 @@ class TFastoreServer : public TServer {
     connectionPoolLimit_ = CONNECTION_POOL_LIMIT;  
     maxConnections_ = MAX_CONNECTIONS;
     maxFrameSize_ = MAX_FRAME_SIZE;
-    taskExpireTime_ = 0;
+    connectionExpireTime_ = 0;
     overloadHysteresis_ = 0.8;
     overloadAction_ = T_OVERLOAD_NO_ACTION;
     writeBufferDefaultSize_ = WRITE_BUFFER_DEFAULT_SIZE;
@@ -241,9 +203,6 @@ class TFastoreServer : public TServer {
                      THRIFT_OVERLOAD_IF(Processor, TProcessor)) :
     TServer(processor) {
     init(port);
-
-	notificationPipeFDs_[0] = -1;
-	notificationPipeFDs_[1] = -1;
   }
 
   template<typename ProcessorFactory>
@@ -258,9 +217,6 @@ class TFastoreServer : public TServer {
 
     setInputProtocolFactory(protocolFactory);
     setOutputProtocolFactory(protocolFactory);
-
-	notificationPipeFDs_[0] = -1;
-	notificationPipeFDs_[1] = -1;
   }
 
   template<typename Processor>
@@ -275,9 +231,6 @@ class TFastoreServer : public TServer {
 
     setInputProtocolFactory(protocolFactory);
     setOutputProtocolFactory(protocolFactory);
-
-	notificationPipeFDs_[0] = -1;
-	notificationPipeFDs_[1] = -1;
   }
 
   template<typename ProcessorFactory>
@@ -297,9 +250,6 @@ class TFastoreServer : public TServer {
     setOutputTransportFactory(outputTransportFactory);
     setInputProtocolFactory(inputProtocolFactory);
     setOutputProtocolFactory(outputProtocolFactory);
-
-	notificationPipeFDs_[0] = -1;
-	notificationPipeFDs_[1] = -1;
   }
 
   template<typename Processor>
@@ -319,9 +269,6 @@ class TFastoreServer : public TServer {
     setOutputTransportFactory(outputTransportFactory);
     setInputProtocolFactory(inputProtocolFactory);
     setOutputProtocolFactory(outputProtocolFactory);
-
-	notificationPipeFDs_[0] = -1;
-	notificationPipeFDs_[1] = -1;
   }
 
   ~TFastoreServer();
@@ -446,21 +393,21 @@ class TFastoreServer : public TServer {
   }
 
   /**
-   * Get the time in milliseconds after which a task expires (0 == infinite).
+   * Get the time in milliseconds after which a connection expires (0 == infinite).
    *
    * @return a 64-bit time in milliseconds.
    */
-  int64_t getTaskExpireTime() const {
-    return taskExpireTime_;
+  int64_t getconnectionExpireTime() const {
+    return connectionExpireTime_;
   }
 
   /**
-   * Set the time in milliseconds after which a task expires (0 == infinite).
+   * Set the time in milliseconds after which a connection expires (0 == infinite).
    *
-   * @param taskExpireTime a 64-bit time in milliseconds.
+   * @param connectionExpireTime a 64-bit time in milliseconds.
    */
-  void setTaskExpireTime(int64_t taskExpireTime) {
-    taskExpireTime_ = taskExpireTime;
+  void setconnectionExpireTime(int64_t connectionExpireTime) {
+    connectionExpireTime_ = connectionExpireTime;
   }
 
   /**
@@ -568,12 +515,6 @@ class TFastoreServer : public TServer {
   void stop();
 
  private:
-  /**
-   * Callback function that the threadmanager calls when a task reaches
-   * its expiration time.  It is needed to clean up the expired connection.
-   *
-   * @param task the runnable associated with the expired task.
-   */
 
 	//TODO: Expire a connection....
   void expireClose(TConnection* connection);
@@ -610,61 +551,12 @@ class TFastoreServer : public TServer {
    */
   void returnConnection(TConnection* connection);
 
-
-  // Returns the event-base for this thread.
-  event_base* getEventBase() const { return eventBase_; }
-
-  // Returns the send-fd for task complete notifications.
-  evutil_socket_t getNotificationSendFD() const { return notificationPipeFDs_[1]; }
-
-  // Returns the read-fd for task complete notifications.
-  evutil_socket_t getNotificationRecvFD() const { return notificationPipeFDs_[0]; }
-
   // Used by TConnection objects to indicate processing has finished.
   bool notify(TFastoreServer::TConnection* conn);
 
-  // Enters the event loop and does not return until a call to stop().
-  void runEvent();
+  //Run without events
+  void runEventless();
 
-  // Exits the event loop as soon as possible.
-  void stopEvent();
-
-   /**
-   * C-callable event handler for signaling task completion.  Provides a
-   * callback that libevent can understand that will read a connection
-   * object's address from a pipe and call connection->transition() for
-   * that object.
-   *
-   * @param fd the descriptor the event occurred on.
-   */
-  static void notifyHandler(evutil_socket_t fd, short which, void* v);
-
-  /**
-   * C-callable event handler for listener events.  Provides a callback
-   * that libevent can understand which invokes server->handleEvent().
-   *
-   * @param fd the descriptor the event occured on.
-   * @param which the flags associated with the event.
-   * @param v void* callback arg where we placed TFastoreServer's "this".
-   */
-  static void listenHandler(evutil_socket_t fd, short which, void* v) {
-    ((TFastoreServer*)v)->handleEvent(fd, which);
-  }
-
-  /// Exits the loop ASAP in case of shutdown or error.
-  void breakLoop(bool error);
-
-  /// Registers the events for the notification & listen sockets
-  void registerEvents();
-
-  /// Create the pipe used to notify I/O process of task completion.
-  void createNotificationPipe();
-
-  /// Unregisters our events for notification and listen sockets.
-  void cleanupEvents();
-
-  /// Sets (or clears) high priority scheduling status for the current thread.
-  void setCurrentThreadHighPriority(bool value);
 };
 
 }}} // apache::thrift::server
