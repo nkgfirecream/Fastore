@@ -86,13 +86,16 @@ enum TAppState {
 };
 
 /**
+ * TConnection
+ */
+
+/**
  * Represents a connection that is handled via libevent. This connection
  * essentially encapsulates a socket that has some associated libevent state.
  */
 class TFastoreServer::TConnection {
  private:
-  TThreadSurrogate* ioThread_;
- 
+
   /// Server handle
   TFastoreServer* server_;
 
@@ -205,13 +208,12 @@ class TFastoreServer::TConnection {
  public:
 
   /// Constructor
-  TConnection(int socket, TThreadSurrogate* ioThread,
+  TConnection(int socket, TFastoreServer* server,
               const sockaddr* addr, socklen_t addrLen) {
     readBuffer_ = NULL;
     readBufferSize_ = 0;
 
-    ioThread_ = ioThread;
-    server_ = ioThread->getServer();
+    server_ = server;
 
     // Allocate input and output transports these only need to be allocated
     // once per TConnection (they don't need to be reallocated on init() call)
@@ -219,7 +221,7 @@ class TFastoreServer::TConnection {
     outputTransport_.reset(new TMemoryBuffer(
                                     server_->getWriteBufferDefaultSize()));
     tSocket_.reset(new TSocket());
-    init(socket, ioThread, addr, addrLen);
+    init(socket, server, addr, addrLen);
   }
 
   ~TConnection() {
@@ -235,7 +237,7 @@ class TFastoreServer::TConnection {
   void checkIdleBufferMemLimit(size_t readLimit, size_t writeLimit);
 
   /// Initialize
-  void init(int socket, TThreadSurrogate* ioThread,
+  void init(int socket, TFastoreServer* server,
             const sockaddr* addr, socklen_t addrLen);
 
   /**
@@ -267,14 +269,14 @@ class TFastoreServer::TConnection {
    *
    * @return true if successful, false if unable to notify (check errno).
    */
-  bool notifyIOThread() {
-    return ioThread_->notify(this);
+  bool notifyServer() {
+    return server_->notify(this);
   }
 
   /// Force connection shutdown for this connection.
   void forceClose() {
     appState_ = APP_CLOSE_CONNECTION;
-    if (!notifyIOThread()) {
+    if (!notifyServer()) {
       throw TException("TConnection::forceClose: failed write on notify pipe");
     }
   }
@@ -307,14 +309,13 @@ class TFastoreServer::TConnection {
 };
 
 void TFastoreServer::TConnection::init(int socket,
-                                           TThreadSurrogate* ioThread,
+                                           TFastoreServer * server,
                                            const sockaddr* addr,
                                            socklen_t addrLen) {
   tSocket_->setSocketFD(socket);
   tSocket_->setCachedAddress(addr, addrLen);
 
-  ioThread_ = ioThread;
-  server_ = ioThread->getServer();
+  server_ = server;
   appState_ = APP_INIT;
   eventFlags_ = 0;
 
@@ -482,6 +483,10 @@ void TFastoreServer::TConnection::workSocket() {
 }
 
 /**
+ * TFastoreServer
+ */
+
+/**
  * This is called when the application transitions from one state into
  * another. This means that it has finished writing the data that it needed
  * to, or finished receiving the data that it needed to.
@@ -504,26 +509,22 @@ void TFastoreServer::TConnection::transition() {
     outputTransport_->getWritePtr(4);
     outputTransport_->wroteBytes(4);
 
-    server_->incrementActiveProcessors();
-      try {
+    try {
         // Invoke the processor
         processor_->process(inputProtocol_, outputProtocol_,
                             connectionContext_);
       } catch (const TTransportException &ttx) {
         GlobalOutput.printf("TFastoreServer transport error in "
                             "process(): %s", ttx.what());
-        server_->decrementActiveProcessors();
         close();
         return;
       } catch (const std::exception &x) {
         GlobalOutput.printf("Server::process() uncaught exception: %s: %s",
                             typeid(x).name(), x.what());
-        server_->decrementActiveProcessors();
         close();
         return;
       } catch (...) {
         GlobalOutput.printf("Server::process() unknown exception");
-        server_->decrementActiveProcessors();
         close();
         return;
       }
@@ -536,7 +537,6 @@ void TFastoreServer::TConnection::transition() {
     // into the outputTransport_, so we grab its contents and place them into
     // the writeBuffer_ for actual writing by the libevent thread
 
-    server_->decrementActiveProcessors();
     // Get the result of the operation
     outputTransport_->getBuffer(&writeBuffer_, &writeBufferSize_);
 
@@ -636,7 +636,6 @@ void TFastoreServer::TConnection::transition() {
     return;
 
   case APP_CLOSE_CONNECTION:
-    server_->decrementActiveProcessors();
     close();
     return;
 
@@ -697,7 +696,7 @@ void TFastoreServer::TConnection::setFlags(short eventFlags) {
    */
   event_set(&event_, tSocket_->getSocketFD(), eventFlags_,
             TConnection::eventHandler, this);
-  event_base_set(ioThread_->getEventBase(), &event_);
+  event_base_set(server_->getEventBase(), &event_);
 
   // Add the event
   if (event_add(&event_, 0) == -1) {
@@ -717,7 +716,6 @@ void TFastoreServer::TConnection::close() {
   if (serverEventHandler_ != NULL) {
     serverEventHandler_->deleteContext(connectionContext_, inputProtocol_, outputProtocol_);
   }
-  ioThread_ = NULL;
 
   // Close the socket
   tSocket_->close();
@@ -759,6 +757,28 @@ TFastoreServer::~TFastoreServer() {
     connectionStack_.pop();
     delete connection;
   }
+
+   if (eventBase_) {
+    event_base_free(eventBase_);
+  }
+
+  if (serverSocket_ >= 0) {
+    if (0 != ::close(serverSocket_)) {
+      GlobalOutput.perror("TFastoreServer listenSocket_ close(): ",
+                          errno);
+    }
+    serverSocket_ = TFastoreServer::INVALID_SOCKET_VALUE;
+  }
+
+  for (int i = 0; i < 2; ++i) {
+    if (notificationPipeFDs_[i] >= 0) {
+      if (0 != ::close(notificationPipeFDs_[i])) {
+        GlobalOutput.perror("TFastoreServer notificationPipe close(): ",
+                            errno);
+      }
+      notificationPipeFDs_[i] = TFastoreServer::INVALID_SOCKET_VALUE;
+    }
+  }
 }
 
 /**
@@ -771,12 +791,12 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(
   // Check the connection stack to see if we can re-use
   TConnection* result = NULL;
   if (connectionStack_.empty()) {
-    result = new TConnection(socket, _thread, addr, addrLen);
+    result = new TConnection(socket, this, addr, addrLen);
     ++numTConnections_;
   } else {
     result = connectionStack_.top();
     connectionStack_.pop();
-    result->init(socket, _thread, addr, addrLen);
+    result->init(socket, this, addr, addrLen);
   }
   return result;
 }
@@ -1011,7 +1031,7 @@ void TFastoreServer::expireClose(TConnection* connection) {
 }
 
 void TFastoreServer::stop() {
-	_thread->stop();
+	stopEvent();
 }
 
 /**
@@ -1027,49 +1047,10 @@ void TFastoreServer::serve() {
     eventHandler_->preServe();
   }
 
-  _thread = new TThreadSurrogate(this, serverSocket_);
-
-  // Run the listener
-  _thread->run();
+  runEvent();
 }
 
-
-TThreadSurrogate::TThreadSurrogate(TFastoreServer* server,
-                                           int listenSocket)
-      : server_(server)
-      , listenSocket_(listenSocket)
-      , eventBase_(NULL)
-{
-  notificationPipeFDs_[0] = -1;
-  notificationPipeFDs_[1] = -1;
-}
-
-TThreadSurrogate::~TThreadSurrogate() {
-
-  if (eventBase_) {
-    event_base_free(eventBase_);
-  }
-
-  if (listenSocket_ >= 0) {
-    if (0 != ::close(listenSocket_)) {
-      GlobalOutput.perror("TThreadSurrogate listenSocket_ close(): ",
-                          errno);
-    }
-    listenSocket_ = TFastoreServer::INVALID_SOCKET_VALUE;
-  }
-
-  for (int i = 0; i < 2; ++i) {
-    if (notificationPipeFDs_[i] >= 0) {
-      if (0 != ::close(notificationPipeFDs_[i])) {
-        GlobalOutput.perror("TThreadSurrogate notificationPipe close(): ",
-                            errno);
-      }
-      notificationPipeFDs_[i] = TFastoreServer::INVALID_SOCKET_VALUE;
-    }
-  }
-}
-
-void TThreadSurrogate::createNotificationPipe() {
+void TFastoreServer::createNotificationPipe() {
   if(evutil_socketpair(AF_LOCAL, SOCK_STREAM, 0, notificationPipeFDs_) == -1) {
     GlobalOutput.perror("TFastoreServer::createNotificationPipe ", EVUTIL_SOCKET_ERROR());
     throw TException("can't create notification pipe");
@@ -1099,14 +1080,14 @@ void TThreadSurrogate::createNotificationPipe() {
 /**
  * Register the core libevent events onto the proper base.
  */
-void TThreadSurrogate::registerEvents() {
-  if (listenSocket_ >= 0) {
+void TFastoreServer::registerEvents() {
+  if (serverSocket_ >= 0) {
     // Register the server event
     event_set(&serverEvent_,
-              listenSocket_,
+              serverSocket_,
               EV_READ | EV_PERSIST,
-              TThreadSurrogate::listenHandler,
-              server_);
+              listenHandler,
+              this);
     event_base_set(eventBase_, &serverEvent_);
 
     // Add the event and start up the server
@@ -1123,7 +1104,7 @@ void TThreadSurrogate::registerEvents() {
   event_set(&notificationEvent_,
             getNotificationRecvFD(),
             EV_READ | EV_PERSIST,
-            TThreadSurrogate::notifyHandler,
+            notifyHandler,
             this);
 
   // Attach to the base
@@ -1137,7 +1118,7 @@ void TThreadSurrogate::registerEvents() {
   GlobalOutput.printf("TNonblocking: IO thread #%d registered for notify.");
 }
 
-bool TThreadSurrogate::notify(TFastoreServer::TConnection* conn) {
+bool TFastoreServer::notify(TFastoreServer::TConnection* conn) {
   int fd = getNotificationSendFD();
   if (fd < 0) {
     return false;
@@ -1152,9 +1133,9 @@ bool TThreadSurrogate::notify(TFastoreServer::TConnection* conn) {
 }
 
 /* static */
-void TThreadSurrogate::notifyHandler(evutil_socket_t fd, short which, void* v) {
-  TThreadSurrogate* ioThread = (TThreadSurrogate*) v;
-  assert(ioThread);
+void TFastoreServer::notifyHandler(evutil_socket_t fd, short which, void* v) {
+  TFastoreServer* server = (TFastoreServer*) v;
+  assert(server);
   (void)which;
 
   while (true) {
@@ -1171,7 +1152,7 @@ void TThreadSurrogate::notifyHandler(evutil_socket_t fd, short which, void* v) {
       // throw away these bytes and hope that next time we get a solid read
       GlobalOutput.printf("notifyHandler: Bad read of %d bytes, wanted %d",
                           nBytes, kSize);
-      ioThread->breakLoop(true);
+      server->breakLoop(true);
       return;
     } else if (nBytes == 0) {
       GlobalOutput.printf("notifyHandler: Notify socket closed!");
@@ -1181,7 +1162,7 @@ void TThreadSurrogate::notifyHandler(evutil_socket_t fd, short which, void* v) {
       if (errno != EWOULDBLOCK && errno != EAGAIN) {
           GlobalOutput.perror(
             "TNonblocking: notifyHandler read() failed: ", errno);
-          ioThread->breakLoop(true);
+          server->breakLoop(true);
           return;
       }
       // exit the loop
@@ -1190,7 +1171,7 @@ void TThreadSurrogate::notifyHandler(evutil_socket_t fd, short which, void* v) {
   }
 }
 
-void TThreadSurrogate::breakLoop(bool error) {
+void TFastoreServer::breakLoop(bool error) {
   if (error) {
     GlobalOutput.printf(
       "TFastoreServer: IO thread #%d exiting with error.");
@@ -1215,7 +1196,7 @@ void TThreadSurrogate::breakLoop(bool error) {
 
 }
 
-void TThreadSurrogate::run() {
+void TFastoreServer::runEvent() {
   assert(eventBase_ == 0);
   eventBase_ = event_base_new();
 
@@ -1237,11 +1218,11 @@ void TThreadSurrogate::run() {
   GlobalOutput.printf("TFastoreServer: IO thread run() done!");
 }
 
-void TThreadSurrogate::cleanupEvents() {
+void TFastoreServer::cleanupEvents() {
   // stop the listen socket, if any
-  if (listenSocket_ >= 0) {
+  if (serverSocket_ >= 0) {
     if (event_del(&serverEvent_) == -1) {
-      GlobalOutput.perror("TThreadSurrogate::stop() event_del: ", errno);
+      GlobalOutput.perror("TFastoreServer::stop() event_del: ", errno);
     }
   }
 
@@ -1249,7 +1230,7 @@ void TThreadSurrogate::cleanupEvents() {
 }
 
 
-void TThreadSurrogate::stop() {
+void TFastoreServer::stopEvent() {
   // This should cause the thread to fall out of its event loop ASAP.
   breakLoop(false);
 }

@@ -87,16 +87,11 @@ enum TOverloadAction {
   T_OVERLOAD_CLOSE_ON_ACCEPT  ///< Drop new connections immediately */
 };
 
-class TThreadSurrogate;
-
 class TFastoreServer : public TServer {
  private:
   class TConnection;
 
-  friend class TThreadSurrogate;
  private:
-
-  TThreadSurrogate* _thread;
 
   /// Listen backlog
   static const int LISTEN_BACKLOG = 1024;
@@ -206,13 +201,21 @@ class TFastoreServer : public TServer {
   /// Count of connections dropped on overload since server started
   uint64_t nTotalConnectionsDropped_;
 
-  /**
-   * This is a stack of all the objects that have been created but that
-   * are NOT currently in use. When we close a connection, we place it on this
-   * stack so that the object can be reused later, rather than freeing the
-   * memory and reallocating a new object later.
-   */
+  //Pool of UNUSED connections
   std::stack<TConnection*> connectionStack_;
+
+  /// pointer to eventbase to be used for looping
+  event_base* eventBase_;
+
+  /// Used with eventBase_ for connection events (only in listener thread)
+  struct event serverEvent_;
+
+  /// Used with eventBase_ for task completion notification
+  struct event notificationEvent_;
+
+ /// File descriptors for pipe used for task completion notification.
+  evutil_socket_t notificationPipeFDs_[2];
+
 
   /**
    * Called when server socket had something happen.  We accept all waiting
@@ -261,6 +264,9 @@ class TFastoreServer : public TServer {
                      THRIFT_OVERLOAD_IF(Processor, TProcessor)) :
     TServer(processor) {
     init(port);
+
+	notificationPipeFDs_[0] = -1;
+	notificationPipeFDs_[1] = -1;
   }
 
   template<typename ProcessorFactory>
@@ -275,6 +281,9 @@ class TFastoreServer : public TServer {
 
     setInputProtocolFactory(protocolFactory);
     setOutputProtocolFactory(protocolFactory);
+
+	notificationPipeFDs_[0] = -1;
+	notificationPipeFDs_[1] = -1;
   }
 
   template<typename Processor>
@@ -289,6 +298,9 @@ class TFastoreServer : public TServer {
 
     setInputProtocolFactory(protocolFactory);
     setOutputProtocolFactory(protocolFactory);
+
+	notificationPipeFDs_[0] = -1;
+	notificationPipeFDs_[1] = -1;
   }
 
   template<typename ProcessorFactory>
@@ -308,6 +320,9 @@ class TFastoreServer : public TServer {
     setOutputTransportFactory(outputTransportFactory);
     setInputProtocolFactory(inputProtocolFactory);
     setOutputProtocolFactory(outputProtocolFactory);
+
+	notificationPipeFDs_[0] = -1;
+	notificationPipeFDs_[1] = -1;
   }
 
   template<typename Processor>
@@ -327,15 +342,14 @@ class TFastoreServer : public TServer {
     setOutputTransportFactory(outputTransportFactory);
     setInputProtocolFactory(inputProtocolFactory);
     setOutputProtocolFactory(outputProtocolFactory);
+
+	notificationPipeFDs_[0] = -1;
+	notificationPipeFDs_[1] = -1;
   }
 
   ~TFastoreServer();
 
-  /**
-   * Get the maximum number of unused TConnection we will hold in reserve.
-   *
-   * @return the current limit on TConnection pool size.
-   */
+  // Get the maximum number of unused TConnection we will hold in reserve.
   size_t getConnectionStackLimit() const {
     return connectionStackLimit_;
   }
@@ -377,30 +391,6 @@ class TFastoreServer : public TServer {
   }
 
   /**
-   * Return count of number of connections which are currently processing.
-   * This is defined as a connection where all data has been received and
-   * either assigned a task (when threading) or passed to a handler (when
-   * not threading), and where the handler has not yet returned.
-   *
-   * @return # of connections currently processing.
-   */
-  size_t getNumActiveProcessors() const {
-    return numActiveProcessors_;
-  }
-
-  /// Increment the count of connections currently processing.
-  void incrementActiveProcessors() {
-    ++numActiveProcessors_;
-  }
-
-  /// Decrement the count of connections currently processing.
-  void decrementActiveProcessors() {
-    if (numActiveProcessors_ > 0) {
-      --numActiveProcessors_;
-    }
-  }
-
-  /**
    * Get the maximum # of connections allowed before overload.
    *
    * @return current setting.
@@ -416,24 +406,6 @@ class TFastoreServer : public TServer {
    */
   void setMaxConnections(size_t maxConnections) {
     maxConnections_ = maxConnections;
-  }
-
-  /**
-   * Get the maximum # of connections waiting in handler/task before overload.
-   *
-   * @return current setting.
-   */
-  size_t getMaxActiveProcessors() const {
-    return maxActiveProcessors_;
-  }
-
-  /**
-   * Set the maximum # of connections waiting in handler/task before overload.
-   *
-   * @param maxActiveProcessors new setting for maximum # of active processes.
-   */
-  void setMaxActiveProcessors(size_t maxActiveProcessors) {
-    maxActiveProcessors_ = maxActiveProcessors;
   }
 
   /**
@@ -525,12 +497,6 @@ class TFastoreServer : public TServer {
    */
   bool serverOverloaded();
 
-  /** Pop and discard next task on threadpool wait queue.
-   *
-   * @return true if a task was discarded, false if the wait queue was empty.
-   */
-  bool drainPendingTask();
-
   /**
    * Get the starting size of a TConnection object's write buffer.
    *
@@ -559,16 +525,6 @@ class TFastoreServer : public TServer {
   }
 
   /**
-   * [NOTE: This is for backwards compatibility, use getIdleReadBufferLimit().]
-   * Get the maximum size of read buffer allocated to idle TConnection objects.
-   *
-   * @return # bytes beyond which we will dealloc idle buffer.
-   */
-  size_t getIdleBufferMemLimit() const {
-    return idleReadBufferLimit_;
-  }
-
-  /**
    * Set the maximum size read buffer allocated to idle TConnection objects.
    * If a TConnection object is found (either on connection close or between
    * calls when resizeBufferEveryN_ is set) with more than this much memory
@@ -580,22 +536,6 @@ class TFastoreServer : public TServer {
   void setIdleReadBufferLimit(size_t limit) {
     idleReadBufferLimit_ = limit;
   }
-
-  /**
-   * [NOTE: This is for backwards compatibility, use setIdleReadBufferLimit().]
-   * Set the maximum size read buffer allocated to idle TConnection objects.
-   * If a TConnection object is found (either on connection close or between
-   * calls when resizeBufferEveryN_ is set) with more than this much memory
-   * allocated to its read buffer, we free it and allow it to be reinitialized
-   * on the next received frame.
-   *
-   * @param limit of bytes beyond which we will shrink buffers when checked.
-   */
-  void setIdleBufferMemLimit(size_t limit) {
-    idleReadBufferLimit_ = limit;
-  }
-
-
 
   /**
    * Get the maximum size of write buffer allocated to idle TConnection objects.
@@ -692,24 +632,12 @@ class TFastoreServer : public TServer {
    * @param connection the TConection being returned.
    */
   void returnConnection(TConnection* connection);
-};
 
-class TThreadSurrogate {
- public:
 
-  // Creates an IO thread and sets up the event base.  The listenSocket should
-  // be a valid FD on which listen() has already been called.  If the
-  // listenSocket is < 0, accepting will not be done.
-  TThreadSurrogate(TFastoreServer* server,
-                       int listenSocket);
 
-  ~TThreadSurrogate();
 
   // Returns the event-base for this thread.
   event_base* getEventBase() const { return eventBase_; }
-
-  // Returns the server for this thread.
-  TFastoreServer* getServer() const { return server_; }
 
   // Returns the send-fd for task complete notifications.
   evutil_socket_t getNotificationSendFD() const { return notificationPipeFDs_[1]; }
@@ -721,16 +649,12 @@ class TThreadSurrogate {
   bool notify(TFastoreServer::TConnection* conn);
 
   // Enters the event loop and does not return until a call to stop().
-  void run();
+  void runEvent();
 
   // Exits the event loop as soon as possible.
-  void stop();
+  void stopEvent();
 
-  // Ensures that the event-loop thread is fully finished and shut down.
-  void join();
-
- private:
-  /**
+   /**
    * C-callable event handler for signaling task completion.  Provides a
    * callback that libevent can understand that will read a connection
    * object's address from a pipe and call connection->transition() for
@@ -766,25 +690,6 @@ class TThreadSurrogate {
 
   /// Sets (or clears) high priority scheduling status for the current thread.
   void setCurrentThreadHighPriority(bool value);
-
- private:
-  /// associated server
-  TFastoreServer* server_;
-
-  /// If listenSocket_ >= 0, adds an event on the event_base to accept conns
-  int listenSocket_;
-
-  /// pointer to eventbase to be used for looping
-  event_base* eventBase_;
-
-  /// Used with eventBase_ for connection events (only in listener thread)
-  struct event serverEvent_;
-
-  /// Used with eventBase_ for task completion notification
-  struct event notificationEvent_;
-
- /// File descriptors for pipe used for task completion notification.
-  evutil_socket_t notificationPipeFDs_[2];
 };
 
 }}} // apache::thrift::server
