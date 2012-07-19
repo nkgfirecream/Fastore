@@ -173,10 +173,6 @@ class TFastoreServer::TConnection {
   /// Close this connection and free or reset its resources.
   void close();
 
-  //Test the socket to see if it is ready to use.
-  bool testRead();
-  bool testWrite();
-
  public:
 
   /// Constructor
@@ -238,6 +234,12 @@ class TFastoreServer::TConnection {
   /// get state of connection.
   TAppState getState() const {
     return appState_;
+  }
+
+  /// get state of socket
+  TSocketState getSocketState() const 
+  {
+	  return socketState_;
   }
 
   /// return the TSocket transport wrapping this network connection
@@ -449,60 +451,12 @@ void TFastoreServer::TConnection::work()
 			return;
 		case APP_READ_REQUEST:
 		case APP_READ_FRAME_SIZE:
-			if (testRead())
-				workSocket();
-			return;
 		case APP_SEND_RESULT:
-			if (testWrite())
-				workSocket();
+			workSocket();
 			return;
 		default:
 		GlobalOutput.printf("Unexpected Application State %d", appState_);
 	}
-}
-
-bool TFastoreServer::TConnection::testRead()
-{
-	bool result = false;
-	if (socketState_ == SOCKET_RECV_FRAMING || socketState_ == SOCKET_RECV)
-	{
-		fd_set read_flags;
-		FD_ZERO(&read_flags);
-		//FD_ZERO(&write_flags);
-		FD_SET(tSocket_->getSocketFD(), &read_flags);
-		int err = select(tSocket_->getSocketFD(), &read_flags, NULL, NULL, &wait);
-		if (err < 0)
-			return false;
-
-		if (FD_ISSET(tSocket_->getSocketFD(), &read_flags))
-			result = true;
-
-		FD_CLR(tSocket_->getSocketFD(), &read_flags);
-	}
-
-	return result;
-}
-
-bool TFastoreServer::TConnection::testWrite()
-{
-	bool result = false;
-	if (socketState_ == SOCKET_SEND)
-	{
-		fd_set write_flags;
-		FD_ZERO(&write_flags);
-		//FD_ZERO(&write_flags);
-		FD_SET(tSocket_->getSocketFD(), &write_flags);
-		int err = select(tSocket_->getSocketFD(), NULL, &write_flags, NULL, &wait);
-		if (err < 0)
-			return false;
-
-		if (FD_ISSET(tSocket_->getSocketFD(), &write_flags))
-			result = true;
-
-		FD_CLR(tSocket_->getSocketFD(), &write_flags);
-	}
-
-	return result;
 }
 
 /**
@@ -920,93 +874,106 @@ void TFastoreServer::serve() {
 
 void TFastoreServer::runEventless()
 {
+	pollfd * fds = new pollfd[getMaxConnections() + 1];
+
+	fds[0].events = POLLIN;
+	fds[0].fd = serverSocket_;
+
 	_break = false;
 	while(!_break)
 	{
-		//First, try to process on open connections.
-		//Discard connections that are expired,
-		//Ignore ones that are parked.
+		//construct fd array
 		for (int i = 0; i < activeConnections_.size(); i++)
 		{
-			TConnection* connection = activeConnections_[i];
-			
-			//attempt work on connection
-			connection->work();
-		}
+			fds[i + 1].revents = 0;
+			fds[i + 1].fd = activeConnections_[i]->getTSocket()->getSocketFD();
+			fds[i + 1].events = activeConnections_[i]->getSocketState() == SOCKET_RECV_FRAMING || activeConnections_[i]->getSocketState() == SOCKET_RECV ? POLLIN : POLLOUT;
+		}		
 
-		//Try to accept new connections
-		socklen_t addrLen;
-		sockaddr_storage addrStorage;
-		sockaddr* addrp = (sockaddr*)&addrStorage;
-		addrLen = sizeof(addrStorage);
-
-		// Going to accept a new client socket
-		int clientSocket;
-
-		// Accept as many new clients as possible, even though libevent signaled only
-		// one, this helps us to avoid having to go back into the libevent engine so
-		// many times
-		while ((clientSocket = ::accept(serverSocket_, addrp, &addrLen)) != -1)
+		int numready = poll(fds, activeConnections_.size() + 1, -1);
+		
+		if(numready > 0 )
 		{
-			// If we're overloaded, take action here
-			if (overloadAction_ != T_OVERLOAD_NO_ACTION && serverOverloaded())
+			for (int i = 0; i < activeConnections_.size(); i++)
 			{
-				nConnectionsDropped_++;
-				nTotalConnectionsDropped_++;
-
-				::close(clientSocket);
-				return;
+				if (fds[i + 1].revents != 0)
+					activeConnections_[i]->work();
 			}
 
-			// Explicitly set this socket to NONBLOCK mode
-			int flags;
-			if ((flags = fcntl(clientSocket, F_GETFL, 0)) < 0 || fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) < 0)
+			if (fds[0].revents != 0)
 			{
-				GlobalOutput.perror("thriftServerEventHandler: set O_NONBLOCK (fcntl) ", errno);
-				::close(clientSocket);
-				return;
-			}
+				//Try to accept new connections
+				socklen_t addrLen;
+				sockaddr_storage addrStorage;
+				sockaddr* addrp = (sockaddr*)&addrStorage;
+				addrLen = sizeof(addrStorage);
 
-			// Create a new TConnection for this client socket.
-			TConnection* clientConnection =
-				createConnection(clientSocket, addrp, addrLen);
+				// Going to accept a new client socket
+				int clientSocket;
 
-			// Fail fast if we could not create a TConnection object
-			if (clientConnection == NULL) {
-				GlobalOutput.printf("thriftServerEventHandler: failed TConnection factory");
-				::close(clientSocket);
-				return;
-			}
+				// Accept as many new clients as possible, even though libevent signaled only
+				// one, this helps us to avoid having to go back into the libevent engine so
+				// many times
+				while ((clientSocket = ::accept(serverSocket_, addrp, &addrLen)) != -1)
+				{
+					// If we're overloaded, take action here
+					if (overloadAction_ != T_OVERLOAD_NO_ACTION && serverOverloaded())
+					{
+						nConnectionsDropped_++;
+						nTotalConnectionsDropped_++;
 
-			/*
-				* Either notify the ioThread that is assigned this connection to
-				* start processing, or if it is us, we'll just ask this
-				* connection to do its initial state change here.
-				*
-				* (We need to avoid writing to our own notification pipe, to
-				* avoid possible deadlocks if the pipe is full.)
-				*
-				* The IO thread #0 is the only one that handles these listen
-				* events, so unless the connection has been assigned to thread #0
-				* we know it's not on our thread.
-				*/
-			clientConnection->work();
+						::close(clientSocket);
+						break;
+					}
+
+					// Explicitly set this socket to NONBLOCK mode
+					int flags;
+					if ((flags = fcntl(clientSocket, F_GETFL, 0)) < 0 || fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) < 0)
+					{
+						GlobalOutput.perror("thriftServerEventHandler: set O_NONBLOCK (fcntl) ", errno);
+						::close(clientSocket);
+						
+					}
+
+					// Create a new TConnection for this client socket.
+					TConnection* clientConnection =
+						createConnection(clientSocket, addrp, addrLen);
+
+					// Fail fast if we could not create a TConnection object
+					if (clientConnection == NULL) {
+						GlobalOutput.printf("thriftServerEventHandler: failed TConnection factory");
+						::close(clientSocket);
+						break;
+					}
+
+					/*
+						* Either notify the ioThread that is assigned this connection to
+						* start processing, or if it is us, we'll just ask this
+						* connection to do its initial state change here.
+						*
+						* (We need to avoid writing to our own notification pipe, to
+						* avoid possible deadlocks if the pipe is full.)
+						*
+						* The IO thread #0 is the only one that handles these listen
+						* events, so unless the connection has been assigned to thread #0
+						* we know it's not on our thread.
+						*/
+					clientConnection->work();
  
 
-			// addrLen is written by the accept() call, so needs to be set before the next call.
-			addrLen = sizeof(addrStorage);
+					// addrLen is written by the accept() call, so needs to be set before the next call.
+					addrLen = sizeof(addrStorage);
+				}
+
+
+				// Done looping accept, now we have to make sure the error is due to
+				// blocking. Any other error is a problem
+				if (errno != EAGAIN && errno != EWOULDBLOCK)
+				{
+					GlobalOutput.perror("thriftServerEventHandler: accept() ", errno);
+				}
+			}
 		}
-
-
-		// Done looping accept, now we have to make sure the error is due to
-		// blocking. Any other error is a problem
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
-		{
-			GlobalOutput.perror("thriftServerEventHandler: accept() ", errno);
-		}
-
-		if(activeConnections_.size() == 0)
-			sleep(5);
 	}
 
 	//Cleaup up

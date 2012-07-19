@@ -73,7 +73,7 @@ class TFastoreServer : public TServer {
   static const int MAX_FRAME_SIZE = 256 * 1024 * 1024;
 
   /// Default limit on total number of connected sockets
-  static const int MAX_CONNECTIONS = INT_MAX;
+  static const int MAX_CONNECTIONS = 1024;
 
   /// Default size of write buffer
   static const int WRITE_BUFFER_DEFAULT_SIZE = 1024;
