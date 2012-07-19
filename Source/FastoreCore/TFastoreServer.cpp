@@ -658,11 +658,16 @@ void TFastoreServer::TConnection::checkIdleBufferMemLimit(
  */
 
 TFastoreServer::~TFastoreServer() {
-  // TODO: We currently leak any active TConnection objects.
-  // Since we're shutting down and destroying the event_base, the TConnection
-  // objects will never receive any additional callbacks.  (And even if they
-  // did, it would be bad, since they keep a pointer around to the server,
-  // which is being destroyed.)
+
+  //Kill our current active connections...
+  while (!activeConnections_.empty())
+  {
+	  TConnection* connection = activeConnections_.back();
+	  activeConnections_.pop_back();
+	  connection->forceClose();
+	  //Doon't delete the connection. Force close puts them back on the 
+	  //unused connection pool.
+  }
 
   // Clean up unused TConnection objects in connectionStack_
   while (!connectionPool_.empty()) {
@@ -868,11 +873,10 @@ void TFastoreServer::serve() {
     eventHandler_->preServe();
   }
 
-  //runEvent();
-  runEventless();
+  run();
 }
 
-void TFastoreServer::runEventless()
+void TFastoreServer::run()
 {
 	pollfd * fds = new pollfd[getMaxConnections() + 1];
 
@@ -974,13 +978,7 @@ void TFastoreServer::runEventless()
 				}
 			}
 		}
-	}
-
-	//Cleaup up
-	for(int i = activeConnections_.size() - 1; i > 0; i--)
-	{
-		activeConnections_[i]->forceClose();
-	}
+	}	
 }
 
 }}} // apache::thrift::server

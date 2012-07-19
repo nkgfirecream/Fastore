@@ -554,8 +554,8 @@ class TFastoreServer : public TServer {
   // Used by TConnection objects to indicate processing has finished.
   bool notify(TFastoreServer::TConnection* conn);
 
-  //Run without events
-  void runEventless();
+  //Run connection loop
+  void run();
 
 };
 
