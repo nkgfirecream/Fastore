@@ -87,11 +87,11 @@ class TFastoreServer : public TServer {
   /// # of calls before resizing oversized buffers (0 = check only on close)
   static const int RESIZE_BUFFER_EVERY_N = 512;
 
-  /// # of IO threads to use by default
-  static const int DEFAULT_IO_THREADS = 1;
-
   /// File descriptor of an invalid socket
   static const int INVALID_SOCKET_VALUE = -1;
+
+  /// Default poll timeout
+  static const int POLL_TIMEOUT = 1000;
 
   /// Server socket file descriptor
   int serverSocket_;
@@ -110,6 +110,9 @@ class TFastoreServer : public TServer {
 
   /// Time in milliseconds before a connection expires (0 == infinite).
   int64_t connectionExpireTime_;
+
+  /// number of milliseconds to poll for events
+  int pollTimeout_;
 
   /**
    * Hysteresis for overload state.  This is the fraction of the overload
@@ -162,8 +165,8 @@ class TFastoreServer : public TServer {
   //Pool of UNUSED connections
   std::stack<TConnection*> connectionPool_;
 
-  //List of Active connections
-  std::vector<TConnection*> activeConnections_;
+  //List of Active connections (by socket fd id).
+  std::map<int, TConnection*> activeConnections_;
 
   
   // Signal to stop
@@ -182,6 +185,7 @@ class TFastoreServer : public TServer {
     idleReadBufferLimit_ = IDLE_READ_BUFFER_LIMIT;
     idleWriteBufferLimit_ = IDLE_WRITE_BUFFER_LIMIT;
     resizeBufferEveryN_ = RESIZE_BUFFER_EVERY_N;
+	pollTimeout_ = POLL_TIMEOUT;
     overloaded_ = false;
     nConnectionsDropped_ = 0;
     nTotalConnectionsDropped_ = 0;
@@ -272,6 +276,17 @@ class TFastoreServer : public TServer {
   }
 
   ~TFastoreServer();
+
+    // Get the current number of milliseconds for polling.
+  int getPollTimeout() const {
+    return pollTimeout_;
+  }
+
+  // Set the number of milliseconds to poll for.
+  void setPollTimeout(int timeout)
+  {
+    pollTimeout_ = timeout;
+  }
 
   // Get the maximum number of unused TConnection we will hold in reserve.
   size_t getConnectionPoolLimit() const {
@@ -514,10 +529,13 @@ class TFastoreServer : public TServer {
    */
   void stop();
 
- private:
+  /**
+   *Causes the server to terminate all connections that haven't had activity in the last
+   *timeout milliseconds
+   */
+  void expire(long timeout);
 
-	//TODO: Expire a connection....
-  void expireClose(TConnection* connection);
+ private:
 
   /// Creates a socket to listen on and binds it to the local port.
   void createAndListenOnSocket();
@@ -556,6 +574,9 @@ class TFastoreServer : public TServer {
 
   //Run connection loop
   void run();
+
+  //accept new connections
+  void acceptConnections();
 
 };
 

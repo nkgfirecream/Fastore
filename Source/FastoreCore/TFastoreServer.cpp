@@ -79,7 +79,7 @@ enum TAppState {
   APP_INIT,
   APP_READ_FRAME_SIZE,
   APP_READ_REQUEST,
-  APP_WAIT_TASK,
+  APP_PARKED,
   APP_SEND_RESULT,
   APP_CLOSE_CONNECTION
 };
@@ -137,8 +137,8 @@ class TFastoreServer::TConnection {
   /// Count of the number of calls for use with getResizeBufferEveryN().
   int32_t callsForResize_;
 
-  //Wait time on select call
-  struct timeval wait;
+  // Time last action occured on the connection
+  clock_t lastAction_;
 
   /// Transport to read from
   boost::shared_ptr<TMemoryBuffer> inputTransport_;
@@ -161,14 +161,6 @@ class TFastoreServer::TConnection {
 
   /// Thrift call context, if any
   void *connectionContext_;
-
-  /**
-   * Libevent handler called (via our static wrapper) when the connection
-   * socket had something happen.  Rather than use the flags libevent passed,
-   * we use the connection state to determine whether we need to read or
-   * write the socket.
-   */
-  void workSocket();
 
   /// Close this connection and free or reset its resources.
   void close();
@@ -215,10 +207,25 @@ class TFastoreServer::TConnection {
    */
   void transition();
 
-  /**
-   *This attempts to determine the state of the socket and work if there is work to do
+   /**
+   * server calls this when socket is ready
    */
-  void work();
+  void workSocket();
+
+  // When transitioning if the connection flagged to be parked
+  // The transition will go to park rather than return after an operation.
+  void park()
+  {
+	  appState_ = APP_PARKED;
+  }
+
+  //Attempt to expire the connection. If the last action occured
+  // more than timeout milliseconds ago, close the connection.
+  void expire(long timeout)
+  {
+	  if ((clock() - lastAction_) > timeout)
+		appState_ = APP_CLOSE_CONNECTION;
+  }
 
   /// Force connection shutdown for this connection.
   void forceClose() {
@@ -234,12 +241,6 @@ class TFastoreServer::TConnection {
   /// get state of connection.
   TAppState getState() const {
     return appState_;
-  }
-
-  /// get state of socket
-  TSocketState getSocketState() const 
-  {
-	  return socketState_;
   }
 
   /// return the TSocket transport wrapping this network connection
@@ -265,9 +266,6 @@ void TFastoreServer::TConnection::init(int socket,
                                            socklen_t addrLen) {
   tSocket_->setSocketFD(socket);
   tSocket_->setCachedAddress(addr, addrLen);
-
-  wait.tv_sec = 0;
-  wait.tv_usec = 10;
 
   server_ = server;
   appState_ = APP_INIT;
@@ -435,30 +433,6 @@ void TFastoreServer::TConnection::workSocket() {
   }
 }
 
-void TFastoreServer::TConnection::work()
-{	
-	//Dispose of this connection if it's expired.
-
-	//Don't do anything if we are parked.
-
-	//See what our state is. If we are in a send or receive state, test if it's possible and then work the socket.
-	switch (appState_)
-	{
-		case APP_INIT:
-		case APP_CLOSE_CONNECTION:
-		case APP_WAIT_TASK:
-			transition();
-			return;
-		case APP_READ_REQUEST:
-		case APP_READ_FRAME_SIZE:
-		case APP_SEND_RESULT:
-			workSocket();
-			return;
-		default:
-		GlobalOutput.printf("Unexpected Application State %d", appState_);
-	}
-}
-
 /**
  * This is called when the application transitions from one state into
  * another. This means that it has finished writing the data that it needed
@@ -484,7 +458,7 @@ void TFastoreServer::TConnection::transition() {
     try {
         // Invoke the processor
         processor_->process(inputProtocol_, outputProtocol_,
-                            connectionContext_);
+                            this);
       } catch (const TTransportException &ttx) {
         GlobalOutput.printf("TFastoreServer transport error in "
                             "process(): %s", ttx.what());
@@ -501,10 +475,14 @@ void TFastoreServer::TConnection::transition() {
         return;
       }
 
+	  //The processor put us in parked state. We'll resume at the next case on the next call to transition.
+	  if(appState_ == APP_PARKED)
+		  return;
+
     // Intentionally fall through here, the call to process has written into
     // the writeBuffer_
 
-  case APP_WAIT_TASK:
+  case APP_PARKED:
     // We have now finished processing a task and the result has been written
     // into the outputTransport_, so we grab its contents and place them into
     // the writeBuffer_ for actual writing by the libevent thread
@@ -662,11 +640,10 @@ TFastoreServer::~TFastoreServer() {
   //Kill our current active connections...
   while (!activeConnections_.empty())
   {
-	  TConnection* connection = activeConnections_.back();
-	  activeConnections_.pop_back();
-	  connection->forceClose();
-	  //Doon't delete the connection. Force close puts them back on the 
-	  //unused connection pool.
+	  auto iter = activeConnections_.begin();
+	  iter->second->forceClose();
+	  //Don't delete the connection. Force close puts them back on the 
+	  //unused connection pool and removes them from the active connection list.
   }
 
   // Clean up unused TConnection objects in connectionStack_
@@ -702,7 +679,7 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(
     result->init(socket, this, addr, addrLen);
   }
 
-  activeConnections_.push_back(result);
+  activeConnections_.insert(pair<int,TConnection*>(socket, result));
 
   return result;
 }
@@ -712,9 +689,7 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(
  */
 void TFastoreServer::returnConnection(TConnection* connection) {
 
-  auto connLoc = find(activeConnections_.begin(), activeConnections_.end(), connection);
-  if (connLoc != activeConnections_.end())
-	activeConnections_.erase(connLoc);
+  activeConnections_.erase(activeConnections_.find(connection->getTSocket()->getSocketFD()));
 	
   if (connectionPoolLimit_ &&
       (connectionPool_.size() >= connectionPoolLimit_)) {
@@ -856,12 +831,16 @@ bool  TFastoreServer::serverOverloaded() {
   return overloaded_;
 }
 
-void TFastoreServer::expireClose(TConnection* connection) {
-  connection->forceClose();
-}
-
 void TFastoreServer::stop() {
 	_break = true;
+}
+
+void TFastoreServer::expire(long timeout)
+{
+	for (auto iter = activeConnections_.begin(); iter != activeConnections_.end(); ++iter)
+	{
+		iter->second->expire(timeout);
+	}
 }
 
 void TFastoreServer::serve() {
@@ -887,98 +866,117 @@ void TFastoreServer::run()
 	while(!_break)
 	{
 		//construct fd array
-		for (int i = 0; i < activeConnections_.size(); i++)
+		int fdindex = 1;
+		for (auto iter = activeConnections_.begin(); iter != activeConnections_.end(); )
 		{
-			fds[i + 1].revents = 0;
-			fds[i + 1].fd = activeConnections_[i]->getTSocket()->getSocketFD();
-			fds[i + 1].events = activeConnections_[i]->getSocketState() == SOCKET_RECV_FRAMING || activeConnections_[i]->getSocketState() == SOCKET_RECV ? POLLIN : POLLOUT;
-		}		
-
-		int numready = poll(fds, activeConnections_.size() + 1, 1000);
-		
-		if(numready > 0 )
-		{
-			for (int i = 0; i < activeConnections_.size(); i++)
+			switch (iter->second->getState())
 			{
-				if (fds[i + 1].revents != 0)
-					activeConnections_[i]->work();
+				case APP_READ_FRAME_SIZE:
+				case APP_READ_REQUEST:
+					fds[fdindex].events = POLLIN;
+					fds[fdindex].fd = iter->first;
+					fds[fdindex].revents = 0;
+					++fdindex;
+					break;
+				case APP_SEND_RESULT:
+					fds[fdindex].events = POLLOUT;
+					fds[fdindex].fd = iter->first;
+					fds[fdindex].revents = 0;
+					++fdindex;
+					break;
+				case APP_CLOSE_CONNECTION:
+					//TODO: this kills our iterator since the connection is return to the pool
+					iter->second->transition();
+					break;
+				default:
+					break;
+			}
+
+			++iter;
+		}
+
+		int numready = poll(fds, fdindex, 1000);
+		if (numready == -1)
+		{
+			GlobalOutput.printf("TFastoreServer: poll error");
+		}
+		else if(numready > 0 )
+		{
+			for (int i = 1; i < fdindex; i++)
+			{
+				if (fds[i].revents != 0)
+					activeConnections_[fds[i].fd]->workSocket();
 			}
 
 			if (fds[0].revents != 0)
 			{
-				//Try to accept new connections
-				socklen_t addrLen;
-				sockaddr_storage addrStorage;
-				sockaddr* addrp = (sockaddr*)&addrStorage;
-				addrLen = sizeof(addrStorage);
-
-				// Going to accept a new client socket
-				int clientSocket;
-
-				// Accept as many new clients as possible, even though libevent signaled only
-				// one, this helps us to avoid having to go back into the libevent engine so
-				// many times
-				while ((clientSocket = ::accept(serverSocket_, addrp, &addrLen)) != -1)
-				{
-					// If we're overloaded, take action here
-					if (overloadAction_ != T_OVERLOAD_NO_ACTION && serverOverloaded())
-					{
-						nConnectionsDropped_++;
-						nTotalConnectionsDropped_++;
-
-						::close(clientSocket);
-						break;
-					}
-
-					// Explicitly set this socket to NONBLOCK mode
-					int flags;
-					if ((flags = fcntl(clientSocket, F_GETFL, 0)) < 0 || fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) < 0)
-					{
-						GlobalOutput.perror("thriftServerEventHandler: set O_NONBLOCK (fcntl) ", errno);
-						::close(clientSocket);
-						
-					}
-
-					// Create a new TConnection for this client socket.
-					TConnection* clientConnection =
-						createConnection(clientSocket, addrp, addrLen);
-
-					// Fail fast if we could not create a TConnection object
-					if (clientConnection == NULL) {
-						GlobalOutput.printf("thriftServerEventHandler: failed TConnection factory");
-						::close(clientSocket);
-						break;
-					}
-
-					/*
-						* Either notify the ioThread that is assigned this connection to
-						* start processing, or if it is us, we'll just ask this
-						* connection to do its initial state change here.
-						*
-						* (We need to avoid writing to our own notification pipe, to
-						* avoid possible deadlocks if the pipe is full.)
-						*
-						* The IO thread #0 is the only one that handles these listen
-						* events, so unless the connection has been assigned to thread #0
-						* we know it's not on our thread.
-						*/
-					clientConnection->work();
- 
-
-					// addrLen is written by the accept() call, so needs to be set before the next call.
-					addrLen = sizeof(addrStorage);
-				}
-
-
-				// Done looping accept, now we have to make sure the error is due to
-				// blocking. Any other error is a problem
-				if (errno != EAGAIN && errno != EWOULDBLOCK)
-				{
-					GlobalOutput.perror("thriftServerEventHandler: accept() ", errno);
-				}
+				acceptConnections();
 			}
 		}
 	}	
+}
+
+void TFastoreServer::acceptConnections()
+{
+	//Try to accept new connections
+	socklen_t addrLen;
+	sockaddr_storage addrStorage;
+	sockaddr* addrp = (sockaddr*)&addrStorage;
+	addrLen = sizeof(addrStorage);
+
+	// Going to accept a new client socket
+	int clientSocket;
+
+	// Accept as many new clients as possible, even though libevent signaled only
+	// one, this helps us to avoid having to go back into the libevent engine so
+	// many times
+	while ((clientSocket = ::accept(serverSocket_, addrp, &addrLen)) != -1)
+	{
+		// If we're overloaded, take action here
+		if (overloadAction_ != T_OVERLOAD_NO_ACTION && serverOverloaded())
+		{
+			nConnectionsDropped_++;
+			nTotalConnectionsDropped_++;
+
+			::close(clientSocket);
+			break;
+		}
+
+		// Explicitly set this socket to NONBLOCK mode
+		int flags;
+		if ((flags = fcntl(clientSocket, F_GETFL, 0)) < 0 || fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK) < 0)
+		{
+			GlobalOutput.perror("TFastoreServer: set O_NONBLOCK (fcntl) ", errno);
+			::close(clientSocket);
+						
+		}
+
+		// Create a new TConnection for this client socket.
+		TConnection* clientConnection =
+			createConnection(clientSocket, addrp, addrLen);
+
+		// Fail fast if we could not create a TConnection object
+		if (clientConnection == NULL) {
+			GlobalOutput.printf("TFastoreServer: failed TConnection factory");
+			::close(clientSocket);
+			break;
+		}
+
+		//Initialize connection, try to perform first work.
+		clientConnection->transition();
+ 
+
+		// addrLen is written by the accept() call, so needs to be set before the next call.
+		addrLen = sizeof(addrStorage);
+	}
+
+
+	// Done looping accept, now we have to make sure the error is due to
+	// blocking. Any other error is a problem
+	if (errno != EAGAIN && errno != EWOULDBLOCK)
+	{
+		GlobalOutput.perror("TFastoreServer: accept() ", errno);
+	}
 }
 
 }}} // apache::thrift::server
