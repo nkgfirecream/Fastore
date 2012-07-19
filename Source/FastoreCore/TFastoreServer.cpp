@@ -890,7 +890,7 @@ void TFastoreServer::runEventless()
 			fds[i + 1].events = activeConnections_[i]->getSocketState() == SOCKET_RECV_FRAMING || activeConnections_[i]->getSocketState() == SOCKET_RECV ? POLLIN : POLLOUT;
 		}		
 
-		int numready = poll(fds, activeConnections_.size() + 1, -1);
+		int numready = poll(fds, activeConnections_.size() + 1, 1000);
 		
 		if(numready > 0 )
 		{
