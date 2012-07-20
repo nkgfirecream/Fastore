@@ -70,7 +70,8 @@ namespace Alphora.Fastore.Client
 				(
 					(proto) => new Service.Client(proto),
 					new Func<int, NetworkAddress>(GetServiceAddress),
-					(client) => { client.InputProtocol.Transport.Close(); }
+					(client) => { client.InputProtocol.Transport.Close(); },
+					(client) => client.InputProtocol.Transport.IsOpen
 				);
 
 			_workers =
@@ -78,7 +79,8 @@ namespace Alphora.Fastore.Client
 				(
 					(proto) => new Worker.Client(proto),
 					new Func<int, NetworkAddress>(GetWorkerAddress),
-					(client) => { client.InputProtocol.Transport.Close(); }
+					(client) => { client.InputProtocol.Transport.Close(); },
+					(client) => client.InputProtocol.Transport.IsOpen
 				);
 
 			// Convert from service addresses to network addresses

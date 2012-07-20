@@ -12,48 +12,48 @@ namespace Alphora.Fastore.Client
 		public const int MaxConnectionRetries = 3;
 
 		private Object _lock = new Object();
-		private Dictionary<TKey, TClient> _connections = new Dictionary<TKey, TClient>();
+		private Dictionary<TKey, Queue<TClient>> _entries = new Dictionary<TKey, Queue<TClient>>();
 		private Func<TProtocol, TClient> _createConnection;
 		private Func<TKey, NetworkAddress> _determineAddress;
 		private Action<TClient> _destroyConnection;
+		private Func<TClient, bool> _isValid;
 
 		public ConnectionPool
 		(
 			Func<TProtocol, TClient> createConnection, 
 			Func<TKey, NetworkAddress> determineAddress, 
-			Action<TClient> destroyConnection
+			Action<TClient> destroyConnection,
+			Func<TClient, bool> isValid
 		)
 		{
 			_createConnection = createConnection;
 			_determineAddress = determineAddress;
 			_destroyConnection = destroyConnection;
+			_isValid = isValid;
 		}
 
 		public void Dispose()
 		{
 			lock (_lock)
 			{
-				if (_connections != null)
+				if (_entries != null)
 				{
 					var errors = new List<Exception>();
-					foreach (var connection in _connections.ToArray())
+					foreach (var entry in _entries)
 					{
-						try
-						{
-							Destroy(connection.Value);
-						}
-						catch (Exception e)
-						{
-							errors.Add(e);
-						}
-						finally
-						{
-							_connections.Remove(connection.Key);
-						}
+						foreach (var connection in entry.Value)
+							try
+							{
+								Destroy(connection);
+							}
+							catch (Exception e)
+							{
+								errors.Add(e);
+							}
 					}
+					_entries = null;
 					ClientException.ThrowErrors(errors);
 				}
-				_connections = null;
 			}
 		}
 
@@ -65,22 +65,33 @@ namespace Alphora.Fastore.Client
 				bool taken = true;
 				try
 				{
-					TClient result;
-					// Check for existing known worker
-					if (!_connections.TryGetValue(key, out result))
+					// Loop to throw away invalid connections
+					while (true)
 					{
-						// Release the lock during connection
-						Monitor.Exit(_lock);
-						taken = false;
+						// Check for existing known worker
+						Queue<TClient> entry;
+						if (!_entries.TryGetValue(key, out entry))
+						{
+							// Release the lock during connection
+							Monitor.Exit(_lock);
+							taken = false;
 
-						var address = _determineAddress(key);
+							var address = _determineAddress(key);
 
-						result = Connect(address);
+							return Connect(address);
+						}
+						else
+						{
+							var result = entry.Dequeue();
+
+							// If last one out, remove the entry
+							if (entry.Count() == 0)
+								_entries.Remove(key);
+
+							if (_isValid(result))
+								return result;
+						}
 					}
-					else
-						_connections.Remove(key);
-
-					return result;
 				}
 				finally
 				{
@@ -92,17 +103,15 @@ namespace Alphora.Fastore.Client
 
 		public void Release(KeyValuePair<TKey, TClient> connection)
 		{
-			//Destroy(connection.Value);
             lock (_lock)
             {
-                TClient oldClient;
-                if (_connections.TryGetValue(connection.Key, out oldClient))
-                {
-                    Destroy(oldClient);
-                    _connections[connection.Key] = connection.Value;
-                }
-                else
-                    _connections.Add(connection.Key, connection.Value);
+				Queue<TClient> entry;
+                if (!_entries.TryGetValue(connection.Key, out entry))
+				{	
+					entry = new Queue<TClient>();
+                    _entries.Add(connection.Key, entry);
+				}
+				entry.Enqueue(connection.Value);
             }
 		}
 
@@ -112,7 +121,7 @@ namespace Alphora.Fastore.Client
 		}
 
 		/// <summary> Makes a connection to a service given address information. </summary>
-		/// <remarks> The resulting connection will not be pooled.  Use release to store the connection in the pool. </remarks>
+		/// <remarks> The resulting connection will not yet be in the pool.  Use release to store the connection in the pool. </remarks>
 		public TClient Connect(NetworkAddress address)
 		{
 			var transport = new Thrift.Transport.TSocket(address.Name, address.Port);
