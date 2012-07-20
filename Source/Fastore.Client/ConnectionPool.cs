@@ -10,6 +10,7 @@ namespace Alphora.Fastore.Client
 	public class ConnectionPool<TKey, TClient> : IDisposable
 	{
 		public const int MaxConnectionRetries = 3;
+		public const int DefaultMaxPooledPerKey = 3;
 
 		private Object _lock = new Object();
 		private Dictionary<TKey, Queue<TClient>> _entries = new Dictionary<TKey, Queue<TClient>>();
@@ -55,6 +56,13 @@ namespace Alphora.Fastore.Client
 					ClientException.ThrowErrors(errors);
 				}
 			}
+		}
+
+		private int _maxPooledPerKey = DefaultMaxPooledPerKey;
+		public int MaxPooledPerKey
+		{
+			get { return _maxPooledPerKey; }
+			set { _maxPooledPerKey = value; }
 		}
 
 		public TClient this[TKey key]
@@ -105,13 +113,19 @@ namespace Alphora.Fastore.Client
 		{
             lock (_lock)
             {
+				// Find or create the entry
 				Queue<TClient> entry;
                 if (!_entries.TryGetValue(connection.Key, out entry))
 				{	
 					entry = new Queue<TClient>();
                     _entries.Add(connection.Key, entry);
 				}
+
 				entry.Enqueue(connection.Value);
+
+				// If limit exceeded, throw away old connection(s) as needed
+				while (entry.Count() > _maxPooledPerKey)
+					Destroy(entry.Dequeue());
             }
 		}
 
@@ -126,6 +140,7 @@ namespace Alphora.Fastore.Client
 		{
 			var transport = new Thrift.Transport.TSocket(address.Name, address.Port);
 
+			// Establish connection, retrying if necessary
 			var retries = MaxConnectionRetries;
 			while (true)
 				try
