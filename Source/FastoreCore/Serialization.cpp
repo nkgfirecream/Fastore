@@ -1,6 +1,7 @@
 #include "Serialization.h"
-#include <thrift\transport\TSimpleFileTransport.h>
-#include <thrift\protocol\TBinaryProtocol.h>
+#include <thrift\protocol\TJSONProtocol.h>
+#include "TFastoreFileTransport.h"
+
 
 //Buffer serializer
 BufferSerializer::BufferSerializer(IColumnBuffer& buffer, string filename) : _buffer(buffer)
@@ -16,8 +17,10 @@ void BufferSerializer::open()
 		throw "Serializer already open!";
 
 	//acquire resources
-	_transport = boost::shared_ptr<transport::TSimpleFileTransport>(new transport::TSimpleFileTransport(_outputFile, false, true));
-	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
+	FILE* file = fopen(_outputFile.c_str(), "w");
+
+	_transport = boost::shared_ptr<transport::TFastoreFileTransport>(new transport::TFastoreFileTransport(file));
+	_protocol = boost::shared_ptr<protocol::TJSONProtocol>(new protocol::TJSONProtocol(_transport));
 
 	_disposed = false;
 }
@@ -77,10 +80,10 @@ bool BufferSerializer::writeNextChunk()
 		_lastValue = lastValueRows.value;
 		_lastRowId = lastValueRows.rowIDs.at(lastValueRows.rowIDs.size() - 1);
 
-		return result.eof;
+		return !result.eof;
 	}
 	else
-		return true;
+		return false;
 }
 
 void BufferSerializer::writeValueRowsList(fastore::communication::ValueRowsList& list)
@@ -104,8 +107,10 @@ void BufferDeserializer::open()
 		throw "Serializer already open!";
 
 	//acquire resources
-	_transport = boost::shared_ptr<transport::TSimpleFileTransport>(new transport::TSimpleFileTransport(_inputFile, true, false));
-	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
+	FILE* file = fopen(_inputFile.c_str(), "r");
+
+	_transport = boost::shared_ptr<transport::TFastoreFileTransport>(new transport::TFastoreFileTransport(file));
+	_protocol = boost::shared_ptr<protocol::TJSONProtocol>(new protocol::TJSONProtocol(_transport));
 
 	_disposed = false;
 }
@@ -136,11 +141,11 @@ bool BufferDeserializer::readNextChunk()
 
 	//Test for more data
 	if (!_transport->peek())
-		return true;
+		return false;
 
 	int totalWritesMade = 0;
 	ColumnWrites writes;
-	vector<Include> includes;
+	vector<Include> includes(BufferChunkSize);
 
 	//We can't stop mid structure... So we may go over the chunk size, but never more than 2x the chunksize
 	while (totalWritesMade < BufferChunkSize && _transport->peek())
@@ -152,6 +157,7 @@ bool BufferDeserializer::readNextChunk()
 			Include inc;
 			inc.__set_value(vr.value);
 			inc.__set_rowID(vr.rowIDs.at(j));
+			includes.push_back(inc);
 			totalWritesMade++;
 		}
 	}
@@ -159,5 +165,5 @@ bool BufferDeserializer::readNextChunk()
 	writes.__set_includes(includes);
 	_buffer.Apply(writes);
 
-	return false;
+	return true;
 }

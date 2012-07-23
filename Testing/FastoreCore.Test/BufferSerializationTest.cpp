@@ -19,8 +19,6 @@ public:
 	{
 		//Create blank file
 		string filename = "C:\\test.dat";
-		auto file = fopen(filename.c_str(),"w");
-		fclose(file);
 
 		//TODO: Update limited behavior to reflect BoF/EoF semantics.
 		//Unique buffer -- one key has one and only one value
@@ -63,7 +61,7 @@ public:
 		BufferSerializer serializer(buf, filename);
 
 		serializer.open();
-		while (!serializer.writeNextChunk());
+		while (serializer.writeNextChunk());
 		serializer.close();
 
 		//Deserialize
@@ -71,11 +69,11 @@ public:
 		BufferDeserializer deserializer(buf2, filename);
 
 		deserializer.open();
-		while (!deserializer.readNextChunk());
+		while (deserializer.readNextChunk());
 		deserializer.close();
 
 		//Retest
-		TestRange(buf, range, 0, 998, 500, 2, true, false, true);
+		TestRange(buf2, range, 0, 998, 500, 2, true, false, true);
 
 	}
 

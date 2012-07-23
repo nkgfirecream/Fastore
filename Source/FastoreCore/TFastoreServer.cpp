@@ -958,30 +958,30 @@ void TFastoreServer::run()
 			TAppState connState = iter->second->getState();
 			switch (connState)
 			{
-			case APP_READ_FRAME_SIZE:
-			case APP_READ_REQUEST:
-				fds[fdindex].events = POLLIN;
-				fds[fdindex].fd = iter->first;
-				fds[fdindex].revents = 0;
-				++fdindex;
-				break;
+				case APP_READ_FRAME_SIZE:
+				case APP_READ_REQUEST:
+					fds[fdindex].events = POLLIN;
+					fds[fdindex].fd = iter->first;
+					fds[fdindex].revents = 0;
+					++fdindex;
+					break;
 
-			case APP_SEND_RESULT:
-				fds[fdindex].events = POLLOUT;
-				fds[fdindex].fd = iter->first;
-				fds[fdindex].revents = 0;
-				++fdindex;
-				break;
+				case APP_SEND_RESULT:
+					fds[fdindex].events = POLLOUT;
+					fds[fdindex].fd = iter->first;
+					fds[fdindex].revents = 0;
+					++fdindex;
+					break;
 
-			case APP_CLOSE_CONNECTION:
-			case APP_INIT:
-				//The transition call will cause new connections to be initialized
-				//and closed connection to be added to the closePool.
-				iter->second->transition();
-				break;
-			case APP_PARKED:
-			default:
-				break;
+				case APP_CLOSE_CONNECTION:
+				case APP_INIT:
+					//The transition call will cause new connections to be initialized
+					//and closed connection to be added to the closePool.
+					iter->second->transition();
+					break;
+				case APP_PARKED:
+				default:
+					break;
 			}
 
 			++iter;

@@ -120,6 +120,7 @@
     <ClCompile Include="Schema\StringTypes.cpp" />
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
+    <ClCompile Include="TFastoreFileTransport.cpp" />
     <ClCompile Include="TFastoreServer.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
@@ -151,6 +152,7 @@
     <ClInclude Include="Storage\Schema\standardtypes.h" />
     <ClInclude Include="Storage\Schema\tuple.h" />
     <ClInclude Include="Storage\Schema\scalar.h" />
+    <ClInclude Include="TFastoreFileTransport.h" />
     <ClInclude Include="TFastoreServer.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />

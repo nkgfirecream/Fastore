@@ -7,6 +7,7 @@
 #include <thrift\protocol\TProtocol.h>
 #include <thrift\transport\TTransport.h>
 
+
 using namespace std;
 using namespace apache::thrift;
 using namespace fastore::communication;
