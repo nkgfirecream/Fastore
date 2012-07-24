@@ -420,6 +420,17 @@ public:
 		//AssignRange(range, false, 500);
 		//TestRangeMultiValue(buf, range, 98, 0, 25, -4, -2, 50, true, true, false);
 
+		////Limit 5
+		////Range: 0 (inclusive) - 16 (inclusive) ascending
+		////Expected result: values 0 (inclusive) - 18 (inclusive)
+		//AssignRange(range, true, 5);
+		//TestRangeMultiValue(buf, range, 0, 16, 5, 4, 2, 10, true, true, false);
+
+		////Range: 16 (inclusive) - 0 (inclusive) descending
+		////Expected result: values 18 (inclusive) - 0 (inclusive)
+		//AssignRange(range, false, 5);
+		//TestRangeMultiValue(buf, range, 16, 0, 5, 4, 2, 10, true, true, false);
+
 		//Start Exclusive - Non overlapping
 		//Range: 0 (exclusive) - end (inclusive) ascending
 		//Expected result: values 4 - 96 (inclusive)
@@ -603,10 +614,22 @@ public:
 		//AssignRange(range, false, 5);
 		//TestRangeMultiValue(buf, range, 98, 80, 5, -4, -2, 10, false, true, true);
 
-		////Start on ID
-		////For a unique buffer there is one id per value, so a startID is essentially the same as using the exclusive flag.
-		////Range: start - end asc, start on 0 (0 is excluded since it's assumed it's part of the last set)
+		////Start on ID  - 0
+		////Range: start - end asc, start on 0
 		//AssignString(startv, 0);
+		//AssignBound(startBound, true, startv);
+		//AssignRange(range, true, 500, &startBound, NULL, &startv);
+		//TestRangeMultiValue(buf, range, 0, 98, 25, 4, 2, 50, false, true, false);
+
+		////Range: end - start desc, start on 98
+		//AssignString(endv, 98);
+		//AssignBound(endBound, true, endv);
+		//AssignRange(range, false, 500, NULL, &endBound, &endv);
+		//TestRangeMultiValue(buf, range, 98, 0, 25, -4, -2, 50, true, false, false);
+
+		////Start on ID  - 2
+		////Range: start - end asc, start on 2
+		//AssignString(startv, 2);
 		//AssignBound(startBound, true, startv);
 		//AssignRange(range, true, 500, &startBound, NULL, &startv);
 		//TestRangeMultiValue(buf, range, 4, 98, 24, 4, 2, 48, false, true, false);
@@ -628,7 +651,6 @@ public:
 		//AssignRange(range, true, 500, &startBound, &endBound);
 		//TestRangeMultiValue(buf, range, 84, 88, 2, 4, 2, 4, false, false, false);
 
-		////Combination
 		////Range: 80 (exclusive) - 94 (exclusive)  ascending	limit 5
 		////Expected result: 84-90 (inclusive)
 		//AssignRange(range, true, 5, &startBound, &endBound);
