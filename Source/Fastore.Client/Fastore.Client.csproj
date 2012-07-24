@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClientException.cs" />
-    <Compile Include="ColumnDictionary.cs" />
+    <Compile Include="Dictionary.cs" />
     <Compile Include="ColumnDef.cs" />
     <Compile Include="ConnectionPool.cs" />
     <Compile Include="Database.cs" />

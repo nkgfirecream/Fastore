@@ -272,6 +272,7 @@ service Worker
 	/** Retreives current state of the worker and its repositories */
 	WorkerState getState(),
 
+
 	/** Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED. */
 	Revision prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 
 		throws (1:NotLatest notLatest, 2:AlreadyPending alreadyPending),

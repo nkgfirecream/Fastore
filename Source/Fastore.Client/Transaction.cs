@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Alphora.Fastore.Client
 {
@@ -37,49 +38,56 @@ namespace Alphora.Fastore.Client
 				Rollback();
         }
 
-        public void Commit()
+        public void Commit(bool flush = false)
         {
-            Dictionary<int, ColumnWrites> writes = new Dictionary<int, ColumnWrites>();
+			var writes = GatherWrites();
 
-            // Gather changes for each column
-            foreach (var entry in _log)
-            {
-                ColumnWrites wt = null;
-
-                // Process Includes
-                foreach (var include in entry.Value.Includes)
-                {
-                    if (wt == null)
-                    {
-                        wt = new ColumnWrites();
-                        wt.Includes = new List<Fastore.Include>();
-                    }
-                    Include inc = new Fastore.Include();
-                    inc.RowID = Fastore.Client.Encoder.Encode(include.Key);
-                    inc.Value = Fastore.Client.Encoder.Encode(include.Value);
-                    wt.Includes.Add(inc);
-                }
-
-                // Process Excludes
-                foreach (var exclude in entry.Value.Excludes)
-                {
-                    if (wt == null)
-                        wt = new ColumnWrites();
-                    if (wt.Excludes == null)
-                        wt.Excludes = new List<Fastore.Exclude>();
-                    Exclude ex = new Fastore.Exclude { RowID = Fastore.Client.Encoder.Encode(exclude) };
-                    wt.Excludes.Add(ex);
-                }
-
-                if (wt != null)
-                    writes.Add(entry.Key, wt);
-            }
-
-            Database.Apply(writes);
+            Database.Apply(writes, flush);
 
             _log.Clear();
             _completed = true;
         }
+
+		private Dictionary<int, ColumnWrites> GatherWrites()
+		{
+			Dictionary<int, ColumnWrites> writesPerColumn = new Dictionary<int, ColumnWrites>();
+
+			// Gather changes for each column
+			foreach (var entry in _log)
+			{
+				ColumnWrites writes = null;
+
+				// Process Includes
+				foreach (var include in entry.Value.Includes)
+				{
+					if (writes == null)
+					{
+						writes = new ColumnWrites();
+						writes.Includes = new List<Fastore.Include>();
+					}
+					Include inc = new Fastore.Include();
+					inc.RowID = Fastore.Client.Encoder.Encode(include.Key);
+					inc.Value = Fastore.Client.Encoder.Encode(include.Value);
+					writes.Includes.Add(inc);
+				}
+
+				// Process Excludes
+				foreach (var exclude in entry.Value.Excludes)
+				{
+					if (writes == null)
+						writes = new ColumnWrites();
+					if (writes.Excludes == null)
+						writes.Excludes = new List<Fastore.Exclude>();
+					Exclude ex = new Fastore.Exclude { RowID = Fastore.Client.Encoder.Encode(exclude) };
+					writes.Excludes.Add(ex);
+				}
+
+				if (writes != null)
+					writesPerColumn.Add(entry.Key, writes);
+			}
+
+			return writesPerColumn;
+		}
 
 		public void Rollback()
 		{

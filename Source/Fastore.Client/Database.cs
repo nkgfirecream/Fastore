@@ -11,7 +11,8 @@ namespace Alphora.Fastore.Client
 	// TODO: concurrency
     public class Database : IDataAccess, IDisposable
     {
-		public const int MaxSystemColumnID = 9999;
+		/// <summary> The maximum number of rows to attempt to fetch at one time. </summary>
+		public const int MaxFetchLimit = 500;
 
 		private class PodMap
 		{
@@ -159,7 +160,7 @@ namespace Alphora.Fastore.Client
 			// Insert the topology
 			writes.Add
 			(
-				100, 
+				Dictionary.TopologyID, 
 				new ColumnWrites 
 				{ 
 					Includes = new List<Fastore.Include> 
@@ -169,24 +170,24 @@ namespace Alphora.Fastore.Client
 				}
 			);
 
+			// Insert the hosts and pods
 			var hostWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
-			foreach (var h in newTopology.Hosts)
-				hostWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(h.Key), Value = Encoder.Encode(h.Key) });
-			writes.Add(200, hostWrites);
-
 			var podWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
-			foreach (var h in newTopology.Hosts)
-				foreach (var p in h.Value)
-					podWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(p.Key) });
-			writes.Add(300, podWrites);
-
 			var podHostWrites = new ColumnWrites { Includes = new List<Fastore.Include>() };
 			foreach (var h in newTopology.Hosts)
+			{
+				hostWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(h.Key), Value = Encoder.Encode(h.Key) });
 				foreach (var p in h.Value)
+				{
+					podWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(p.Key) });
 					podHostWrites.Includes.Add(new Fastore.Include { RowID = Encoder.Encode(p.Key), Value = Encoder.Encode(h.Key) });
-			writes.Add(301, podHostWrites);
+				}
+			}
+			writes.Add(Dictionary.HostID, hostWrites);
+			writes.Add(Dictionary.PodID, podWrites);
+			writes.Add(Dictionary.PodHostID, podHostWrites);
 
-			Apply(writes);
+			Apply(writes, false);
 		}
 
 
@@ -322,7 +323,7 @@ namespace Alphora.Fastore.Client
 		/// <remarks> This method is thread-safe. </remarks>
 		private KeyValuePair<int, Worker.Client> GetWorker(int columnID)
 		{
-			if (columnID <= MaxSystemColumnID)
+			if (columnID <= Dictionary.MaxSystemColumnID)
 				return GetWorkerForSystemColumn();
 			else
 				return GetWorkerForColumn(columnID);
@@ -330,9 +331,13 @@ namespace Alphora.Fastore.Client
 
 		private KeyValuePair<int, Worker.Client> GetWorkerForColumn(int columnID)
 		{
-			Monitor.Enter(_mapLock);
-			var taken = true;
-			try
+			var podId = GetWorkerIDForColumn(columnID);
+			return new KeyValuePair<int, Worker.Client>(podId, _workers[podId]);
+		}
+
+		private int GetWorkerIDForColumn(int columnID)
+		{
+			lock (_mapLock)
 			{
 				PodMap map;
 				if (!_columnWorkers.TryGetValue(columnID, out map))
@@ -347,16 +352,7 @@ namespace Alphora.Fastore.Client
 				map.Next = (map.Next + 1) % map.Pods.Count;
 				var podId = map.Pods[map.Next];
 
-				// Release lock during ensure
-				Monitor.Exit(_mapLock);
-				taken = false;
-
-				return new KeyValuePair<int, Worker.Client>(podId, _workers[podId]);
-			}
-			finally
-			{
-				if (taken)
-					Monitor.Exit(_mapLock);
+				return podId;
 			}
 		}
 
@@ -378,9 +374,9 @@ namespace Alphora.Fastore.Client
 			public int[] Columns;
 		}
 
-		/// <summary> Get the workers to write-to for the given column IDs. </summary>
+		/// <summary> Determine the workers to write-to for the given column IDs. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		private WorkerInfo[] GetWorkers(Dictionary<int, ColumnWrites> writes)
+		private WorkerInfo[] DetermineWorkers(Dictionary<int, ColumnWrites> writes)
 		{
 			Monitor.Enter(_mapLock);
 			var taken = true;
@@ -400,7 +396,7 @@ namespace Alphora.Fastore.Client
 									from r in ws.Value.Item2.RepositoryStatus 
 										where r.Value == RepositoryStatus.Online || r.Value == RepositoryStatus.Checkpointing 
 										select r.Key
-								).Union(from c in _schema.Keys where c <= MaxSystemColumnID select c).ToArray()
+								).Union(from c in _schema.Keys where c <= Dictionary.MaxSystemColumnID select c).ToArray()
 							}
 					).ToArray();
 				
@@ -513,7 +509,7 @@ namespace Alphora.Fastore.Client
 		}
 
 		/// <summary> Given a set of column IDs and range criteria, retrieve a set of values. </summary>
-		public RangeSet GetRange(int[] columnIds, Range range, int limit, object startId = null)
+		public RangeSet GetRange(int[] columnIds, Range range, int limit = MaxFetchLimit, object startId = null)
 		{
 			// Create the range query
 			var query = CreateQuery(range, limit, startId);
@@ -682,14 +678,14 @@ namespace Alphora.Fastore.Client
 			return rangeQuery;
 		}
 
-        internal void Apply(Dictionary<int, ColumnWrites> writes)
+        internal void Apply(Dictionary<int, ColumnWrites> writes, bool flush)
         {
 			if (writes.Count > 0)
 				while (true)
 				{
 					var transactionID = new TransactionID() { Key = 0, Revision = 0 };
 
-					var workers = GetWorkers(writes);
+					var workers = DetermineWorkers(writes);
 
 					var tasks = StartWorkerWrites(writes, transactionID, workers);
 
@@ -699,20 +695,54 @@ namespace Alphora.Fastore.Client
 					if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
 					{
 						// If we've inserted/deleted system table(s), force a schema refresh
-						if (writes.Keys.Min() < 10000)
+						if (writes.Keys.Min() <= Dictionary.MaxSystemColumnID)
 						{
 							RefreshSchema();
 							RefreshHiveState();
 						}
+
+						if (flush)
+							FlushWorkers(transactionID, workers);
 						break;
 					}
 				}
         }
 
+		private void FlushWorkers(TransactionID transactionID, WorkerInfo[] workers)
+		{
+			var flushTasks =
+			(
+				from w in workers
+				select
+					Task.Factory.StartNew
+					(
+					() =>
+					{
+						var worker = _workers[w.PodID];
+						try
+						{
+							worker.flush(transactionID);
+						}
+						finally
+						{
+							_workers.Release(new KeyValuePair<int, Worker.Client>(w.PodID, worker));
+						}
+					}
+					)
+			).ToArray();
+
+			// TODO: need algorithm that moves on as soon as needed quantity reached without waiting for slower ones
+
+			// Wait for critical number of workers to flush
+			var neededCount = Math.Max(1, workers.Length / 2);
+			for (var i = 0; i < flushTasks.Length && i < neededCount; i++)
+				flushTasks[i].Wait();
+		}
+
         public void Include(int[] columnIds, object rowId, object[] row)
 		{
 			var writes = EncodeIncludes(columnIds, rowId, row);
-            Apply(writes);
+            Apply(writes, false);
 		}
 
 		private SortedDictionary<TransactionID, List<WorkerInfo>> ProcessWriteResults(WorkerInfo[] workers, List<Task<TransactionID>> tasks, Dictionary<int, Thrift.Protocol.TBase> failedWorkers)
@@ -850,7 +880,7 @@ namespace Alphora.Fastore.Client
 
 		public void Exclude(int[] columnIds, object rowId)
 		{
-            Apply(EncodeExcludes(columnIds, rowId));
+            Apply(EncodeExcludes(columnIds, rowId), false);
 		}
 
         private Dictionary<int, ColumnWrites> EncodeExcludes(int[] columnIds, object rowId)
@@ -873,12 +903,34 @@ namespace Alphora.Fastore.Client
 
 		public Statistic[] GetStatistics(int[] columnIds)
 		{
-			throw new NotImplementedException();
-            //return
-            //(
-            //    from s in Service.getStatistics(columnIds.ToList())
-            //    select new Statistic { Total = s.Total, Unique = s.Unique }
-            //).ToArray();
+			// Make the request against each column
+			var tasks = new List<Task<Fastore.Statistic>>(columnIds.Length);
+			for (var i = 0; i < columnIds.Length; i++)
+			{
+				var columnId = columnIds[i];
+				tasks.Add
+				(
+					Task.Factory.StartNew
+					(
+						() =>
+						{
+							Fastore.Statistic result = null;
+							AttemptRead
+							(
+								columnId,
+								(worker) => { result = worker.getStatistics(new List<int> { columnId })[0]; }
+							);
+							return result;
+						}
+					)
+				);
+			}
+
+			return 
+			(
+				from t in tasks let r = t.Result 
+					select new Statistic { Total = r.Total, Unique = r.Unique }
+			).ToArray();
 		}
 
 		public Schema GetSchema()
@@ -891,25 +943,30 @@ namespace Alphora.Fastore.Client
 		private Schema LoadSchema()
 		{
 			var schema = new Schema();
-			var columns =
-				GetRange
-				(
-					new[] { 0, 1, 2, 3, 4 },
-					new Range { ColumnID = 0, Ascending = true },
-					200000
-				);
-			foreach (var column in columns.Data)
+			var finished = false;
+			while (!finished)
 			{
-				var def =
-					new ColumnDef
-					{
-						ColumnID = (int)column.Values[0],
-						Name = (string)column.Values[1],
-						Type = (string)column.Values[2],
-						IDType = (string)column.Values[3],
-						BufferType = (BufferType)column.Values[4]
-					};
-				schema.Add(def.ColumnID, def);
+				var columns =
+					GetRange
+					(
+						Dictionary.ColumnColumns,
+						new Range { ColumnID = Dictionary.ColumnID, Ascending = true },
+						MaxFetchLimit
+					);
+				foreach (var column in columns.Data)
+				{
+					var def =
+						new ColumnDef
+						{
+							ColumnID = (int)column.Values[0],
+							Name = (string)column.Values[1],
+							Type = (string)column.Values[2],
+							IDType = (string)column.Values[3],
+							BufferType = (BufferType)column.Values[4]
+						};
+					schema.Add(def.ColumnID, def);
+				}
+				finished = !columns.Limited;
 			}
 			return schema;
 		}
@@ -928,31 +985,31 @@ namespace Alphora.Fastore.Client
             ColumnDef idt = new ColumnDef();
             ColumnDef unique = new ColumnDef();
 
-            id.ColumnID = 0;
+            id.ColumnID = Dictionary.ColumnID;
             id.Name = "Column.ID";
             id.Type = "Int";
             id.IDType = "Int";
             id.BufferType = BufferType.Identity;
 
-            name.ColumnID = 1;
+            name.ColumnID = Dictionary.ColumnName;
             name.Name = "Column.Name";
             name.Type = "String";
             name.IDType = "Int";
             name.BufferType = BufferType.Unique;
 
-            vt.ColumnID = 2;
+            vt.ColumnID = Dictionary.ColumnValueType;
             vt.Name = "Column.ValueType";
             vt.Type = "String";
             vt.IDType = "Int";
             vt.BufferType = BufferType.Multi;
 
-            idt.ColumnID = 3;
+            idt.ColumnID = Dictionary.ColumnRowIDType;
             idt.Name = "Column.RowIDType";
             idt.Type = "String";
             idt.IDType = "Int";
             idt.BufferType = BufferType.Multi;
 
-            unique.ColumnID = 4;
+            unique.ColumnID = Dictionary.ColumnBufferType;
             unique.Name = "Column.BufferType";
             unique.Type = "Int";
             unique.IDType = "Int";
@@ -960,11 +1017,11 @@ namespace Alphora.Fastore.Client
 
             _schema = new Schema();
 
-            _schema.Add(0, id);
-            _schema.Add(1, name);
-            _schema.Add(2, vt);
-            _schema.Add(3, idt);
-            _schema.Add(4, unique);
+            _schema.Add(Dictionary.ColumnID, id);
+			_schema.Add(Dictionary.ColumnName, name);
+			_schema.Add(Dictionary.ColumnValueType, vt);
+			_schema.Add(Dictionary.ColumnRowIDType, idt);
+			_schema.Add(Dictionary.ColumnBufferType, unique);
 
             //Boot strapping is done, pull in real schema
             RefreshSchema();
