@@ -73,7 +73,7 @@ public:
 		deserializer.close();
 
 		//Retest
-		TestRange(buf2, range, 0, 998, 500, 2, true, false, true);
+		TestRange(buf, range, 0, 998, 500, 2, true, false, true);
 
 	}
 

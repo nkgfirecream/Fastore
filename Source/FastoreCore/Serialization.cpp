@@ -1,7 +1,9 @@
 #include "Serialization.h"
 #include <thrift\protocol\TJSONProtocol.h>
+#include <thrift\protocol\TBinaryProtocol.h>
+#include <thrift\protocol\TDebugProtocol.h>
 #include "TFastoreFileTransport.h"
-
+#include <thrift\transport\TFileTransport.h>
 
 //Buffer serializer
 BufferSerializer::BufferSerializer(IColumnBuffer& buffer, string filename) : _buffer(buffer)
@@ -16,12 +18,10 @@ void BufferSerializer::open()
 	if (!_disposed)
 		throw "Serializer already open!";
 
-	//acquire resources
-	FILE* file = fopen(_outputFile.c_str(), "w");
+	_transport = boost::shared_ptr<transport::TFastoreFileTransport>(new transport::TFastoreFileTransport(_outputFile, false));
+	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
 
-	_transport = boost::shared_ptr<transport::TFastoreFileTransport>(new transport::TFastoreFileTransport(file));
-	_protocol = boost::shared_ptr<protocol::TJSONProtocol>(new protocol::TJSONProtocol(_transport));
-
+	_transport->open();
 	_disposed = false;
 }
 
@@ -90,7 +90,8 @@ void BufferSerializer::writeValueRowsList(fastore::communication::ValueRowsList&
 {
 	for (int i = 0; i < list.size(); i++)
 	{
-		list.at(i).write(_protocol.get());
+		ValueRows vr = list.at(i);
+		vr.write(_protocol.get());
 	}
 }
 
@@ -99,6 +100,7 @@ BufferDeserializer::BufferDeserializer(IColumnBuffer& buffer, std::string filena
 {
 	_inputFile = filename;
 	_disposed = true;
+	_iteration = 0;
 }
 
 void BufferDeserializer::open()
@@ -106,12 +108,10 @@ void BufferDeserializer::open()
 	if (!_disposed)
 		throw "Serializer already open!";
 
-	//acquire resources
-	FILE* file = fopen(_inputFile.c_str(), "r");
+	_transport = boost::shared_ptr<transport::TFastoreFileTransport>(new transport::TFastoreFileTransport(_inputFile, true));
+	_protocol = boost::shared_ptr<protocol::TBinaryProtocol>(new protocol::TBinaryProtocol(_transport));
 
-	_transport = boost::shared_ptr<transport::TFastoreFileTransport>(new transport::TFastoreFileTransport(file));
-	_protocol = boost::shared_ptr<protocol::TJSONProtocol>(new protocol::TJSONProtocol(_transport));
-
+	_transport->open();
 	_disposed = false;
 }
 
@@ -145,7 +145,7 @@ bool BufferDeserializer::readNextChunk()
 
 	int totalWritesMade = 0;
 	ColumnWrites writes;
-	vector<Include> includes(BufferChunkSize);
+	vector<Include> includes;
 
 	//We can't stop mid structure... So we may go over the chunk size, but never more than 2x the chunksize
 	while (totalWritesMade < BufferChunkSize && _transport->peek())
@@ -162,6 +162,7 @@ bool BufferDeserializer::readNextChunk()
 		}
 	}
 
+	++_iteration;
 	writes.__set_includes(includes);
 	_buffer.Apply(writes);
 

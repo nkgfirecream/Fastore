@@ -72,4 +72,6 @@ class BufferDeserializer
 		boost::shared_ptr<transport::TTransport> _transport;
 
 		bool _disposed;
+
+		int _iteration;
 };

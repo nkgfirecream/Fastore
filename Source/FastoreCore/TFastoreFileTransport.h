@@ -12,27 +12,16 @@
 namespace apache { namespace thrift { namespace transport {
 
 /**
- * Dead-simple wrapper around a file descriptor.
- *
- */
+ * This transport operates on a file pointer that only supports reading an existing file,
+ * or creating/overwriting a file. There is no seeking or appending.
+ */ 
 class TFastoreFileTransport : public TVirtualTransport<TFastoreFileTransport>
 {
 public:
 
-	TFastoreFileTransport(FILE* file)
-	: _file(file)
-	{
-		//Remeber current position in file..
-		fpos_t curpos;
-		fgetpos(_file, &curpos);
-		fseek(_file, 0, SEEK_END);
-
-		//Get filesize
-		_filesize = ftell(_file);
-
-		//Return to position
-		fseek(_file, curpos, SEEK_SET);  
-	}
+	TFastoreFileTransport(std::string filename, bool read)
+	: _filename(filename), _read(read), _file(NULL)
+	{ }
 
 	~TFastoreFileTransport()
 	{
@@ -41,11 +30,13 @@ public:
 
 	bool isOpen();
 
-	void open() { /*Intentionally do nothing */}
+	void open();
 
 	void close();
 
 	bool peek();
+
+	void flush();
 
 	uint32_t read(uint8_t* buf, uint32_t len);
 
@@ -53,8 +44,9 @@ public:
 
 protected:
 	FILE* _file;
-
+	std::string _filename;
 	long _filesize;
+	bool _read;
 };
 
 }}} // apache::thrift::transport
