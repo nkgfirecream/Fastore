@@ -15,6 +15,7 @@ namespace fastore { namespace communication {
 class WorkerIf {
  public:
   virtual ~WorkerIf() {}
+  virtual void shutdown() = 0;
   virtual void getState(WorkerState& _return) = 0;
   virtual Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
   virtual void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) = 0;
@@ -55,6 +56,9 @@ class WorkerIfSingletonFactory : virtual public WorkerIfFactory {
 class WorkerNull : virtual public WorkerIf {
  public:
   virtual ~WorkerNull() {}
+  void shutdown() {
+    return;
+  }
   void getState(WorkerState& /* _return */) {
     return;
   }
@@ -90,6 +94,80 @@ class WorkerNull : virtual public WorkerIf {
   void getStatistics(std::vector<Statistic> & /* _return */, const std::vector<ColumnID> & /* columnIDs */) {
     return;
   }
+};
+
+
+class Worker_shutdown_args {
+ public:
+
+  Worker_shutdown_args() {
+  }
+
+  virtual ~Worker_shutdown_args() throw() {}
+
+
+  bool operator == (const Worker_shutdown_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_shutdown_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_shutdown_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_shutdown_pargs {
+ public:
+
+
+  virtual ~Worker_shutdown_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_shutdown_result {
+ public:
+
+  Worker_shutdown_result() {
+  }
+
+  virtual ~Worker_shutdown_result() throw() {}
+
+
+  bool operator == (const Worker_shutdown_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_shutdown_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_shutdown_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_shutdown_presult {
+ public:
+
+
+  virtual ~Worker_shutdown_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
 };
 
 
@@ -1293,6 +1371,9 @@ class WorkerClient : virtual public WorkerIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void shutdown();
+  void send_shutdown();
+  void recv_shutdown();
   void getState(WorkerState& _return);
   void send_getState();
   void recv_getState(WorkerState& _return);
@@ -1339,6 +1420,7 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef  void (WorkerProcessor::*ProcessFunction)(int32_t, apache::thrift::protocol::TProtocol*, apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
+  void process_shutdown(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getState(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_prepare(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_apply(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -1353,6 +1435,7 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
  public:
   WorkerProcessor(boost::shared_ptr<WorkerIf> iface) :
     iface_(iface) {
+    processMap_["shutdown"] = &WorkerProcessor::process_shutdown;
     processMap_["getState"] = &WorkerProcessor::process_getState;
     processMap_["prepare"] = &WorkerProcessor::process_prepare;
     processMap_["apply"] = &WorkerProcessor::process_apply;
@@ -1392,6 +1475,15 @@ class WorkerMultiface : virtual public WorkerIf {
     ifaces_.push_back(iface);
   }
  public:
+  void shutdown() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->shutdown();
+    }
+    ifaces_[i]->shutdown();
+  }
+
   void getState(WorkerState& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;

@@ -22,6 +22,11 @@ class ServiceHandler : virtual public ServiceIf {
     // Your initialization goes here
   }
 
+  void shutdown() {
+    // Your implementation goes here
+    printf("shutdown\n");
+  }
+
   void ping() {
     // Your implementation goes here
     printf("ping\n");

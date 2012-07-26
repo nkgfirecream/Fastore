@@ -73,6 +73,9 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 
 		auto handler = boost::shared_ptr<ServiceHandler>(new ServiceHandler(startup));
 		auto processor = boost::shared_ptr<TProcessor>(new ServiceProcessor(handler));
+
+		processor->setEventHandler(handler);
+
 		endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endpointConfig, processor));
 	}
 	catch (const exception& e)
@@ -112,6 +115,30 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	WSACleanup();
 }
 
+//Shuts the server down gracefully.
+void ShutdownEndpoint()
+{
+	try
+	{
+		boost::shared_ptr<TSocket> socket(new TSocket("localhost", endpoint->getConfig().port));
+		boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
+		boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+		ServiceClient client(protocol);
+		transport->open();
+		client.shutdown();
+		transport->close();
+	}
+	catch(...)
+	{
+		// for now we expect a transport exception upon shutting down, since the server will immediately
+		//close and terminate all connections.
+	}
+
+	if (endpoint != NULL)
+			endpoint->Stop();
+}
+
 //
 // Purpose: 
 //   Handles Ctrl-C
@@ -123,14 +150,13 @@ BOOL CtrlCHandler(DWORD fdwCtrlType)
 		// Handle the CTRL-C signal. 
 	case CTRL_C_EVENT: 
 		cout << "Stop Request Received.\n";
-		if (endpoint != NULL)
-			endpoint->Stop();
+		ShutdownEndpoint();
 		return( TRUE );
 
 	default: 
 		return FALSE; 
 	} 
-} 
+}
 
 void ConsoleStarted()
 {

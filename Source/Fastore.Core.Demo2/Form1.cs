@@ -152,8 +152,9 @@ namespace Fastore.Core.Demo2
 					{
 
 						//Wait until task is done.
-						if (_commitTask != null)
-							_commitTask.Wait();
+                        if (_commitTask != null)
+                            _commitTask.Wait();
+
 						_commitTask = Task.Factory.StartNew
 							(
 								(t) =>
@@ -176,7 +177,7 @@ namespace Fastore.Core.Demo2
 
 				//Wait until task is done.
 				if (_commitTask != null)
-					_commitTask.Wait();
+                    _commitTask.Wait();
 
 				watch.Stop();
 

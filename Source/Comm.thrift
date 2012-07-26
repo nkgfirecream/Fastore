@@ -115,6 +115,9 @@ exception NotJoined
 
 service Service
 {
+    /* Tells the servive to shutdown gracefully */
+	void shutdown(),
+
 	void ping(),
 
 	/** Initialize a new hive including this service */
@@ -269,9 +272,11 @@ exception BeyondHistory
 
 service Worker
 {
+	/* Tells the servive to shutdown gracefully */
+	void shutdown(),
+
 	/** Retreives current state of the worker and its repositories */
 	WorkerState getState(),
-
 
 	/** Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED. */
 	Revision prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 

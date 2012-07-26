@@ -17,7 +17,7 @@ using namespace std;
 
 const int MaxSystemColumnID = 9999;
 
-WorkerHandler::WorkerHandler(const PodID podId, const string path) : _podId(podId), _path(path)
+WorkerHandler::WorkerHandler(const PodID podId, const string path, const boost::shared_ptr<Scheduler> scheduler) : _podId(podId), _path(path), _scheduler(scheduler)
 {
 	//* Attempt to open data file
 	//* Attempt to open log file
@@ -467,17 +467,20 @@ void WorkerHandler::getState(WorkerState& _return)
 
 void WorkerHandler::handlerError(void* ctx, const char* fn_name)
 {
-	if (fn_name == "Worker.flush")
-	{
+	//_currentConnection->park();
 
-	}
+	//SHUT DOWN EVERYTHING!! FAIL FAST FAIL HARD! KILL THE HIVE IF SOMETHING GOES WRONG!
+	//(Not really, just testing things)
+	//_currentConnection->getServer()->stop();
+}
 
-	//Do some cleaning of connections?
-
-	return;
+void WorkerHandler::shutdown()
+{
+	_currentConnection->getServer()->shutdown();
 }
 
 void* WorkerHandler::getContext(const char* fn_name, void* serverContext)
 {
+	_currentConnection = (apache::thrift::server::TFastoreServer::TConnection*)serverContext;
 	return NULL;
 }

@@ -15,6 +15,7 @@ namespace fastore { namespace communication {
 class ServiceIf {
  public:
   virtual ~ServiceIf() {}
+  virtual void shutdown() = 0;
   virtual void ping() = 0;
   virtual void init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) = 0;
   virtual void join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) = 0;
@@ -54,6 +55,9 @@ class ServiceIfSingletonFactory : virtual public ServiceIfFactory {
 class ServiceNull : virtual public ServiceIf {
  public:
   virtual ~ServiceNull() {}
+  void shutdown() {
+    return;
+  }
   void ping() {
     return;
   }
@@ -85,6 +89,80 @@ class ServiceNull : virtual public ServiceIf {
   void releaseLock(const LockID /* lockID */) {
     return;
   }
+};
+
+
+class Service_shutdown_args {
+ public:
+
+  Service_shutdown_args() {
+  }
+
+  virtual ~Service_shutdown_args() throw() {}
+
+
+  bool operator == (const Service_shutdown_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Service_shutdown_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Service_shutdown_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_shutdown_pargs {
+ public:
+
+
+  virtual ~Service_shutdown_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_shutdown_result {
+ public:
+
+  Service_shutdown_result() {
+  }
+
+  virtual ~Service_shutdown_result() throw() {}
+
+
+  bool operator == (const Service_shutdown_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Service_shutdown_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Service_shutdown_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_shutdown_presult {
+ public:
+
+
+  virtual ~Service_shutdown_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
 };
 
 
@@ -1268,6 +1346,9 @@ class ServiceClient : virtual public ServiceIf {
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {
     return poprot_;
   }
+  void shutdown();
+  void send_shutdown();
+  void recv_shutdown();
   void ping();
   void send_ping();
   void recv_ping();
@@ -1313,6 +1394,7 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef  void (ServiceProcessor::*ProcessFunction)(int32_t, apache::thrift::protocol::TProtocol*, apache::thrift::protocol::TProtocol*, void*);
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
+  void process_shutdown(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_ping(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_init(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_join(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -1326,6 +1408,7 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
  public:
   ServiceProcessor(boost::shared_ptr<ServiceIf> iface) :
     iface_(iface) {
+    processMap_["shutdown"] = &ServiceProcessor::process_shutdown;
     processMap_["ping"] = &ServiceProcessor::process_ping;
     processMap_["init"] = &ServiceProcessor::process_init;
     processMap_["join"] = &ServiceProcessor::process_join;
@@ -1364,6 +1447,15 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_.push_back(iface);
   }
  public:
+  void shutdown() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->shutdown();
+    }
+    ifaces_[i]->shutdown();
+  }
+
   void ping() {
     size_t sz = ifaces_.size();
     size_t i = 0;

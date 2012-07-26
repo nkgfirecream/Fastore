@@ -42,8 +42,7 @@ inline SOCKOPT_CAST_T* cast_sockopt(T* v)
 }
 
 /**
-* This is a non-blocking server in C++ for high performance that
-* operates a set of IO threads (by default only one). It assumes that
+* This is a non-blocking server (unsing non-blocking sockets) in C++, with only one thread. It assumes that
 * all incoming requests are framed with a 4 byte length indicator and
 * writes out responses using the same framing.
 *
@@ -60,9 +59,46 @@ enum TOverloadAction
 	T_OVERLOAD_CLOSE_ON_ACCEPT  ///< Drop new connections immediately */
 };
 
+/// Three states for sockets: recv frame size, recv data, and send mode
+enum TSocketState
+{
+	SOCKET_RECV_FRAMING,
+	SOCKET_RECV,
+	SOCKET_SEND
+};
+
+/**
+* Five states for the nonblocking server:
+*  1) initialize
+*  2) read 4 byte frame size
+*  3) read frame of data
+*  4) send back data (if any)
+*  5) force immediate connection close
+*/
+enum TAppState
+{
+	APP_INIT,
+	APP_READ_FRAME_SIZE,
+	APP_READ_REQUEST,
+	APP_PARKED,
+	APP_SEND_RESULT,
+	APP_CLOSE_CONNECTION
+};
+
+enum TServerState
+{
+	SERVER_STARTUP,
+	SERVER_SHUTDOWN,
+	SERVER_OVERLOADED,
+	SERVER_RUN,
+	SERVER_STOP,
+	SERVER_TRANSITION
+};
+
+
 class TFastoreServer : public TServer
 {
-private:
+public:
 	class TConnection;
 
 private:
@@ -96,6 +132,12 @@ private:
 
 	/// Default poll timeout
 	static const int POLL_TIMEOUT = 1000;
+
+	/// Default number of milliseconds a connections is idle before it timesout
+	static const int CONNECTION_EXPIRE_TIMEOUT = 10000;
+
+	/// Default number of milliseconds to wait for connections to finish before force-closing them
+	static const int SHUTDOWN_TIMEOUT = 5000;
 
 	/// Server socket file descriptor
 	int serverSocket_;
@@ -175,9 +217,20 @@ private:
 	//List of connections to close when no longer in use
 	std::vector<int> closePool_;
 
+	// Signal to stop (immediate close)
+	bool _stop;
 
-	// Signal to stop
-	bool _break;
+	// Signal to shutdown (don't accept new connections, try to finish current connections, and then stop)
+	bool _shutdown;
+
+	// Time is milliseconds a server will continue to run to finish serving connections before it forcibly terminates.
+	int64_t _shutdownTimeout;
+
+	// Marks the time the shutdown started. We may want to rethink this so that shutdown is not based on a timeout, but rather some other criteria.
+	clock_t _shutdownStart;
+
+	// Descriptors for sockets to poll. Size must be set upon a transition, or startup.
+	pollfd* _fds;
 
 	void init(int port)
 	{
@@ -186,7 +239,7 @@ private:
 		connectionPoolLimit_ = CONNECTION_POOL_LIMIT;  
 		maxConnections_ = MAX_CONNECTIONS;
 		maxFrameSize_ = MAX_FRAME_SIZE;
-		connectionExpireTime_ = 0;
+		connectionExpireTime_ = CONNECTION_EXPIRE_TIMEOUT;
 		overloadHysteresis_ = 0.8;
 		overloadAction_ = T_OVERLOAD_NO_ACTION;
 		writeBufferDefaultSize_ = WRITE_BUFFER_DEFAULT_SIZE;
@@ -194,10 +247,13 @@ private:
 		idleWriteBufferLimit_ = IDLE_WRITE_BUFFER_LIMIT;
 		resizeBufferEveryN_ = RESIZE_BUFFER_EVERY_N;
 		pollTimeout_ = POLL_TIMEOUT;
+		_shutdownTimeout = SHUTDOWN_TIMEOUT;
 		overloaded_ = false;
-		_break = false;
+		_stop = false;
+		_shutdown = false;
 		nConnectionsDropped_ = 0;
 		nTotalConnectionsDropped_ = 0;
+		_fds = NULL;
 	}
 
 public:
@@ -467,6 +523,26 @@ public:
 	}
 
 	/**
+	* Get the time in milliseconds after which a shutdown starts the server will forcibly terminate
+	*
+	* @return a 64-bit time in milliseconds.
+	*/
+	int64_t getShutdownTimeout() const
+	{
+		return _shutdownTimeout;
+	}
+
+	/**
+	* Set the time in milliseconds after which a connection expires (0 == infinite).
+	*
+	* @param shutdownTimeout a 64-bit time in milliseconds.
+	*/
+	void setShutdownTimeout(int64_t shutdownTimeout)
+	{
+		_shutdownTimeout = shutdownTimeout;
+	}
+	
+	/**
 	* Determine if the server is currently overloaded.
 	* This function checks the maximums for open connections and connections
 	* currently in processing, and sets an overload condition if they are
@@ -574,20 +650,31 @@ public:
 	void serve();
 
 	/**
-	* Causes the server to terminate gracefully (can be called from any thread).
+	* Causes the server to terminate immediately (can be called from any thread).
 	*/
 	void stop();
 
 	/**
-	*Causes the server to terminate all connections that haven't had activity in the last
-	*timeout milliseconds
+	* Causes the server to terminate gracefully (can be called from any thread).
 	*/
-	void expire(long timeout);
+	void shutdown();	
+
+	/**
+	* Return whether or not the server is in a shutdown state
+	*/
+	bool isShuttingDown();
+	
 
 private:
 
 	/// Creates a socket to listen on and binds it to the local port.
 	void createAndListenOnSocket();
+
+	/**
+	*Causes the server to terminate all connections that haven't had activity. Timeout
+	*set by connectionTimeout.
+	*/
+	void expireConnections();
 
 	/**
 	* Takes a socket created by createAndListenOnSocket() and sets various
@@ -623,6 +710,203 @@ private:
 
 	//accept new connections
 	void acceptConnections();
+
+};
+
+/**
+* TConnection
+*/
+
+/**
+* Represents a connection that is handled via libevent. This connection
+* essentially encapsulates a socket that has some associated libevent state.
+*/
+class TFastoreServer::TConnection
+{
+private:
+
+	/// Server handle
+	TFastoreServer* server_;
+
+	/// TProcessor
+	boost::shared_ptr<TProcessor> processor_;
+
+	/// Object wrapping network socket
+	boost::shared_ptr<TSocket> tSocket_;
+
+	/// Socket mode
+	TSocketState socketState_;
+
+	/// Application state
+	TAppState appState_;
+
+	/// How much data needed to read
+	uint32_t readWant_;
+
+	/// Where in the read buffer are we
+	uint32_t readBufferPos_;
+
+	/// Read buffer
+	uint8_t* readBuffer_;
+
+	/// Read buffer size
+	uint32_t readBufferSize_;
+
+	/// Write buffer
+	uint8_t* writeBuffer_;
+
+	/// Write buffer size
+	uint32_t writeBufferSize_;
+
+	/// How far through writing are we?
+	uint32_t writeBufferPos_;
+
+	/// Largest size of write buffer seen since buffer was constructed
+	size_t largestWriteBufferSize_;
+
+	/// Count of the number of calls for use with getResizeBufferEveryN().
+	int32_t callsForResize_;
+
+	// Time last action occured on the connection
+	clock_t lastAction_;
+
+	/// Transport to read from
+	boost::shared_ptr<TMemoryBuffer> inputTransport_;
+
+	/// Transport that processor writes to
+	boost::shared_ptr<TMemoryBuffer> outputTransport_;
+
+	/// extra transport generated by transport factory (e.g. BufferedRouterTransport)
+	boost::shared_ptr<TTransport> factoryInputTransport_;
+	boost::shared_ptr<TTransport> factoryOutputTransport_;
+
+	/// Protocol decoder
+	boost::shared_ptr<TProtocol> inputProtocol_;
+
+	/// Protocol encoder
+	boost::shared_ptr<TProtocol> outputProtocol_;
+
+	/// Server event handler, if any
+	boost::shared_ptr<TServerEventHandler> serverEventHandler_;
+
+	/// Thrift call context, if any
+	void *connectionContext_;
+
+	/// Close this connection and free or reset its resources.
+	void close();
+
+public:
+
+	/// Constructor
+	TConnection
+		(
+			int socket, TFastoreServer* server,
+			const sockaddr* addr, socklen_t addrLen
+		)
+		{
+			readBuffer_ = NULL;
+			readBufferSize_ = 0;
+
+			server_ = server;
+
+			// Allocate input and output transports these only need to be allocated
+			// once per TConnection (they don't need to be reallocated on init() call)
+			inputTransport_.reset(new TMemoryBuffer(readBuffer_, readBufferSize_));
+			outputTransport_.reset(new TMemoryBuffer(server_->getWriteBufferDefaultSize()));
+			tSocket_.reset(new TSocket());
+			init(socket, server, addr, addrLen);
+		}
+
+	~TConnection()
+	{
+		std::free(readBuffer_);
+	}
+
+	/**
+	* Check buffers against any size limits and shrink it if exceeded.
+	*
+	* @param readLimit we reduce read buffer size to this (if nonzero).
+	* @param writeLimit if nonzero and write buffer is larger, replace it.
+	*/
+	void checkIdleBufferMemLimit(size_t readLimit, size_t writeLimit);
+
+	/// Initialize
+	void init(int socket, TFastoreServer* server, const sockaddr* addr, socklen_t addrLen);
+
+	/**
+	* This is called when the application transitions from one state into
+	* another. This means that it has finished writing the data that it needed
+	* to, or finished receiving the data that it needed to.
+	*/
+	void transition();
+
+	/**
+	* server calls this when socket is ready
+	*/
+	void workSocket();
+
+	// When transitioning if the connection flagged to be parked
+	// The transition will go to park rather than return after an operation.
+	void park()
+	{
+		appState_ = APP_PARKED;
+	}
+
+	//Attempt to expire the connection. If the last action occured
+	// more than timeout milliseconds ago, close the connection.
+	void expire(long timeout)
+	{
+		if ((clock() - lastAction_) > timeout)
+			appState_ = APP_CLOSE_CONNECTION;
+	}
+
+	/// Force connection shutdown for this connection.
+	void forceClose()
+	{
+		appState_ = APP_CLOSE_CONNECTION;
+		close();
+	}
+
+	/// return the server this connection was initialized for.
+	TFastoreServer* getServer() const
+	{
+		return server_;
+	}
+
+	/// get state of connection.
+	TAppState getState() const
+	{
+		return appState_;
+	}
+
+	/// get state of socket.
+	TSocketState getSocketState() const
+	{
+		return socketState_;
+	}
+
+	/// return the TSocket transport wrapping this network connection
+	boost::shared_ptr<TSocket> getTSocket() const
+	{
+		return tSocket_;
+	}
+
+	/// return the server event handler if any
+	boost::shared_ptr<TServerEventHandler> getServerEventHandler()
+	{
+		return serverEventHandler_;
+	}
+
+	/// return the Thrift connection context if any
+	void* getConnectionContext()
+	{
+		return connectionContext_;
+	}
+
+	TFastoreServer* getServer()
+	{
+		return server_;
+	}
 
 };
 

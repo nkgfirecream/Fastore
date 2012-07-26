@@ -19,6 +19,11 @@ namespace Alphora.Fastore
 {
   public partial class Service {
     public interface Iface {
+      void shutdown();
+      #if SILVERLIGHT
+      IAsyncResult Begin_shutdown(AsyncCallback callback, object state, );
+      void End_shutdown(IAsyncResult asyncResult);
+      #endif
       void ping();
       #if SILVERLIGHT
       IAsyncResult Begin_ping(AsyncCallback callback, object state, );
@@ -136,6 +141,64 @@ namespace Alphora.Fastore
         get { return oprot_; }
       }
 
+
+      
+      #if SILVERLIGHT
+      public IAsyncResult Begin_shutdown(AsyncCallback callback, object state, )
+      {
+        return send_shutdown(callback, state);
+      }
+
+      public void End_shutdown(IAsyncResult asyncResult)
+      {
+        oprot_.Transport.EndFlush(asyncResult);
+        recv_shutdown();
+      }
+
+      #endif
+
+      public void shutdown()
+      {
+        #if !SILVERLIGHT
+        send_shutdown();
+        recv_shutdown();
+
+        #else
+        var asyncResult = Begin_shutdown(null, null, );
+        End_shutdown(asyncResult);
+
+        #endif
+      }
+      #if SILVERLIGHT
+      public IAsyncResult send_shutdown(AsyncCallback callback, object state, )
+      #else
+      public void send_shutdown()
+      #endif
+      {
+        oprot_.WriteMessageBegin(new TMessage("shutdown", TMessageType.Call, seqid_));
+        shutdown_args args = new shutdown_args();
+        args.Write(oprot_);
+        oprot_.WriteMessageEnd();
+        #if SILVERLIGHT
+        return oprot_.Transport.BeginFlush(callback, state);
+        #else
+        oprot_.Transport.Flush();
+        #endif
+      }
+
+      public void recv_shutdown()
+      {
+        TMessage msg = iprot_.ReadMessageBegin();
+        if (msg.Type == TMessageType.Exception) {
+          TApplicationException x = TApplicationException.Read(iprot_);
+          iprot_.ReadMessageEnd();
+          throw x;
+        }
+        shutdown_result result = new shutdown_result();
+        result.Read(iprot_);
+        iprot_.ReadMessageEnd();
+        return;
+      }
 
       
       #if SILVERLIGHT
@@ -828,6 +891,7 @@ namespace Alphora.Fastore
       public Processor(Iface iface)
       {
         iface_ = iface;
+        processMap_["shutdown"] = shutdown_Process;
         processMap_["ping"] = ping_Process;
         processMap_["init"] = init_Process;
         processMap_["join"] = join_Process;
@@ -868,6 +932,19 @@ namespace Alphora.Fastore
           return false;
         }
         return true;
+      }
+
+      public void shutdown_Process(int seqid, TProtocol iprot, TProtocol oprot)
+      {
+        shutdown_args args = new shutdown_args();
+        args.Read(iprot);
+        iprot.ReadMessageEnd();
+        shutdown_result result = new shutdown_result();
+        iface_.shutdown();
+        oprot.WriteMessageBegin(new TMessage("shutdown", TMessageType.Reply, seqid)); 
+        result.Write(oprot);
+        oprot.WriteMessageEnd();
+        oprot.Transport.Flush();
       }
 
       public void ping_Process(int seqid, TProtocol iprot, TProtocol oprot)
@@ -1036,6 +1113,99 @@ namespace Alphora.Fastore
         result.Write(oprot);
         oprot.WriteMessageEnd();
         oprot.Transport.Flush();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class shutdown_args : TBase
+    {
+
+      public shutdown_args() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("shutdown_args");
+        oprot.WriteStructBegin(struc);
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("shutdown_args(");
+        sb.Append(")");
+        return sb.ToString();
+      }
+
+    }
+
+
+    #if !SILVERLIGHT
+    [Serializable]
+    #endif
+    public partial class shutdown_result : TBase
+    {
+
+      public shutdown_result() {
+      }
+
+      public void Read (TProtocol iprot)
+      {
+        TField field;
+        iprot.ReadStructBegin();
+        while (true)
+        {
+          field = iprot.ReadFieldBegin();
+          if (field.Type == TType.Stop) { 
+            break;
+          }
+          switch (field.ID)
+          {
+            default: 
+              TProtocolUtil.Skip(iprot, field.Type);
+              break;
+          }
+          iprot.ReadFieldEnd();
+        }
+        iprot.ReadStructEnd();
+      }
+
+      public void Write(TProtocol oprot) {
+        TStruct struc = new TStruct("shutdown_result");
+        oprot.WriteStructBegin(struc);
+
+        oprot.WriteFieldStop();
+        oprot.WriteStructEnd();
+      }
+
+      public override string ToString() {
+        StringBuilder sb = new StringBuilder("shutdown_result(");
+        sb.Append(")");
+        return sb.ToString();
       }
 
     }

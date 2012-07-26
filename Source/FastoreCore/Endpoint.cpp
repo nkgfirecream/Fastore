@@ -17,14 +17,15 @@ class Endpoint::impl
 	boost::shared_ptr<TTransportFactory> _transportFactory;
 	boost::shared_ptr<TProtocolFactory> _protocolFactory;
 	boost::shared_ptr<TServer> _server;
+	EndpointConfig _config;
 
 public:
 
-	impl(const EndpointConfig& config, const boost::shared_ptr<TProcessor> processor)	
+	impl(const EndpointConfig& config, const boost::shared_ptr<TProcessor> processor) : _config(config)	
 	{
 		_processor = processor;
 		_protocolFactory = boost::shared_ptr<TProtocolFactory>(new TBinaryProtocolFactory());
-		_server = boost::shared_ptr<TFastoreServer>(new TFastoreServer(_processor, _protocolFactory, config.port));
+		_server = boost::shared_ptr<TFastoreServer>(new TFastoreServer(_processor, _protocolFactory, _config.port));
 	}
 
 	~impl()
@@ -46,6 +47,11 @@ public:
 	{
 		return _processor;
 	}
+
+	EndpointConfig getConfig()
+	{
+		return _config;
+	}
 };
 
 Endpoint::Endpoint(const EndpointConfig& config, const boost::shared_ptr<TProcessor>& processor) : _pimpl(new impl(config, processor))
@@ -64,4 +70,9 @@ void Endpoint::Stop()
 boost::shared_ptr<apache::thrift::TProcessor> Endpoint::getProcessor()
 {
 	return _pimpl->getProcessor();
+}
+
+EndpointConfig Endpoint::getConfig()
+{
+	return _pimpl->getConfig();
 }

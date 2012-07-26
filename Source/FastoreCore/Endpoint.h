@@ -14,4 +14,5 @@ public:
 	void Stop();
 
 	boost::shared_ptr<apache::thrift::TProcessor> getProcessor();
+	EndpointConfig getConfig();
 };

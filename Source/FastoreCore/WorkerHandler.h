@@ -4,6 +4,8 @@
 #include <thrift/TProcessor.h>
 #include <hash_map>
 #include "Repository.h"
+#include "Scheduler.h"
+#include "TFastoreServer.h"
 
 class WorkerHandler : virtual public fastore::communication::WorkerIf , virtual public apache::thrift::TProcessorEventHandler
 {
@@ -11,6 +13,11 @@ private:
 	fastore::communication::PodID _podId;
 	std::string _path;
 	std::hash_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
+	boost::shared_ptr<Scheduler> _scheduler;
+
+	//Not a shared pointer because we don't own the connection.
+	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;
+
 	void CheckState();
 	void Bootstrap();
 	void SyncToSchema();
@@ -23,7 +30,7 @@ private:
 	ScalarType GetTypeFromName(std::string typeName);
 	
 public:
-	WorkerHandler(const PodID podId, const string path);
+	WorkerHandler(const PodID podId, const string path, const boost::shared_ptr<Scheduler>);
 
 	Revision prepare(const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes, const fastore::communication::Reads& reads);
 	void apply(fastore::communication::TransactionID& _return, const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes);
@@ -37,6 +44,10 @@ public:
 	void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
 	void getState(WorkerState& _return);	
 
+	//Admin
+	void shutdown();
+
+	//TProcessorEventHandler
 	void handlerError(void* ctx, const char* fn_name);
 	void* getContext(const char* fn_name, void* serverContext);
 };

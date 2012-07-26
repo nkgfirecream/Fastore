@@ -131,7 +131,7 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
 		auto podID = workers[i].podID;
 
 		// Create a handler for the worker
-		auto handler = boost::shared_ptr<WorkerHandler>(new WorkerHandler(podID, _config->workerPaths[i]));
+		auto handler = boost::shared_ptr<WorkerHandler>(new WorkerHandler(podID, _config->workerPaths[i], _scheduler));
 
 		auto processor = boost::shared_ptr<TProcessor>(new WorkerProcessor(handler));
 
@@ -146,24 +146,27 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
 		_workers.push_front(endpoint);
 
 		// Start the endpoint's thread
-		boost::thread workerThread
-		(
-			[endpoint, i, podID]() -> void 
-			{ 
-				try
-				{
-					endpoint->Run();
+		_workerThreads.push_back(
+			boost::thread
+			(
+				[endpoint, i, podID]() -> void 
+				{ 
+					try
+					{
+						endpoint->Run();
+					}
+					catch (const exception& e)
+					{
+						cout << "ERROR: unhandled exception running the endpoint for worker " << i << " for pod " << podID << ": " << e.what();
+					}
+					catch (...)
+					{
+						cout << "ERROR: unhandled exception running the endpoint for worker " << i << " for pod " << podID << ".";
+					} 
 				}
-				catch (const exception& e)
-				{
-					cout << "ERROR: unhandled exception running the endpoint for worker " << i << " for pod " << podID << ": " << e.what();
-				}
-				catch (...)
-				{
-					cout << "ERROR: unhandled exception running the endpoint for worker " << i << " for pod " << podID << ".";
-				} 
-			}
+			)
 		);
+
 		// TODO: experiment with explicitly setting the worker thread's affinity 
 	}
 }
@@ -235,8 +238,13 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 	_config->__set_joinedHive(*_hiveState);
 	SaveConfiguration();
 
+	_scheduler = boost::shared_ptr<Scheduler>(new Scheduler(_config->address));
+
 	// Initialize workers
 	InitializeWorkers(_return.workers);
+
+	// Start scheduler running... Or should it start on the first callback?
+	_scheduler->start();
 }
 
 void ServiceHandler::join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) 
@@ -346,4 +354,58 @@ printf("EscalateLock\n");
 void ServiceHandler::releaseLock(const LockID lockID) {
 // Your implementation goes here
 printf("ReleaseLock\n");
+}
+
+void ServiceHandler::handlerError(void* ctx, const char* fn_name)
+{
+	//_currentConnection->park();
+
+	//SHUT DOWN EVERYTHING!! FAIL FAST FAIL HARD! KILL THE HIVE IF SOMETHING GOES WRONG!
+	//(Not really, just testing things)
+	//_currentConnection->getServer()->stop();
+}
+
+void ServiceHandler::shutdown()
+{
+	if (_hiveState != NULL)
+	{
+		auto currentState = _hiveState->services.find(_hiveState->reportingHostID);
+
+		auto workers = currentState->second.workers;
+
+		for (auto iter = workers.begin(); iter != workers.end(); ++iter)
+		{
+			try
+			{
+				boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
+				boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
+				boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+				WorkerClient client(protocol);
+				transport->open();
+				client.shutdown();
+				transport->close();
+			}
+			catch(...)
+			{
+				//For now we expect a transport exception upon shutdown, since the server will immediately terminate.
+				//We will want something more graceful in the future.
+				continue;
+			}
+		}
+
+		for (auto iter = _workerThreads.begin(); iter != _workerThreads.end(); ++iter)
+		{
+			iter->join();
+		}
+	}
+
+	_currentConnection->getServer()->shutdown();
+}
+
+void* ServiceHandler::getContext(const char* fn_name, void* serverContext)
+{
+	_currentConnection = (apache::thrift::server::TFastoreServer::TConnection*)serverContext;
+
+	return NULL;
 }

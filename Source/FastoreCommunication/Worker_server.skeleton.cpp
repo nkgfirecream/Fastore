@@ -22,6 +22,11 @@ class WorkerHandler : virtual public WorkerIf {
     // Your initialization goes here
   }
 
+  void shutdown() {
+    // Your implementation goes here
+    printf("shutdown\n");
+  }
+
   void getState(WorkerState& _return) {
     // Your implementation goes here
     printf("getState\n");
