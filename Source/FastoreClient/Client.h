@@ -3,7 +3,9 @@
 #include "Database.h"
 #include "ServiceAddress.h"
 #include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include "..\FastoreCommunication\Comm_types.h"
+
+using namespace fastore::communication;
 
 namespace fastore
 {
