@@ -61,9 +61,9 @@ void Transaction::Commit(bool flush = false)
 	_completed = true;
 }
 
-std::map<int, ColumnWrites*> Transaction::GatherWrites()
+std::map<int, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
 {
-	std::map<int, ColumnWrites*> writesPerColumn = std::map<int, ColumnWrites*>();
+	std::map<int, boost::shared_ptr<ColumnWrites>> writesPerColumn = std::map<int, boost::shared_ptr<ColumnWrites>>();
 
 	// Gather changes for each column
 	for (std::map<int, LogColumn*>::const_iterator entry = _log.begin(); entry != _log.end(); ++entry)
@@ -76,27 +76,25 @@ std::map<int, ColumnWrites*> Transaction::GatherWrites()
 			if (writes == NULL)
 			{
 				writes = boost::shared_ptr<ColumnWrites>(new ColumnWrites());
-				writes->includes = std::vector<Include>();
+				writes->__set_includes(std::vector<fastore::communication::Include>());
 			}
-			boost::shared_ptr<Alphora::Fastore::Include> inc = boost::make_shared<Fastore::Include>();
-			inc->RowID = Fastore::Client::Encoder::Encode((*include)->Key);
-			inc->Value = Fastore::Client::Encoder::Encode((*include)->Value);
-			writes->Includes->Add(inc);
+
+			writes->includes.push_back((*include));
 		}
 
 		// Process Excludes
-		for (unknown::const_iterator exclude = entry->Value->Excludes.begin(); exclude != entry->Value->Excludes.end(); ++exclude)
+		for (auto exclude = entry->second->Excludes.begin(); exclude != entry->second->Excludes.end(); ++exclude)
 		{
 			if (writes == nullptr)
-				writes = boost::make_shared<ColumnWrites>();
-			if (writes->Excludes == nullptr)
-				writes->Excludes = std::vector<Fastore::Exclude*>();
-			boost::shared_ptr<Alphora::Fastore::Exclude> ex = boost::make_shared<Fastore::Exclude> {RowID = Fastore::Client::Encoder::Encode(*exclude)};
-			writes->Excludes->Add(ex);
+				writes = boost::shared_ptr<ColumnWrites>(new ColumnWrites());
+			if (!writes->__isset.excludes)
+				writes->__set_excludes(std::vector<fastore::communication::Exclude>());
+			
+			writes->excludes.push_back((*exclude));
 		}
 
 		if (writes != nullptr)
-			writesPerColumn.insert(make_pair((*entry)->Key, writes));
+			writesPerColumn.insert(std::pair<int, boost::shared_ptr<ColumnWrites>>(entry->first, writes));
 	}
 
 	return writesPerColumn;
@@ -108,10 +106,10 @@ void Transaction::Rollback()
 	_completed = true;
 }
 
-boost::shared_ptr<RangeSet> Transaction::GetRange(int columnIds[], Range range, int limit, const boost::shared_ptr<object> &startId
+RangeResult Transaction::GetRange(RangeRequest range)
 {
 	// Get the raw results
-	auto raw = getDatabase()->GetRange(columnIds, range, limit, startId);
+	auto raw = getDatabase()->GetRange(range);
 
 	// Find a per-column change map for each column in the selection
 	auto changeMap = new LogColumn[sizeof(columnIds) / sizeof(columnIds[0])];
@@ -194,7 +192,7 @@ boost::shared_ptr<RangeSet> Transaction::GetRange(int columnIds[], Range range, 
 	return raw;
 }
 
-boost::shared_ptr<DataSet> Transaction::GetValues(int columnIds[], object rowIds[])
+boost::shared_ptr<DataSet> Transaction::GetValues(std::vector<int> columnIds, std::vector<std::string> rowIds)
 {
 	// TODO: Filter/augment data for the transaction
 	return getDatabase()->GetValues(columnIds, rowIds);
@@ -202,13 +200,13 @@ boost::shared_ptr<DataSet> Transaction::GetValues(int columnIds[], object rowIds
 
 void Transaction::Include(int columnIds[], const boost::shared_ptr<object> &rowId, object row[])
 {
-	for (var i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
+	for (int i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
 		EnsureColumnLog(columnIds[i])->Includes[rowId] = row[i];
 }
 
 void Transaction::Exclude(int columnIds[], const boost::shared_ptr<object> &rowId)
 {
-	for (var i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
+	for (int i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
 		EnsureColumnLog(columnIds[i])->Excludes.insert(rowId);
 }
 

@@ -12,8 +12,9 @@ namespace fastore
 	class Generator
 	{
 	private:
-		boost::shared_ptr<object> _generatorLock;
-		std::map<int, IDGenerator*> _generators;
+		//TODO: Locking
+		void* _generatorLock;
+		std::map<int, boost::shared_ptr<IDGenerator>> _generators;
 		boost::shared_ptr<Database> _database;
 //ORIGINAL LINE: private int[] _podIDs;
 //C# TO C++ CONVERTER WARNING: Since the array size is not known in this declaration, C# to C++ Converter has converted this array to a pointer.  You will need to call 'delete[]' where appropriate:
@@ -31,7 +32,7 @@ namespace fastore
 		void InitializeInstanceFields();
 
 	public:
-		Generator(const boost::shared_ptr<Database> &database, int podIDs[] = nullptr);
+		Generator(const boost::shared_ptr<Database> &database, std::vector<int> podIDs);
 
 		/// <summary> Generates the next value for the given table. </summary>
 		/// <param name="columnId"> The column an ID is being generated for. </param>

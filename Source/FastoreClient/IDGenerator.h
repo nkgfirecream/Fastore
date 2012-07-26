@@ -34,8 +34,10 @@ namespace fastore
 		int _allocationThreshold;
 		// ID generation callback (when another block is needed)
 		GenerateIdCallback _generateCallback;
+
 		// Event which is unsignaled (blocking) while loading the next block
-		boost::shared_ptr<ManualResetEvent> _loadingEvent;
+		//TODO: Threading and locking
+		void*_loadingEvent;
 		// True if we're in the process of loading another block of IDs					
 		bool _loadingBlock;
 		// Spin lock for in-memory protection ID allocation
@@ -47,13 +49,16 @@ namespace fastore
 		// The last error that was thrown from allocation (to be relayed to requesters)					
 		std::exception _lastError;
 
+
+		//TODO: State was formerly and object.
 		/// <summary> Worker thread used to fetch the next block of IDs. </summary>
 		/// <param name="state"> Unused (part of thread pool contract). </param>
-		void AsyncGenerateBlock(const boost::shared_ptr<object> &state);
+		void AsyncGenerateBlock(void* &state);
 
+		//TODO: Nullable objects
 		/// <summary> Resets the loading state after attempting to load a new block.</summary>
 		/// <param name="newBlock"> If the new block value is null, an error occurred. </param>
-		void ResetLoading(Nullable<long long> newBlock, std::exception &e);
+		void ResetLoading(long long* newBlock, std::exception &e);
 
 		void InitializeInstanceFields();
 	};

@@ -22,6 +22,7 @@
     <ClInclude Include="IDGenerator.h" />
     <ClInclude Include="ServiceAddress.h" />
     <ClInclude Include="Transaction.h" />
+    <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />

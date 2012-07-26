@@ -5,10 +5,14 @@
 #include <vector>
 #include <queue>
 #include <stdexcept>
+#include <functional>
 #include <boost/shared_ptr.hpp>
 #include "..\FastoreCommunication\Comm_types.h"
+#include <thrift\protocol\TProtocol.h>
+
 
 using namespace fastore::communication;
+using namespace apache::thrift::protocol;
 
 namespace fastore
 {
@@ -22,22 +26,25 @@ namespace fastore
 	private:
 		boost::shared_ptr<object> _lock;
 		std::map<TKey, std::queue<TClient>*> _entries;
-		Func<TProtocol*, TClient> _createConnection;
-		Func<TKey, NetworkAddress*> _determineAddress;
-		Action<TClient> _destroyConnection;
-		Func<TClient, bool> _isValid;		
+
+		std::function<TClient(boost::shared_ptr<TProtocol>)> _createConnection;
+		std::function<boost::shared_ptr<NetworkAddress>(TKey)> _determineAddress;
+		std::function<void(TClient)> _destroyConnection;
+		std::function<bool(TClient)> _isValid;
+
+
 		int _maxPooledPerKey;
 		void InitializeInstanceFields();
 
 	public:
-		ConnectionPool(Func<TProtocol*, TClient> createConnection, Func<TKey, NetworkAddress*> determineAddress, Action<TClient> destroyConnection, Func<TClient, bool> isValid);
+		ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, std::function<boost::shared_ptr<NetworkAddress>(TKey)> determineAddress, std::function<void(TClient)> destroyConnection, std::function<bool(TClient)> isValid);
 		~ConnectionPool();
 
 		const int &getMaxPooledPerKey();
 		void setMaxPooledPerKey(const int &value);
 
-		TClient operator [](TKey key);
-		void Release(KeyValuePair<TKey, TClient> connection);
+		TClient& operator[] (TKey key);
+		void Release(std::pair<TKey, TClient> connection);
 		void Destroy(TClient connection);
 
 		/// <summary> Makes a connection to a service given address information. </summary>
