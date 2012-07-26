@@ -77,6 +77,7 @@ struct ExecuteResult
 	bool eof;
 };
 
+FASTOREAPI void APIENTRY fastoreFreeError(PFastoreError error);
 
 FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddress *addresses);
 FASTOREAPI PFastoreError APIENTRY fastoreDisconnect(DatabaseHandle database);

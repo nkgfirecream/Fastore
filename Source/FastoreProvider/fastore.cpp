@@ -1,13 +1,58 @@
 #include "fastore.h"
+#include <memory>
+#include "Connection.h"
+#include <exception>
+
+using namespace std;
+
+PFastoreError ExceptionToFastoreError(exception e)
+{
+	auto error = unique_ptr<FastoreError>(new FastoreError());
+	// TODO: error codes
+	//error->code = ;
+	strcpy_s(error->message, MAX_ERROR_MESSAGE, e.what());
+	return error.release();
+}
+
+FASTOREAPI void APIENTRY fastoreFreeError(PFastoreError error)
+{
+	if (error)
+		delete error;
+}
 
 FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddress *addresses)
 {
-	ConnectResult result;
-	return result;
+	try
+	{
+		// Convert addresses
+		vector<ServerAddress> serverAddresses = vector<ServerAddress>();
+		serverAddresses.resize(addressCount);
+		for (auto i = 0; i < addressCount; i++)
+		{
+			serverAddresses[i].hostName	= string(addresses[i].hostName);
+			serverAddresses[i].port = addresses[i].port;
+		}
+
+		// Create connection
+		auto connection = unique_ptr<Connection>(new Connection(serverAddresses));
+		
+		ConnectResult result = { nullptr, connection.release() };
+		return result;
+	}
+	catch (exception e)
+	{
+		ConnectResult result = { ExceptionToFastoreError(e), nullptr };
+		return result;
+	}
+	catch (...)
+	{
+		ConnectResult result = { new FastoreError(), nullptr };
+	}
 }
 
 FASTOREAPI PFastoreError APIENTRY fastoreDisconnect(DatabaseHandle database)
 {
+	delete database;
 	return NULL;
 }
 
