@@ -3,14 +3,15 @@
 #include <string>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
-namespace fastore
+namespace fastore { namespace client
 {
 	class ServiceAddress
 	{
 	public:
 		static const int DefaultPort = 8765;		
-		static boost::shared_ptr<ServiceAddress> ParseOne(const std::string &address);
+		static ServiceAddress ParseOne(const std::string &address);
 		static std::vector<ServiceAddress> ParseList(const std::string &composite);
 
 	private:
@@ -24,4 +25,4 @@ namespace fastore
 		void setName(const std::string &value);
 
 	};
-}
+}}

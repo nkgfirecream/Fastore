@@ -2,6 +2,6 @@
 #include <map>
 #include "ColumnDef.h"
 
-using namespace fastore;
+using namespace fastore::client;
 
 typedef std::map<int, ColumnDef> Schema;

@@ -7,7 +7,7 @@
 
 using namespace fastore::communication;
 
-namespace fastore
+namespace fastore { namespace client
 {	
 	class IDataAccess
 	{
@@ -20,6 +20,6 @@ namespace fastore
 
 		virtual std::vector<Statistic> GetStatistics(std::vector<int> columnIds) = 0;
 
-		//virtual std::map<int, TimeSpan> Ping() = 0;
+		virtual std::map<int, long long> Ping() = 0;
 	};
-}
+}}

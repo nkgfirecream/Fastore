@@ -5,7 +5,7 @@
 #include <boost/shared_ptr.hpp>
 
 
-namespace fastore
+namespace fastore { namespace client
 {
 	class DataSet
 	{
@@ -33,4 +33,4 @@ namespace fastore
 		//boost::shared_ptr<IEnumerator> IEnumerable_GetEnumerator();
 
 	};
-}
+}}

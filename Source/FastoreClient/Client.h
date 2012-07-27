@@ -7,11 +7,11 @@
 
 using namespace fastore::communication;
 
-namespace fastore
+namespace fastore { namespace client
 {
 	class Client
 	{
 	public:
-		static boost::shared_ptr<Database> Connect(ServiceAddress addresses[]);
+		static Database Connect(std::vector<ServiceAddress> addresses);
 	};
-}
+}}

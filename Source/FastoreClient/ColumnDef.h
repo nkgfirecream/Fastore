@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 
-namespace fastore
+namespace fastore { namespace client
 {
 	enum class BufferType
 	{
@@ -38,4 +38,4 @@ namespace fastore
 				const BufferType &getBufferType() const;
 				void setBufferType(const BufferType &value);
 	};
-}
+}}

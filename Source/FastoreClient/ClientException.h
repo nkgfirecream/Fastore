@@ -4,8 +4,9 @@
 #include <vector>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <functional>
 
-namespace fastore
+namespace fastore { namespace client
 {
 	class ClientException : public std::exception
 	{
@@ -21,15 +22,15 @@ namespace fastore
 		};
 
 		Codes Code;
-		std::unique_ptr<std::exception> Inner;
+		std::exception Inner;
 
 		ClientException();
 		ClientException(const std::string &message);
 		ClientException(const std::string &message, Codes code);
-		ClientException(const std::string &message, std::unique_ptr<std::exception> &inner);
+		ClientException(const std::string &message, std::exception &inner);
 
 		static void ThrowErrors(std::vector<std::exception> &errors);
 
-		static void ForceCleanup(vector<function<void>> statements);
+		static void ForceCleanup(std::vector<std::function<void()>> statements);
 	};
-}
+}}

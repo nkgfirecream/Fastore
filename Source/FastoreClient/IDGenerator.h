@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 
-namespace fastore
+namespace fastore { namespace client
 {
 	class IDGenerator
 	{
@@ -62,4 +62,4 @@ namespace fastore
 
 		void InitializeInstanceFields();
 	};
-}
+}}

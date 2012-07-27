@@ -12,7 +12,7 @@
 
 using namespace fastore::communication;
 
-namespace fastore
+namespace fastore { namespace client
 {
 	/// <Remarks>
 	///   If a transaction is disposed and hasn't been committed or rolled back then it is automatically rolled back.
@@ -33,22 +33,22 @@ namespace fastore
 		bool privateReadIsolation;
 		bool privateWriteIsolation;
 		bool _completed;
-		boost::shared_ptr<TransactionID> _transactionId;
-		std::map<int, boost::shared_ptr<ColumnWrites>> GatherWrites();
+		TransactionID _transactionId;
+		std::map<int, ColumnWrites> GatherWrites();
 
 		// Log entries - by column ID then by row ID - null value means exclude
-		std::map<int, LogColumn*> _log;
-		boost::shared_ptr<LogColumn> EnsureColumnLog(int columnId);
+		std::map<int, LogColumn> _log;
+		LogColumn EnsureColumnLog(int columnId);
 
 	public:
-		const boost::shared_ptr<Database> &getDatabase() const;
-		void setDatabase(const boost::shared_ptr<Database> &value);
+		const Database &getDatabase() const;
+		void setDatabase(const Database &value);
 		const bool &getReadIsolation() const;
 		void setReadIsolation(const bool &value);
 		const bool &getWriteIsolation() const;
 		void setWriteIsolation(const bool &value);
 
-		Transaction(const boost::shared_ptr<Database> &database, bool readIsolation, bool writeIsolation);
+		Transaction(const Database &database, bool readIsolation, bool writeIsolation);
 		~Transaction();
 
 		void Commit(bool flush = false);
@@ -59,7 +59,6 @@ namespace fastore
 		void Include(std::vector<int> columnIds, std::string rowId, std::vector<std::string> row);
 		void Exclude(std::vector<int> columnIds, std::string rowId);
 		std::vector<Statistic> GetStatistics(std::vector<int> columnIds);
-
-		//std::map<int, TimeSpan> Ping();
+		std::map<int, long long> Ping();
 	};
-}
+}}
