@@ -1,6 +1,6 @@
 ﻿#include "ColumnDef.h"
 
-using namespace fastore;
+using namespace fastore::client;
 
 const int &ColumnDef::getColumnID() const
 {

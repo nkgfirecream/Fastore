@@ -17,6 +17,7 @@
     <ClInclude Include="ConnectionPool.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="DataSet.h" />
+    <ClInclude Include="Dictionary.h" />
     <ClInclude Include="Generator.h" />
     <ClInclude Include="IDataAccess.h" />
     <ClInclude Include="IDGenerator.h" />
@@ -31,6 +32,7 @@
     <ClCompile Include="ConnectionPool.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DataSet.cpp" />
+    <ClCompile Include="Dictionary.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="IDGenerator.cpp" />
     <ClCompile Include="ServiceAddress.cpp" />

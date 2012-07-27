@@ -1,9 +1,9 @@
 ﻿#include "Client.h"
 
-namespace fastore
+using namespace fastore::client;
+
+Database Client::Connect(std::vector<ServiceAddress> addresses)
 {
-	boost::shared_ptr<Database> Client::Connect(ServiceAddress addresses[])
-	{
-		return boost::shared_ptr<Database>(new Database(addresses));
-	}
+	return Database(addresses);
 }
+

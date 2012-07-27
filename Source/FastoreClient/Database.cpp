@@ -1,6 +1,9 @@
 ﻿#include "Database.h"
+#include "Dictionary.h"
+#include <boost\format.hpp>
 
-using namespace fastore;
+using namespace fastore::client;
+
 Database::PodMap::PodMap()
 {
 	Pods = std::vector<int>();
@@ -14,46 +17,70 @@ const int &Database::getWriteTimeout() const
 void Database::setWriteTimeout(const int &value)
 {
 	if (value < -1)
-		throw boost::make_shared<ArgumentOutOfRangeException>("value", "WriteTimeout must be -1 or greater.");
+		throw std::exception("WriteTimeout must be -1 or greater.");
 	_writeTimeout = value;
 }
 
-Database::Database(ServiceAddress addresses[])
+Database::Database(std::vector<ServiceAddress> addresses)
+	:	_nextSystemWorker(0) , _writeTimeout(DefaultWriteTimeout)
 {
-	InitializeInstanceFields();
-//C# TO C++ CONVERTER TODO TASK: Lambda expressions and anonymous methods are not converted to native C++ unless the option to convert to C++11 lambdas is selected:
-	_services = boost::make_shared<ConnectionPool<int, Service::Client*>> ((proto) => boost::make_shared<Service::Client>(proto), boost::make_shared<Func<int, NetworkAddress*>>(GetServiceAddress), (client) =>(new object[] {client::InputProtocol->Transport->Close();}), (client) => client::InputProtocol->Transport->IsOpen);
 
-//C# TO C++ CONVERTER TODO TASK: Lambda expressions and anonymous methods are not converted to native C++ unless the option to convert to C++11 lambdas is selected:
-	_workers = boost::make_shared<ConnectionPool<int, Worker::Client*>> ((proto) => boost::make_shared<Worker::Client>(proto), boost::make_shared<Func<int, NetworkAddress*>>(GetWorkerAddress), (client) =>(new object[] {client::InputProtocol->Transport->Close();}), (client) => client::InputProtocol->Transport->IsOpen);
+	_services = boost::shared_ptr<ConnectionPool<int, ServiceClient>>
+		(
+			new ConnectionPool<int, ServiceClient>
+			(
+				[](boost::shared_ptr<TProtocol> proto) { return ServiceClient(proto); }, 
+				[&](int i) { return GetServiceAddress(i); }, 
+				[](ServiceClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
+				[](ServiceClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
+			)
+		);
+
+	_workers = boost::shared_ptr<ConnectionPool<int, WorkerClient>>
+		(
+			new ConnectionPool<int, WorkerClient>
+			(
+				[](boost::shared_ptr<TProtocol> proto) { return ServiceClient(proto); }, 
+				[&](int i) { return GetWorkerAddress(i); }, 
+				[](WorkerClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
+				[](WorkerClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
+			)
+		);
 
 	// Convert from service addresses to network addresses
-	auto networkAddresses = (from a in addresses select boost::make_shared<NetworkAddress> {Name = a->Name, Port = a::Port})->ToArray();
+	std::vector<NetworkAddress> networkAddresses;
+	for (auto a : addresses)
+	{
+		NetworkAddress n;
+		n.__set_name(a.getName());
+		n.__set_port(a.getPort());
+		networkAddresses.push_back(n);
+	}
 
 	// Number of potential workers for each service (in case we nee to create the hive)
-	auto serviceWorkers = new int[sizeof(networkAddresses) / sizeof(networkAddresses[0])];
-
-	for (int i = 0; i < sizeof(networkAddresses) / sizeof(networkAddresses[0]); i++)
+	std::vector<int> serviceWorkers(networkAddresses.size());
+	for (int i = 0; i < networkAddresses.size(); i++)
 	{
 		auto service = _services->Connect(networkAddresses[i]);
 		try
 		{
 			// Discover the state of the entire hive from the given service
-			auto hiveStateResult = service->getHiveState(false);
-			if (!hiveStateResult::__isset.hiveState)
+			OptionalHiveState hiveStateResult;
+			service.getHiveState(hiveStateResult, false);
+			if (!hiveStateResult.__isset.hiveState)
 			{
 				// If no hive state is given, the service is not joined, we should proceed to discover the number 
 				//  of potential workers for the rest of the services ensuring that they are all not joined.
-				serviceWorkers[i] = hiveStateResult::PotentialWorkers;
+				serviceWorkers[i] = hiveStateResult.potentialWorkers;
 				_services->Destroy(service);
 				continue;
 			}
 
 			// If we have passed the first host, we are in "discovery" mode for a new topology so we find any services that are joined.
 			if (i > 0)
-				throw boost::make_shared<ClientException>(std::string::Format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.", networkAddresses[i]->Name, hiveStateResult::HiveState::TopologyID));
-
-			UpdateHiveState(hiveStateResult::HiveState);
+				throw ClientException(boost::str(boost::format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.") % networkAddresses[i].name % hiveStateResult.hiveState.topologyID));
+			
+			UpdateHiveState(hiveStateResult.hiveState);
 			BootStrapSchema();
 			RefreshHiveState();
 
@@ -64,7 +91,6 @@ Database::Database(ServiceAddress addresses[])
 		{
 			// If anything goes wrong, be sure to release the service client
 			_services->Destroy(service);
-			delete _services;
 			throw;
 		}
 	}
@@ -72,21 +98,23 @@ Database::Database(ServiceAddress addresses[])
 	//Create a new topology instead.
 	auto newTopology = CreateTopology(serviceWorkers);
 
-	auto addressesByHost = std::map<int, NetworkAddress*>();
-	for (var hostID = 0; hostID < sizeof(networkAddresses) / sizeof(networkAddresses[0]); hostID++)
-		addressesByHost->Add(hostID, networkAddresses[hostID]);
+	auto addressesByHost = std::map<int, NetworkAddress>();
+	for (int hostID = 0; hostID  < networkAddresses.size(); hostID++)
+		addressesByHost.insert(std::pair<int,NetworkAddress>(hostID, networkAddresses[hostID]));
 
-	auto newHive = boost::make_shared<HiveState> {TopologyID = newTopology->TopologyID, Services = std::map<int, ServiceState*>()};
-	for (var hostID = 0; hostID < sizeof(networkAddresses) / sizeof(networkAddresses[0]); hostID++)
+	HiveState newHive;
+	newHive.__set_topologyID(newTopology.topologyID);
+	newHive.__set_services(std::map<int, ServiceState>());
+	for (int hostID = 0; hostID < networkAddresses.size(); hostID++)
 	{
 		auto service = _services->Connect(networkAddresses[hostID]);
 		try
 		{
-			auto serviceState = service->init(newTopology, addressesByHost, hostID);
-			newHive->Services->Add(hostID, serviceState);
+			ServiceState serviceState;
+			service.init(serviceState, newTopology, addressesByHost, hostID);
+			newHive.services.insert(std::pair<int, ServiceState>(hostID, serviceState));
 		}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-		finally
+		catch(std::exception& e)
 		{
 			_services->Destroy(service);
 		}
@@ -97,30 +125,58 @@ Database::Database(ServiceAddress addresses[])
 	UpdateTopologySchema(newTopology);
 }
 
-void Database::UpdateTopologySchema(const boost::shared_ptr<Topology> &newTopology)
+void Database::UpdateTopologySchema(const Topology &newTopology)
 {
-	auto writes = std::map<int, ColumnWrites*>();
+	auto writes = std::map<int, ColumnWrites>();
 
 	// Insert the topology
-	const Fastore::Include* tempVector[] = {boost::make_shared<Fastore::Include> {RowID = Encoder::Encode(newTopology->TopologyID), Value = Encoder::Encode(newTopology->TopologyID)}};
-	writes->Add(std::map::TopologyID, boost::make_shared<ColumnWrites> {Includes = std::vector<Fastore::Include*>(tempVector, tempVector + sizeof(tempVector) / sizeof(tempVector[0]))});
+	std::vector<fastore::communication::Include> tempVector;
+
+	fastore::communication::Include inc;
+	//TODO: Encoding
+	inc.__set_rowID(newTopology.topologyID);
+	inc.__set_value(newTopology.topologyID);
+
+	tempVector.push_back(inc);
+
+	ColumnWrites topoWrites;
+	topoWrites.__set_includes(tempVector);
+	writes.insert(std::pair<int, ColumnWrites>(Dictionary::TopologyID, topoWrites));
 
 	// Insert the hosts and pods
-	auto hostWrites = boost::make_shared<ColumnWrites> {Includes = std::vector<Fastore::Include*>()};
-	auto podWrites = boost::make_shared<ColumnWrites> {Includes = std::vector<Fastore::Include*>()};
-	auto podHostWrites = boost::make_shared<ColumnWrites> {Includes = std::vector<Fastore::Include*>()};
-	for (Thrift::Collections::THashSet<Alphora::Fastore::Host*>::const_iterator h = newTopology->Hosts.begin(); h != newTopology->Hosts.end(); ++h)
+	ColumnWrites hostWrites;
+	hostWrites.__set_includes(std::vector<fastore::communication::Include>());
+
+	ColumnWrites podWrites;
+	podWrites.__set_includes(std::vector<fastore::communication::Include>());
+
+	ColumnWrites podHostWrites;
+	podHostWrites.__set_includes(std::vector<fastore::communication::Include>());
+
+	for (auto h = newTopology.hosts.begin(); h != newTopology.hosts.end(); ++h)
 	{
-		hostWrites->Includes->Add(boost::make_shared<Fastore::Include> {RowID = Encoder::Encode((*h)->Key), Value = Encoder::Encode((*h)->Key)});
-		for (unknown::const_iterator p = h->Value.begin(); p != h->Value.end(); ++p)
+		//TODO: Encoding
+		fastore::communication::Include inc;		
+		inc.__set_rowID(h->first);
+		inc.__set_rowID(h->first);
+		hostWrites.includes.push_back(inc);
+
+		for (auto p = h->second.begin(); p != h->second.end(); ++p)
 		{
-			podWrites->Includes->Add(boost::make_shared<Fastore::Include> {RowID = Encoder::Encode((*p)->Key), Value = Encoder::Encode((*p)->Key)});
-			podHostWrites->Includes->Add(boost::make_shared<Fastore::Include> {RowID = Encoder::Encode((*p)->Key), Value = Encoder::Encode((*h)->Key)});
+			fastore::communication::Include pwinc;
+			pwinc.__set_rowID(p->first);
+			pwinc.__set_value(p->first);
+			podWrites.includes.push_back(pwinc);
+
+			fastore::communication::Include phinc;
+			phinc.__set_rowID(p->first);
+			phinc.__set_value(h->first);
+			podHostWrites.includes.push_back(phinc);
 		}
 	}
-	writes->Add(std::map::HostID, hostWrites);
-	writes->Add(std::map::PodID, podWrites);
-	writes->Add(std::map::PodHostID, podHostWrites);
+	writes.insert(std::pair<int, ColumnWrites>(Dictionary::HostID, hostWrites));
+	writes.insert(std::pair<int, ColumnWrites>(Dictionary::PodID, podWrites));
+	writes.insert(std::pair<int, ColumnWrites>(Dictionary::PodHostID, podHostWrites));
 
 	Apply(writes, false);
 }
@@ -978,13 +1034,4 @@ std::map<int, TimeSpan> Database::Ping()
 	}
 
 	return result;
-}
-
-void Database::InitializeInstanceFields()
-{
-	_mapLock = boost::make_shared<object>();
-	_workerStates = std::map<int, Tuple<ServiceState*, WorkerState*>*>();
-	_columnWorkers = std::map<int, PodMap*>();
-	_nextSystemWorker = 0;
-	_writeTimeout = DefaultWriteTimeout;
 }

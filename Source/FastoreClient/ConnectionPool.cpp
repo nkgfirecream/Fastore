@@ -1,28 +1,28 @@
 ﻿#include "ConnectionPool.h"
 
-using namespace fastore;
+using namespace fastore::client;
 
-ConnectionPool::ConnectionPool(Func<TProtocol*, TClient> createConnection, Func<TKey, NetworkAddress*> determineAddress, Action<TClient> destroyConnection, Func<TClient, bool> isValid)
+template<typename TKey, typename TClient>
+ConnectionPool<TKey, TClient>::ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, std::function<NetworkAddress(TKey)> determineAddress, std::function<void(TClient&)> destroyConnection, std::function<bool(TClient&)> isValid)
+	: _maxPooledPerKey(DefaultMaxPooledPerKey)
 {
-	InitializeInstanceFields();
 	_createConnection = createConnection;
 	_determineAddress = determineAddress;
 	_destroyConnection = destroyConnection;
 	_isValid = isValid;
 }
 
-ConnectionPool::~ConnectionPool()
+template<typename TKey, typename TClient>
+ConnectionPool<TKey, TClient>::~ConnectionPool()
 {
-	InitializeInstanceFields();
-//C# TO C++ CONVERTER TODO TASK: There is no built-in support for multithreading in native C++:
-	lock (_lock)
+	_lock.lock();
 	{
 		if (_entries.size() > 0)
 		{
 			auto errors = std::vector<std::exception>();
-			for (std::map<TKey, std::queue<TClient>*>::const_iterator entry = _entries.begin(); entry != _entries.end(); ++entry)
+			for (auto entry = _entries.begin(); entry != _entries.end(); ++entry)
 			{
-				for (unknown::const_iterator connection = entry->Value.begin(); connection != entry->Value.end(); ++connection)
+				for (auto connection = entry->second.begin(); connection != entry->second.end(); ++connection)
 					try
 					{
 						Destroy(*connection);
@@ -36,20 +36,25 @@ ConnectionPool::~ConnectionPool()
 			ClientException::ThrowErrors(errors);
 		}
 	}
+	_lock.unlock();
 }
 
-const int ConnectionPool::getMaxPooledPerKey() const
+template<typename TKey, typename TClient>
+const int ConnectionPool<TKey, TClient>::getMaxPooledPerKey()
 {
 	return _maxPooledPerKey;
 }
-void ConnectionPool::setMaxPooledPerKey(const int &value)
+
+template<typename TKey, typename TClient>
+void ConnectionPool<TKey, TClient>::setMaxPooledPerKey(const int &value)
 {
 	_maxPooledPerKey = value;
 }
 
-TClient operator [](TKey key)
+template<typename TKey, typename TClient>
+TClient& ConnectionPool<TKey, TClient>::operator [](TKey key)
 {
-	Monitor::Enter(_lock);
+	_lock.lock();
 	bool taken = true;
 	try
 	{
@@ -61,7 +66,7 @@ TClient operator [](TKey key)
 			if (!_entries.TryGetValue(key, entry))
 			{
 				// Release the lock during connection
-				Monitor::Exit(_lock);
+				_lock.unlock();
 				taken = false;
 
 				auto address = _determineAddress(key);
@@ -81,18 +86,17 @@ TClient operator [](TKey key)
 			}
 		}
 	}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-	finally
+	catch(std::exception& e)
 	{
 		if (taken)
-			Monitor::Exit(_lock);
+			_lock.unlock();
 	}
 }
 
-void ConnectionPool::Release(KeyValuePair<TKey, TClient> connection)
+template<typename TKey, typename TClient>
+void ConnectionPool<TKey, TClient>::Release(std::pair<TKey, TClient> connection)
 {
-//C# TO C++ CONVERTER TODO TASK: There is no built-in support for multithreading in native C++:
-	lock (_lock)
+	_lock.lock();
 	{
 		// Find or create the entry
 		std::queue<TClient> entry;
@@ -108,16 +112,19 @@ void ConnectionPool::Release(KeyValuePair<TKey, TClient> connection)
 		while (entry.size()() > _maxPooledPerKey)
 			Destroy(entry.pop());
 	}
+	_lock.unlock();
 }
 
-void ConnectionPool::Destroy(TClient connection)
+template<typename TKey, typename TClient>
+void ConnectionPool<TKey, TClient>::Destroy(TClient connection)
 {
 	_destroyConnection(connection);
 }
 
-TClient ConnectionPool::Connect(const boost::shared_ptr<NetworkAddress> &address)
+template<typename TKey, typename TClient>
+TClient ConnectionPool<TKey, TClient>::Connect(const NetworkAddress &address)
 {
-	auto transport = boost::make_shared<Thrift::Transport::TSocket>(address->Name, address->Port);
+	auto transport = TSocket(address->Name, address->Port);
 
 	// Establish connection, retrying if necessary
 	auto retries = MaxConnectionRetries;
@@ -146,11 +153,4 @@ TClient ConnectionPool::Connect(const boost::shared_ptr<NetworkAddress> &address
 		transport->Close();
 		throw;
 	}
-}
-
-void InitializeInstanceFields()
-{
-	_lock = boost::make_shared<object>();
-	_entries = std::map<TKey, std::queue<TClient>*>();
-	_maxPooledPerKey = DefaultMaxPooledPerKey;
 }

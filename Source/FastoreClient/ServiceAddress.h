@@ -15,8 +15,11 @@ namespace fastore { namespace client
 		static std::vector<ServiceAddress> ParseList(const std::string &composite);
 
 	private:
+		static bool intTryParse (int &i, char const *s);
+
+	private:
 		int privatePort;
-		std::string privateName;
+		std::string privateName;		
 
 	public:
 		const int &getPort() const;

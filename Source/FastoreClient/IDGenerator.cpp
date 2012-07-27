@@ -1,6 +1,6 @@
 ﻿#include "IDGenerator.h"
 
-using namespace fastore;
+using namespace fastore::client;
 
 IDGenerator::IDGenerator(GenerateIdCallback generateCallback, long long blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold)
 {

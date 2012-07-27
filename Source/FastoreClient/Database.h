@@ -23,7 +23,7 @@
 using namespace fastore::communication;
 using namespace apache::thrift::protocol;
 
-namespace fastoren { namespace client
+namespace fastore { namespace client
 {
 	// TODO: concurrency
 	class Database : public IDataAccess
@@ -56,14 +56,13 @@ namespace fastoren { namespace client
 
 
 	private:
-		//TODO: Locking mechanism
-		void* _mapLock;
+		boost::mutex _lock;
 
 		// Connection pool of services by host ID
-		ConnectionPool<int, ServiceClient> _services;
+		boost::shared_ptr<ConnectionPool<int, ServiceClient>> _services;
 
 		// Connected workers by pod ID
-		ConnectionPool<int, WorkerClient> _workers;
+		boost::shared_ptr<ConnectionPool<int, WorkerClient>> _workers;
 
 		// Worker states by pod ID
 		std::map<int, std::pair<ServiceState, WorkerState>> _workerStates;
@@ -75,17 +74,17 @@ namespace fastoren { namespace client
 		int _nextSystemWorker;
 
 		// Latest known state of the hive
-		boost::shared_ptr<HiveState> _hiveState;
+		HiveState _hiveState;
 
 		// Currently known schema
-		boost::shared_ptr<Schema> _schema;
+		Schema _schema;
 
 		int _writeTimeout;
 	
 	public:
 	
 
-		Database(ServiceAddress addresses[]);
+		Database(std::vector<ServiceAddress> addresses);
 		~Database();
 
 		Transaction Begin(bool readIsolation, bool writeIsolation);

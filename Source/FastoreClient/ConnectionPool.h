@@ -9,6 +9,7 @@
 #include <boost/shared_ptr.hpp>
 #include "..\FastoreCommunication\Comm_types.h"
 #include <thrift\protocol\TProtocol.h>
+#include <boost\thread\mutex.hpp>
 
 
 using namespace fastore::communication;
@@ -24,23 +25,23 @@ namespace fastore { namespace client
 		static const int DefaultMaxPooledPerKey = 3;
 
 	private:
-		boost::shared_ptr<object> _lock;
-		std::map<TKey, std::queue<TClient>*> _entries;
+		boost::mutex _lock;
+		std::map<TKey, std::queue<TClient>> _entries;
 
-		std::function<TClient(TProtocol)> _createConnection;
+		std::function<TClient(boost::shared_ptr<TProtocol>)> _createConnection;
 		std::function<NetworkAddress(TKey)> _determineAddress;
-		std::function<void(TClient)> _destroyConnection;
-		std::function<bool(TClient)> _isValid;
+		std::function<void(TClient&)> _destroyConnection;
+		std::function<bool(TClient&)> _isValid;
 
 
 		int _maxPooledPerKey;
 		void InitializeInstanceFields();
 
 	public:
-		ConnectionPool(std::function<TClient(TProtocol)> createConnection, std::function<NetworkAddress(TKey)> determineAddress, std::function<void(TClient)> destroyConnection, std::function<bool(TClient)> isValid);
+		ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, std::function<NetworkAddress(TKey)> determineAddress, std::function<void(TClient&)> destroyConnection, std::function<bool(TClient&)> isValid);
 		~ConnectionPool();
 
-		const int &getMaxPooledPerKey();
+		const int getMaxPooledPerKey();
 		void setMaxPooledPerKey(const int &value);
 
 		TClient& operator[] (TKey key);

@@ -1,6 +1,6 @@
 ﻿#include "Generator.h"
 
-using namespace fastore;
+using namespace fastore::client;
 
 Generator::Generator(const boost::shared_ptr<Database> &database, int podIDs[] = nullptr)
 {

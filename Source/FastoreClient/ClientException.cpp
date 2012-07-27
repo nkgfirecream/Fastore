@@ -2,7 +2,7 @@
 #include <functional>
 #include <vector>
 
-using namespace fastore;
+using namespace fastore::client;
 using namespace std;
 
 ClientException::ClientException() : Code(Codes::General)
@@ -17,7 +17,7 @@ ClientException::ClientException(const std::string &message, Codes code) : std::
 {
 }
 
-ClientException::ClientException(const std::string &message, std::unique_ptr<std::exception> &inner) : std::exception(message.c_str()), Code(Codes::General), Inner(innerException)
+ClientException::ClientException(const std::string &message, std::exception &inner) : std::exception(message.c_str()), Code(Codes::General), Inner(inner)
 {
 }
 
@@ -30,10 +30,11 @@ void ClientException::ThrowErrors(std::vector<std::exception> &errors)
 	}
 }
 
-void ClientException::ForceCleanup(vector<function<void>> statements)
+void ClientException::ForceCleanup(vector<function<void()>> statements)
 {
 	auto errors = vector<exception>();
-	for (function<void> statement : statements)
+	for (function<void()> statement : statements)
+	{
 		try
 		{
 			statement();
@@ -42,5 +43,6 @@ void ClientException::ForceCleanup(vector<function<void>> statements)
 		{
 			errors.push_back(e);
 		}
+	}
 	ThrowErrors(errors);
 }
