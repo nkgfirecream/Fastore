@@ -1,25 +1,23 @@
 ﻿#include "ClientException.h"
+#include <functional>
+#include <vector>
 
 using namespace fastore;
+using namespace std;
 
-ClientException::ClientException()
+ClientException::ClientException() : Code(Codes::General)
 {
 }
 
-ClientException::ClientException(const std::string &message) : Exception(message)
+ClientException::ClientException(const std::string &message) : std::exception(message.c_str()), Code(Codes::General)
 {
 }
 
-ClientException::ClientException(const std::string &message, Codes code) : Exception(message)
-{
-	getData()->Add("Code", code);
-}
-
-ClientException::ClientException(const boost::shared_ptr<SerializationInfo> &info, StreamingContext context) : Exception(info, context)
+ClientException::ClientException(const std::string &message, Codes code) : std::exception(message.c_str()), Code(code)
 {
 }
 
-ClientException::ClientException(const std::string &message, std::exception &innerException) : Exception(message, innerException)
+ClientException::ClientException(const std::string &message, std::unique_ptr<std::exception> &inner) : std::exception(message.c_str()), Code(Codes::General), Inner(innerException)
 {
 }
 
@@ -27,24 +25,22 @@ void ClientException::ThrowErrors(std::vector<std::exception> &errors)
 {
 	if (errors.size() > 0)
 	{
-		if (errors.size() == 1)
-			throw errors[0];
-		else
-			throw boost::make_shared<AggregateException>(errors);
+		throw errors[0];
+		// TODO: implement aggregate exceptions
 	}
 }
 
-void ClientException::ForceCleanup(...)
+void ClientException::ForceCleanup(vector<function<void>> statements)
 {
-	auto errors = std::vector<std::exception>();
-	for (unknown::const_iterator action = actions.begin(); action != actions.end(); ++action)
+	auto errors = vector<exception>();
+	for (function<void> statement : statements)
 		try
 		{
-			action();
+			statement();
 		}
 		catch (std::exception &e)
 		{
-			errors->Add(e);
+			errors.push_back(e);
 		}
 	ThrowErrors(errors);
 }

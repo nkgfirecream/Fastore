@@ -1,4 +1,4 @@
-#include "Connection.h"
+#include "Database.h"
 
 void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
 {
@@ -9,14 +9,14 @@ void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
 	}
 }
 
-Connection::Connection(vector<ServerAddress> addresses)
+Database::Database(vector<ServerAddress> addresses)
 {
 	_sqliteConnection = nullptr;
 	//_database = unique_ptr<fastore::Database>(new fastore::Database(addresses));
 	checkSQLiteResult(sqlite3_open(":memory:", &_sqliteConnection), _sqliteConnection);
 }
 
-Connection::~Connection()
+Database::~Database()
 {
 	if (_sqliteConnection)
 	{

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "stdafx.h"
 
 // Import or export appropriately
@@ -7,9 +9,15 @@
 #   define FASTOREAPI __declspec(dllimport)
 #endif  
 
-typedef void *DatabaseHandle;
-typedef void *StatementHandle;
-typedef void *CursorHandle;
+struct Database;
+typedef Database Database;	// C hack
+typedef Database *DatabaseHandle;
+struct Statement;
+typedef Statement Statement;	// C hack
+typedef Statement *StatementHandle;
+struct Cursor;
+typedef Cursor Cursor;	// C hack
+typedef Cursor *CursorHandle;
 
 const int MAX_HOST_NAME = 255;
 const int MAX_ERROR_MESSAGE = 512;

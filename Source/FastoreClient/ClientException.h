@@ -12,6 +12,7 @@ namespace fastore
 	public:
 		enum class Codes
 		{
+			General = 0,
 			/// <summary> There is no worker for the present column. </summary>
 			NoWorkerForColumn = 10000,
 			NoWorkersInHive = 10001
@@ -19,18 +20,16 @@ namespace fastore
 			// TODO: fill out rest of codes and update throw sites
 		};
 
-	public:
+		Codes Code;
+		std::unique_ptr<std::exception> Inner;
+
 		ClientException();
 		ClientException(const std::string &message);
 		ClientException(const std::string &message, Codes code);
-
-	public:
-		ClientException(const std::string &message, std::exception &innerException);
+		ClientException(const std::string &message, std::unique_ptr<std::exception> &inner);
 
 		static void ThrowErrors(std::vector<std::exception> &errors);
 
-//ORIGINAL LINE: public static void ForceCleanup(params Action[] actions)
-//C# TO C++ CONVERTER TODO TASK: Use 'va_start', 'va_arg', and 'va_end' to access the parameter array within this method:
-		static void ForceCleanup(...);
+		static void ForceCleanup(vector<function<void>> statements);
 	};
 }

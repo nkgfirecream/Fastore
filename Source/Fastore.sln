@@ -44,12 +44,23 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SQLite", "SQLite\SQLite.vcxproj", "{9F4DA005-752E-4B25-934D-81A967DE9008}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreShell", "FastoreShell\FastoreShell.vcxproj", "{D38E1BBD-1972-451E-B28C-372EEBDFB047}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4D85216E-82BA-40B6-A0E2-676CB0DA638A} = {4D85216E-82BA-40B6-A0E2-676CB0DA638A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreClient", "FastoreClient\FastoreClient.vcxproj", "{71CA22A1-136F-43EE-B8AB-29EFCE7776A0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreProvider", "FastoreProvider\FastoreProvider.vcxproj", "{4D85216E-82BA-40B6-A0E2-676CB0DA638A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{71CA22A1-136F-43EE-B8AB-29EFCE7776A0} = {71CA22A1-136F-43EE-B8AB-29EFCE7776A0}
+		{9F4DA005-752E-4B25-934D-81A967DE9008} = {9F4DA005-752E-4B25-934D-81A967DE9008}
+	EndProjectSection
 EndProject
 Global
+	GlobalSection(SubversionScc) = preSolution
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+		Svn-Managed = True
+	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = Fastore.vsmdi
 	EndGlobalSection
@@ -186,8 +197,7 @@ Global
 		{04A3E346-A100-4ED8-8CB2-3295DE028C22} = {DC376C21-AAD2-467E-BB51-9A089E507151}
 		{4A2534EA-79C7-4759-8A0D-72C1A4EA4BD4} = {DC376C21-AAD2-467E-BB51-9A089E507151}
 	EndGlobalSection
-	GlobalSection(SubversionScc) = preSolution
-		Manager = AnkhSVN - Subversion Support for Visual Studio
-		Svn-Managed = True
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

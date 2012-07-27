@@ -3,6 +3,7 @@
 #include <sqlite3.h>
 #include <vector>
 #include <memory>
+#include "fastore.h"
 
 using namespace std;
 
@@ -12,12 +13,12 @@ struct ServerAddress
 	int port;
 };
 
-class Connection
+struct Database
 {
+private:
 	sqlite3 *_sqliteConnection;
 	//shared_ptr<fastore::Database> _database;
 public:
-	Connection(vector<ServerAddress> addresses);
-	~Connection();
+	Database(vector<ServerAddress> addresses);
+	~Database();
 };
-

@@ -1,15 +1,15 @@
 #include "fastore.h"
 #include <memory>
-#include "Connection.h"
+#include "Database.h"
 #include <exception>
+#include <functional>
 
 using namespace std;
 
-PFastoreError ExceptionToFastoreError(exception e)
+PFastoreError ExceptionToFastoreError(exception e, int code)
 {
 	auto error = unique_ptr<FastoreError>(new FastoreError());
-	// TODO: error codes
-	//error->code = ;
+	error->code = code;
 	strcpy_s(error->message, MAX_ERROR_MESSAGE, e.what());
 	return error.release();
 }
@@ -20,34 +20,49 @@ FASTOREAPI void APIENTRY fastoreFreeError(PFastoreError error)
 		delete error;
 }
 
-FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddress *addresses)
+template <typename TResult>
+TResult WrapCall(const function<void(TResult)> &callback)
 {
+	TResult result;
 	try
 	{
-		// Convert addresses
-		vector<ServerAddress> serverAddresses = vector<ServerAddress>();
-		serverAddresses.resize(addressCount);
-		for (auto i = 0; i < addressCount; i++)
-		{
-			serverAddresses[i].hostName	= string(addresses[i].hostName);
-			serverAddresses[i].port = addresses[i].port;
-		}
-
-		// Create connection
-		auto connection = unique_ptr<Connection>(new Connection(serverAddresses));
-		
-		ConnectResult result = { nullptr, connection.release() };
-		return result;
+		callback(result);
 	}
-	catch (exception e)
+	catch (exception &e)
 	{
-		ConnectResult result = { ExceptionToFastoreError(e), nullptr };
-		return result;
+		result.error = ExceptionToFastoreError(e, 0);
 	}
+	// TODO: Uncomment this once we have the client compiling
+	//catch (ClientException &e)
+	//{
+	//	result.error = ExceptionToFastoreError(e, (int)e.Code);
+	//}
 	catch (...)
 	{
-		ConnectResult result = { new FastoreError(), nullptr };
+		result.error = new FastoreError();
 	}
+	return result;
+}
+
+FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddress *addresses)
+{
+	return WrapCall<ConnectResult>
+	(
+		[&](ConnectResult result)
+		{
+			// Convert addresses
+			vector<ServerAddress> serverAddresses = vector<ServerAddress>();
+			serverAddresses.resize(addressCount);
+			for (auto i = 0; i < addressCount; i++)
+			{
+				serverAddresses[i].hostName	= string(addresses[i].hostName);
+				serverAddresses[i].port = addresses[i].port;
+			}
+
+			// Create database
+			result.database = new Database(serverAddresses);
+		}
+	);
 }
 
 FASTOREAPI PFastoreError APIENTRY fastoreDisconnect(DatabaseHandle database)
