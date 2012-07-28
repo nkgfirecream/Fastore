@@ -1,23 +1,19 @@
 #include "fastore.h"
 #include <memory>
 #include "Database.h"
+#include "TransactionProvider.h"
 #include <exception>
 #include <functional>
+#include <vector>
 
 using namespace std;
+namespace prov = fastore::provider;
 
-PFastoreError ExceptionToFastoreError(exception e, int code)
+void ExceptionToFastoreResult(exception e, int code, FastoreResult &result)
 {
-	auto error = unique_ptr<FastoreError>(new FastoreError());
-	error->code = code;
-	strcpy_s(error->message, MAX_ERROR_MESSAGE, e.what());
-	return error.release();
-}
-
-FASTOREAPI void APIENTRY fastoreFreeError(PFastoreError error)
-{
-	if (error)
-		delete error;
+	result.success = false;
+	result.error.code = code;
+	strcpy_s(result.error.message, MAX_ERROR_MESSAGE, e.what());
 }
 
 template <typename TResult>
@@ -30,7 +26,7 @@ TResult WrapCall(const function<void(TResult)> &callback)
 	}
 	catch (exception &e)
 	{
-		result.error = ExceptionToFastoreError(e, 0);
+		result.error = ExceptionToFastoreResult(e, 0, &(FastoreResult)result);
 	}
 	// TODO: Uncomment this once we have the client compiling
 	//catch (ClientException &e)
@@ -51,7 +47,7 @@ FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddres
 		[&](ConnectResult result)
 		{
 			// Convert addresses
-			vector<ServerAddress> serverAddresses = vector<ServerAddress>();
+			vector<prov::ServerAddress> serverAddresses = vector<prov::ServerAddress>();
 			serverAddresses.resize(addressCount);
 			for (auto i = 0; i < addressCount; i++)
 			{
@@ -60,40 +56,55 @@ FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddres
 			}
 
 			// Create database
-			result.database = new Database(serverAddresses);
+			result.database = new shared_ptr<prov::Database>(new prov::Database(serverAddresses));
 		}
 	);
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreDisconnect(DatabaseHandle database)
+FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(DatabaseHandle database)
 {
-	delete database;
-	return NULL;
+	return WrapCall<FastoreResult>
+	(
+		[&](FastoreResult result) 
+		{ 
+			// Free the shared pointer, database provider will be freed when all shared pointers are freed
+			delete static_cast<prov::PDatabaseObject>(database); 
+		}
+	);
 }
 
 FASTOREAPI BeginResult APIENTRY fastoreBegin(DatabaseHandle database)
 {
-	BeginResult result;
-	return result;
+	return WrapCall<BeginResult>
+	(
+		[&](BeginResult result)
+		{
+			result.transaction = 
+				new shared_ptr<prov::TransactionProvider>
+				(
+					new prov::TransactionProvider(*static_cast<prov::PDatabaseObject>(database))
+				);
+		}
+	);
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreCommit(DatabaseHandle database, bool force)
+FASTOREAPI FastoreResult APIENTRY fastoreCommit(DatabaseHandle database, bool flush)
+{
+	return WrapCall<FastoreResult>([&](FastoreResult result) { static_cast<prov::Database>(database).Commit(); });
+}
+
+FASTOREAPI FastoreResult APIENTRY fastoreRollback(DatabaseHandle database)
 {
 	return NULL;
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreRollback(DatabaseHandle database)
-{
-	return NULL;
-}
-
-FASTOREAPI PrepareResult APIENTRY fastorePrepare(const char *sql)
+FASTOREAPI PrepareResult APIENTRY fastorePrepare(DatabaseHandle database, const char *sql)
 {
 	PrepareResult result;
 	return result;
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, ArgumentTypes *argumentTypes)
+FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, ArgumentTypes *argumentTypes)
 {
 	return NULL;
 }
@@ -104,59 +115,48 @@ FASTOREAPI NextResult APIENTRY fastoreNext(CursorHandle cursor)
 	return result;
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreColumnName(CursorHandle cursor, int columnIndex, int targetMaxBytes, char *nameTarget)
+FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(CursorHandle cursor, int columnIndex);
 {
 	return NULL;
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreColumnValue(CursorHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget)
+FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(CursorHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget)
 {
 	return NULL;
 }
 
-FASTOREAPI PFastoreError APIENTRY fastoreClose(CursorHandle cursor)
+FASTOREAPI FastoreResult APIENTRY fastoreClose(CursorHandle cursor)
 {
 	return NULL;
 }
 
 // Short-hand for Prepare followed by Next (and a close if eof)
-FASTOREAPI inline ExecuteResult APIENTRY fastoreExecute(const char *sql)
+FASTOREAPI inline ExecuteResult APIENTRY fastoreExecute(DatabaseHandle database, const char *sql)
 {
-	PrepareResult prepareResult = fastorePrepare(sql);
-	if (prepareResult.error)
+	ExecuteResult result = { true };
+
+	PrepareResult prepareResult = fastorePrepare(database, sql);
+	if (!prepareResult.success)
 	{
-		ExecuteResult result =
-		{
-			prepareResult.error,
-			NULL,
-			0,
-			true
-		};
+		result.success = false;
+		result.error = prepareResult.error;
 		return result;
 	}
 
 	NextResult nextResult = fastoreNext(prepareResult.cursor);
-	if (nextResult.error || nextResult.eof)
-	{
+	if (!nextResult.success || nextResult.eof)
 		fastoreClose(prepareResult.cursor);	// Ignore any close error so as not to lose original error
-		ExecuteResult result =
-		{
-			nextResult.error,
-			NULL,
-			0,
-			true
-		};
+
+	if (!nextResult.success)
+	{
+		result.success = false;
+		result.error = nextResult.error;
 		return result;
 	}
 
-	// Success and cursor left open
-	ExecuteResult result =
-	{
-		nextResult.error,
-		prepareResult.cursor,
-		prepareResult.columnCount,
-		nextResult.eof
-	};
+	result.success = true;
+	result.columnCount = prepareResult.columnCount;
+	result.eof = nextResult.eof;
 	return result;
 };
 

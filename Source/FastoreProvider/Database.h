@@ -4,21 +4,36 @@
 #include <vector>
 #include <memory>
 #include "fastore.h"
+#include "Transaction.h"
+#include "IDataAccess.h"
 
-using namespace std;
-
-struct ServerAddress
+namespace fastore 
 {
-	string hostName;
-	int port;
-};
+	namespace provider
+	{
+		struct ServerAddress
+		{
+			std::string hostName;
+			int port;
+		};
 
-struct Database
-{
-private:
-	sqlite3 *_sqliteConnection;
-	//shared_ptr<fastore::Database> _database;
-public:
-	Database(vector<ServerAddress> addresses);
-	~Database();
-};
+		struct Database	: IDataAccess
+		{
+			friend class Transaction;
+			friend class Cursor;
+		private:
+			std::shared_ptr<sqlite3> _sqliteConnection;
+			//std::shared_ptr<fastore::client::Database> _client;
+		public:
+			Database(std::vector<ServerAddress> addresses);
+
+			std::unique_ptr<Cursor> prepare(const std::string &sql) override;
+
+			std::unique_ptr<Transaction> begin();
+		};
+
+		typedef std::shared_ptr<Database> DatabaseObject; 
+		typedef DatabaseObject * PDatabaseObject;
+	}
+}
+
