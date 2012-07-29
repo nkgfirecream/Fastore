@@ -10,7 +10,7 @@ namespace fastore
 		class Transaction: IDataAccess
 		{
 			std::shared_ptr<Database> _database;
-			//std::shared_ptr<fastore::client::Transaction> _transaction;
+			//std::shared_ptr<fastore::client::Transaction> _clientTransaction;
 		public:
 			Transaction(Database *database);
 

@@ -2,6 +2,7 @@
 #include <vector>
 #include <sstream>
 #include <exception>
+#include <map>
 
 using namespace std;
 using namespace fastore::provider;
@@ -42,9 +43,9 @@ int insensitiveStrPos(const T& str1, const T& str2, const std::locale& locale = 
 		return -1;
 }
 
-ColumnDef ParseColumnDef(string text)
+client::ColumnDef ParseColumnDef(string text)
 {
-	ColumnDef result;
+	client::ColumnDef result;
 	auto reader = istringstream(text);
 	if (!std::getline(reader, result.name, " ")) 
 		throw exception("Missing column name");
@@ -52,30 +53,107 @@ ColumnDef ParseColumnDef(string text)
 		result.dataType = "String";
 	auto stringText = string(text);
 	result.bufferType =
-		insensitiveStrPos(stringText, string("unique")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0 ? BufferType::Unique
-			: insensitiveStrPos(stringText, string("not null")) >= 0 ? BufferType::Required
-			: BufferType::Multi;
+		insensitiveStrPos(stringText, string("unique")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0 ? client::BufferType::Unique
+			: insensitiveStrPos(stringText, string("not null")) >= 0 ? client::BufferType::Required
+			: client::BufferType::Multi;
+}
+
+static map<string, string> fastoreTypesToSQLiteTypes;
+
+void EnsureTypeMaps()
+{
+	if (fastoreTypesToSQLiteTypes.size() == 0)
+	{
+		fastoreTypesToSQLiteTypes["WString"] = "nvarchar";
+		fastoreTypesToSQLiteTypes["String"] = "varchar";
+		fastoreTypesToSQLiteTypes["Int"] = "int";
+		fastoreTypesToSQLiteTypes["Long"] = "bigint";
+		fastoreTypesToSQLiteTypes["Bool"] = "int";
+	}
+}
+
+string FastoreTypeToSQLiteType(const string &fastoreType)
+{
+	EnsureTypeMaps();
+	auto result = fastoreTypesToSQLiteTypes.find(fastoreType);
+	if (result == fastoreTypesToSQLiteTypes.end())
+	{
+		ostringstream message;
+		message << "Unknown type '" << fastoreType << "'.";
+		throw exception(message.str().c_str());
+	}
+	return result->second;
+}
+
+// This method is invoked by both Create and Connect
+int moduleInit(sqlite3 *db, const vector<client::ColumnDef> &defs)
+{
+	ostringstream tableDef;
+	tableDef << "create table x(";
+	bool first = true;
+	for (auto def : defs)
+	{
+		if (first)
+			first = false;
+		else
+			tableDef << ", ";
+
+		tableDef << def.Name << " " << FastoreTypeToSQLiteType(def.TypeName);
+	}
+	tableDef << ")";
+
+	sqlite3_declare_vtab(db, tableDef.str().c_str());
+
+	return SQLITE_OK;
+}
+
+struct fastore_vtab
+{
+	sqlite3_vtab base;	//SQLite expecting this layout
+	// TODO: what do we need to store?
+};
+
+// This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
+int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**pzErr)
+{
+	try
+	{
+		auto database = (Database*)pAux;
+		auto tableName = argv[2];
+
+		// Parse each column into a ColumnDef
+		vector<client::ColumnDef> defs;
+		defs.reserve(argc - 4);
+		string idType = "Int";
+		for (int i = 4, i < argc; i++)
+		{
+			defs.push_back(ParseColumnDef(argv[i]));
+			// TODO: track row ID type candidates
+		}
+		for (auto def : defs)
+			def.idType = idType;
+
+		auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
+		*ppVTab = &vtab->base;
+
+		// Don't hold unique pointer longer, just holding to be exception safe
+		vtab.reset();
+		return moduleInit(db, defs);
+	}
+	catch (...)
+	{
+		// TODO: exception handling -> pzErr
+		return SQLITE_ERROR;
+	}
 }
 
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
-int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**)
+int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**pzErr)
 {
-	auto database = (Database*)pAux;
-	auto tableName = argv[2];
-
-	// Parse each column into a ColumnDef
+	// TODO: get defs;
 	vector<client::ColumnDef> defs;
-	defs.reserve(argc - 4);
-	string idType = "Int";
-	for (int i = 4, i < argc; i++)
-	{
-		defs.push_back(ParseColumnDef(argv[i]));
-		// TODO: track row ID type candidates
-	}
-	for (auto def : defs)
-		def.idType = idType;
 
-	sqlite3_declare_vtab(
+	moduleInit(db, defs);
 }
 
 sqlite3_module fastoreModule =

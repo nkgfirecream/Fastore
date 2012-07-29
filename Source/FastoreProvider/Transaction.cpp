@@ -15,13 +15,13 @@ Cursor Transaction::prepare(const std::string &sql)
 			
 void Transaction::commit(bool flush)
 {
-	//_transaction.commit(flush);
-	//_transaction.release();
+	//_clientTransaction->commit(flush);
+	//_clientTransaction.reset();
 }
 
 void Transaction::rollback()
 {
-	//_transaction.rollback();
-	//_transaction.release();
+	//_clientTransaction.rollback();
+	//_clientTransaction.reset();
 }
 
