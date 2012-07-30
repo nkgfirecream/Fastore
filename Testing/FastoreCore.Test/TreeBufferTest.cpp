@@ -420,16 +420,19 @@ public:
 		//AssignRange(range, false, 500);
 		//TestRangeMultiValue(buf, range, 98, 0, 25, -4, -2, 50, true, true, false);
 
-		////Limit 5
+
+		////Limit 5	- asc
 		////Range: 0 (inclusive) - 16 (inclusive) ascending
 		////Expected result: values 0 (inclusive) - 18 (inclusive)
 		//AssignRange(range, true, 5);
 		//TestRangeMultiValue(buf, range, 0, 16, 5, 4, 2, 10, true, true, false);
 
+		////Limit 5 - desc
 		////Range: 16 (inclusive) - 0 (inclusive) descending
 		////Expected result: values 18 (inclusive) - 0 (inclusive)
 		//AssignRange(range, false, 5);
 		//TestRangeMultiValue(buf, range, 16, 0, 5, 4, 2, 10, true, true, false);
+
 
 		//Start Exclusive - Non overlapping
 		//Range: 0 (exclusive) - end (inclusive) ascending
@@ -551,6 +554,7 @@ public:
 		//AssignRange(range, false, 500, &startBound);
 		//TestRangeMultiValue(buf, range, 98, 98, 1, 0, 0, 1, false, true, false);
 
+
 		//Range: 98 (exclusive) - end asc
 		//Expected result: Empty
 		AssignString(startv, 98);
@@ -590,6 +594,7 @@ public:
 		//AssignRange(range, false, 500, NULL, &endBound);
 		//TestRangeMultiValue(buf, range, 0, 0, 1, 0, 0, 1, true, false, false);
 
+
 		// Range: start - 0 (exclusive) asc
 		//Expected result: Empty
 		AssignString(endv, 0);
@@ -614,6 +619,7 @@ public:
 		//AssignRange(range, false, 5);
 		//TestRangeMultiValue(buf, range, 98, 80, 5, -4, -2, 10, false, true, true);
 
+
 		////Start on ID  - 0
 		////Range: start - end asc, start on 0
 		//AssignString(startv, 0);
@@ -626,6 +632,7 @@ public:
 		//AssignBound(endBound, true, endv);
 		//AssignRange(range, false, 500, NULL, &endBound, &endv);
 		//TestRangeMultiValue(buf, range, 98, 0, 25, -4, -2, 50, true, false, false);
+
 
 		////Start on ID  - 2
 		////Range: start - end asc, start on 2
