@@ -3,10 +3,13 @@
 #include <sstream>
 #include <exception>
 #include <map>
+#include <functional>
 
 using namespace std;
 using namespace fastore::provider;
 namespace client = fastore::client;
+
+// For questions on this SQLite module, see SQLite virtual table documentation: http://www.sqlite.org/vtab.html
 
 const char* const SQLITE_MODULE_NAME = "Fastore";
 
@@ -19,7 +22,23 @@ void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
 	}
 }
 
-// For questions on this SQLite module, see SQLite virtual table documentation: http://www.sqlite.org/vtab.html
+int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
+{
+	try
+	{
+		return callback();
+	}
+	catch (exception &e)
+	{
+		*pzErr = sqlite3_mprintf(e.what());
+	}
+	catch (...)
+	{
+		// Generic error messages like this are terrible, but we don't know anything more at this time.
+		*pzErr = sqlite3_mprintf("Unknown exception.");
+	}
+	return SQLITE_ERROR;
+}
 
 template<typename charT>
 class CaseInsensitiveComparer
@@ -116,35 +135,34 @@ struct fastore_vtab
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
 int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**pzErr)
 {
-	try
-	{
-		auto database = (Database*)pAux;
-		auto tableName = argv[2];
-
-		// Parse each column into a ColumnDef
-		vector<client::ColumnDef> defs;
-		defs.reserve(argc - 4);
-		string idType = "Int";
-		for (int i = 4, i < argc; i++)
+	return ExceptionsToError
+	(
+		[&]() -> int
 		{
-			defs.push_back(ParseColumnDef(argv[i]));
-			// TODO: track row ID type candidates
-		}
-		for (auto def : defs)
-			def.idType = idType;
+			auto database = (Database*)pAux;
+			auto tableName = argv[2];
 
-		auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
-		*ppVTab = &vtab->base;
+			// Parse each column into a ColumnDef
+			vector<client::ColumnDef> defs;
+			defs.reserve(argc - 4);
+			string idType = "Int";
+			for (int i = 4, i < argc; i++)
+			{
+				defs.push_back(ParseColumnDef(argv[i]));
+				// TODO: track row ID type candidates
+			}
+			for (auto def : defs)
+				def.idType = idType;
 
-		// Don't hold unique pointer longer, just holding to be exception safe
-		vtab.reset();
-		return moduleInit(db, defs);
-	}
-	catch (...)
-	{
-		// TODO: exception handling -> pzErr
-		return SQLITE_ERROR;
-	}
+			auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
+			*ppVTab = &vtab->base;
+
+			// Don't hold unique pointer longer, just holding to be exception safe
+			vtab.reset();
+			return moduleInit(db, defs);
+		},
+		pzErr
+	);
 }
 
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
