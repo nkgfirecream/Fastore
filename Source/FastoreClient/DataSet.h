@@ -23,14 +23,20 @@ namespace fastore { namespace client
 
 	public:
 		DataSet(int rows, int columnCount);
+		DataSet();
 
 		DataSetRow& operator [](int index);
 
 		const int& getCount() const;
 
-		//boost::shared_ptr<IEnumerator<DataSetRow>> GetEnumerator();
+		std::vector<DataSetRow>::iterator begin()
+		{
+			return _rows.begin();
+		}
 
-		//boost::shared_ptr<IEnumerator> IEnumerable_GetEnumerator();
-
+		std::vector<DataSetRow>::iterator end()
+		{
+			return _rows.end();
+		}
 	};
 }}

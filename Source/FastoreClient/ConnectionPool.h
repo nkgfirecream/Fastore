@@ -25,7 +25,7 @@ namespace fastore { namespace client
 		static const int DefaultMaxPooledPerKey = 3;
 
 	private:
-		boost::mutex _lock;
+		boost::shared_ptr<boost::mutex> _lock;
 		std::map<TKey, std::queue<TClient>> _entries;
 
 		std::function<TClient(boost::shared_ptr<TProtocol>)> _createConnection;

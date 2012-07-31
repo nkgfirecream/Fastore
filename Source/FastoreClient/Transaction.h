@@ -14,6 +14,9 @@ using namespace fastore::communication;
 
 namespace fastore { namespace client
 {
+	class Database;
+
+
 	/// <Remarks>
 	///   If a transaction is disposed and hasn't been committed or rolled back then it is automatically rolled back.
 	///   Once a transaction has been committed or rolled back then it is in a new transaction state again and can be used as if it were new again.
@@ -54,11 +57,13 @@ namespace fastore { namespace client
 		void Commit(bool flush = false);
 		void Rollback();
 
-		RangeResult GetRange(RangeRequest range);
-		std::vector<std::string> GetValues(std::vector<int> columnIds, std::vector<std::string> rowIds);
-		void Include(std::vector<int> columnIds, std::string rowId, std::vector<std::string> row);
-		void Exclude(std::vector<int> columnIds, std::string rowId);
-		std::vector<Statistic> GetStatistics(std::vector<int> columnIds);
+		RangeSet GetRange(std::vector<int>& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId);
+		DataSet GetValues(const std::vector<int>& columnIds, const std::vector<std::string>& rowIds);
+
+		void Include(const std::vector<int>& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+		void Exclude(const std::vector<int>& columnIds, const std::string& rowId);
+
+		std::vector<Statistic> GetStatistics(const std::vector<int>& columnIds);
 		std::map<int, long long> Ping();
 	};
 }}

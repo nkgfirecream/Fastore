@@ -21,6 +21,9 @@
     <ClInclude Include="Generator.h" />
     <ClInclude Include="IDataAccess.h" />
     <ClInclude Include="IDGenerator.h" />
+    <ClInclude Include="Range.h" />
+    <ClInclude Include="RangeBound.h" />
+    <ClInclude Include="RangeSet.h" />
     <ClInclude Include="ServiceAddress.h" />
     <ClInclude Include="Transaction.h" />
     <ClInclude Include="typedefs.h" />
@@ -33,10 +36,8 @@
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DataSet.cpp" />
     <ClCompile Include="Dictionary.cpp" />
-    <ClCompile Include="Generator.cpp" />
-    <ClCompile Include="IDGenerator.cpp" />
+    <ClCompile Include="RangeSet.cpp" />
     <ClCompile Include="ServiceAddress.cpp" />
-    <ClCompile Include="Transaction.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>

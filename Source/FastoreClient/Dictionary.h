@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#include <boost/shared_ptr.hpp>
-
-
 namespace fastore { namespace client
 {
 	/// <summary> The column IDs for the core and the client. </summary>
@@ -42,6 +39,6 @@ namespace fastore { namespace client
 
 		static const int GeneratorNextValue = 10000;
 
-		static const int GeneratorColumns[]; = {GeneratorNextValue};
+		static const int GeneratorColumns[];
 	};
 }}
