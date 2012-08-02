@@ -17,3 +17,8 @@ bool fastore::communication::Query::operator<(const fastore::communication::Quer
 	return true;
 }
 
+bool fastore::communication::TransactionID::operator<(const fastore::communication::TransactionID& other) const
+{
+	return revision < other.revision;
+}
+

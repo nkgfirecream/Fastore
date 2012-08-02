@@ -25,6 +25,8 @@ using namespace apache::thrift::protocol;
 
 namespace fastore { namespace client
 {
+	class Transaction;
+
 	// TODO: concurrency
 	class Database : public IDataAccess
 	{
@@ -43,7 +45,6 @@ namespace fastore { namespace client
 		class PodMap
 		{
 		public:
-			PodMap();
 			std::vector<int> Pods;
 			int Next;
 		};
@@ -91,13 +92,13 @@ namespace fastore { namespace client
 		Transaction Begin(bool readIsolation, bool writeIsolation);
 
 		/// <summary> Given a set of column IDs and range criteria, retrieve a set of values. </summary>
-		RangeSet GetRange(std::vector<int>& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId);
-		DataSet GetValues(const std::vector<int>& columnIds, const std::vector<std::string>& rowIds);
+		RangeSet GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId = boost::optional<std::string>());
+		DataSet GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
 
-		void Include(const std::vector<int>& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-		void Exclude(const std::vector<int>& columnIds, const std::string& rowId);
+		void Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);
 
-		std::vector<Statistic> GetStatistics(const std::vector<int>& columnIds);
+		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
 		std::map<int, long long> Ping();
 
 		void Apply(const std::map<int, ColumnWrites>& writes, const bool flush);
@@ -152,8 +153,8 @@ namespace fastore { namespace client
 		/// <remarks> This method is thread-safe. </remarks>
 		void TrackErrors(std::map<int, std::exception> &errors);
 
-		DataSet InternalGetValues(const std::vector<int>& columnIds, const int exclusionColumnId, const Query& rowIdQuery);	
-		DataSet ResultsToDataSet(const std::vector<int>& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults);
+		DataSet InternalGetValues(const ColumnIDs& columnIds, const int exclusionColumnId, const Query& rowIdQuery);	
+		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults);
 		RangeSet ResultsToRangeSet(DataSet& set, const int rangeColumnId, const int rangeColumnIndex, const RangeResult& rangeResult);	
 
 		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
@@ -168,8 +169,8 @@ namespace fastore { namespace client
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
 		std::vector<boost::shared_ptr<std::future<TransactionID>>> StartWorkerWrites(const std::map<int, ColumnWrites> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
 
-		std::map<int, ColumnWrites> EncodeIncludes(std::vector<int> columnIds, const std::string& rowId, std::vector<std::string> row);
-		std::map<int, ColumnWrites> EncodeExcludes(std::vector<int> columnIds, const std::string& rowId);
+		std::map<int, ColumnWrites> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
+		std::map<int, ColumnWrites> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId);
 
 		Schema LoadSchema();
 		void BootStrapSchema();

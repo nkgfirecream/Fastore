@@ -23,7 +23,7 @@ namespace fastore { namespace client
 		const bool &getLimited() const;
 		void setLimited(const bool &value);
 
-		const DataSet &getData() const;
+		DataSet getData() const;
 		void setData(DataSet &value);
 	};
 }}

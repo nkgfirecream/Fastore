@@ -1,25 +1,21 @@
 ﻿#include "IDGenerator.h"
+#include <atomic>
 
 using namespace fastore::client;
 
-IDGenerator::IDGenerator(GenerateIdCallback generateCallback, long long blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold)
+IDGenerator::IDGenerator(std::function<long long(long long)> _generateCallback, long long blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold)
+	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold)
 {
-	InitializeInstanceFields();
 	if (blockSize < 1)
-		throw boost::make_shared<ArgumentOutOfRangeException>("blockSize", "Block size must be at least 1.");
+		throw std::exception("Block size must be at least 1.");
 	if (allocationThreshold < 0)
-		throw boost::make_shared<ArgumentOutOfRangeException>("allocationThreshold", "Allocation threshold must be 0 or more.");
+		throw std::exception("Allocation threshold must be 0 or more.");
 	if (allocationThreshold > blockSize)
-		throw boost::make_shared<ArgumentOutOfRangeException>("allocationThreshold", "Allocation threshold must be no more than the block size.");
-	if (generateCallback == nullptr)
-		throw boost::make_shared<ArgumentNullException>("generateCallback");
+		throw std::exception("Allocation threshold must be no more than the block size.");
 
-	_generateCallback = generateCallback;
-	_blockSize = blockSize;
-	_allocationThreshold = allocationThreshold;
 }
 
-void IDGenerator::AsyncGenerateBlock(const boost::shared_ptr<object> &state)
+void IDGenerator::AsyncGenerateBlock(void*& state)
 {
 	try
 	{
@@ -32,11 +28,11 @@ void IDGenerator::AsyncGenerateBlock(const boost::shared_ptr<object> &state)
 		catch (std::exception &e)
 		{
 			// If an error happens here, any waiting requesters will block
-			ResetLoading(nullptr, e);
+			ResetLoading(boost::optional<long long>(), e);
 			throw;
 		}
 
-		ResetLoading(newBlock, nullptr);
+		ResetLoading(newBlock, boost::optional<std::exception>());
 	}
 	catch (...)
 	{
@@ -44,16 +40,16 @@ void IDGenerator::AsyncGenerateBlock(const boost::shared_ptr<object> &state)
 	}
 }
 
-void IDGenerator::ResetLoading(Nullable<long long> newBlock, std::exception &e)
+void IDGenerator::ResetLoading(boost::optional<long long> newBlock, boost::optional<std::exception> e)
 {
 	// Take the latch
 	while (Interlocked::CompareExchange(_generationLock, 1, 0) == 1);
 	try
 	{
 		// Update the generation block data
-		if (newBlock.HasValue)
+		if (newBlock)
 		{
-			auto blockValue = newBlock.Value;
+			auto blockValue = *newBlock;
 			_nextId = blockValue;
 			_endOfRange = blockValue + _blockSize;
 		}
@@ -162,9 +158,4 @@ void IDGenerator::ResetCache()
 			Interlocked::Decrement(_generationLock);
 		}
 	}
-}
-
-void IDGenerator::InitializeInstanceFields()
-{
-	_loadingEvent = boost::make_shared<ManualResetEvent>(true);
 }

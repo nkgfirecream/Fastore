@@ -14,32 +14,6 @@ ConnectionPool<TKey, TClient>::ConnectionPool(std::function<TClient(boost::share
 	_isValid = isValid;
 }
 
-template<typename TKey, typename TClient>
-ConnectionPool<TKey, TClient>::~ConnectionPool()
-{
-	_lock.lock();
-	{
-		if (_entries.size() > 0)
-		{
-			auto errors = std::vector<std::exception>();
-			for (auto entry = _entries.begin(); entry != _entries.end(); ++entry)
-			{
-				for (auto connection = entry->second.begin(); connection != entry->second.end(); ++connection)
-					try
-					{
-						Destroy(*connection);
-					}
-					catch (std::exception &e)
-					{
-						errors->Add(e);
-					}
-			}
-			_entries.clear();
-			ClientException::ThrowErrors(errors);
-		}
-	}
-	_lock.unlock();
-}
 
 template<typename TKey, typename TClient>
 const int ConnectionPool<TKey, TClient>::getMaxPooledPerKey()
@@ -155,4 +129,31 @@ TClient ConnectionPool<TKey, TClient>::Connect(const NetworkAddress &address)
 		transport->Close();
 		throw;
 	}
+}
+
+template<typename TKey, typename TClient>
+ConnectionPool<TKey, TClient>::~ConnectionPool()
+{
+	_lock.lock();
+	{
+		if (_entries.size() > 0)
+		{
+			auto errors = std::vector<std::exception>();
+			for (auto entry = _entries.begin(); entry != _entries.end(); ++entry)
+			{
+				for (auto connection = entry->second.begin(); connection != entry->second.end(); ++connection)
+					try
+					{
+						Destroy(*connection);
+					}
+					catch (std::exception &e)
+					{
+						errors->Add(e);
+					}
+			}
+			_entries.clear();
+			ClientException::ThrowErrors(errors);
+		}
+	}
+	_lock.unlock();
 }

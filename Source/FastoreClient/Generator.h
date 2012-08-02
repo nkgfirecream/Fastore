@@ -13,12 +13,11 @@ namespace fastore { namespace client
 	{
 	private:
 		//TODO: Locking
-		void* _generatorLock;
+		boost::shared_ptr<boost::mutex> _lock;
 		std::map<int, IDGenerator> _generators;
-		boost::shared_ptr<Database> _database;
-//ORIGINAL LINE: private int[] _podIDs;
-//C# TO C++ CONVERTER WARNING: Since the array size is not known in this declaration, C# to C++ Converter has converted this array to a pointer.  You will need to call 'delete[]' where appropriate:
-		int *_podIDs;
+		Database _database;
+
+		std::vector<PodID>_podIDs;
 
 		long long InternalGenerate(int tableId, long long size);
 
@@ -32,7 +31,7 @@ namespace fastore { namespace client
 		void InitializeInstanceFields();
 
 	public:
-		Generator(const Database &database, std::vector<int> podIDs);
+		Generator(const Database &database, std::vector<PodID> podIDs);
 
 		/// <summary> Generates the next value for the given table. </summary>
 		/// <param name="columnId"> The column an ID is being generated for. </param>

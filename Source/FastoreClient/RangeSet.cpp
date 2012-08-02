@@ -32,12 +32,12 @@ void RangeSet::setLimited(const bool &value)
 	_Limited = value;
 }
 
-const DataSet &RangeSet::getData() const
+DataSet RangeSet::getData() const
 {
 	return _Data;
 }
 
-void RangeSet::setData(const DataSet &value)
+void RangeSet::setData(DataSet &value)
 {
 	_Data = value;
 }

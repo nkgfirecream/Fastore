@@ -2,14 +2,9 @@
 
 using namespace fastore::client;
 
-const boost::shared_ptr<Database> &Transaction::getDatabase() const
+const Database &Transaction::getDatabase() const
 {
 	return privateDatabase;
-}
-
-void Transaction::setDatabase(const boost::shared_ptr<Database> &value)
-{
-	privateDatabase = value;
 }
 
 const bool &Transaction::getReadIsolation() const
@@ -17,32 +12,16 @@ const bool &Transaction::getReadIsolation() const
 	return privateReadIsolation;
 }
 
-void Transaction::setReadIsolation(const bool &value)
-{
-	privateReadIsolation = value;
-}
-
 const bool &Transaction::getWriteIsolation() const
 {
 	return privateWriteIsolation;
 }
 
-void Transaction::setWriteIsolation(const bool &value)
+Transaction::Transaction(Database& database, bool readIsolation, bool writeIsolation)
+	: privateDatabase(database), privateReadIsolation(readIsolation), privateWriteIsolation(writeIsolation)
 {
-	privateWriteIsolation = value;
-}
-
-Transaction::Transaction(const boost::shared_ptr<Database> &database, bool readIsolation, bool writeIsolation)
-{
-	setDatabase(database);
-	setReadIsolation(readIsolation);
-	setWriteIsolation(writeIsolation);
-	// TODO: gen ID  - perhaps defer until needed; first read-write would obtain revision
-	_transactionId = boost::shared_ptr<TransactionID>(new TransactionID());
-	_transactionId->key = 0;
-	_transactionId->revision = 0;
-
-	_log = std::map<int, LogColumn*>();
+	_transactionId.__set_key(0);
+	_transactionId.__set_revision(0);
 }
 
 Transaction::~Transaction()
@@ -51,50 +30,53 @@ Transaction::~Transaction()
 		Rollback();
 }
 
-void Transaction::Commit(bool flush = false)
+void Transaction::Commit(bool flush)
 {
 	auto writes = GatherWrites();
 
-	getDatabase()->Apply(writes, flush);
+	privateDatabase.Apply(writes, flush);
 
 	_log.clear();
 	_completed = true;
 }
 
-std::map<int, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
+std::map<int, ColumnWrites> Transaction::GatherWrites()
 {
-	std::map<int, boost::shared_ptr<ColumnWrites>> writesPerColumn = std::map<int, boost::shared_ptr<ColumnWrites>>();
+	std::map<int, ColumnWrites> writesPerColumn;
 
 	// Gather changes for each column
-	for (std::map<int, LogColumn*>::const_iterator entry = _log.begin(); entry != _log.end(); ++entry)
+	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
 	{
-		boost::shared_ptr<ColumnWrites> writes = boost::shared_ptr<ColumnWrites>();
+		ColumnWrites writes;
 
 		// Process Includes
-		for (auto include = entry->second->Includes.begin(); include != entry->second->Includes.end(); ++include)
+		for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include)
 		{
-			if (writes == NULL)
+			if (!writes.__isset.includes)
 			{
-				writes = boost::shared_ptr<ColumnWrites>(new ColumnWrites());
-				writes->__set_includes(std::vector<fastore::communication::Include>());
+				writes.__set_includes(std::vector<fastore::communication::Include>());
 			}
 
-			writes->includes.push_back((*include));
+			fastore::communication::Include inc;
+			inc.__set_rowID(include->first);
+			inc.__set_value(include->second);
+			writes.includes.push_back(inc);
 		}
 
 		// Process Excludes
-		for (auto exclude = entry->second->Excludes.begin(); exclude != entry->second->Excludes.end(); ++exclude)
+		for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude)
 		{
-			if (writes == nullptr)
-				writes = boost::shared_ptr<ColumnWrites>(new ColumnWrites());
-			if (!writes->__isset.excludes)
-				writes->__set_excludes(std::vector<fastore::communication::Exclude>());
+			if (!writes.__isset.excludes)
+				writes.__set_excludes(std::vector<fastore::communication::Exclude>());
+
+			fastore::communication::Exclude ex; 
+			ex.__set_rowID(*exclude);
 			
-			writes->excludes.push_back((*exclude));
+			writes.excludes.push_back(ex);
 		}
 
-		if (writes != nullptr)
-			writesPerColumn.insert(std::pair<int, boost::shared_ptr<ColumnWrites>>(entry->first, writes));
+		if (writes.__isset.excludes || writes.__isset.includes)
+			writesPerColumn.insert(std::pair<int, ColumnWrites>(entry->first, writes));
 	}
 
 	return writesPerColumn;
@@ -106,24 +88,22 @@ void Transaction::Rollback()
 	_completed = true;
 }
 
-RangeResult Transaction::GetRange(RangeRequest range)
+RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
 {
 	// Get the raw results
-	auto raw = getDatabase()->GetRange(range);
+	auto raw = privateDatabase.GetRange(columnIds, range, limit, startId);
 
 	// Find a per-column change map for each column in the selection
-	auto changeMap = new LogColumn[sizeof(columnIds) / sizeof(columnIds[0])];
+	std::vector<LogColumn> changeMap(columnIds.size());
 	auto anyMapped = false;
-	for (int x = 0; x < sizeof(columnIds) / sizeof(columnIds[0]); x++)
+	for (int x = 0; x < columnIds.size(); ++x)
 	{
-		boost::shared_ptr<LogColumn> col;
-		if (_log.TryGetValue(columnIds[x], col))
+		auto col = _log.find(columnIds[x]);
+		if (col != _log.end())
 		{
 			anyMapped = true;
-			changeMap[x] = col;
+			changeMap[x] = col->second;
 		}
-		else
-			changeMap[x].reset();
 	}
 
 	// Return raw if no changes to the requested columns
@@ -131,29 +111,36 @@ RangeResult Transaction::GetRange(RangeRequest range)
 		return raw;
 
 	// Process excludes from results
-	auto resultRows = std::vector<DataSet::DataSetRow>();
-	for (Alphora::Fastore::Client::DataSet::const_iterator row = raw->getData()->begin(); row != raw->getData()->end(); ++row)
+	std::vector<DataSet::DataSetRow> resultRows; 
+	for (auto row = raw.getData().begin(); row != raw.getData().end(); ++row)
 	{
-		auto newRow = DataSet::DataSetRow {ID = (*row)->ID, Values = (*row)->Values};
+		DataSet::DataSetRow newRow;
+		newRow.ID = row->ID;
+		newRow.Values = row->Values;
 		auto allNull = true;
-		for (int i = 0; i < row->Values->Length; i++)
+
+		for (int i = 0; i < row->Values.size(); i++)
 		{
-			boost::shared_ptr<LogColumn> col = changeMap[i];
-			if (col != nullptr)
+			LogColumn col = changeMap[i];
+			if (!col.Excludes.empty() || !col.Includes.empty())
 			{
-				if (std::find(col->Excludes.begin(), col->Excludes.end(), (*row)->Values[i]) != col->Excludes.end())
-					newRow.Values[i].reset();
+				if (std::find(col.Excludes.begin(), col.Excludes.end(), row->Values[i]) != col.Excludes.end())
+				{
+					//TODO: set null marker
+					newRow.Values[i].clear();
+				}
 				else
 				{
 					allNull = false;
-					newRow.Values[i] = (*row)->Values[i];
+					newRow.Values[i] = row->Values[i];
 				}
 			}
 			else
-				newRow.Values[i] = (*row)->Values[i];
+				newRow.Values[i] = row->Values[i];
 		}
+
 		if (!allNull)
-			resultRows->Add(newRow);
+			resultRows.push_back(newRow);
 	}
 
 	// TODO: handle includes - probably need to keep a shadow of column buffers to do the merging with
@@ -184,49 +171,50 @@ RangeResult Transaction::GetRange(RangeRequest range)
 	//Insert case: Include new rows that are not present in our get range.
 
 	// Turn the rows back into a dataset
-	auto result = boost::make_shared<DataSet>(resultRows->Count, sizeof(columnIds) / sizeof(columnIds[0]));
-	for (var i = 0; i < result->getCount(); i++)
+	DataSet result(resultRows.size(), columnIds.size());
+	for (int i = 0; i < result.getCount(); i++)
 		result[i] = resultRows[i];
-	raw->setData(result);
+
+	raw.setData(result);
 
 	return raw;
 }
 
-boost::shared_ptr<DataSet> Transaction::GetValues(std::vector<int> columnIds, std::vector<std::string> rowIds)
+DataSet Transaction::GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds)
 {
 	// TODO: Filter/augment data for the transaction
-	return getDatabase()->GetValues(columnIds, rowIds);
+	return privateDatabase.GetValues(columnIds, rowIds);
 }
 
-void Transaction::Include(int columnIds[], const boost::shared_ptr<object> &rowId, object row[])
+void Transaction::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
-	for (int i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
-		EnsureColumnLog(columnIds[i])->Includes[rowId] = row[i];
+	for (int i = 0; i < columnIds.size(); ++i)
+		EnsureColumnLog(columnIds[i]).Includes[rowId] = row[i];
 }
 
-void Transaction::Exclude(int columnIds[], const boost::shared_ptr<object> &rowId)
+void Transaction::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
 {
-	for (int i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
-		EnsureColumnLog(columnIds[i])->Excludes.insert(rowId);
+	for (int i = 0; i < columnIds.size(); ++i)
+		EnsureColumnLog(columnIds[i]).Excludes.insert(rowId);
 }
 
-Statistic *Transaction::GetStatistics(int columnIds[])
+std::vector<Statistic> Transaction::GetStatistics(const ColumnIDs& columnIds)
 {
-	return getDatabase()->GetStatistics(columnIds);
+	return privateDatabase.GetStatistics(columnIds);
 }
 
-boost::shared_ptr<LogColumn> Transaction::EnsureColumnLog(int columnId)
+Transaction::LogColumn Transaction::EnsureColumnLog(const ColumnID& columnId)
 {
-	boost::shared_ptr<LogColumn> col;
-	if (!_log.TryGetValue(columnId, col))
+	auto iter = _log.find(columnId);
+	if (iter == _log.end())
 	{
-		col = boost::make_shared<LogColumn>();
-		_log.insert(make_pair(columnId, col));
+		_log.insert(iter, std::pair<ColumnID, LogColumn>(columnId, LogColumn()));
 	}
-	return col;
+	
+	return iter->second;
 }
 
-std::map<int, TimeSpan> Transaction::Ping()
+std::map<int, long long> Transaction::Ping()
 {
-	return getDatabase()->Ping();
+	return privateDatabase.Ping();
 }

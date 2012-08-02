@@ -1,44 +1,46 @@
 ﻿#include "Generator.h"
+#include "Encoder.h"
+#include "Dictionary.h"
+#include "boost\assign\std\vector.hpp"
+#include "boost\assign\list_of.hpp"
 
 using namespace fastore::client;
+using namespace boost::assign;
 
-Generator::Generator(const boost::shared_ptr<Database> &database, int podIDs[] = nullptr)
+Generator::Generator(const Database& database, std::vector<PodID> podIDs = std::vector<PodID>())
+	: _database(database), _podIDs(podIDs)
 {
-	InitializeInstanceFields();
-	if (database == nullptr)
-		throw boost::make_shared<ArgumentNullException>("database");
-	_database = database;
-	_podIDs = podIDs;
+	_lock = boost::shared_ptr<boost::mutex>(new boost::mutex());
 }
 
 long long Generator::Generate(int columnId)
 {
 	// Take lock
-	Monitor::Enter(_generatorLock);
-	auto taken = true;
+	_lock->lock();
+	bool taken = true;
 	try
 	{
 		// Find or create generator
-		boost::shared_ptr<IDGenerator> generator;
-		if (!_generators.TryGetValue(columnId, generator))
+		auto generator = _generators.find(columnId);
+		if (generator == _generators.end())
 		{
-//C# TO C++ CONVERTER TODO TASK: Lambda expressions and anonymous methods are not converted to native C++ unless the option to convert to C++11 lambdas is selected:
-			generator = boost::make_shared<IDGenerator>((size) => InternalGenerate(columnId, size));
-			_generators.insert(make_pair(columnId, generator));
+			_generators.insert(generator, std::pair<int, IDGenerator>(columnId, IDGenerator([&](long long size) { return InternalGenerate(columnId, size); })));
+
 		}
 
 		// Release lock
-		Monitor::Exit(_generatorLock);
+		_lock->unlock();
 		taken = false;
 
 		// Perform generation
-		return generator->Generate();
+		return generator->second.Generate();
 	}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-	finally
+	catch(std::exception& e)
 	{
 		if (taken)
-			Monitor::Exit(_generatorLock);
+			_lock->unlock();
+
+		throw e;
 	}
 }
 
@@ -48,93 +50,110 @@ long long Generator::InternalGenerate(int tableId, long long size)
 	{
 		try
 		{
-//C# TO C++ CONVERTER NOTE: The following 'using' block is replaced by its C++ equivalent:
-//						using (var transaction = _database.Begin(true, true))
-			auto transaction = _database->Begin(true, true);
+			auto transaction = _database.Begin(true, true);
 			try
 			{
-				auto values = transaction->GetValues(std::map::GeneratorColumns, new object[] {tableId});
-				Nullable<long long> result = Nullable<long long>();
-				if (values->getCount() > 0)
+				std::string tableIdstring = Encoder<int>::Encode(tableId);
+				auto values = transaction.GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
+				
+				boost::optional<long long> result;
+
+				if (values.getCount() > 0)
 				{
-					result = static_cast<Nullable<long long>*>(values[0]->Values[0]);
-					if (result.HasValue)
-						transaction->Exclude(std::map::GeneratorColumns, tableId);
+						result = Encoder<long long>::Decode(values[0].Values[0]);
+						transaction.Exclude(Dictionary::GeneratorColumns, tableIdstring);
 				}
 
-				long long generatedValue = result.HasValue ? result.Value : 1;
-				transaction->Include(std::map::GeneratorColumns, tableId, new object[] {generatedValue + size});
+				long long generatedValue = result ? *result : 1;
 
-				transaction->Commit();
+				transaction.Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<long long>::Encode(generatedValue + size)));
+
+				transaction.Commit();
 				return generatedValue;
-			}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-			finally
+			}		
+			catch (ClientException& e)
 			{
-				if (transaction != 0)
-					transaction.Dispose();
+				if (IsNoWorkerForColumnException(e))
+					continue;
+				else
+					throw;
 			}
+		/*	catch (AggregateException *e)
+			{
+				if (IsNoWorkerForColumnException(dynamic_cast<ClientException*>(e->InnerException)))
+					continue;
+				else
+					throw;
+			}*/
 		}
-		catch (AggregateException *e)
+		catch(std::exception& e)
 		{
-			if (IsNoWorkerForColumnException(dynamic_cast<ClientException*>(e->InnerException)))
-				continue;
-			else
-				throw;
-		}
-		catch (ClientException *e)
-		{
-			if (IsNoWorkerForColumnException(e))
-				continue;
-			else
-				throw;
+			//Something happened while starting the transaction...
+			throw e;
 		}
 	}
 }
 
-bool Generator::IsNoWorkerForColumnException(const boost::shared_ptr<ClientException> &clientex)
+bool Generator::IsNoWorkerForColumnException(const ClientException &clientex)
 {
-	if (clientex != nullptr)
+	if (clientex.Code == ClientException::Codes::NoWorkerForColumn)
 	{
-		auto code = clientex->getData()["Code"];
-		if (code != nullptr && static_cast<ClientException::Codes>(code) == ClientException::NoWorkerForColumn)
-		{
-			EnsureGeneratorTable();
-			return true;
-		}
+		EnsureGeneratorTable();
+		return true;
 	}
+
 	return false;
 }
 
 void Generator::EnsureGeneratorTable()
 {
 	// Ensure that we have pod(s) to put the generator column into
-	if (_podIDs == nullptr || sizeof(_podIDs) / sizeof(_podIDs[0]) == 0)
+	if (_podIDs.empty())
 		DefaultPods();
 
-	// Associate the generator column with each pod
-//C# TO C++ CONVERTER NOTE: The following 'using' block is replaced by its C++ equivalent:
-//				using (var transaction = _database.Begin(true, true))
-	auto transaction = _database->Begin(true, true);
+	auto transaction = _database.Begin(true, true);
 	try
 	{
 		// Add the generator column
-		_database->Include(std::map::ColumnColumns, std::map::GeneratorNextValue, new object[] {std::map::GeneratorNextValue, "Generator.Generator", "Long", "Int", true});
+		_database.Include
+		(
+			Dictionary::ColumnColumns,
+			Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
+			list_of<std::string> 
+				(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
+				(Encoder<std::string>::Encode(std::string("Generator.Generator")))
+				(Encoder<std::string>::Encode(std::string("Long")))
+				(Encoder<std::string>::Encode(std::string("Int")))
+				(Encoder<bool>::Encode(true))
+		);
 
 		// Add the association with each pod
-		for (int::const_iterator podID = _podIDs->begin(); podID != _podIDs->end(); ++podID)
-			transaction->Include(std::map::PodColumnColumns, std::map::GeneratorNextValue, new object[] {podID, std::map::GeneratorNextValue});
+		for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
+		{
+			transaction.Include
+			(
+				Dictionary::PodColumnColumns, 
+				Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
+				list_of<std::string> 
+					(Encoder<PodID>::Encode(*podID))
+					(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
+			);
+		}
 
 		// Seed the column table to the first user ID
-		transaction->Include(std::map::GeneratorColumns, new object[] {std::map::MaxClientColumnID}, new object[] {std::map::ColumnID});
+		transaction.Include
+		(
+			Dictionary::GeneratorColumns, 
+			Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID),
+			list_of<std::string> 
+				(Encoder<ColumnID>::Encode(Dictionary::ColumnID))
+		);
 
-		transaction->Commit();
+		transaction.Commit();
 	}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-	finally
+	catch(std::exception e)
 	{
-		if (transaction != 0)
-			transaction.Dispose();
+		throw e;
 	}
 }
 
@@ -143,18 +162,12 @@ void Generator::DefaultPods()
 	// Find a worker to put the generator table on
 	Range podRange = Range();
 	podRange.Ascending = true;
-	podRange.ColumnID = std::map::PodID;
-	auto podIds = _database->GetRange(new int[] {std::map::PodID}, podRange, 1);
+	podRange.ColumnID = Dictionary::PodID;
+	auto podIds = _database.GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
-	if (podIds->getData()->getCount() == 0)
-		throw boost::make_shared<ClientException>("Can't create generator column. No pods in hive.", ClientException::NoWorkersInHive);
+	if (podIds.getData().getCount() == 0)
+		throw ClientException("Can't create generator column. No pods in hive.", ClientException::Codes::NoWorkersInHive);
 
-	_podIDs = new int[] {static_cast<int>(podIds->getData()[0]->Values[0])};
-}
-
-void Generator::InitializeInstanceFields()
-{
-	_generatorLock = boost::make_shared<object>();
-	_generators = std::map<int, IDGenerator*>();
+	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.getData()[0].Values[0]));
 }

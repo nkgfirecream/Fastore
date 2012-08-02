@@ -13,7 +13,7 @@ DataSet::DataSet()
 
 DataSet::DataSetRow &DataSet::operator [](int index)
 {
-	auto result = _rows[index];
+	auto result = _rows.at(index);
 	if (result.Values.empty())
 		result.Values = std::vector<std::string>(_columnCount);
 	return result;

@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <boost/shared_ptr.hpp>
 #include "..\FastoreCommunication\Comm_types.h"
+#include <hash_set>
 
 using namespace fastore::communication;
 
@@ -27,12 +28,12 @@ namespace fastore { namespace client
 		class LogColumn
 		{
 		public:
-			std::vector<fastore::communication::Include> Includes;
-			std::vector<fastore::communication::Exclude> Excludes;
+			std::map<std::string, std::string> Includes;
+			std::hash_set<std::string> Excludes;
 		};
 
 	private:
-		boost::shared_ptr<Database> privateDatabase;
+		Database& privateDatabase;
 		bool privateReadIsolation;
 		bool privateWriteIsolation;
 		bool _completed;
@@ -40,30 +41,29 @@ namespace fastore { namespace client
 		std::map<int, ColumnWrites> GatherWrites();
 
 		// Log entries - by column ID then by row ID - null value means exclude
-		std::map<int, LogColumn> _log;
-		LogColumn EnsureColumnLog(int columnId);
+		std::map<ColumnID, LogColumn> _log;
+		LogColumn EnsureColumnLog(const ColumnID& columnId);
 
 	public:
 		const Database &getDatabase() const;
-		void setDatabase(const Database &value);
+		
 		const bool &getReadIsolation() const;
-		void setReadIsolation(const bool &value);
+	
 		const bool &getWriteIsolation() const;
-		void setWriteIsolation(const bool &value);
 
-		Transaction(const Database &database, bool readIsolation, bool writeIsolation);
+		Transaction(Database& database, bool readIsolation, bool writeIsolation);
 		~Transaction();
 
 		void Commit(bool flush = false);
 		void Rollback();
 
-		RangeSet GetRange(std::vector<int>& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId);
-		DataSet GetValues(const std::vector<int>& columnIds, const std::vector<std::string>& rowIds);
+		RangeSet GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId = boost::optional<std::string>());
+		DataSet GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
 
-		void Include(const std::vector<int>& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-		void Exclude(const std::vector<int>& columnIds, const std::string& rowId);
+		void Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);
 
-		std::vector<Statistic> GetStatistics(const std::vector<int>& columnIds);
+		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
 		std::map<int, long long> Ping();
 	};
 }}

@@ -1,6 +1,7 @@
 ﻿#include "Database.h"
 #include "Dictionary.h"
 #include <boost\format.hpp>
+#include "Encoder.h"
 
 using namespace fastore::client;
 
@@ -122,9 +123,8 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 	std::vector<fastore::communication::Include> tempVector;
 
 	fastore::communication::Include inc;
-	//TODO: Encoding
-	//inc.__set_rowID(newTopology.topologyID);
-	//inc.__set_value(newTopology.topologyID);
+	inc.__set_rowID(Encoder<TopologyID>::Encode(newTopology.topologyID));
+	inc.__set_value(Encoder<TopologyID>::Encode(newTopology.topologyID));
 
 	tempVector.push_back(inc);
 
@@ -144,22 +144,21 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 
 	for (auto h = newTopology.hosts.begin(); h != newTopology.hosts.end(); ++h)
 	{
-		//TODO: Encoding
 		fastore::communication::Include inc;		
-		//inc.__set_rowID(h->first);
-		//inc.__set_rowID(h->first);
+		inc.__set_rowID(Encoder<HostID>::Encode(h->first));
+		inc.__set_rowID(Encoder<HostID>::Encode(h->first));
 		hostWrites.includes.push_back(inc);
 
 		for (auto p = h->second.begin(); p != h->second.end(); ++p)
 		{
 			fastore::communication::Include pwinc;
-			//pwinc.__set_rowID(p->first);
-			//pwinc.__set_value(p->first);
+			pwinc.__set_rowID(Encoder<PodID>::Encode(p->first));
+			pwinc.__set_value(Encoder<PodID>::Encode(p->first));
 			podWrites.includes.push_back(pwinc);
 
 			fastore::communication::Include phinc;
-			//phinc.__set_rowID(p->first);
-			//phinc.__set_value(h->first);
+			phinc.__set_rowID(Encoder<PodID>::Encode(p->first));
+			phinc.__set_value(Encoder<HostID>::Encode(h->first));
 			podHostWrites.includes.push_back(phinc);
 		}
 	}
@@ -247,7 +246,7 @@ HiveState Database::GetHiveState()
 			(
 				std::async
 				(
-					std::launch::any,
+					std::launch::async,
 					[&]()-> std::pair<int, ServiceState>
 					{
 						ServiceClient serviceClient = _services[service->first];
@@ -361,7 +360,7 @@ int Database::GetWorkerIDForColumn(int columnID)
 		ClientException error(boost::str(boost::format("No worker is currently available for column ID ({0}).") % columnID), ClientException::Codes::NoWorkerForColumn);
 		
 		//TODO: Possibly add data to client exception
-		// (ir built build an exception base class analogous to the C# one)
+		// (or build an exception base class analogous to the C# one)
 		//error->getData()->Add("ColumnID", columnID);
 		_lock->unlock();
 		throw error;
@@ -411,7 +410,7 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<int,
 					info.Columns.push_back(repo->first);
 			}
 
-			//Union
+			//Union with system columns.
 			info.Columns.insert(info.Columns.end(), systemColumns.begin(), systemColumns.end());			
 
 			results.push_back(info);
@@ -517,31 +516,31 @@ void Database::TrackErrors(std::map<int, std::exception> &errors)
 	// TODO: stop trying to reach workers that keep giving errors, ask for a state update too
 }
 
-//Transaction Database::Begin(bool readIsolation, bool writeIsolation)
-//{
-//	return Transaction(this, readIsolation, writeIsolation);
-//}
+Transaction Database::Begin(bool readIsolation, bool writeIsolation)
+{
+	return Transaction(*this, readIsolation, writeIsolation);
+}
 
-RangeSet Database::GetRange(std::vector<int>& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
+RangeSet Database::GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
 {
 	// Create the range query
 	auto query = CreateQuery(range, limit, startId);
 
 	// Make the range request
-	std::map<int, ReadResult> rangeResults;
+	ReadResults results;
+	ColumnID col = range.ColumnID;
 	AttemptRead
 	(
-		range.ColumnID, 
-		[&](WorkerClient client)
+		col, 
+		[&, col](WorkerClient client)
 		{
-			ReadResults results;
 			Queries queries;
-			queries.insert(std::pair<ColumnID, Query>(range.ColumnID, query));
+			queries.insert(std::pair<ColumnID, Query>(col, query));
 			client.query(results, queries);
 		}
 	);
 
-	auto rangeResult = rangeResults[range.ColumnID].answer.rangeValues.at(0);
+	auto rangeResult = results[range.ColumnID].answer.rangeValues.at(0);
 
 	// Create the row ID query
 	Query rowIdQuery = GetRowsQuery(rangeResult);
@@ -553,22 +552,22 @@ RangeSet Database::GetRange(std::vector<int>& columnIds, const Range& range, con
 	return ResultsToRangeSet(result, range.ColumnID, std::find(columnIds.begin(), columnIds.end(), range.ColumnID) - columnIds.begin(), rangeResult);
 }
 
-DataSet Database::InternalGetValues(const std::vector<int>& columnIds, const int exclusionColumnId, const Query& rowIdQuery)
+DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const int exclusionColumnId, const Query& rowIdQuery)
 {
-	std::vector<boost::shared_ptr<std::future<std::map<int, ReadResult>>>> tasks;
+	std::vector<boost::shared_ptr<std::future<ReadResults>>> tasks;
 	for (int i = 0; i < columnIds.size(); ++i)
 	{
 		auto columnId = columnIds[i];
 		if (columnId != exclusionColumnId)
 		{
-			auto task = boost::shared_ptr<std::future<std::map<int, ReadResult>>>
+			auto task = boost::shared_ptr<std::future<ReadResults>>
 			(
-				new std::future<std::map<int, ReadResult>>
+				new std::future<ReadResults>
 				(
 					std::async
 					(
-						std::launch::any,
-						[&]()-> std::map<int, ReadResult>
+						std::launch::async,
+						[&, columnId]()-> ReadResults
 						{
 							ReadResults result;
 							Queries queries;
@@ -593,15 +592,14 @@ DataSet Database::InternalGetValues(const std::vector<int>& columnIds, const int
 	}
 
 	// Combine all results into a single dictionary by column
-	std::map<int, ReadResult> resultsByColumn;
+	ReadResults resultsByColumn;
 	for (auto task = tasks.begin(); task != tasks.end(); ++task)
 	{
 		(*task)->wait();
 		auto taskresult = (*task)->get();
 		for (auto result = taskresult.begin(); result != taskresult.end(); ++result)
 		{
-			//TODO: Is this necessary? Aren't the pairs already by columnID?
-			resultsByColumn.insert(std::pair<int,ReadResult>(result->first, result->second));
+			resultsByColumn.insert(*result);
 		}
 
 	}
@@ -618,16 +616,7 @@ DataSet Database::GetValues(const std::vector<int>& columnIds, const std::vector
 	return InternalGetValues(columnIds, -1, rowIdQuery);
 }
 
-//std::vector<unsigned char[]> Database::EncodeRowIds(object rowIds[])
-//{
-//	auto encodedRowIds = std::vector<unsigned char[]>(sizeof(rowIds) / sizeof(rowIds[0]));
-//	for (int i = 0; i < sizeof(rowIds) / sizeof(rowIds[0]); i++)
-//		encodedRowIds->Add(Encoder::Encode(rowIds[i]));
-//	return encodedRowIds;
-//}
-//
-
-DataSet Database::ResultsToDataSet(const std::vector<int>& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults)
+DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults)
 {
 	DataSet result (rowIDs.size(), columnIds.size());
 
@@ -785,7 +774,7 @@ std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorker
 			(
 				std::async
 				(
-					std::launch::any,
+					std::launch::async,
 					[&]()-> TransactionID
 					{
 						TransactionID result;
@@ -821,7 +810,7 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 			(
 				std::async
 				(
-					std::launch::any,
+					std::launch::async,
 					[&]()
 					{
 						auto worker = _workers[w->PodID];
@@ -851,12 +840,6 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 	for (int i = 0; i < flushTasks.size() && i < neededCount; i++)
 		flushTasks[i]->wait();
 }
-
-//void Database::Include(int columnIds[], const boost::shared_ptr<object> &rowId, object row[])
-//{
-//	auto writes = EncodeIncludes(columnIds, rowId, row);
-//	Apply(writes, false);
-//}
 
 std::map<TransactionID, std::vector<Database::WorkerInfo>> Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers, const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, std::map<int, boost::shared_ptr<TProtocol>>& failedWorkers)
 {
@@ -972,104 +955,133 @@ void Database::WorkerInvoke(int podID, std::function<void(WorkerClient)> work)
 		throw e;
 	}
 }
-//
 
-//
-//std::map<int, ColumnWrites*> Database::EncodeIncludes(int columnIds[], const boost::shared_ptr<object> &rowId, object row[])
-//{
-//	auto writes = std::map<int, ColumnWrites*>();
-////ORIGINAL LINE: byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
-////C# TO C++ CONVERTER WARNING: Since the array size is not known in this declaration, C# to C++ Converter has converted this array to a pointer.  You will need to call 'delete[]' where appropriate:
-//	unsigned char *rowIdb = Fastore::Client::Encoder::Encode(rowId);
-//
-//	for (int i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
-//	{
-//		boost::shared_ptr<Alphora::Fastore::Include> inc = boost::make_shared<Fastore::Include>();
-//		inc->RowID = rowIdb;
-//		inc->Value = Fastore::Client::Encoder::Encode(row[i]);
-//
-//		boost::shared_ptr<ColumnWrites> wt = boost::make_shared<ColumnWrites>();
-//		wt->Includes = std::vector<Fastore::Include*>();
-//		wt->Includes->Add(inc);
-//		writes->Add(columnIds[i], wt);
-//	}
-//	return writes;
-//}
-//
-//void Database::Exclude(int columnIds[], const boost::shared_ptr<object> &rowId)
-//{
-//	Apply(EncodeExcludes(columnIds, rowId), false);
-//}
-//
-//std::map<int, ColumnWrites*> Database::EncodeExcludes(int columnIds[], const boost::shared_ptr<object> &rowId)
-//{
-//	auto writes = std::map<int, ColumnWrites*>();
-////ORIGINAL LINE: byte[] rowIdb = Fastore.Client.Encoder.Encode(rowId);
-////C# TO C++ CONVERTER WARNING: Since the array size is not known in this declaration, C# to C++ Converter has converted this array to a pointer.  You will need to call 'delete[]' where appropriate:
-//	unsigned char *rowIdb = Fastore::Client::Encoder::Encode(rowId);
-//
-//	for (int i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
-//	{
-//		boost::shared_ptr<Alphora::Fastore::Exclude> inc = boost::make_shared<Fastore::Exclude>();
-//		inc->RowID = rowIdb;
-//
-//		boost::shared_ptr<ColumnWrites> wt = boost::make_shared<ColumnWrites>();
-//		wt->Excludes = std::vector<Fastore::Exclude*>();
-//		wt->Excludes->Add(inc);
-//		writes->Add(columnIds[i], wt);
-//	}
-//	return writes;
-//}
-//
-//Statistic *Database::GetStatistics(int columnIds[])
-//{
-//	// Make the request against each column
-//	auto tasks = std::vector<Task<Fastore::Statistic*>*>(sizeof(columnIds) / sizeof(columnIds[0]));
-//	for (var i = 0; i < sizeof(columnIds) / sizeof(columnIds[0]); i++)
-//	{
-//		auto columnId = columnIds[i];
-////C# TO C++ CONVERTER TODO TASK: Lambda expressions and anonymous methods are not converted to native C++ unless the option to convert to C++11 lambdas is selected:
-//		tasks->Add(Task::Factory::StartNew(() =>
-//		{
-//			boost::shared_ptr<Fastore::Statistic> result = nullptr;
-////C# TO C++ CONVERTER TODO TASK: Lambda expressions and anonymous methods are not converted to native C++ unless the option to convert to C++11 lambdas is selected:
-//			AttemptRead(columnId, (worker) =>
-//			{
-//				const int tempVector2[] = {columnId};
-//				result = worker::getStatistics(std::vector<int>(tempVector2, tempVector2 + sizeof(tempVector2) / sizeof(tempVector2[0])))[0];
-//			}
-//			);
-//			return result;
-//		}
-//		));
-//	}
-//
-//	return (from t in tasks let r = t::Result select Statistic {Total = r::Total, Unique = r::Unique})->ToArray();
-//}
-//
-//boost::shared_ptr<Schema> Database::GetSchema()
-//{
-//	if (_schema->empty())
-//		_schema = LoadSchema();
-//	return boost::make_shared<Schema>(_schema);
-//}
-//
-//boost::shared_ptr<Schema> Database::LoadSchema()
-//{
-//	auto schema = boost::make_shared<Schema>();
-//	auto finished = false;
-//	while (!finished)
-//	{
-//		auto columns = GetRange(std::map::ColumnColumns, Range {ColumnID = std::map::ColumnID, Ascending = true}, MaxFetchLimit);
-//		for (Alphora::Fastore::Client::DataSet::const_iterator column = columns->getData()->begin(); column != columns->getData()->end(); ++column)
-//		{
-//			auto def = ColumnDef {ColumnID = static_cast<int>((*column)->Values[0]), Name = static_cast<std::string>((*column)->Values[1]), Type = static_cast<std::string>((*column)->Values[2]), IDType = static_cast<std::string>((*column)->Values[3]), BufferType = static_cast<BufferType>((*column)->Values[4])};
-//			schema->insert(make_pair(def.getColumnID(), def));
-//		}
-//		finished = !columns->getLimited();
-//	}
-//	return schema;
-//}
+void Database::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
+{
+	auto writes = CreateIncludes(columnIds, rowId, row);
+	Apply(writes, false);
+}
+
+std::map<int, ColumnWrites> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
+{
+	std::map<int, ColumnWrites> writes;
+
+	for (int i = 0; i < columnIds.size(); ++i)
+	{
+		fastore::communication::Include inc;
+		inc.__set_rowID(rowId);
+		inc.__set_value(row[i]);
+
+		ColumnWrites wt;
+		wt.__set_includes(std::vector<fastore::communication::Include>());
+		wt.includes.push_back(inc);
+		writes.insert(std::pair<int, ColumnWrites>(columnIds[i], wt));
+	}
+	return writes;
+}
+
+void Database::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
+{
+	Apply(CreateExcludes(columnIds, rowId), false);
+}
+
+std::map<int, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId)
+{
+	std::map<int, ColumnWrites> writes;
+
+	for (int i = 0; i < columnIds.size(); ++i)
+	{
+		fastore::communication::Exclude ex;
+		ex.__set_rowID(rowId);
+
+		ColumnWrites wt;
+		wt.__set_excludes(std::vector<fastore::communication::Exclude>());
+		wt.excludes.push_back(ex);
+		writes.insert(std::pair<int, ColumnWrites>(columnIds[i], wt));
+	}
+	return writes;
+}
+
+std::vector<Statistic> Database::GetStatistics(const std::vector<int>& columnIds)
+{
+	// Make the request against each column
+	std::vector<boost::shared_ptr<std::future<Statistic>>> tasks;
+	for (int i = 0; i < columnIds.size(); ++i)
+	{
+		auto columnId = columnIds[i];
+		auto task = boost::shared_ptr<std::future<Statistic>>
+		(
+			new std::future<Statistic>
+			(
+				std::async
+				(
+					std::launch::async,
+					[&]() -> Statistic
+					{
+						Statistic result;
+						AttemptRead
+						(
+							columnId, 
+							[&](WorkerClient worker)
+							{			
+								std::vector<ColumnID> ids;
+								std::vector<Statistic> stats;
+								ids.push_back(columnId);
+								worker.getStatistics(stats, ids);
+								result = stats[0];
+							}
+						);
+						return result;
+					}
+				)
+			)
+		);
+	}
+
+	std::vector<Statistic> stats;
+	for (auto iter = tasks.begin(); iter != tasks.end(); ++iter)
+	{
+		(*iter)->wait();
+		stats.push_back((*iter)->get());
+	}
+
+	return stats; 
+}
+
+Schema Database::GetSchema()
+{
+	if (_schema.empty())
+		_schema = LoadSchema();
+	return _schema;
+}
+
+Schema Database::LoadSchema()
+{
+	Schema schema;
+	bool finished = false;
+	while (!finished)
+	{
+		Range range;
+		range.Ascending = true;
+		range.ColumnID = Dictionary::ColumnID;
+		RangeSet columns = GetRange(Dictionary::ColumnColumns, range, MaxFetchLimit);
+
+		for (auto column = columns.getData().begin(); column != columns.getData().end(); ++column)
+		{
+			ColumnDef def;
+			def.setColumnID(Encoder<ColumnID>::Decode(column->ID));
+			def.setName(Encoder<std::string>::Decode(column->Values[1]));
+			def.setType(Encoder<std::string>::Decode(column->Values[2]));
+			def.setIDType(Encoder<std::string>::Decode(column->Values[3]));
+			def.setBufferType(Encoder<BufferType>::Decode(column->Values[4]));
+
+			schema.insert(std::pair<int, ColumnDef>(def.getColumnID(), def));
+		}
+		//TODO: this is wrong. We need to set the startId on the range above for this to resume properly
+		finished = !columns.getLimited();
+	}
+	return schema;
+}
 
 void Database::RefreshSchema()
 {
@@ -1124,54 +1136,63 @@ void Database::BootStrapSchema()
 	//Boot strapping is done, pull in real schema
 	RefreshSchema();
 }
-//
-//std::map<int, TimeSpan> Database::Ping()
-//{
-//	// Setup the set of hosts
-////ORIGINAL LINE: int[] hostIDs;
-////C# TO C++ CONVERTER WARNING: Since the array size is not known in this declaration, C# to C++ Converter has converted this array to a pointer.  You will need to call 'delete[]' where appropriate:
-//	int *hostIDs;
-////C# TO C++ CONVERTER TODO TASK: There is no built-in support for multithreading in native C++:
-//	lock (_mapLock)
-//	{
-//		hostIDs = _hiveState->Services->Keys->ToArray();
-//	}
-//
-//	// Start a ping request to each
-////C# TO C++ CONVERTER TODO TASK: Lambda expressions and anonymous methods are not converted to native C++ unless the option to convert to C++11 lambdas is selected:
-//	auto tasks = from id in hostIDs select Task::Factory::StartNew<KeyValuePair<int, TimeSpan>*> (() =>
-//	{
-//		auto service = _services[id];
-//		try
-//		{
-//			auto timer = boost::make_shared<Stopwatch>();
-//			timer->Start();
-//			service->ping();
-//			timer->Stop();
-//			return KeyValuePair<int, TimeSpan>(id, timer->Elapsed);
-//		}
-////C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-//		finally
-//		{
-//			_services->Release(KeyValuePair<int, Service::Client*>(id, service));
-//		}
-//	}
-//	);
-//
-//	// Gather ping results
-//	auto result = std::map<int, TimeSpan>(sizeof(hostIDs) / sizeof(hostIDs[0]));
-//	for (System::Collections::Generic::IEnumerable::const_iterator task = tasks->begin(); task != tasks->end(); ++task)
-//	{
-//		try
-//		{
-//			auto item = (*task)->Result;
-//			result->Add(item::Key, item->Value);
-//		}
-//		catch (...)
-//		{
-//			// TODO: report errors
-//		}
-//	}
-//
-//	return result;
-//}
+
+std::map<int, long long> Database::Ping()
+{
+	std::vector<int> hostIds;
+
+	_lock->lock();
+	for (auto iter = _hiveState.services.begin(); iter != _hiveState.services.end(); ++iter)
+	{
+		hostIds.push_back(iter->first);
+	}
+	_lock->unlock();
+
+	std::vector<boost::shared_ptr<std::future<std::pair<int, long long>>>> tasks;
+	for (int i = 0; i < hostIds.size(); ++i)
+	{		
+		int hostId = hostIds[i];
+		auto task = boost::shared_ptr<std::future<std::pair<int, long long>>>
+		(
+			new std::future<std::pair<int, long long>>
+			(
+				std::async
+				(
+					std::launch::async,
+					[&]() -> std::pair<int, long long>
+					{
+						auto service = _services[hostId];
+						bool released = false;
+						clock_t start = 0;
+						clock_t stop = 0;
+						try
+						{
+							start = clock();
+							service.ping();
+							stop = clock();
+							released = true;
+							_services.Release(std::pair<int, ServiceClient>(hostId, service));							
+						}
+						catch(std::exception& e)
+						{
+							if (!released)
+								_services.Release(std::pair<int, ServiceClient>(hostId, service));
+						}				
+
+						return std::pair<int, long long>(hostId, stop - start);
+					}
+				)
+			)
+		);
+	}
+
+	// Gather ping results
+	std::map<int, long long> result;
+	for (auto iter = tasks.begin(); iter != tasks.end(); ++iter)
+	{
+		(*iter)->wait();
+		result.insert((*iter)->get());
+	}
+
+	return result;
+}

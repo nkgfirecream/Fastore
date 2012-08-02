@@ -9,11 +9,16 @@
 #include <boost/shared_ptr.hpp>
 #include "..\FastoreCommunication\Comm_types.h"
 #include <thrift\protocol\TProtocol.h>
+#include <thrift\protocol\TBinaryProtocol.h>
+#include <thrift\transport\TSocket.h>
+#include <thrift\transport\TTransport.h>
+#include <thrift\transport\TBufferTransports.h>
 #include <boost\thread\mutex.hpp>
 
 
 using namespace fastore::communication;
 using namespace apache::thrift::protocol;
+using namespace apache::thrift::transport;
 
 namespace fastore { namespace client
 {
@@ -44,7 +49,7 @@ namespace fastore { namespace client
 		const int getMaxPooledPerKey();
 		void setMaxPooledPerKey(const int &value);
 
-		TClient& operator[] (TKey key);
+		TClient operator[] (TKey key);
 		void Release(std::pair<TKey, TClient> connection);
 		void Destroy(TClient connection);
 
@@ -52,4 +57,173 @@ namespace fastore { namespace client
 		/// <remarks> The resulting connection will not yet be in the pool.  Use release to store the connection in the pool. </remarks>
 		TClient Connect(const NetworkAddress &address);
 	};
+
+
+
+	template<typename TKey, typename TClient>
+	ConnectionPool<TKey, TClient>::ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, std::function<NetworkAddress(TKey)> determineAddress, std::function<void(TClient&)> destroyConnection, std::function<bool(TClient&)> isValid)
+		: 
+		_maxPooledPerKey(DefaultMaxPooledPerKey),
+		_lock(boost::shared_ptr<boost::mutex>(new boost::mutex()))
+	{
+		_createConnection = createConnection;
+		_determineAddress = determineAddress;
+		_destroyConnection = destroyConnection;
+		_isValid = isValid;
+	}
+
+
+	template<typename TKey, typename TClient>
+	const int ConnectionPool<TKey, TClient>::getMaxPooledPerKey()
+	{
+		return _maxPooledPerKey;
+	}
+
+	template<typename TKey, typename TClient>
+	void ConnectionPool<TKey, TClient>::setMaxPooledPerKey(const int &value)
+	{
+		_maxPooledPerKey = value;
+	}
+
+	template<typename TKey, typename TClient>
+	TClient ConnectionPool<TKey, TClient>::operator[](TKey key)
+	{
+		_lock->lock();
+		bool taken = true;
+		try
+		{
+			// Loop to throw away invalid connections
+			while (true)
+			{
+				// Check for existing known worker
+				auto entry = _entries.find(key);
+				if (entry == _entries.end())
+				{
+					// Release the lock during connection
+					_lock->unlock();
+					taken = false;
+
+					auto address = _determineAddress(key);
+
+					return Connect(address);
+				}
+				else
+				{
+					auto result = entry->second.front();
+					entry->second.pop();
+
+					// If last one out, remove the entry
+					if (entry->second.size() == 0)
+						_entries.erase(key);
+
+					if (_isValid(result))
+						return result;
+				}
+			}
+		}
+		catch(std::exception& e)
+		{
+			if (taken)
+				_lock->unlock();
+
+			throw e;
+		}
+	}
+
+	template<typename TKey, typename TClient>
+	void ConnectionPool<TKey, TClient>::Release(std::pair<TKey, TClient> connection)
+	{
+		_lock->lock();
+		{
+			// Find or create the entry
+			auto entry = _entries.find(connection.first);
+			if (entry == _entries.end())
+			{
+				_entries.insert(entry, std::pair<TKey, std::queue<TClient>>(connection.first, std::queue<TClient>()));
+			}
+
+			entry->second.push(connection.second);
+
+			// If limit exceeded, throw away old connection(s) as needed
+			while (entry->second.size() > _maxPooledPerKey)
+			{
+				Destroy(entry->second.front());
+				entry->second.pop();
+			}
+		}
+		_lock->unlock();
+	}
+
+	template<typename TKey, typename TClient>
+	void ConnectionPool<TKey, TClient>::Destroy(TClient connection)
+	{
+		_destroyConnection(connection);
+	}
+
+	template<typename TKey, typename TClient>
+	TClient ConnectionPool<TKey, TClient>::Connect(const NetworkAddress &address)
+	{
+		auto transport = boost::shared_ptr<TTransport>(new TSocket(address.name, address.port));
+
+		// Establish connection, retrying if necessary
+		auto retries = MaxConnectionRetries;
+		while (true)
+			try
+			{
+				retries--;
+				transport->open();
+				break;
+			}
+			catch (std::exception& e)
+			{
+				if (retries == 0)
+					throw;
+			}
+
+		try
+		{
+			auto bufferedTransport =  boost::shared_ptr<TTransport>(new TFramedTransport(transport));
+			auto protocol = boost::shared_ptr<TProtocol>(new TBinaryProtocol(bufferedTransport));
+
+			return _createConnection(protocol);
+		}
+		catch (...)
+		{
+			transport->close();
+			throw;
+		}
+	}
+
+	template<typename TKey, typename TClient>
+	ConnectionPool<TKey, TClient>::~ConnectionPool()
+	{
+		_lock->lock();
+		{
+			if (_entries.size() > 0)
+			{
+				std::vector<std::exception> errors;
+				for (auto entry = _entries.begin(); entry != _entries.end(); ++entry)
+				{
+					while (entry->second.size() > 0)
+					{
+						auto connection = entry->second.front();
+
+						try
+						{
+							Destroy(connection);
+						}
+						catch (std::exception &e)
+						{
+							errors.push_back(e);
+						}
+
+						entry->second.pop();
+					}
+				}
+				_entries.clear();
+				ClientException::ThrowErrors(errors);
+			}
+		}
+		_lock->unlock();
+	}
 }}
