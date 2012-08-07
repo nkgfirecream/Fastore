@@ -117,7 +117,11 @@ namespace fastore { namespace client
 						_entries.erase(key);
 
 					if (_isValid(result))
+					{
+						_lock->unlock();
+						taken = false;
 						return result;
+					}
 				}
 			}
 		}
@@ -139,7 +143,8 @@ namespace fastore { namespace client
 			auto entry = _entries.find(connection.first);
 			if (entry == _entries.end())
 			{
-				_entries.insert(entry, std::pair<TKey, std::queue<TClient>>(connection.first, std::queue<TClient>()));
+				_entries.insert(std::pair<TKey, std::queue<TClient>>(connection.first, std::queue<TClient>()));
+				entry = _entries.find(connection.first);
 			}
 
 			entry->second.push(connection.second);

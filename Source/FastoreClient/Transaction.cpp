@@ -22,6 +22,7 @@ Transaction::Transaction(Database& database, bool readIsolation, bool writeIsola
 {
 	_transactionId.__set_key(0);
 	_transactionId.__set_revision(0);
+	_log = std::map<ColumnID, LogColumn>();
 }
 
 Transaction::~Transaction()
@@ -40,43 +41,43 @@ void Transaction::Commit(bool flush)
 	_completed = true;
 }
 
-std::map<int, ColumnWrites> Transaction::GatherWrites()
+std::map<int, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
 {
-	std::map<int, ColumnWrites> writesPerColumn;
+	std::map<int,  boost::shared_ptr<ColumnWrites>> writesPerColumn;
 
 	// Gather changes for each column
 	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
 	{
-		ColumnWrites writes;
+		boost::shared_ptr<ColumnWrites> writes(new ColumnWrites);
 
 		// Process Includes
 		for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include)
 		{
-			if (!writes.__isset.includes)
+			if (!writes->__isset.includes)
 			{
-				writes.__set_includes(std::vector<fastore::communication::Include>());
+				writes->__set_includes(std::vector<fastore::communication::Include>());
 			}
 
 			fastore::communication::Include inc;
 			inc.__set_rowID(include->first);
 			inc.__set_value(include->second);
-			writes.includes.push_back(inc);
+			writes->includes.push_back(inc);
 		}
 
 		// Process Excludes
 		for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude)
 		{
-			if (!writes.__isset.excludes)
-				writes.__set_excludes(std::vector<fastore::communication::Exclude>());
+			if (!writes->__isset.excludes)
+				writes->__set_excludes(std::vector<fastore::communication::Exclude>());
 
 			fastore::communication::Exclude ex; 
 			ex.__set_rowID(*exclude);
 			
-			writes.excludes.push_back(ex);
+			writes->excludes.push_back(ex);
 		}
 
-		if (writes.__isset.excludes || writes.__isset.includes)
-			writesPerColumn.insert(std::pair<int, ColumnWrites>(entry->first, writes));
+		if (writes->__isset.excludes || writes->__isset.includes)
+			writesPerColumn.insert(std::pair<int,  boost::shared_ptr<ColumnWrites>>(entry->first, writes));
 	}
 
 	return writesPerColumn;
@@ -111,10 +112,10 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 		return raw;
 
 	// Process excludes from results
-	std::vector<DataSet::DataSetRow> resultRows; 
+	std::vector<DataSetRow> resultRows; 
 	for (auto row = raw.getData().begin(); row != raw.getData().end(); ++row)
 	{
-		DataSet::DataSetRow newRow;
+		DataSetRow newRow(row->Values.size());
 		newRow.ID = row->ID;
 		newRow.Values = row->Values;
 		auto allNull = true;
@@ -172,7 +173,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 
 	// Turn the rows back into a dataset
 	DataSet result(resultRows.size(), columnIds.size());
-	for (int i = 0; i < result.getCount(); i++)
+	for (int i = 0; i < result.size(); i++)
 		result[i] = resultRows[i];
 
 	raw.setData(result);
@@ -189,13 +190,19 @@ DataSet Transaction::GetValues(const ColumnIDs& columnIds, const std::vector<std
 void Transaction::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
 	for (int i = 0; i < columnIds.size(); ++i)
-		EnsureColumnLog(columnIds[i]).Includes[rowId] = row[i];
+	{
+		LogColumn& column = EnsureColumnLog(columnIds[i]);
+		column.Includes[rowId] = row[i];
+	}
 }
 
 void Transaction::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
 {
 	for (int i = 0; i < columnIds.size(); ++i)
-		EnsureColumnLog(columnIds[i]).Excludes.insert(rowId);
+	{
+		LogColumn& column = EnsureColumnLog(columnIds[i]);
+		column.Excludes.insert(rowId);
+	}
 }
 
 std::vector<Statistic> Transaction::GetStatistics(const ColumnIDs& columnIds)
@@ -203,15 +210,15 @@ std::vector<Statistic> Transaction::GetStatistics(const ColumnIDs& columnIds)
 	return privateDatabase.GetStatistics(columnIds);
 }
 
-Transaction::LogColumn Transaction::EnsureColumnLog(const ColumnID& columnId)
+Transaction::LogColumn& Transaction::EnsureColumnLog(const ColumnID& columnId)
 {
 	auto iter = _log.find(columnId);
 	if (iter == _log.end())
 	{
-		_log.insert(iter, std::pair<ColumnID, LogColumn>(columnId, LogColumn()));
+		_log.insert(std::pair<ColumnID, LogColumn>(columnId, LogColumn()));
 	}
 	
-	return iter->second;
+	return _log[columnId];	
 }
 
 std::map<int, long long> Transaction::Ping()

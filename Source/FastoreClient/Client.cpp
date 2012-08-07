@@ -2,8 +2,8 @@
 
 using namespace fastore::client;
 
-Database Client::Connect(std::vector<ServiceAddress> addresses)
+boost::shared_ptr<Database> Client::Connect(std::vector<ServiceAddress> addresses)
 {
-	return Database(addresses);
+	return boost::shared_ptr<Database>(new Database(addresses));
 }
 

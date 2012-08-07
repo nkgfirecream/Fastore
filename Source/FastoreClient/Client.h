@@ -12,6 +12,6 @@ namespace fastore { namespace client
 	class Client
 	{
 	public:
-		static Database Connect(std::vector<ServiceAddress> addresses);
+		static boost::shared_ptr<Database> Connect(std::vector<ServiceAddress> addresses);
 	};
 }}

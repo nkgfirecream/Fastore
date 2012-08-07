@@ -46,9 +46,15 @@
     <IncludePath>$(WindowsSdkDir)include\shared;$(WindowsSdkDir)include\um;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
     <LibraryPath>$(WindowsSdkDir)lib\win8\um\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\</OutDir>
+    <IntDir>obj\$(Configuration)\</IntDir>
+    <IncludePath>$(WindowsSdkDir)include\shared;$(WindowsSdkDir)include\um;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
+    <LibraryPath>$(WindowsSdkDir)lib\win8\um\x64;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -75,12 +81,15 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\External\libevent-2.0.19-stable;$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Release;$(SolutionDir)..\External\boost_1_49_0\lib64;$(SolutionDir)..\External\tbb\lib\intel64\vc10;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>FastoreClient.lib;FastoreCore.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

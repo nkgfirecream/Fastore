@@ -28,6 +28,11 @@ namespace fastore { namespace client
 		class LogColumn
 		{
 		public:
+			LogColumn()
+			{
+				Includes = std::map<std::string, std::string>();
+				Excludes = std::hash_set<std::string>();	
+			}
 			std::map<std::string, std::string> Includes;
 			std::hash_set<std::string> Excludes;
 		};
@@ -38,11 +43,11 @@ namespace fastore { namespace client
 		bool privateWriteIsolation;
 		bool _completed;
 		TransactionID _transactionId;
-		std::map<int, ColumnWrites> GatherWrites();
+		std::map<int, boost::shared_ptr<ColumnWrites>> GatherWrites();
 
 		// Log entries - by column ID then by row ID - null value means exclude
 		std::map<ColumnID, LogColumn> _log;
-		LogColumn EnsureColumnLog(const ColumnID& columnId);
+		LogColumn& EnsureColumnLog(const ColumnID& columnId);
 
 	public:
 		const Database &getDatabase() const;

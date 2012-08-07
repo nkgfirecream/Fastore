@@ -54,21 +54,21 @@ long long Generator::InternalGenerate(int tableId, long long size)
 			try
 			{
 				std::string tableIdstring = Encoder<int>::Encode(tableId);
-				auto values = transaction.GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
+				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
 				
 				boost::optional<long long> result;
 
-				if (values.getCount() > 0)
+				if (values.size() > 0)
 				{
 						result = Encoder<long long>::Decode(values[0].Values[0]);
-						transaction.Exclude(Dictionary::GeneratorColumns, tableIdstring);
+						transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
 				}
 
 				long long generatedValue = result ? *result : 1;
 
-				transaction.Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<long long>::Encode(generatedValue + size)));
+				transaction->Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<long long>::Encode(generatedValue + size)));
 
-				transaction.Commit();
+				transaction->Commit();
 				return generatedValue;
 			}		
 			catch (ClientException& e)
@@ -130,7 +130,7 @@ void Generator::EnsureGeneratorTable()
 		// Add the association with each pod
 		for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
 		{
-			transaction.Include
+			transaction->Include
 			(
 				Dictionary::PodColumnColumns, 
 				Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
@@ -141,7 +141,7 @@ void Generator::EnsureGeneratorTable()
 		}
 
 		// Seed the column table to the first user ID
-		transaction.Include
+		transaction->Include
 		(
 			Dictionary::GeneratorColumns, 
 			Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID),
@@ -149,7 +149,7 @@ void Generator::EnsureGeneratorTable()
 				(Encoder<ColumnID>::Encode(Dictionary::ColumnID))
 		);
 
-		transaction.Commit();
+		transaction->Commit();
 	}
 	catch(std::exception e)
 	{
@@ -166,7 +166,7 @@ void Generator::DefaultPods()
 	auto podIds = _database.GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
-	if (podIds.getData().getCount() == 0)
+	if (podIds.getData().size() == 0)
 		throw ClientException("Can't create generator column. No pods in hive.", ClientException::Codes::NoWorkersInHive);
 
 	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.getData()[0].Values[0]));

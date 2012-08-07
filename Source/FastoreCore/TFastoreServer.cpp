@@ -824,12 +824,12 @@ void TFastoreServer::run()
 		closeMarkedConnections();
 
 		//If we are passed our timeout, or have successfully closed all connections, then stop serving.
-		//if (_shutdown && (clock() - _shutdownStart > _shutdownTimeout || activeConnections_.size() == 0))
-		//	stop();
+		if (_shutdown && (clock() - _shutdownStart > _shutdownTimeout || activeConnections_.size() == 0))
+			stop();
 
 		//For now, just close immediately
-		if (_shutdown)
-			stop();
+		//if (_shutdown)
+		//	stop();
 	}
 }
 

@@ -7,36 +7,35 @@
 
 namespace fastore { namespace client
 {
-	class DataSet
+	class DataSetRow
 	{
 	public:
-		class DataSetRow
+		DataSetRow(int columns)
+			: ID(std::string())
 		{
-		public:
-			std::vector<std::string> Values;
-			std::string ID;
-		};
+			Values = std::vector<std::string>(columns, std::string());
+		}
+
+		std::vector<std::string> Values;
+		std::string ID;
+
+		std::string& operator[](int index)
+		{
+			return Values[index];
+		}
+	};
+
+
+	class DataSet : public std::vector<DataSetRow>
+	{
 
 	private:
-		std::vector<DataSetRow> _rows;
 		int _columnCount;
 
 	public:
 		DataSet(int rows, int columnCount);
-		DataSet();
+		DataSet() : _columnCount(0) { }
 
-		DataSetRow& operator [](int index);
-
-		const int& getCount() const;
-
-		std::vector<DataSetRow>::iterator begin()
-		{
-			return _rows.begin();
-		}
-
-		std::vector<DataSetRow>::iterator end()
-		{
-			return _rows.end();
-		}
+		int getColumnCount() { return _columnCount; }
 	};
 }}
