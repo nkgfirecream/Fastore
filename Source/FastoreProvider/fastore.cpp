@@ -1,7 +1,7 @@
 #include "fastore.h"
 #include <memory>
 #include "Database.h"
-#include "TransactionProvider.h"
+#include "Transaction.h"
 #include <exception>
 #include <functional>
 #include <vector>
@@ -40,7 +40,7 @@ TResult WrapCall(const function<void(TResult)> &callback)
 	return result;
 }
 
-FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddress *addresses)
+FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct FastoreAddress addresses[])
 {
 	return WrapCall<ConnectResult>
 	(
@@ -104,7 +104,7 @@ FASTOREAPI PrepareResult APIENTRY fastorePrepare(DatabaseHandle database, const 
 	return result;
 }
 
-FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, ArgumentTypes *argumentTypes)
+FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, const struct ArgumentTypes argumentTypes[])
 {
 	return NULL;
 }

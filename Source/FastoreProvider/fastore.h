@@ -17,7 +17,7 @@ const int MAX_HOST_NAME = 255;
 const int MAX_ERROR_MESSAGE = 255;
 const int MAX_NAME = 127;
 
-enum ArgumentTypes
+enum ArgumentType
 {
 	FASTORE_ARGUMENT_NULL,
 	FASTORE_ARGUMENT_DOUBLE,
@@ -26,6 +26,13 @@ enum ArgumentTypes
 	FASTORE_ARGUMENT_STRING8,
 	FASTORE_ARGUMENT_STRING16,
 	FASTORE_ARGUMENT_BOOL
+};
+
+enum TransactionEndAction 
+{
+	FASTORE_TRANSACTION_COMMIT, 
+	FASTORE_TRANSACTION_ROLLBACK,
+	FASTORE_TRANSACTION_COMMIT_FLUSH 
 };
 
 struct FastoreAddress
@@ -121,21 +128,19 @@ struct ColumnInfoResult
 };
 
 // Creates a new database connection
-FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, FastoreAddress *addresses);
+FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct FastoreAddress addresses[]);
 // Dereferences the given database connection; the connection may remain open if any transactions are still open on it
 FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(DatabaseHandle database);
 
 // Begins a transaction against the given database.  The given handle must not be a transaction.
 FASTOREAPI BeginResult APIENTRY fastoreBegin(DatabaseHandle database);
-// Commits a previously began transaction
-FASTOREAPI FastoreResult APIENTRY fastoreCommit(DatabaseHandle database, bool flush = false);
-// Rolls back a previously began transaction
-FASTOREAPI FastoreResult APIENTRY fastoreRollback(DatabaseHandle database);
+// Commits or rolls back a previously began transaction
+FASTOREAPI FastoreResult APIENTRY fastoreEnd(DatabaseHandle database, TransactionEndAction action);
 
 // Prepares a given query or statement statement and returns a cursor
 FASTOREAPI PrepareResult APIENTRY fastorePrepare(DatabaseHandle database, const char *sql);
 // Provides values for any parameters included in the prepared statement and resets the cursor
-FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, ArgumentTypes *argumentTypes);
+FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, const ArgumentType ArgumentType[]);
 // Executes the statement, or navigates to the first or next row
 FASTOREAPI NextResult APIENTRY fastoreNext(CursorHandle cursor);
 // Gets the column name for the given column index

@@ -168,10 +168,12 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
 int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**pzErr)
 {
+	// May not need to do anything
 	// TODO: get defs;
-	vector<client::ColumnDef> defs;
+	//vector<client::ColumnDef> defs;
 
-	moduleInit(db, defs);
+	//moduleInit(db, defs);
+	return SQLITE_OK;
 }
 
 sqlite3_module fastoreModule =
