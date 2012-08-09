@@ -1,9 +1,9 @@
 ﻿#include "IDGenerator.h"
-#include <atomic>
+
 
 using namespace fastore::client;
 
-IDGenerator::IDGenerator(std::function<long long(long long)> _generateCallback, long long blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold)
+IDGenerator::IDGenerator(std::function<long long(long long)> _generateCallback, long long blockSize, int allocationThreshold)
 	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold)
 {
 	if (blockSize < 1)
@@ -13,9 +13,18 @@ IDGenerator::IDGenerator(std::function<long long(long long)> _generateCallback, 
 	if (allocationThreshold > blockSize)
 		throw std::exception("Allocation threshold must be no more than the block size.");
 
+	//Signals the io service to not shut down, since we will be continually
+	//posting work.
+	boost::asio::io_service::work work(_io_service);
+
+	for (int i = 0; i < ThreadPoolSize; ++i)
+	{
+		//Set up a pool of threads so that the io service can process multiple "works"
+		_threads.create_thread(boost::bind(&boost::asio::io_service::run, &_io_service));
+	}
 }
 
-void IDGenerator::AsyncGenerateBlock(void*& state)
+void IDGenerator::AsyncGenerateBlock()
 {
 	try
 	{
@@ -43,9 +52,12 @@ void IDGenerator::AsyncGenerateBlock(void*& state)
 void IDGenerator::ResetLoading(boost::optional<long long> newBlock, boost::optional<std::exception> e)
 {
 	// Take the latch
-	while (Interlocked::CompareExchange(_generationLock, 1, 0) == 1);
+	
+	while (!_spinlock.try_lock());
+	bool taken = true;
 	try
 	{
+
 		// Update the generation block data
 		if (newBlock)
 		{
@@ -57,13 +69,15 @@ void IDGenerator::ResetLoading(boost::optional<long long> newBlock, boost::optio
 		// Release the loading status
 		_lastError = e;
 		_loadingBlock = false;
-		_loadingEvent->Set();
+		_loadEvent.set();
+		_spinlock.unlock();
+		taken = false;
 	}
 //C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-	finally
+	catch(std::exception& e)
 	{
-		// Release latch
-		Interlocked::Decrement(_generationLock);
+		if (taken)
+			_spinlock.unlock();
 	}
 }
 
@@ -72,7 +86,7 @@ long long IDGenerator::Generate()
 	while (true)
 	{
 		// Take ID generation latch
-		while (Interlocked::CompareExchange(_generationLock, 1, 0) == 1);
+		while (!_spinlock.try_lock());
 		bool lockTaken = true;
 		try
 		{
@@ -87,10 +101,10 @@ long long IDGenerator::Generate()
 				// If haven't begun loading the next block, commence
 				if (!_loadingBlock)
 				{
-					_loadingEvent->Reset();
+					_loadEvent.unset();
 					_loadingBlock = true;
-					_lastError.smartpointerreset();
-					ThreadPool::QueueUserWorkItem(boost::make_shared<WaitCallback>(AsyncGenerateBlock));
+					_lastError = boost::optional<std::exception>();
+					_io_service.post(boost::bind(&IDGenerator::AsyncGenerateBlock, this));
 				}
 
 				// Out of IDs?
@@ -99,34 +113,36 @@ long long IDGenerator::Generate()
 					// Release latch
 					if (lockTaken)
 					{
-						Interlocked::Decrement(_generationLock);
+						_spinlock.unlock();
 						lockTaken = false;
 					}
 
 					// Wait for load to complete
-					_loadingEvent->WaitOne();
+					_loadEvent.wait();
 
 					// Take the lock back
-					while (Interlocked::CompareExchange(_generationLock, 1, 0) == 1);
+					while (!_spinlock.try_lock());
 					lockTaken = true;
 
 					// Throw if there was an error attempting to load a new block
-					if (_lastError != nullptr)
-						throw std::exception(_lastError.what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
+					if (_lastError)
+						throw std::exception(_lastError->what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
 
 					// Retry with new block
 					continue;
 				}
 			}
 
+			if(lockTaken)
+				_spinlock.unlock();
+
 			return nextId;
 		}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-		finally
+		catch(std::exception& e)
 		{
 			// Release latch
 			if (lockTaken)
-				Interlocked::Decrement(_generationLock);
+				_spinlock.unlock();
 		}
 	}
 }
@@ -136,26 +152,40 @@ void IDGenerator::ResetCache()
 	while (true)
 	{
 		// Wait for any pending load event to complete
-		_loadingEvent->WaitOne();
+		_loadEvent.wait();
 
 		// Take latch
-		while (Interlocked::CompareExchange(_generationLock, 1, 0) == 1);
+		while (!_spinlock.try_lock());
+		bool taken = true;
 		try
 		{
 			// Ensure that loading didn't start before we took the latch
-			if (!_loadingEvent->WaitOne(0))
+
+			if (!_loadEvent.wait_for(0))
+			{
 				continue;
+			}
 
 			// Reset ID generator
 			_nextId = 0;
 			_endOfRange = 0;
 
+			_spinlock.unlock();
+			taken = false;
+
 			break;
 		}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
-		finally
+		catch(std::exception& e)
 		{
-			Interlocked::Decrement(_generationLock);
+			if(taken)
+				_spinlock.unlock();
 		}
 	}
+}
+
+IDGenerator::~IDGenerator()
+{
+	//Reset work as well?
+	_io_service.stop();
+	_threads.join_all();
 }

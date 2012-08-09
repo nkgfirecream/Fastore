@@ -14,7 +14,7 @@ namespace fastore { namespace client
 	private:
 		//TODO: Locking
 		boost::shared_ptr<boost::mutex> _lock;
-		std::map<int, IDGenerator> _generators;
+		std::map<int, boost::shared_ptr<IDGenerator>> _generators;
 		Database _database;
 
 		std::vector<PodID>_podIDs;

@@ -98,5 +98,8 @@
     <ClCompile Include="Generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IDGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

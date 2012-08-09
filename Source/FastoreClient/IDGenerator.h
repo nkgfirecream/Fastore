@@ -3,11 +3,69 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <boost\optional.hpp>
+#include <boost/thread/condition_variable.hpp>
+#include <boost/smart_ptr/detail/spinlock.hpp>
+#include <boost/asio/io_service.hpp>
 
 namespace fastore { namespace client
 {
 	class IDGenerator
 	{
+	private:
+		class manual_reset_event
+		{
+		public:
+			manual_reset_event(bool signaled = true)
+				: signaled_(signaled)
+			{
+			}
+
+			void set()
+			{
+				{
+					boost::unique_lock<boost::mutex> lock(m_);
+					signaled_ = true;
+				}
+
+				// Notify all because until the event is manually
+				// reset, all waiters should be able to see event signalling
+				cv_.notify_all();
+			}
+
+			void unset()
+			{
+				boost::unique_lock<boost::mutex> lock(m_);
+				signaled_ = false;
+			}
+
+
+			void wait()
+			{
+				boost::unique_lock<boost::mutex> lock(m_);
+				while (!signaled_)
+				{
+					cv_.wait(lock);
+				}
+			}
+
+			bool wait_for(long long milliseconds)
+			{
+				boost::unique_lock<boost::mutex> lock(m_);
+				if (!signaled_)
+				{					
+					return cv_.timed_wait(lock, boost::posix_time::millisec(milliseconds));
+				}
+				else
+					return true;
+			}
+
+		private:
+			boost::mutex m_;
+			boost::condition_variable cv_;
+			bool signaled_;
+		};
+
+
 	public:
 		/// <summary> The default number of IDs to allocate with each batch. </summary>
 		static const long long DefaultBlockSize = 100;
@@ -20,6 +78,7 @@ namespace fastore { namespace client
 		/// <param name="blockSize">The number of IDs to allocate with each batch.  This is the most IDs that could potentially be "wasted" if not fully employed. </param>
 		/// <param name="allocationThreshold">The low-water-mark for starting allocation of next block.</param>
 		IDGenerator(std::function<long long(long long)> generateCallback, long long blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold);
+		~IDGenerator();
 
 		/// <summary> Generates the next ID, either pulling from a preloaded block or by loading a new block.  </summary>
 		long long Generate();
@@ -28,6 +87,9 @@ namespace fastore { namespace client
 		void ResetCache();		
 
 	private:
+		//number of threads in the thread pool.
+		static const int ThreadPoolSize = 4;
+
 		// The size of block to allocate
 		long long _blockSize;
 		// The low-water-mark to start next block allocation
@@ -35,9 +97,6 @@ namespace fastore { namespace client
 		// ID generation callback (when another block is needed)		
 		std::function<long long(long long)> _generateCallback;
 
-		// Event which is unsignaled (blocking) while loading the next block
-		//TODO: Threading and locking
-		void* _loadingEvent;
 		// True if we're in the process of loading another block of IDs					
 		bool _loadingBlock;
 		// Spin lock for in-memory protection ID allocation
@@ -47,13 +106,12 @@ namespace fastore { namespace client
 		// The end of the ID generation range (exclusive)			
 		long long _endOfRange;
 		// The last error that was thrown from allocation (to be relayed to requesters)					
-		std::exception _lastError;
+		boost::optional<std::exception> _lastError;
 
 
 		//TODO: State was formerly and object.
 		/// <summary> Worker thread used to fetch the next block of IDs. </summary>
-		/// <param name="state"> Unused (part of thread pool contract). </param>
-		void AsyncGenerateBlock(void*& state);
+		void AsyncGenerateBlock();
 
 		//TODO: Nullable objects
 		/// <summary> Resets the loading state after attempting to load a new block.</summary>
@@ -61,5 +119,11 @@ namespace fastore { namespace client
 		void ResetLoading(boost::optional<long long> newBlock, boost::optional<std::exception> e);
 
 		void InitializeInstanceFields();
+
+		boost::asio::io_service _io_service;
+		boost::thread_group _threads;
+		manual_reset_event _loadEvent;
+		boost::detail::spinlock _spinlock;
+
 	};
 }}

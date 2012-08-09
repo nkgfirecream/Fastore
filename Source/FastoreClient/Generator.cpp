@@ -24,8 +24,23 @@ long long Generator::Generate(int columnId)
 		auto generator = _generators.find(columnId);
 		if (generator == _generators.end())
 		{
-			_generators.insert(generator, std::pair<int, IDGenerator>(columnId, IDGenerator([&](long long size) { return InternalGenerate(columnId, size); })));
+			
+			_generators.insert
+			(
+				std::pair<int, boost::shared_ptr<IDGenerator>>
+				(
+					columnId, 
+					boost::shared_ptr<IDGenerator>
+					(
+						new IDGenerator
+						(
+							[&, columnId](long long size) { return this->InternalGenerate(columnId, size); }
+						)
+					)
+				)
+			);
 
+			generator = _generators.find(columnId);
 		}
 
 		// Release lock
@@ -33,7 +48,7 @@ long long Generator::Generate(int columnId)
 		taken = false;
 
 		// Perform generation
-		return generator->second.Generate();
+		return generator->second->Generate();
 	}
 	catch(std::exception& e)
 	{
