@@ -674,57 +674,6 @@ public:
 		AssignRange(range, false, 3, &startBound, &endBound);
 		TestRange<float>(buf, range, 23.5, 22.5, 3, -0.5, false, false, true);
 
-
-		//stopped here************************************************************
-		//Testing for double types
-		//Insert values 0 - 99 (inclusive) in increments of 2.25 into buffer
-		for (double i = 0; i < 100; i += 2.25)
-		{
-			Include inc;
-			//TODO: Create thrift strings
-			string rowId;
-			AssignString(rowId, i);
-
-			string value;
-			AssignString(value, i);
-
-			inc.__set_rowID(rowId);
-			inc.__set_value(value);
-			includes.push_back(inc); 
-		}
-
-		cw.__set_includes(includes);
-		buf.Apply(cw);
-
-		Assert::AreEqual<long long>(buf.GetStatistic().total, 45);
-		Assert::AreEqual<long long>(buf.GetStatistic().unique, 45);
-
-
-
-
-		//Testing for long types
-		//Insert values 1000 - 1900 (inclusive) in increments of 100 into buffer
-		for (int i = 1000; i < 2000; i += 100)
-		{
-			Include inc;
-			//TODO: Create thrift strings
-			string rowId;
-			AssignString(rowId, i);
-
-			string value;
-			AssignString(value, i);
-
-			inc.__set_rowID(rowId);
-			inc.__set_value(value);
-			includes.push_back(inc); 
-		}
-
-		cw.__set_includes(includes);
-		buf.Apply(cw);
-
-		Assert::AreEqual<long long>(buf.GetStatistic().total, 10);
-		Assert::AreEqual<long long>(buf.GetStatistic().unique, 10);
-
 	}
 
 	template <typename Type> void TestRange(IdentityBuffer& buf, RangeRequest range, Type expectedStart, Type expectedEnd, int expectedValuesCount, int increment, bool expectBOF, bool expectEOF, bool expectLimited)
