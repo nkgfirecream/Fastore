@@ -1,3 +1,4 @@
+# $Id$
 .SUFFIXES: .ms .dvi .ps .pdf
 
 MS != ls *.ms
