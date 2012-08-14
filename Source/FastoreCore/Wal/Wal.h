@@ -5,38 +5,24 @@
 #include <TransactionID.h>
 #include <Comm_types.h>
 
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#include <sys/mman.h>
+#include <sys/stat.h>
+
 ///namespace fastore { namespace communication {
 using fastore::communication::ColumnID;
 using fastore::communication::ColumnWrites;
 using fastore::communication::NetworkAddress;
 using fastore::communication::Revision;
-using fastore::communication::TransactionID;
+//ing fastore::communication::TransactionID;
+using fastore::communication::Writes;
 
-
-class Change 
-{
-  const Revision revision;
-  const ColumnID columnID;
-  typedef std::list<ColumnWrites> Writes;
-  Writes writes;
-
-public:
-  Change( Revision revision, ColumnID columnID ) 
-    : revision(revision), columnID(columnID)
-  {}
-
-  Change& operator<<( const Writes& writes );
-
-  Revision getRevision() const { return revision; }
-  ColumnID getColumnID() const { return columnID; }
-
-  const Writes& getWrites() const { return writes; }
-
-  // permit sorting
-  bool operator<( const Change& that ) const;
-};
-
-typedef  std::set<Change> ChangeSet;
 
 struct ColumnRevisionRange
 {
@@ -70,12 +56,11 @@ public:
   Wal( const std::string& dirName, const std::string& name, 
        const NetworkAddress& addr );
   
-  Status Write( const TransactionID& transactionID, const ChangeSet& changes );
-  Status Write( Revision revision, Writes writes );
+  Status Write( const TransactionID& transactionID, const Writes& writes );
 
   Status Flush( const TransactionID& transactionID );
 
-  ChangeSet GetChanges( const ColumnRevisionSet& col_revisions );
+  Writes GetChanges( const ColumnRevisionSet& col_revisions );
 
   const ColumnRevisionSet& Recover( const TransactionID& transactionID, 
 				    ColumnRevisionSet& revisionSet /* OUT */ );
