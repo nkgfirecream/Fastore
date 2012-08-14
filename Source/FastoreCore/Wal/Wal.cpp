@@ -3,10 +3,15 @@
 #include "sqlite3/sqliteInt.parts.h"
 // $Id$
 
+#include <sys/types.h>
+#include <md4.h>
+
 #include <string>
+#include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
+#include <iterator>
 
 using namespace std;
 
@@ -24,7 +29,7 @@ using namespace std;
  */
 
 /**
- * The constructor also takes the worker's address.  Wal 
+ * The constructor also takes the worker's tcp/ip address.  Wal 
  * forms a connection to it, where it sends flush confirmations.
  */
 #define THROW(msg,value) { \
@@ -36,11 +41,32 @@ using namespace std;
   throw std::runtime_error( oops.str() ); \
   }
 
+/*
+** CAPI3REF: Pseudo-Random Number Generator
+**
+** SQLite contains a high-quality pseudo-random number generator (PRNG) used to
+** select random [ROWID | ROWIDs] when inserting new records into a table that
+** already uses the largest possible [ROWID].  The PRNG is also used for
+** the build-in random() and randomblob() SQL functions.  This interface allows
+** applications to access the same PRNG for other purposes.
+**
+** ^A call to this routine stores N bytes of randomness into buffer P.
+**
+** ^The first time this routine is invoked (either internally or by
+** the application) the PRNG is seeded using randomness obtained
+** from the xRandomness method of the default [sqlite3_vfs] object.
+** ^On all subsequent invocations, the pseudo-randomness is generated
+** internally and without recourse to the [sqlite3_vfs] xRandomness
+** method.
+*/
+#define SQLITE_API 
+SQLITE_API void sqlite3_randomness(int N, void *P);
+
 Wal::
 Wal( const std::string& dirName, const string& name, 
      const NetworkAddress& addr )
   : dirName(dirName), name(name), addr(addr)
-  , wal(NULL)
+  , wal(NULL), current(NULL), os_error(0)
  {
   // directory name must exist
   struct stat sb;
@@ -72,6 +98,8 @@ Wal( const std::string& dirName, const string& name,
 
   const string filename( dir + "/fastore." + date.str() + ".wal" );
 
+  // does the WAL exist? 
+  bool finitialized = stat(filename.c_str(), &sb) != -1;
   // open the WAL file
   static const int flags = (O_RDWR | O_CREAT | O_DIRECT);
   int fd;
@@ -94,7 +122,12 @@ Wal( const std::string& dirName, const string& name,
   }
   
   // verify WAL file and set statistics
-  
+  if( !finitialized )
+    init(wal);
+
+  if( !verify() ) {
+    THROW( "WAL file invalid", filename );
+  } 
 }  
 
 Wal::Status 
@@ -136,10 +169,147 @@ Wal::Recover( const TransactionID& transactionID,
  *    12: Checkpoint sequence number
  *    16: Salt-1, random integer incremented with each checkpoint
  *    20: Salt-2, a different random integer changing with each ckpt
- *    24: Checksum-1 (first part of checksum for first 24 bytes of header).
- *    28: Checksum-2 (second part of checksum for first 24 bytes of header).
-*/
-void
-Wal::VerifyFile()
+ *    24-40 MD4 fingerprint
+ */
+
+struct header_t
 {
+  const string magic_version;
+  int32_t page_size, sequence, salt1, salt2;
+  int32_t *mem[4];
+  struct fingerprint_t {
+    enum { size = 16 };
+    unsigned char data[size]; // md4
+
+    fingerprint_t() {
+      memset(data, 0, size);
+    }
+
+    bool operator==( const fingerprint_t& that ) {
+      return 0 == memcmp(data, that.data, size);
+    }
+  };
+  fingerprint_t fingerprint;
+
+  header_t()
+    : magic_version("FASTORE"), page_size(0), sequence(0), salt1(0), salt2(0)
+  {
+    sqlite3_randomness( sizeof(salt1), &salt1 );
+    sqlite3_randomness( sizeof(salt2), &salt2 );
+
+    mem[0] = &page_size;
+    mem[1] = &sequence;
+    mem[2] = &salt1;
+    mem[3] = &salt2;
+  }
+
+  fingerprint_t& compute_stamp( fingerprint_t& output ) const
+  { 
+    MD4_CTX context;
+
+    MD4Init(&context);
+
+    MD4Update(&context, 
+	      reinterpret_cast<const unsigned char*>(magic_version.c_str()), 
+	      magic_version.size() );
+
+    const unsigned char * pend 
+      = reinterpret_cast<const unsigned char*>(mem) 
+      + sizeof(mem)/sizeof(mem[0]);
+    for( const unsigned char *p = reinterpret_cast<const unsigned char*>(mem);  
+	 p <  pend; p += sizeof(mem[0]) ) {
+      MD4Update(&context, p, sizeof(mem[0]) );
+    }
+    
+    MD4Final(output.data, &context);
+    
+    return output;
+  }
+
+  void stamp() 
+  {
+    compute_stamp(this->fingerprint);
+  }    
+
+  bool verify()
+  {
+    fingerprint_t fingerprint;
+    return this->fingerprint == compute_stamp(fingerprint);
+  }
+
+  char * copyToWal( char *wal ) 
+  {
+    memcpy( wal, magic_version.c_str(), magic_version.size() );
+    wal += magic_version.size();
+  
+    const unsigned char * pend 
+      = reinterpret_cast<const unsigned char*>(mem) 
+      + sizeof(mem)/sizeof(mem[0]);
+
+    for( const unsigned char *p = reinterpret_cast<const unsigned char*>(mem); 
+	 p < pend; p += sizeof(mem[0]) ) {
+
+      memcpy( wal, p, sizeof(mem[0]) );
+      wal += sizeof(mem[0]);
+    }
+    
+    stamp();
+    memcpy( wal, fingerprint.data, fingerprint_t::size );
+
+    return wal + fingerprint_t::size;
+  }
+
+  char * copyFromWal( char *wal ) 
+  {
+    string wal_magic( wal, magic_version.size());
+    const string& p(magic_version);
+    const_cast<string&>(p).swap(wal_magic);
+    wal += magic_version.size();
+  
+    const unsigned char * pend 
+      = reinterpret_cast<const unsigned char*>(mem) 
+      + sizeof(mem)/sizeof(mem[0]);
+
+    for( unsigned char *p = reinterpret_cast<unsigned char*>(mem); 
+	 p < pend; p += sizeof(mem[0]) ) {
+      memcpy( p, wal, sizeof(mem[0]) );
+      wal += sizeof(mem[0]);
+    }
+    
+    memcpy( fingerprint.data, wal, fingerprint_t::size );
+
+    return wal + fingerprint_t::size;
+  }
+};
+
+static header_t header;
+
+struct page_header_t
+{
+  int64_t transaction_id;
+  size_t  length;
+
+  page_header_t()
+    : transaction_id(0), length(0)
+  {}
+
+};
+
+void
+Wal::init( char *wal )
+{
+  memset( wal, 0, WAL_FILE_SIZE );
+  this->current = header.copyToWal(wal);
 }
+  
+
+bool
+Wal::verify()
+{
+  header_t header;
+  header.copyFromWal(wal);
+  return header.verify();
+}
+
+
+ 

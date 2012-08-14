@@ -23,7 +23,6 @@ using fastore::communication::Revision;
 //ing fastore::communication::TransactionID;
 using fastore::communication::Writes;
 
-
 struct ColumnRevisionRange
 {
   ColumnID columnID;
@@ -50,7 +49,7 @@ private:  std::string fileName;
 
   std::string dirName, name;
   NetworkAddress addr;
-  char *wal;
+  char *wal, *current;
 
 public:
   Wal( const std::string& dirName, const std::string& name, 
@@ -68,6 +67,6 @@ public:
   int osError() const { return os_error; }
 
 private:
-  void VerifyFile();
-
+  void init(char *wal);
+  bool verify();
 };
