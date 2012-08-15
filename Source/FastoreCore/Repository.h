@@ -3,7 +3,7 @@
 #include <exception>
 #include <memory>
 #include "Schema\column.h"
-#include "Logging/Log.h"
+//#include "Logging/Log.h"
 #include "Column\IColumnBuffer.h"
 #include "../FastoreCommunication/Comm_types.h"
 
@@ -17,7 +17,7 @@ private:
 	string _path;
 	RepositoryStatus::type _status;
 	ColumnDef _def;
-	boost::shared_ptr<Log> _log;
+	//boost::shared_ptr<Log> _log;
 	IColumnBuffer* _buffer;
 	Revision _revision;
 

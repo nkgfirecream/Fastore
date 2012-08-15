@@ -7,10 +7,13 @@ namespace fastore
 {
 	namespace provider
 	{
+		//Circular dependence on Cursor..
+		class Cursor;
+
 		class IDataAccess
 		{
 		public:
-			virtual Cursor prepare(const std::string &sql) = 0;
+			virtual std::unique_ptr<Cursor> prepare(const std::string &sql) = 0;
 		};
 	}
 }

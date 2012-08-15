@@ -28,6 +28,7 @@ namespace fastore { namespace client
 		static const fastore::communication::ColumnID ColumnValueType = 2;
 		static const fastore::communication::ColumnID ColumnRowIDType = 3;
 		static const fastore::communication::ColumnID ColumnBufferType = 4;	
+		static const fastore::communication::ColumnID ColumnRequired = 5;
 		static const ColumnIDs ColumnColumns;
 
 		static const fastore::communication::ColumnID TopologyID = 100;

@@ -17,7 +17,7 @@ namespace fastore
 			int port;
 		};
 
-		struct Database	: IDataAccess
+		class Database	: IDataAccess
 		{
 			friend class Transaction;
 			friend class Cursor;
@@ -30,6 +30,7 @@ namespace fastore
 			std::unique_ptr<Cursor> prepare(const std::string &sql) override;
 
 			std::unique_ptr<Transaction> begin();
+			void commit();
 		};
 
 		typedef std::shared_ptr<Database> DatabaseObject; 

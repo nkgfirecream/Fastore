@@ -26,7 +26,7 @@ TResult WrapCall(const function<void(TResult)> &callback)
 	}
 	catch (exception &e)
 	{
-		result.error = ExceptionToFastoreResult(e, 0, &(FastoreResult)result);
+		//result.error = ExceptionToFastoreResult(e, 0, &(FastoreResult)result);
 	}
 	// TODO: Uncomment this once we have the client compiling
 	//catch (ClientException &e)
@@ -35,7 +35,7 @@ TResult WrapCall(const function<void(TResult)> &callback)
 	//}
 	catch (...)
 	{
-		result.error = new FastoreError();
+		result.error = FastoreError();
 	}
 	return result;
 }
@@ -80,9 +80,9 @@ FASTOREAPI BeginResult APIENTRY fastoreBegin(DatabaseHandle database)
 		[&](BeginResult result)
 		{
 			result.transaction = 
-				new shared_ptr<prov::TransactionProvider>
+				new shared_ptr<prov::Transaction>
 				(
-					new prov::TransactionProvider(*static_cast<prov::PDatabaseObject>(database))
+					new prov::Transaction(static_cast<prov::PDatabaseObject>(database)->get())
 				);
 		}
 	);
@@ -90,12 +90,12 @@ FASTOREAPI BeginResult APIENTRY fastoreBegin(DatabaseHandle database)
 
 FASTOREAPI FastoreResult APIENTRY fastoreCommit(DatabaseHandle database, bool flush)
 {
-	return WrapCall<FastoreResult>([&](FastoreResult result) { static_cast<prov::Database>(database).Commit(); });
+	return WrapCall<FastoreResult>([&](FastoreResult result) { (*static_cast<prov::PDatabaseObject>(database))->commit(); });
 }
 
 FASTOREAPI FastoreResult APIENTRY fastoreRollback(DatabaseHandle database)
 {
-	return NULL;
+	return FastoreResult();
 }
 
 FASTOREAPI PrepareResult APIENTRY fastorePrepare(DatabaseHandle database, const char *sql)
@@ -106,7 +106,7 @@ FASTOREAPI PrepareResult APIENTRY fastorePrepare(DatabaseHandle database, const 
 
 FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, const struct ArgumentTypes argumentTypes[])
 {
-	return NULL;
+	return FastoreResult();
 }
 
 FASTOREAPI NextResult APIENTRY fastoreNext(CursorHandle cursor)
@@ -115,19 +115,19 @@ FASTOREAPI NextResult APIENTRY fastoreNext(CursorHandle cursor)
 	return result;
 }
 
-FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(CursorHandle cursor, int columnIndex);
+FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(CursorHandle cursor, int columnIndex)
 {
-	return NULL;
+	return ColumnInfoResult();
 }
 
 FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(CursorHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget)
 {
-	return NULL;
+	return FastoreResult();
 }
 
 FASTOREAPI FastoreResult APIENTRY fastoreClose(CursorHandle cursor)
 {
-	return NULL;
+	return FastoreResult();
 }
 
 // Short-hand for Prepare followed by Next (and a close if eof)

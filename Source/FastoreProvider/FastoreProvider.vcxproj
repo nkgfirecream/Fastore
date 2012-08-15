@@ -93,6 +93,7 @@
   <ItemGroup>
     <ClInclude Include=".\Database.h" />
     <ClInclude Include=".\IDataAccess.h" />
+    <ClInclude Include="ArgumentType.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include="fastore.h" />
     <ClInclude Include="stdafx.h" />

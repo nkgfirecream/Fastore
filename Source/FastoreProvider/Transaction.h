@@ -7,6 +7,8 @@ namespace fastore
 {
 	namespace provider
 	{
+		class Database;
+
 		class Transaction: IDataAccess
 		{
 			std::shared_ptr<Database> _database;
@@ -14,13 +16,13 @@ namespace fastore
 		public:
 			Transaction(Database *database);
 
-			Cursor prepare(const std::string &sql) override;
+			std::unique_ptr<Cursor> prepare(const std::string &sql) override;
 			
 			void commit(bool flush = false);
 			void rollback();
 		};
 
 		typedef std::shared_ptr<Transaction> TransactionObject; 
-		typedef TransactionObject * PTransactionObject;
+		typedef TransactionObject* PTransactionObject;
 	}
 }

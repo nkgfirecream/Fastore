@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include "ArgumentType.h"
 
 // Import or export appropriately
 #if defined(FASTORE_EXPORT) 
@@ -12,21 +13,11 @@
 typedef void *DatabaseHandle;
 typedef void *StatementHandle;
 typedef void *CursorHandle;
+typedef void *TransactionHandle;
 
 const int MAX_HOST_NAME = 255;
 const int MAX_ERROR_MESSAGE = 255;
 const int MAX_NAME = 127;
-
-enum ArgumentType
-{
-	FASTORE_ARGUMENT_NULL,
-	FASTORE_ARGUMENT_DOUBLE,
-	FASTORE_ARGUMENT_INT32,
-	FASTORE_ARGUMENT_INT64,
-	FASTORE_ARGUMENT_STRING8,
-	FASTORE_ARGUMENT_STRING16,
-	FASTORE_ARGUMENT_BOOL
-};
 
 enum TransactionEndAction 
 {
@@ -70,7 +61,7 @@ struct BeginResult
 	union
 	{
 		FastoreError error;
-		DatabaseHandle transaction;
+		TransactionHandle transaction;
 	};
 };
 

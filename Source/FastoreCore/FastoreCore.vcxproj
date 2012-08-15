@@ -110,7 +110,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Endpoint.cpp" />
-    <ClCompile Include="Logging\Log.cpp" />
     <ClCompile Include=".\BTree.cpp" />
     <ClCompile Include="Repository.cpp" />
     <ClCompile Include=".\Scheduler.cpp" />
@@ -134,7 +133,6 @@
     <ClInclude Include="Column\UniqueBuffer.h" />
     <ClInclude Include="Endpoint.h" />
     <ClInclude Include="EndpointConfig.h" />
-    <ClInclude Include="Logging\Log.h" />
     <ClInclude Include=".\BTree.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="Repository.h" />

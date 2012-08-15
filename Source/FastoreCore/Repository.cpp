@@ -70,7 +70,7 @@ void Repository::create(ColumnDef def)
 
 
 	// Initialize the log file
-	_log = auto_ptr<Log>(new Log(GetLogFileName()));
+	//_log = auto_ptr<Log>(new Log(GetLogFileName()));
 
 	//Set status to online
 	_status = RepositoryStatus::Online;
@@ -91,7 +91,7 @@ void Repository::load()
 	//for (auto _log.GotoRevision(
 
 	// Initialize the log file
-	_log = auto_ptr<Log>(new Log(GetLogFileName()));
+	//_log = auto_ptr<Log>(new Log(GetLogFileName()));
 
 	// Read the head two pages of the log file
 	// Take the newest non-torn page
@@ -102,6 +102,7 @@ void Repository::load()
 	_status = RepositoryStatus::Online;
 }
 
+//TODO: we've discussed letting the service handle the checkpointing.
 void Repository::checkpoint()
 {
 	// Set state to checkpointing

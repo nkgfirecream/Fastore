@@ -16,4 +16,5 @@ struct ColumnDef
 	ScalarType ValueType;
 	ScalarType RowIDType;
 	BufferType BufferType;
+	bool Required;
 };

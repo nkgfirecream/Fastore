@@ -2,15 +2,19 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 #include "IDataAccess.h"
+#include "ArgumentType.h"
 
 namespace fastore 
 {
 	namespace provider
 	{
+		class IDataAccess;
+
 		struct Argument
 		{
-			ArgumentTypes type;
+			ArgumentType type;
 			std::string value;
 		};
 
@@ -22,18 +26,19 @@ namespace fastore
 
 		class Cursor
 		{
-			shared_ptr<IDataAccess> _dataAccess;
+		private:
+			std::shared_ptr<fastore::provider::IDataAccess> _dataAccess;
 		public:
-			Cursor(IDataAccess *dataAccess, const std::string &sql);
+			Cursor(fastore::provider::IDataAccess *dataAccess, const std::string &sql);
 
 			int columnCount();
 			void bind(std::vector<Argument> arguments);
 			bool next();
 			ColumnInfo getColumnInfo(int index);
-			string getColumn(int index);
+			std::string getColumn(int index);
 		};
 
-		typedef std::shared_ptr<Cursor> TransactionObject; 
-		typedef TransactionObject * PTransactionObject;
+		typedef std::shared_ptr<Cursor> CursorObject; 
+		typedef CursorObject* PCursorObject;
 	}
 }

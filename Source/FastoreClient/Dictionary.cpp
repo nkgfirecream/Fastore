@@ -2,7 +2,7 @@
 
 using namespace fastore::client;
 
-const ColumnID Dictionary::_ColumnColumns[] = {ColumnID, ColumnName, ColumnValueType, ColumnRowIDType, ColumnBufferType};
+const ColumnID Dictionary::_ColumnColumns[] = {ColumnID, ColumnName, ColumnValueType, ColumnRowIDType, ColumnBufferType, ColumnRequired };
 const ColumnIDs  Dictionary::ColumnColumns(_ColumnColumns, _ColumnColumns + (sizeof(_ColumnColumns) / sizeof(_ColumnColumns[0])));
 
 const ColumnID Dictionary::_TopologyColumns[] = {TopologyID};

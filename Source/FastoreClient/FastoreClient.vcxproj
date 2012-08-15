@@ -32,7 +32,6 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="ClientException.cpp" />
-    <ClCompile Include="ColumnDef.cpp" />
     <ClCompile Include="Database.cpp" />
     <ClCompile Include="DataSet.cpp" />
     <ClCompile Include="Dictionary.cpp" />

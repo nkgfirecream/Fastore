@@ -1070,13 +1070,14 @@ Schema Database::LoadSchema()
 		for (auto column : columns.getData())
 		{
 			ColumnDef def;
-			def.setColumnID(Encoder<ColumnID>::Decode(column.ID));
-			def.setName(Encoder<std::string>::Decode(column.Values[1]));
-			def.setType(Encoder<std::string>::Decode(column.Values[2]));
-			def.setIDType(Encoder<std::string>::Decode(column.Values[3]));
-			def.setBufferType(Encoder<BufferType>::Decode(column.Values[4]));
+			def.ColumnID = Encoder<ColumnID>::Decode(column.ID);
+			def.Name = Encoder<std::string>::Decode(column.Values[1]);
+			def.Type = Encoder<std::string>::Decode(column.Values[2]);
+			def.IDType = Encoder<std::string>::Decode(column.Values[3]);
+			def.BufferType = Encoder<BufferType>::Decode(column.Values[4]);
+			def.Required = Encoder<bool>::Decode(column.Values[5]);
 
-			schema.insert(std::pair<int, ColumnDef>(def.getColumnID(), def));
+			schema.insert(std::pair<int, ColumnDef>(def.ColumnID, def));
 		}
 		//TODO: this is wrong. We need to set the startId on the range above for this to resume properly
 		finished = !columns.getLimited();
@@ -1093,46 +1094,58 @@ void Database::BootStrapSchema()
 {
 	// Actually, we only need the ID and Type to bootstrap properly.
 	ColumnDef id;
-	ColumnDef name;
-	ColumnDef vt;
-	ColumnDef idt;
-	ColumnDef unique;
-
-	id.setColumnID(Dictionary::ColumnID);
-	id.setName("Column.ID");
-	id.setType("Int");
-	id.setIDType("Int");
-	id.setBufferType(BufferType::Identity);
-
-	name.setColumnID(Dictionary::ColumnName);
-	name.setName("Column.Name");
-	name.setType("String");
-	name.setIDType("Int");
-	name.setBufferType(BufferType::Unique);
-
-	vt.setColumnID(Dictionary::ColumnValueType);
-	vt.setName("Column.ValueType");
-	vt.setType("String");
-	vt.setIDType("Int");
-	vt.setBufferType(BufferType::Multi);
-
-	idt.setColumnID(Dictionary::ColumnRowIDType);
-	idt.setName("Column.RowIDType");
-	idt.setType("String");
-	idt.setIDType("Int");
-	idt.setBufferType(BufferType::Multi);
-
-	unique.setColumnID(Dictionary::ColumnBufferType);
-	unique.setName("Column.BufferType");
-	unique.setType("Int");
-	unique.setIDType("Int");
-	unique.setBufferType(BufferType::Multi);
-
+	id.ColumnID = Dictionary::ColumnID;
+	id.Name = "Column.ID";
+	id.Type = "Int";
+	id.IDType = "Int";
+	id.BufferType = BufferType::Identity;
+	id.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnID, id));
+
+	ColumnDef name;
+	name.ColumnID = Dictionary::ColumnName;
+	name.Name = "Column.Name";
+	name.Type = "String";
+	name.IDType = "Int";
+	name.BufferType = BufferType::Unique;
+	name.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnName, name));
+	
+	ColumnDef vt;
+	vt.ColumnID = Dictionary::ColumnValueType;
+	vt.Name = "Column.ValueType";
+	vt.Type = "String";
+	vt.IDType = "Int";
+	vt.BufferType = BufferType::Multi;
+	vt.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnValueType, vt));
+
+	ColumnDef idt;
+	idt.ColumnID = Dictionary::ColumnRowIDType;
+	idt.Name = "Column.RowIDType";
+	idt.Type = "String";
+	idt.IDType = "Int";
+	idt.BufferType = BufferType::Multi;
+	idt.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnRowIDType, idt));
+
+	ColumnDef unique;
+	unique.ColumnID = Dictionary::ColumnBufferType;
+	unique.Name = "Column.BufferType";
+	unique.Type = "Int";
+	unique.IDType = "Int";
+	unique.BufferType = BufferType::Multi;
+	unique.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnBufferType, unique));
+
+	ColumnDef required;
+	required.ColumnID = Dictionary::ColumnRequired;
+	required.Name = "Column.Required";
+	required.Type = "Bool";
+	required.IDType = "Int";
+	required.BufferType = BufferType::Multi;
+	required.Required = true;
+	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnRequired, required));	
 
 	//Boot strapping is done, pull in real schema
 	RefreshSchema();

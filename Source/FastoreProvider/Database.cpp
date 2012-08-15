@@ -4,6 +4,10 @@
 #include <exception>
 #include <map>
 #include <functional>
+#include <algorithm>
+#include <string>
+#include <locale>
+#include "..\FastoreClient\ColumnDef.h"
 
 using namespace std;
 using namespace fastore::provider;
@@ -66,15 +70,15 @@ client::ColumnDef ParseColumnDef(string text)
 {
 	client::ColumnDef result;
 	auto reader = istringstream(text);
-	if (!std::getline(reader, result.name, " ")) 
+	if (!std::getline(reader, result.Name, ' ')) 
 		throw exception("Missing column name");
-	if (!std::getline(reader, result.dataType))
-		result.dataType = "String";
+	if (!std::getline(reader, result.Type))
+		result.Type = "String";
 	auto stringText = string(text);
-	result.bufferType =
-		insensitiveStrPos(stringText, string("unique")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0 ? client::BufferType::Unique
-			: insensitiveStrPos(stringText, string("not null")) >= 0 ? client::BufferType::Required
-			: client::BufferType::Multi;
+	result.BufferType =	insensitiveStrPos(stringText, string("unique")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0 ? client::BufferType::Unique : client::BufferType::Multi;
+	result.Required = insensitiveStrPos(stringText, string("not null")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0;
+
+	return result;
 }
 
 static map<string, string> fastoreTypesToSQLiteTypes;
@@ -117,7 +121,7 @@ int moduleInit(sqlite3 *db, const vector<client::ColumnDef> &defs)
 		else
 			tableDef << ", ";
 
-		tableDef << def.Name << " " << FastoreTypeToSQLiteType(def.TypeName);
+		tableDef << def.Name << " " << FastoreTypeToSQLiteType(def.Type);
 	}
 	tableDef << ")";
 
@@ -146,13 +150,13 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 			vector<client::ColumnDef> defs;
 			defs.reserve(argc - 4);
 			string idType = "Int";
-			for (int i = 4, i < argc; i++)
+			for (int i = 4; i < argc; i++)
 			{
 				defs.push_back(ParseColumnDef(argv[i]));
 				// TODO: track row ID type candidates
 			}
 			for (auto def : defs)
-				def.idType = idType;
+				def.IDType = idType;
 
 			auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
 			*ppVTab = &vtab->base;
@@ -175,6 +179,107 @@ int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sql
 	//moduleInit(db, defs);
 	return SQLITE_OK;
 }
+
+int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info*)
+{
+	return SQLITE_OK;
+}
+
+int moduleDisconnect(sqlite3_vtab *pVTab)
+{
+	return SQLITE_OK;
+}
+
+int moduleDestroy(sqlite3_vtab *pVTab)
+{
+	return SQLITE_OK;
+}
+
+int moduleOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor)
+{
+	return SQLITE_OK;
+}
+
+int moduleClose(sqlite3_vtab_cursor* sqlSur)
+{
+	return SQLITE_OK;
+}
+
+int moduleFilter(sqlite3_vtab_cursor*, int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
+{
+	return SQLITE_OK;
+}
+
+int moduleNext(sqlite3_vtab_cursor* pCursor)
+{
+	return SQLITE_OK;
+}
+
+int moduleEof(sqlite3_vtab_cursor* pCursor)
+{
+	return SQLITE_OK;
+}
+
+int moduleColumn(sqlite3_vtab_cursor* pCursor, sqlite3_context* pContext, int /*something... what is this? */)
+{
+	return SQLITE_OK;
+}
+
+int moduleRowid(sqlite3_vtab_cursor* pCursor, sqlite3_int64 * pRowid)
+{
+	return SQLITE_OK;
+}
+
+int moduleUpdate(sqlite3_vtab* pVTab, int, sqlite3_value **, sqlite3_int64*)
+{
+	return SQLITE_OK;
+}
+
+int moduleBegin(sqlite3_vtab *pVTab)
+{
+	return SQLITE_OK;
+}
+
+int moduleSync(sqlite3_vtab *pVTab)
+{
+	return SQLITE_OK;
+}
+
+int moduleCommit(sqlite3_vtab *pVTab)
+{
+	return SQLITE_OK;
+}
+
+int moduleRollback(sqlite3_vtab *pVTab)
+{
+	return SQLITE_OK;
+}
+
+int moduleFindFunction(sqlite3_vtab *pVtab, int nArg, const char *zName, void (**pxFunc)(sqlite3_context*,int,sqlite3_value**), void **ppArg)
+{
+	return SQLITE_OK;
+}
+
+int moduleRename(sqlite3_vtab *pVtab, const char *zNew)
+{
+	return SQLITE_OK;
+}
+
+int moduleSavepoint(sqlite3_vtab *pVTab, int)
+{
+	return SQLITE_OK;
+}
+
+int moduleRelease(sqlite3_vtab *pVTab, int)
+{
+	return SQLITE_OK;
+}
+
+int moduleRollbackTo(sqlite3_vtab *pVTab, int)
+{
+	return SQLITE_OK;
+}
+
 
 sqlite3_module fastoreModule =
 {
@@ -226,4 +331,9 @@ unique_ptr<Cursor> Database::prepare(const std::string &sql)
 unique_ptr<Transaction> Database::begin()
 {
 	return unique_ptr<Transaction>(new Transaction(this));
+}
+
+void Database::commit()
+{
+	//Stub for now.
 }

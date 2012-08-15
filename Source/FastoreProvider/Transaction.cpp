@@ -8,9 +8,9 @@ Transaction::Transaction(Database *database) : _database(database)
 {
 }
 
-Cursor Transaction::prepare(const std::string &sql)
+std::unique_ptr<Cursor> Transaction::prepare(const std::string &sql)
 {
-	
+	return std::unique_ptr<Cursor>(new Cursor(this, sql));
 }
 			
 void Transaction::commit(bool flush)

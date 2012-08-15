@@ -74,9 +74,6 @@
     <ClCompile Include="ClientException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ColumnDef.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Database.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
