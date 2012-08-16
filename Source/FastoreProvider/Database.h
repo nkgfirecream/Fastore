@@ -6,6 +6,7 @@
 #include "fastore.h"
 #include "Transaction.h"
 #include "IDataAccess.h"
+#include "..\FastoreClient\ColumnDef.h"
 
 namespace fastore 
 {
@@ -31,6 +32,7 @@ namespace fastore
 
 			std::unique_ptr<Transaction> begin();
 			void commit();
+			void createTable(const char* name, const std::vector<fastore::client::ColumnDef>& columns);
 		};
 
 		typedef std::shared_ptr<Database> DatabaseObject; 

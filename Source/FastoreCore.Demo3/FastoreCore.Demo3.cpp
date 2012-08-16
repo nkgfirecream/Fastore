@@ -83,7 +83,7 @@ void InsertRecord(std::vector<std::string>& record, std::vector<ColumnID>& colum
 			case 0:
 				encoded[i] = Encoder<int>::Encode(std::stoi(record[i])); break;
 			case 3:
-				encoded[i] = record[i] == "0" ? Encoder<bool>::Encode(false) : Encoder<bool>::Encode(true); true; break;
+				encoded[i] = record[i] == "0" ? Encoder<bool>::Encode(false) : Encoder<bool>::Encode(true); break;
 			default:
 				encoded[i] = record[i]; break;
 		}
@@ -91,8 +91,6 @@ void InsertRecord(std::vector<std::string>& record, std::vector<ColumnID>& colum
 	}
 	dataaccess->Include(columns, encoded[0], encoded);
 }
-
-
 
 int _tmain(int argc, _TCHAR* argv[])
 {
