@@ -1,0 +1,7 @@
+-- separator is a tab 
+create table data ( line int NOT NULL
+       	     	  , md4 varchar NOT NULL
+		  , primary key(line)
+		  );
+.separator \t
+.import ./data data
