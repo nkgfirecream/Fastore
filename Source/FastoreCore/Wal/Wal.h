@@ -23,6 +23,13 @@ using fastore::communication::Revision;
 //ing fastore::communication::TransactionID;
 using fastore::communication::Writes;
 
+#if DEBUG_WAL_FUNC
+# define DEBUG_FUNC() { \
+    std::cerr << __FUNCTION__  << ":" << __LINE__  << std::endl; }
+#else
+# define DEBUG_FUNC() {}
+#endif
+
 struct ColumnRevisionRange
 {
   ColumnID columnID;
@@ -49,7 +56,8 @@ private:  std::string fileName;
 
   std::string dirName, name;
   NetworkAddress addr;
-  char *wal, *current;
+  unsigned char *wal, *current;
+  static int random_fd;
 
 public:
   Wal( const std::string& dirName, const std::string& name, 
@@ -65,8 +73,11 @@ public:
 				    ColumnRevisionSet& revisionSet /* OUT */ );
 
   int osError() const { return os_error; }
+  static void randomness(int N, void *P);
 
 private:
-  void init(char *wal);
+  void init(unsigned char *wal);
   bool verify();
+  static unsigned char * verify_page( const unsigned char *data, size_t length );
+  unsigned char * find_tail() const;
 };

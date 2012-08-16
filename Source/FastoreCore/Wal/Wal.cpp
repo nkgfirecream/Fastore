@@ -1,6 +1,5 @@
 #pragma once
 #include "Wal.h"
-#include "sqlite3/sqliteInt.parts.h"
 // $Id$
 
 #include <sys/types.h>
@@ -41,26 +40,18 @@ using namespace std;
   throw std::runtime_error( oops.str() ); \
   }
 
-/*
-** CAPI3REF: Pseudo-Random Number Generator
-**
-** SQLite contains a high-quality pseudo-random number generator (PRNG) used to
-** select random [ROWID | ROWIDs] when inserting new records into a table that
-** already uses the largest possible [ROWID].  The PRNG is also used for
-** the build-in random() and randomblob() SQL functions.  This interface allows
-** applications to access the same PRNG for other purposes.
-**
-** ^A call to this routine stores N bytes of randomness into buffer P.
-**
-** ^The first time this routine is invoked (either internally or by
-** the application) the PRNG is seeded using randomness obtained
-** from the xRandomness method of the default [sqlite3_vfs] object.
-** ^On all subsequent invocations, the pseudo-randomness is generated
-** internally and without recourse to the [sqlite3_vfs] xRandomness
-** method.
-*/
-#define SQLITE_API 
-SQLITE_API void sqlite3_randomness(int N, void *P);
+const static char random_dev[] = "/dev/random";
+
+void 
+Wal::
+randomness(int n, void *buf)
+{
+  if( read(random_fd, buf, n) != n ) {
+    THROW("could not use random-number generator", random_dev );
+   }
+}
+
+int Wal::random_fd( open(random_dev, O_RDONLY) );
 
 Wal::
 Wal( const std::string& dirName, const string& name, 
@@ -68,6 +59,10 @@ Wal( const std::string& dirName, const string& name,
   : dirName(dirName), name(name), addr(addr)
   , wal(NULL), current(NULL), os_error(0)
  {
+   if( random_fd  == -1 ) {
+    THROW("could not open random-number generator", random_dev );
+   }
+
   // directory name must exist
   struct stat sb;
   int fOK;
@@ -78,7 +73,7 @@ Wal( const std::string& dirName, const string& name,
 
   // create name directory if need be 
   const string dir(dirName + "/" + name);
-  if( (fOK = stat(dirName.c_str(), &sb)) == -1 ) {
+  if( (fOK = stat(dir.c_str(), &sb)) == -1 ) {
     if( (fOK = mkdir(dir.c_str(), 0700)) != 0 ) {
       THROW( "could not create directory name", dir );
     }
@@ -99,7 +94,7 @@ Wal( const std::string& dirName, const string& name,
   const string filename( dir + "/fastore." + date.str() + ".wal" );
 
   // does the WAL exist? 
-  bool finitialized = stat(filename.c_str(), &sb) != -1;
+  bool finitialized = stat(filename.c_str(), &sb) == 0;
   // open the WAL file
   static const int flags = (O_RDWR | O_CREAT | O_DIRECT);
   int fd;
@@ -107,16 +102,21 @@ Wal( const std::string& dirName, const string& name,
     THROW( "could not open WAL file", filename );
   }
 
+
   // set the WAL file's size
   off_t offset;
-  if( (offset = lseek( fd, WAL_FILE_SIZE, SEEK_SET)) == -1 ) {
+  if( (offset = lseek( fd, WAL_FILE_SIZE - 1, SEEK_SET)) == -1 ) {
     THROW( "could not set size for WAL file", filename );
   }
-
+  
+  if( 1 != write(fd, "\0", 1) ) {
+    THROW( "write to end of WAL file", filename );
+  }
+  
   // map in the memory
   static const int wal_prot = (PROT_READ | PROT_WRITE);
-  this->wal = static_cast<char*>( mmap(NULL, WAL_FILE_SIZE, wal_prot, 
-				       MAP_FILE, fd, 0) );
+  this->wal = static_cast<unsigned char*>( mmap(NULL, WAL_FILE_SIZE, wal_prot, 
+						MAP_FILE, fd, 0) );
   if( wal == MAP_FAILED ) {
     THROW( "could not map WAL file", filename );
   }
@@ -177,6 +177,7 @@ struct header_t
   const string magic_version;
   int32_t page_size, sequence, salt1, salt2;
   int32_t *mem[4];
+
   struct fingerprint_t {
     enum { size = 16 };
     unsigned char data[size]; // md4
@@ -185,17 +186,28 @@ struct header_t
       memset(data, 0, size);
     }
 
+    fingerprint_t( const unsigned char * input, size_t length ) {
+      MD4_CTX context;
+      MD4Init(&context);
+      MD4Update(&context, input, length);
+      MD4Final(this->data, &context);
+    }
+
     bool operator==( const fingerprint_t& that ) {
       return 0 == memcmp(data, that.data, size);
     }
+    bool operator==( const unsigned char * that ) {
+      return 0 == memcmp(data, that, size);
+    }
   };
+
   fingerprint_t fingerprint;
 
   header_t()
     : magic_version("FASTORE"), page_size(0), sequence(0), salt1(0), salt2(0)
   {
-    sqlite3_randomness( sizeof(salt1), &salt1 );
-    sqlite3_randomness( sizeof(salt2), &salt2 );
+    Wal::randomness( sizeof(salt1), &salt1 );
+    Wal::randomness( sizeof(salt2), &salt2 );
 
     mem[0] = &page_size;
     mem[1] = &sequence;
@@ -237,8 +249,9 @@ struct header_t
     return this->fingerprint == compute_stamp(fingerprint);
   }
 
-  char * copyToWal( char *wal ) 
+  unsigned char * copyToWal( unsigned char *wal ) 
   {
+    DEBUG_FUNC();
     memcpy( wal, magic_version.c_str(), magic_version.size() );
     wal += magic_version.size();
   
@@ -259,9 +272,11 @@ struct header_t
     return wal + fingerprint_t::size;
   }
 
-  char * copyFromWal( char *wal ) 
+  unsigned char * copyFromWal( unsigned char *wal ) 
   {
-    string wal_magic( wal, magic_version.size());
+    DEBUG_FUNC();
+    string wal_magic( reinterpret_cast<char*>(wal), magic_version.size());
+
     const string& p(magic_version);
     const_cast<string&>(p).swap(wal_magic);
     wal += magic_version.size();
@@ -284,6 +299,14 @@ struct header_t
 
 static header_t header;
 
+/*
+ * A "page" (actually just a record) header 
+ * has a transaction ID and a length.  The length is inclusive of
+ * both the header and the MD4 trailer.  The succeeding record 
+ * begins at length + 1.  The end of WAL is marked by a page whose 
+ * transaction ID is 0. 
+ */
+
 struct page_header_t
 {
   int64_t transaction_id;
@@ -293,23 +316,93 @@ struct page_header_t
     : transaction_id(0), length(0)
   {}
 
+  unsigned char * copyToWal( unsigned char *wal ) const
+  {
+    DEBUG_FUNC();
+    memcpy(wal, &transaction_id, sizeof(transaction_id));
+    wal += sizeof(transaction_id);
+    memcpy(wal, &length, sizeof(length));
+    wal += sizeof(length);
+    return wal;
+  }
+
+  const unsigned char * copyFromWal( const unsigned char *wal ) {
+    DEBUG_FUNC();
+    memcpy(&transaction_id, wal, sizeof(transaction_id));
+    wal += sizeof(transaction_id);
+    memcpy(&length, wal, sizeof(length));
+    wal += sizeof(length);
+    return wal;
+  }
+
 };
 
 void
-Wal::init( char *wal )
+Wal::init( unsigned char *wal )
 {
+  DEBUG_FUNC();
   memset( wal, 0, WAL_FILE_SIZE );
   this->current = header.copyToWal(wal);
+  if( -1 == msync(wal, current - wal, MS_SYNC) ) {
+    THROW( "msync(2) failed", __FUNCTION__ );
+  } 
 }
   
 
 bool
 Wal::verify()
 {
+  DEBUG_FUNC();
   header_t header;
+
   header.copyFromWal(wal);
-  return header.verify();
+  if( !header.verify() )
+    return false;
+
+  this->current = find_tail();
+  return this->current != 0;
 }
 
+unsigned char *
+Wal::
+verify_page( const unsigned char *data, size_t length ) 
+{
+  DEBUG_FUNC();
+  assert(data != NULL);
 
- 
+  page_header_t header;
+  const unsigned char *p = data;
+  assert(p != NULL);
+
+  p = header.copyFromWal(p);
+  p += header.length;
+  
+  header_t::fingerprint_t computed(data, length);
+  unsigned const char * recorded = p - header_t::fingerprint_t::size;
+
+  if( computed == recorded ) {
+    return const_cast<unsigned char *>(p);
+  }
+  return NULL;
+}
+
+unsigned char *
+Wal::
+find_tail() const
+{
+  DEBUG_FUNC();
+  page_header_t header;
+  unsigned char *p = this->current; 
+
+  while(p < wal + WAL_FILE_SIZE) {
+    header.copyFromWal(p);
+    if( header.transaction_id == 0 )
+      return p;
+    if( (p = verify_page(p, header.length)) == NULL ) {
+      return NULL;
+    }
+  }
+  assert(p < wal + WAL_FILE_SIZE);
+    
+  return NULL;
+}
