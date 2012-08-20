@@ -1,0 +1,746 @@
+%PDF-1.3
+%‚„œ”
+2 0 obj
+<<
+/Length 7741
+>>
+stream
+BT
+/TT2 1 Tf
+10 0 0 10 72 757.89 Tm
+0 g
+/GS1 gs
+0 Tc
+0 Tw
+[(W)120(A)0(L)-250(Data Structur)18(es)]TJ
+/TT4 1 Tf
+2.5 -1.56 TD
+[(Each W)120(AL )]TJ
+/TT5 1 Tf
+4.6554 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+-0.0001 Tc
+0.0001 Tw
+[(le is or)17.9(ganized as succession of re)24.9(vision records in a ring.)-500.1(The status of the ring is main-)]TJ
+-7.7115 -1.2 TD
+0 Tc
+0 Tw
+[(tained in tw)10(o)-250(header records, located on pages 0 and 1, updated alternately in classic ìping-pongî f)10(ashion)]TJ
+T*
+(after each write to the )Tj
+/TT5 1 Tf
+8.9673 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(le.)Tj
+-7.0234 -1.56 TD
+[(Reco)15(v)15(ery consists of reading both pages, determining which is more recent, seeking to the )]TJ
+/TT5 1 Tf
+36.3489 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(rst)Tj
+-39.4051 -1.2 TD
+[(record, and reading records sequentially until the EOF mark)10(er)55(.)]TJ
+2.5 -1.56 TD
+[(Both header records and all data records contain an MD4 checksum, gi)25(ving the reader great protec-)]TJ
+-2.5 -1.2 TD
+-0.0004 Tc
+0.0004 Tw
+(tion against )Tj
+/TT5 1 Tf
+4.8832 0 TD
+0 Tc
+0 Tw
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(le corruption.)Tj
+/TT2 1 Tf
+-11.7393 -2.06 TD
+[(W)120(A)0(L)-250(Header Record)]TJ
+ET
+0 G
+1 J 1 j 0.4 w 10 M []0 d
+1 i 
+9 607.89 72 21.6 re
+S
+BT
+/TT4 1 Tf
+10 0 0 10 14.905 616.4901 Tm
+[(ìF)74(AST)18(ORE\\0î)]TJ
+6 0 0 6 10.666 609.65 Tm
+(0)Tj
+ET
+81 607.89 36 21.6 re
+114.15 607.89 m
+114.15 595.89 l
+S
+BT
+10 0 0 10 58.164 593.666 Tm
+[(OS P)15(age Size)]TJ
+6 0 0 6 82.666 609.65 Tm
+(8)Tj
+ET
+117 607.89 36 21.6 re
+150.15 607.89 m
+150.15 583.89 l
+S
+BT
+10 0 0 10 73.284 581.642 Tm
+[(W)120(A)0(L)-250(size in pages)]TJ
+6 0 0 6 118.666 609.65 Tm
+(12)Tj
+ET
+153 607.89 36 21.6 re
+186.15 607.89 m
+186.15 571.77 l
+S
+BT
+10 0 0 10 117.514 569.618 Tm
+(Checkpoint seq#)Tj
+6 0 0 6 154.666 609.65 Tm
+(16)Tj
+ET
+189 607.89 72 21.6 re
+258.15 607.89 m
+258.15 559.77 l
+S
+BT
+10 0 0 10 185.054 557.5941 Tm
+[(First record of)25(fset)]TJ
+6 0 0 6 190.666 609.65 Tm
+(20)Tj
+ET
+261 607.89 72 21.6 re
+S
+BT
+10 0 0 10 271.06 616.4901 Tm
+[(T)35(railer of)25(fset)]TJ
+6 0 0 6 262.666 609.65 Tm
+(28)Tj
+ET
+333 607.89 36 21.6 re
+S
+BT
+10 0 0 10 339.055 616.4901 Tm
+(Salt-1)Tj
+6 0 0 6 334.666 609.65 Tm
+(36)Tj
+ET
+369 607.89 36 21.6 re
+S
+BT
+10 0 0 10 375.055 616.4901 Tm
+(Salt-2)Tj
+6 0 0 6 370.666 609.65 Tm
+(40)Tj
+ET
+405 607.89 144 21.6 re
+S
+BT
+10 0 0 10 442.695 616.4901 Tm
+(MD4 Fingerprint)Tj
+6 0 0 6 406.666 609.65 Tm
+(44)Tj
+10 0 0 10 97 533.194 Tm
+(The )Tj
+/TT5 1 Tf
+1.8047 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(rst 8 bytes contain the)Tj
+/TT2 1 Tf
+9.0259 0 TD
+(magic)Tj
+/TT4 1 Tf
+2.8047 0 TD
+(string)Tj
+/TT7 1 Tf
+2.5278 0 TD
+[(F)115(AST)18(ORE)]TJ
+/TT4 1 Tf
+4.3387 0 TD
+[(with a trailing NULL.)-500(These serv)15(e)-250(t)0(o)-250(identify)]TJ
+-23.5579 -1.2 TD
+(the )Tj
+/TT5 1 Tf
+1.4717 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le as a F)15(astore log )]TJ
+/TT5 1 Tf
+7.4552 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le, and to denote the v)15(ersion of the )]TJ
+/TT5 1 Tf
+14.0641 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le.)-500(F)15(o)0(r)-250(consistenc)15(y)-250(with future v)15(ersions the)]TJ
+/TT5 1 Tf
+-24.6595 -1.2 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(rst four bytes should be considered constant \(to identify the )Tj
+/TT5 1 Tf
+23.9946 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le type\) and the last four bytes a v)15(ersion)]TJ
+-25.1069 -1.2 TD
+[(number)55(.)]TJ
+2.5 -1.56 TD
+(The)Tj
+/TT2 1 Tf
+1.8047 0 TD
+[(OS P)10(age Size)]TJ
+/TT4 1 Tf
+5.8503 0 TD
+[(serv)15(es tells the reader where to look for the other cop)10(y)-250(o)0(f)-250(the header record.)-500(It is)]TJ
+-10.155 -1.2 TD
+-0.0001 Tc
+0.0001 Tw
+[(also a f)9.9(actor in computing the physical )]TJ
+/TT5 1 Tf
+15.7306 0 TD
+0 Tc
+0 Tw
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le size, allo)25(wing)]TJ
+/TT2 1 Tf
+6.7509 0 TD
+[(W)120(A)0(:)-250(size in pages)]TJ
+/TT4 1 Tf
+7.713 0 TD
+(to describe a )Tj
+/TT5 1 Tf
+5.3032 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+-0.0003 Tc
+0.0003 Tw
+(le up to 4 ìgiga-)Tj
+-36.61 -1.2 TD
+0 Tc
+0 Tw
+(pagesî, or 1 TB using a page size of 1 KB.)Tj
+2.5 -1.56 TD
+(The)Tj
+/TT2 1 Tf
+1.8047 0 TD
+(Checkpoint sequence number)Tj
+/TT4 1 Tf
+12.9175 0 TD
+[(be)15(gins with zero R and is incremented at e)25(v)15(ery checkpoint.)-500(It)]TJ
+-17.2222 -1.2 TD
+[(wraps back to zero after 0xFFFF)80(.)-500(The)]TJ
+/TT2 1 Tf
+15.5553 0 TD
+[(First r)18(ecord offset)]TJ
+/TT4 1 Tf
+7.9503 0 TD
+[(will lik)10(ely be an)]TJ
+/TT9 1 Tf
+6.7107 0 TD
+(off_t)Tj
+/TT4 1 Tf
+3.0005 0 TD
+[(;)-250(i)0(t)-250(can be used with)]TJ
+/TT2 1 Tf
+-33.2167 -1.2 TD
+(lseek\(2\))Tj
+/TT4 1 Tf
+3.5269 0 TD
+[(or)40(,)-250(when the )]TJ
+/TT5 1 Tf
+5.1807 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le is mapped into memory)65(,)-250(with pointer arithmetic.)]TJ
+-6.7637 -1.56 TD
+(The)Tj
+/TT2 1 Tf
+1.8047 0 TD
+[(T)74(railer offset)]TJ
+/TT4 1 Tf
+5.8122 0 TD
+[(gi)25(v)15(e)0(s)-250(the logical EOF for the )]TJ
+/TT5 1 Tf
+11.7906 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+[(le.)-500(Note that the)]TJ
+/TT2 1 Tf
+6.8867 0 TD
+(trailer offset)Tj
+/TT4 1 Tf
+5.5522 0 TD
+(will be less than the)Tj
+/TT2 1 Tf
+-34.9026 -1.2 TD
+[(First r)18(ecord offset)]TJ
+/TT4 1 Tf
+7.9503 0 TD
+(if the )Tj
+/TT5 1 Tf
+2.3325 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(le has wrapped around.)Tj
+/TT2 1 Tf
+-8.3389 -1.56 TD
+(Salt-1)Tj
+/TT4 1 Tf
+2.75 0 TD
+[(is a random inte)15(ger incremented with each checkpoint, whereas)]TJ
+/TT2 1 Tf
+25.6412 0 TD
+(Salt-2)Tj
+/TT4 1 Tf
+2.75 0 TD
+[(is a random inte)15(ger)]TJ
+-33.6412 -1.2 TD
+[(re)15(generated with each checkpoint.)]TJ
+2.5 -1.56 TD
+(The)Tj
+/TT2 1 Tf
+1.8047 0 TD
+(MD4 )Tj
+/TT10 1 Tf
+2.416 0 TD
+(ﬁ)Tj
+/TT2 1 Tf
+0.5562 0 TD
+[(nger)10(print)]TJ
+/TT4 1 Tf
+4.3508 0 TD
+[(is computed o)15(v)15(e)0(r)-250(the whole header each time it is written.)-500(The random num-)]TJ
+-11.6277 -1.2 TD
+[(bers help to pre)25(v)15(ent an)15(y)-250(mixing of a header with the wrong )]TJ
+/TT5 1 Tf
+23.8825 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(le.)Tj
+/TT2 1 Tf
+-20.8227 -4.3 TD
+[(W)120(A)0(L)-250(P)10(age Header)]TJ
+ET
+192.96 283.594 72 21.6 re
+S
+BT
+/TT4 1 Tf
+10 0 0 10 199.005 292.194 Tm
+[(T)35(ransaction ID)]TJ
+6 0 0 6 194.626 285.354 Tm
+(0)Tj
+ET
+264.96 283.594 36 21.6 re
+S
+BT
+10 0 0 10 268.795 292.194 Tm
+(Length)Tj
+6 0 0 6 266.626 285.354 Tm
+3.9447 Tc
+[(81)3944.7(1)]TJ
+ET
+300.99 283.65 m
+304.59 283.65 l
+308.55 283.65 m
+312.15 283.65 l
+316.11 283.65 m
+319.71 283.65 l
+323.79 283.65 m
+327.39 283.65 l
+331.35 283.65 m
+334.95 283.65 l
+339.03 283.65 m
+342.63 283.65 l
+346.59 283.65 m
+350.19 283.65 l
+354.15 283.65 m
+357.75 283.65 l
+361.71 283.65 m
+365.31 283.65 l
+369.39 283.65 m
+372.99 283.65 l
+372.99 287.25 l
+372.99 289.53 m
+372.99 293.13 l
+372.99 295.65 m
+372.99 299.25 l
+372.99 301.65 m
+372.99 305.25 l
+369.39 305.25 l
+365.31 305.25 m
+361.71 305.25 l
+357.75 305.25 m
+354.15 305.25 l
+350.19 305.25 m
+346.59 305.25 l
+342.63 305.25 m
+339.03 305.25 l
+334.95 305.25 m
+331.35 305.25 l
+327.39 305.25 m
+323.79 305.25 l
+319.71 305.25 m
+316.11 305.25 l
+312.15 305.25 m
+308.55 305.25 l
+304.59 305.25 m
+300.99 305.25 l
+300.99 301.65 l
+300.99 299.25 m
+300.99 295.65 l
+300.99 293.13 m
+300.99 289.53 l
+300.99 287.25 m
+300.99 283.65 l
+S
+BT
+10 0 0 10 318.63 292.194 Tm
+0 Tc
+(... data ...)Tj
+ET
+372.96 283.594 144 21.6 re
+S
+BT
+10 0 0 10 410.655 292.194 Tm
+(MD4 Fingerprint)Tj
+6 0 0 6 374.626 285.354 Tm
+[(N)-20436.5(N+15)]TJ
+10 0 0 10 97 256.994 Tm
+[(\(The W)120(AL record header is pro)15(visional until the mechanism for checkpointing and obsoleting records)]TJ
+-2.5 -1.2 TD
+(is clari)Tj
+/TT5 1 Tf
+2.6934 0 TD
+(ﬁ)Tj
+/TT4 1 Tf
+0.5562 0 TD
+(ed.\))Tj
+-0.7495 -1.56 TD
+[(Each W)120(AL record be)15(gins with a)]TJ
+/TT2 1 Tf
+13.0266 0 TD
+[(T)74(ransaction ID)]TJ
+/TT4 1 Tf
+6.7043 0 TD
+(and a)Tj
+/TT2 1 Tf
+2.3877 0 TD
+(Length)Tj
+/TT4 1 Tf
+3.3062 0 TD
+[(in bytes.)-500(The)]TJ
+/TT2 1 Tf
+5.6934 0 TD
+[(MD4 Finger)10(print)]TJ
+/TT4 1 Tf
+7.6555 0 TD
+(is)Tj
+-41.2737 -1.2 TD
+[(computed o)15(v)15(e)0(r)-250(the bytes in the interv)25(al [0-N\).)]TJ
+ET
+endstream
+endobj
+3 0 obj
+<<
+/ProcSet [/PDF /Text ]
+/Font <<
+/TT2 4 0 R
+/TT4 5 0 R
+/TT5 6 0 R
+/TT7 7 0 R
+/TT9 8 0 R
+/TT10 9 0 R
+>>
+/ExtGState <<
+/GS1 10 0 R
+>>
+>>
+endobj
+10 0 obj
+<<
+/Type /ExtGState
+/SA false
+/SM 0.02
+/OP false
+/op false
+/OPM 1
+/BG2 /Default
+/UCR2 /Default
+/HT /Default
+/TR2 /Default
+>>
+endobj
+12 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 676
+/Descent -250
+/Flags 262178
+/FontBBox [-168 -218 1000 935]
+/FontName /Times-Bold
+/ItalicAngle 0
+/StemV 133
+/XHeight 461
+/StemH 139
+>>
+endobj
+13 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 662
+/Descent -250
+/Flags 34
+/FontBBox [-168 -218 1000 898]
+/FontName /Times-Roman
+/ItalicAngle 0
+/StemV 84
+/XHeight 450
+/StemH 84
+>>
+endobj
+14 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 662
+/Descent -250
+/Flags 34
+/FontBBox [-168 -218 1000 898]
+/FontName /Times-Roman
+/ItalicAngle 0
+/StemV 84
+/XHeight 450
+/StemH 84
+>>
+endobj
+15 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 653
+/Descent -250
+/Flags 98
+/FontBBox [-169 -217 1010 883]
+/FontName /Times-Italic
+/ItalicAngle -15
+/StemV 76
+/XHeight 441
+/StemH 76
+>>
+endobj
+16 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 753
+/CapHeight 562
+/Descent -246
+/Flags 35
+/FontBBox [-28 -250 628 805]
+/FontName /Courier
+/ItalicAngle 0
+/StemV 51
+/XHeight 426
+/StemH 51
+>>
+endobj
+17 0 obj
+<<
+/Type /FontDescriptor
+/Ascent 750
+/CapHeight 676
+/Descent -250
+/Flags 262178
+/FontBBox [-168 -218 1000 935]
+/FontName /Times-Bold
+/ItalicAngle 0
+/StemV 133
+/XHeight 461
+/StemH 139
+>>
+endobj
+4 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 32
+/LastChar 122
+/Widths [250 0 0 0 0 0 0 0 333 333 0 0 0 333 0 0 
+0 500 500 0 500 0 0 0 0 0 333 0 0 0 0 0 
+0 722 0 722 722 0 611 0 778 389 0 0 667 944 0 778 
+611 0 722 556 667 0 0 1000 0 0 0 0 0 0 0 0 
+0 500 556 444 556 444 333 500 556 278 0 556 278 833 556 500 
+556 556 444 389 333 556 0 0 0 0 444 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-Bold
+/FontDescriptor 12 0 R
+>>
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 32
+/LastChar 148
+/Widths [250 0 0 500 0 0 0 0 333 333 0 564 250 333 250 0 
+500 500 500 500 500 500 500 0 500 0 0 278 0 0 0 0 
+0 722 667 667 722 611 556 0 0 333 0 722 611 889 722 722 
+556 0 667 556 611 722 0 944 0 0 0 333 278 0 0 0 
+0 444 500 444 500 444 333 500 500 278 0 500 278 778 500 500 
+500 500 333 389 278 500 500 722 500 500 444 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 444 444 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-Roman
+/FontDescriptor 13 0 R
+>>
+endobj
+6 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 222
+/LastChar 222
+/Widths [556 ]
+/Encoding /MacRomanEncoding
+/BaseFont /Times-Roman
+/FontDescriptor 14 0 R
+>>
+endobj
+7 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 65
+/LastChar 84
+/Widths [611 0 0 0 611 611 0 0 0 0 0 0 0 0 722 0 
+0 611 500 556 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Times-Italic
+/FontDescriptor 15 0 R
+>>
+endobj
+8 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 95
+/LastChar 116
+/Widths [600 0 0 0 0 0 0 600 0 0 0 0 0 0 0 0 
+600 0 0 0 0 600 ]
+/Encoding /WinAnsiEncoding
+/BaseFont /Courier
+/FontDescriptor 16 0 R
+>>
+endobj
+9 0 obj
+<<
+/Type /Font
+/Subtype /TrueType
+/FirstChar 222
+/LastChar 222
+/Widths [556 ]
+/Encoding /MacRomanEncoding
+/BaseFont /Times-Bold
+/FontDescriptor 17 0 R
+>>
+endobj
+1 0 obj
+<<
+/Type /Page
+/Parent 11 0 R
+/Resources 3 0 R
+/Contents 2 0 R
+>>
+endobj
+18 0 obj
+<<
+/S /D
+>>
+endobj
+19 0 obj
+<<
+/Nums [0 18 0 R ]
+>>
+endobj
+11 0 obj
+<<
+/Type /Pages
+/Kids [1 0 R]
+/Count 1
+/MediaBox [0 0 595 842]
+>>
+endobj
+20 0 obj
+<<
+/CreationDate (D:20120820123814-04'00')
+/ModDate (D:20120820123814-04'00')
+/Producer (Apple pstopdf)
+>>
+endobj
+21 0 obj
+<<
+/Type /Catalog
+/Pages 11 0 R
+/PageLabels 19 0 R
+>>
+endobj
+xref
+0 22
+0000000000 65535 f 
+0000011032 00000 n 
+0000000016 00000 n 
+0000007809 00000 n 
+0000009291 00000 n 
+0000009728 00000 n 
+0000010261 00000 n 
+0000010431 00000 n 
+0000010650 00000 n 
+0000010863 00000 n 
+0000007961 00000 n 
+0000011181 00000 n 
+0000008102 00000 n 
+0000008304 00000 n 
+0000008501 00000 n 
+0000008698 00000 n 
+0000008898 00000 n 
+0000009089 00000 n 
+0000011113 00000 n 
+0000011141 00000 n 
+0000011263 00000 n 
+0000011386 00000 n 
+trailer
+<<
+/Size 22
+/Root 21 0 R
+/Info 20 0 R
+/ID [<e18d71442d97af53f75f964733ab687e><e18d71442d97af53f75f964733ab687e>]
+>>
+startxref
+11456
+%%EOF

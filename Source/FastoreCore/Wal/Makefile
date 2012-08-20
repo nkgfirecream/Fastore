@@ -1,3 +1,5 @@
+.SUFFIXES: .ms .dvi .ps .pdf
+
 PROJDIR = $(HOME)/projects/alphora/Fastore/trunk
 
 STD =  -std=c++0x
@@ -28,3 +30,9 @@ libwal.a: $(OBJ)
 
 t/wal_test: t/wal_test.cpp libwal.a
 	c++ $(CFLAGS) $(@:R).cpp -L. -lwal
+
+.ms.ps:
+	dformat $(.ALLSRC) | groff -pet -ms -Tps > $@~
+	@ mv $@~ $@
+.ps.pdf:
+	pstopdf -o $@ $(.ALLSRC) 

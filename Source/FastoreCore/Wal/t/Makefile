@@ -1,7 +1,6 @@
+# $Id$
+.SUFFIXES: .ms .dvi .ps .pdf
 
-
-
-#data: file.gen
 data:
 	./file.gen > $@~
 	@mv $@~ $@
@@ -25,3 +24,9 @@ wc: data
 	time wc -l $(.ALLSRC)
 
 test: data import cp select read-sqlite wc
+
+.ms.ps:
+	dformat $(.ALLSRC) | groff -pet -ms -Tps > $@~
+	@ mv $@~ $@
+.ps.pdf:
+	pstopdf -o $@ $(.ALLSRC) 
