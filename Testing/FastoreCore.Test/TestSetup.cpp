@@ -42,22 +42,16 @@ void TestSetup::createTableWithData()
     _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[5]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[5]))("BirthPlace")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
 
 	//add data
-	/*_database->Include(cols, 1, new object[] { 1, "Joe", "Shmoe", true, "5/26/1980", "Antarctica" });
-	_database->Include(cols, 2, new object[] { 2, "Ann", "Shmoe", false, "4/20/1981", "Denver" });
-	_database->Include(cols, 3, new object[] { 3, "Sarah", "Silverman", false, "11/10/1976", "Chicago" });
-	_database->Include(cols, 4, new object[] { 4, "Bob", "Newhart", true, "12/2/1970", "Paris" });
-	_database->Include(cols, 5, new object[] { 5, "Samantha", "Smith", false, "1/13/1984", "Tokyo" });
-	_database->Include(cols, 6, new object[] { 6, "Andy", "Warhol", true, "9/14/1987", "New York" });
-	_database->Include(cols, 7, new object[] { 7, "Carl", "Sagan", true, "4/1/1957", "Las Vegas" });
-	*/
 	boost::shared_ptr<Transaction> dataaccess = _database->Begin(true, true);
 
-	dataaccess->Include(_columns, Encoder<ColumnID>::Encode(_columns[0]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[0]))("ID")("Int")("Int")(Encoder<BufferType>::Encode(BufferType::Identity))(Encoder<bool>::Encode(true)));
-	dataaccess->Include(_columns, Encoder<ColumnID>::Encode(_columns[1]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[1]))("Given")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    dataaccess->Include(_columns, Encoder<ColumnID>::Encode(_columns[2]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[2]))("Surname")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    dataaccess->Include(_columns, Encoder<ColumnID>::Encode(_columns[3]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[3]))("Gender")("Bool")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    dataaccess->Include(_columns, Encoder<ColumnID>::Encode(_columns[4]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[4]))("BirthDate")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    dataaccess->Include(_columns, Encoder<ColumnID>::Encode(_columns[5]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[5]))("BirthPlace")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
+	dataaccess->Include(_columns, Encoder<int>::Encode(0), list_of<std::string>(Encoder<int>::Encode(0))("Donny")("Osmond")(Encoder<bool>::Encode(true))("5/26/1980")("Antarctica"));
+	dataaccess->Include(_columns, Encoder<int>::Encode(1), list_of<std::string>(Encoder<int>::Encode(1))("Marie")("Osmond")(Encoder<bool>::Encode(false))("4/20/1981")("Denver"));
+    dataaccess->Include(_columns, Encoder<int>::Encode(2), list_of<std::string>(Encoder<int>::Encode(2))("Sarah")("Silverman")(Encoder<bool>::Encode(false))("11/10/1976")("Chicago"));
+    dataaccess->Include(_columns, Encoder<int>::Encode(3), list_of<std::string>(Encoder<int>::Encode(3))("Bob")("Newhart")(Encoder<bool>::Encode(true))("12/2/1970")("Paris"));
+    dataaccess->Include(_columns, Encoder<int>::Encode(4), list_of<std::string>(Encoder<int>::Encode(4))("Andy")("Warhol")(Encoder<bool>::Encode(true))("9/14/1987")("New York"));
+    dataaccess->Include(_columns, Encoder<int>::Encode(5), list_of<std::string>(Encoder<int>::Encode(5))("Carl")("Sagan")(Encoder<bool>::Encode(true))("4/1/1957")("Tokyo"));
+    dataaccess->Include(_columns, Encoder<int>::Encode(6), list_of<std::string>(Encoder<int>::Encode(6))("Marie")("Curie")(Encoder<bool>::Encode(false))("1/13/1984")("Las Vegas"));
+
 }
     
 
