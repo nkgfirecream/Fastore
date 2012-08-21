@@ -167,6 +167,13 @@ communicates with the Logger via a pipe.  Explicit and
 pressure-induced checkpoint requests are written to the Checkpointer
 pipe; timeouts occur if no explicit requests arrive.  
 .PP
+Checkpoint pressure is a function unapplied non-inserts \[em] number,
+size, and age \[em] plus Hive activity. How exactly these
+combine to provoke a \*Qcheckpoint situation\*U is unclear at
+this time, but we know that algorithm will belong to the Logger,
+because it has the most information about the WAL status and can use
+the Worker's connection to the Service to obtain Hive status. 
+.PP
 On completion (regardless of why) the Checkpointer will have changed
 the name of the new column store (and the status of the old one), as
 well as the last checkpointed revision for the column.  To avoid
