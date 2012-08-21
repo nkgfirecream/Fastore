@@ -1,50 +1,23 @@
 #pragma once
+#include "Database.h"
 
-#include <string>
-#include <memory>
-#include <vector>
-#include "IDataAccess.h"
-#include "ArgumentType.h"
-
-namespace fastore 
+namespace fastore
 {
-	namespace provider
+	namespace module
 	{
-		class IDataAccess;
-
-		struct Argument
-		{
-			ArgumentType type;
-			std::string value;
-		};
-
-		struct ColumnInfo
-		{
-			std::string type;
-			std::string value;
-		};
-
 		class Cursor
 		{
-		private:
-			std::shared_ptr<fastore::provider::IDataAccess> _dataAccess;
-			sqlite3_stmt* _statement;
-			void internalBind(int index, ArgumentType type, std::string& value);
+			public:
+				Cursor(fastore::module::Database* database);
 
-		public:
-			Cursor(fastore::provider::IDataAccess *dataAccess, sqlite3* db, const std::string &sql);
-			~Cursor();
+				void next();
+				int eof();
+				void close();
+				std::string column(int index);
+				std::string rowId();
 
-			int columnCount();
-			void bind(std::vector<Argument> arguments);
-			bool next();
-			int eof();
-			void close();
-			ColumnInfo getColumnInfo(int index);
-			std::string getColumn(int index);
+			private:
+				fastore::module::Database* _database;
 		};
-
-		typedef std::shared_ptr<Cursor> CursorObject; 
-		typedef CursorObject* PCursorObject;
 	}
 }

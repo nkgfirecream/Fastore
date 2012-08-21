@@ -3,25 +3,7 @@
 
 using namespace fastore::client;
 
-const int &ServiceAddress::getPort() const
-{
-	return privatePort;
-}
-
-void ServiceAddress::setPort(const int &value)
-{
-	privatePort = value;
-}
-
-const std::string &ServiceAddress::getName() const
-{
-	return privateName;
-}
-
-void ServiceAddress::setName(const std::string &value)
-{
-	privateName = value;
-}
+ServiceAddress::ServiceAddress() : Port(DefaultPort) { }
 
 ServiceAddress ServiceAddress::ParseOne(const std::string &address)
 {
@@ -46,12 +28,12 @@ ServiceAddress ServiceAddress::ParseOne(const std::string &address)
 	if (components.size() < 2 || !intTryParse(port, components[1].c_str()))
 		port = DefaultPort;
 
-	result.setPort(port);
+	result.Port = port;
 
 	boost::trim(components[0]);
-	result.setName(components[0]);
+	result.Name = components[0];
 
-	if (result.getName().empty())
+	if (result.Name.empty())
 		throw std::exception("Port is optional, but service host name must be given.");
 
 	return result;

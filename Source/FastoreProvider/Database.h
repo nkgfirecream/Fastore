@@ -1,42 +1,81 @@
 #pragma once
-
-#include <sqlite3.h>
+#include "..\FastoreClient\Client.h"
+#include "Address.h"
 #include <vector>
-#include <memory>
-#include "fastore.h"
-#include "Transaction.h"
-#include "IDataAccess.h"
-#include "..\FastoreClient\ColumnDef.h"
+#include <string>
 
-namespace fastore 
+namespace client = fastore::client;
+namespace provider = fastore::provider;
+
+namespace fastore
 {
-	namespace provider
+	namespace module
 	{
-		struct ServerAddress
+		//This class is designed to be a wrapper around our client. It provides the kind of "stateful" behavior sqlite expects
+		//(as opposed to the object oriented behavior our client provides by default)
+		class Database
 		{
-			std::string hostName;
-			int port;
-		};
-
-		class Database	: IDataAccess
-		{
-			friend class Transaction;
-			friend class Cursor;
 		private:
-			std::shared_ptr<sqlite3> _sqliteConnection;
-			//std::shared_ptr<fastore::client::Database> _client;
+			boost::shared_ptr<client::Database> _client;
+			boost::shared_ptr<client::Transaction> _transaction;
 		public:
-			Database(std::vector<ServerAddress> addresses);
+			Database(std::vector<provider::Address> addresses)
+			{
+				std::vector<client::ServiceAddress> _sas;
+				for (auto a : addresses)
+				{
+					client::ServiceAddress sa;
+					sa.Name = a.Name;
+					sa.Port = a.Port;
+					_sas.push_back(sa);
+				}
 
-			std::unique_ptr<Cursor> prepare(const std::string &sql) override;
+				_client = client::Client::Connect(_sas);
+			}
 
-			std::unique_ptr<Transaction> begin();
-			void commit();
-			void createTable(const char* name, const std::vector<fastore::client::ColumnDef>& columns);
+			void begin()
+			{
+				//No isolation for now... fix this later...
+				_transaction = _client->Begin(false, false);
+			}
+
+			void commit()
+			{				
+				if (_transaction != NULL)
+					_transaction->Commit();
+
+				_transaction.reset();
+			}
+
+			void sync()
+			{
+				//Do nothing for now... We do a two stage commit during our commit.
+			}
+
+			void rollback()
+			{
+				if (_transaction != NULL)
+					_transaction->Rollback();
+
+				_transaction.reset();
+			}
+
+			void createTable(std::vector<client::ColumnDef> defs)
+			{
+
+			}
+
+			void dropTable(std::vector<client::ColumnDef> defs)
+			{
+
+			}
+
+			std::vector<client::ColumnDef> connectTable(std::string table)
+			{
+				std::vector<client::ColumnDef> defs;
+				//TODO: pull defs from database
+				return defs;
+			}
 		};
-
-		typedef std::shared_ptr<Database> DatabaseObject; 
-		typedef DatabaseObject * PDatabaseObject;
 	}
 }
-

@@ -1,19 +1,19 @@
-#include "Database.h"
+#include <sqlite3.h>
 #include <vector>
-#include <sstream>
+#include <memory>
 #include <exception>
+#include <sstream>
 #include <map>
-#include <functional>
-#include <algorithm>
-#include <string>
-#include <locale>
+#include "..\FastoreClient\ColumnDef.h"
+#include "Cursor.h"
+#include "..\FastoreClient\ServiceAddress.h"
+
+namespace client = fastore::client;
+namespace module = fastore::module;
 
 using namespace std;
-using namespace fastore::provider;
-namespace client = fastore::client;
 
 // For questions on this SQLite module, see SQLite virtual table documentation: http://www.sqlite.org/vtab.html
-
 const char* const SQLITE_MODULE_NAME = "Fastore";
 
 void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
@@ -68,22 +68,24 @@ int insensitiveStrPos(const T& str1, const T& str2, const std::locale& locale = 
 client::ColumnDef ParseColumnDef(string text)
 {
 	client::ColumnDef result;
-	auto reader = istringstream(text);
+	istringstream reader(text, istringstream::in);
 	if (!std::getline(reader, result.Name, ' ')) 
 		throw exception("Missing column name");
 	if (!std::getline(reader, result.Type))
 		result.Type = "String";
 	auto stringText = string(text);
 	//TODO: When should we use an identity buffer? Primary key?
-	result.BufferType =	insensitiveStrPos(stringText, string("unique")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0 ? client::BufferType::Unique : client::BufferType::Multi;
+	result.BufferType =	insensitiveStrPos(stringText, string("primary")) >= 0 ? client::BufferType::Identity : insensitiveStrPos(stringText, string("unique")) >= 0 ? client::BufferType::Unique : client::BufferType::Multi;
 	result.Required = insensitiveStrPos(stringText, string("not null")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0;
 
 	return result;
 }
 
 static map<string, string> fastoreTypesToSQLiteTypes;
+static map<string, string> sqliteTypesToFastoreTypes;
+static map<int, string> sqliteTypeIDToFastoreTypes;
 
-void EnsureTypeMaps()
+void EnsureFastoreTypeMaps()
 {
 	if (fastoreTypesToSQLiteTypes.size() == 0)
 	{
@@ -93,16 +95,46 @@ void EnsureTypeMaps()
 		fastoreTypesToSQLiteTypes["Long"] = "bigint";
 		fastoreTypesToSQLiteTypes["Bool"] = "int";
 	}
+
+	if (sqliteTypesToFastoreTypes.size() == 0)
+	{
+		sqliteTypesToFastoreTypes["nvarchar"] = "WString";
+		sqliteTypesToFastoreTypes["varchar"] = "String";
+		sqliteTypesToFastoreTypes["int"] = "Int";
+		sqliteTypesToFastoreTypes["bigint"] = "Long";
+		//TODO: Must add special handling for bool. Either don't use it in Fastore, or check column def.
+		//(actually, can we even define a bool column in sqlite?)
+		//sqliteTypesToFastoreTypes["int"] = "Bool";
+	}
+
+	if (sqliteTypesToFastoreTypes.size() == 0)
+	{
+		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
+		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
+	}
 }
 
 string FastoreTypeToSQLiteType(const string &fastoreType)
 {
-	EnsureTypeMaps();
+	EnsureFastoreTypeMaps();
 	auto result = fastoreTypesToSQLiteTypes.find(fastoreType);
 	if (result == fastoreTypesToSQLiteTypes.end())
 	{
 		ostringstream message;
 		message << "Unknown type '" << fastoreType << "'.";
+		throw exception(message.str().c_str());
+	}
+	return result->second;
+}
+
+string SQLiteTypeToFastoreType(const string &SQLiteType)
+{
+	EnsureFastoreTypeMaps();
+	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
+	if (result == sqliteTypesToFastoreTypes.end())
+	{
+		ostringstream message;
+		message << "Unknown type '" << SQLiteType << "'.";
 		throw exception(message.str().c_str());
 	}
 	return result->second;
@@ -136,12 +168,13 @@ struct fastore_vtab
 	sqlite3 *db;
 	const char *zName;	
 	vector<client::ColumnDef> columns;
-	fastore::provider::Database* fastoreDatabase;
+	module::Database* database;
 };
 
 struct fastore_vtab_cursor
 {
 	sqlite3_vtab_cursor base;
+	module::Cursor* cursor;
 };
 
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
@@ -151,7 +184,7 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 	(
 		[&]() -> int
 		{
-			auto database = (Database*)pAux;
+			auto database = (module::Database*)pAux;
 			auto tableName = argv[2];
 
 			// Parse each column into a ColumnDef
@@ -172,11 +205,17 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 			//Create the table in fastore.
 			vtab->columns = defs;
 			vtab->zName = tableName;
-			vtab->fastoreDatabase = database;
-			vtab->fastoreDatabase->createTable(tableName, defs);
+			vtab->database =  database;
+
+			//Generate sql to create tables, and then execute it internally
+			//so that cursors to the system tables are picked up and they are inserted properly.
 
 			// Don't hold unique pointer longer, just holding to be exception safe
+			vtab->database->createTable(defs);
+
 			vtab.reset();
+
+
 
 			//create vtable in SQLite
 			return moduleInit(db, defs);
@@ -188,11 +227,35 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 // This method is called to create a new instance of a virtual table that connects to an existing backing store.
 int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char **pzErr)
 {
-	// May not need to do anything
-	// TODO: get defs;
-	//vector<client::ColumnDef> defs;
+	auto database = (module::Database*)pAux;
+	auto tableName = argv[2];
 
-	//moduleInit(db, defs);
+	// Parse each column into a ColumnDef
+	std::vector<client::ColumnDef> defs;
+	defs.reserve(argc - 4);
+	string idType = "Int";
+	for (int i = 4; i < argc; i++)
+	{
+		defs.push_back(ParseColumnDef(argv[i]));
+		// TODO: track row ID type candidates
+	}
+	for (auto def : defs)
+		def.IDType = idType;
+
+	auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
+	*ppVTab = &vtab->base;
+
+	//Create the table in fastore.
+	vtab->columns = defs;
+	vtab->zName = tableName;
+	vtab->database =  database;
+
+	// Don't hold unique pointer longer, just holding to be exception safe
+	auto result = vtab->database->connectTable(std::string(tableName));
+	//TODO:: compare what we actually found to what we wanted and see if they are the same...
+
+	vtab.reset();
+	moduleInit(db, defs);
 	return SQLITE_OK;
 }
 
@@ -233,15 +296,15 @@ int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info)
 int moduleDisconnect(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Release the vTab object only. Backing store should persist.
-
+	//TODO: Release the vTab object only. Backing store should persist
+	free(v);
 	return SQLITE_OK;
 }
 
 int moduleDestroy(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Destroy vtable. Backing store should be destroyed. Called for "DROP TABLE"
+	v->database->dropTable(v->columns);
 	return SQLITE_OK;
 }
 
@@ -252,6 +315,7 @@ int moduleOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor)
 	fastore_vtab_cursor* c;
 	c = (fastore_vtab_cursor *) calloc(sizeof(fastore_vtab_cursor), 1);
 	*ppCursor = &c->base;
+	c->cursor = new module::Cursor(v->database);
 	//TODO: initalize other parts of fastore cursor?
 	//According to docs initial state is undefined. A subsequent call moduleFilter will intialize state.
 	return SQLITE_OK;
@@ -260,8 +324,7 @@ int moduleOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor)
 int moduleClose(sqlite3_vtab_cursor* sqlSur)
 {
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)sqlSur;
-	//TODO: close whatever else ends up being on the cursor.
-	//Should the upper layers handle the cursor closing?
+	delete c->cursor;
 	free(c);
 	return SQLITE_OK;
 }
@@ -286,6 +349,7 @@ int moduleEof(sqlite3_vtab_cursor *pCursor)
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
 	//Returns true if not pointing at a valid row of a data. (False should be zero).
 	//return c->fastoreCursor->eof();
+	return 0;
 }
 
 int moduleColumn(sqlite3_vtab_cursor *pCursor, sqlite3_context *pContext, int index)
@@ -327,6 +391,7 @@ int moduleBegin(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
 	//TODO: Start a transaction on the table
+	v->database->begin();
 	return SQLITE_OK;
 }
 
@@ -334,6 +399,7 @@ int moduleSync(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
 	//TODO: Start first phase of two-phase commit (prepare or apply?)
+	v->database->sync();
 	return SQLITE_OK;
 }
 
@@ -341,6 +407,7 @@ int moduleCommit(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
 	//TODO: Commit a transaction in progress.
+	v->database->commit();
 	return SQLITE_OK;
 }
 
@@ -348,6 +415,7 @@ int moduleRollback(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
 	//TODO: Rollback a transaction in progress.
+	v->database->rollback();
 	return SQLITE_OK;
 }
 
@@ -406,43 +474,17 @@ sqlite3_module fastoreModule =
 	moduleColumn,	// int (*xColumn)(sqlite3_vtab_cursor*, sqlite3_context*, int);
 	moduleRowid,	// int (*xRowid)(sqlite3_vtab_cursor*, sqlite3_int64 *pRowid);
 	moduleUpdate,	// int (*xUpdate)(sqlite3_vtab *, int, sqlite3_value **, sqlite3_int64 *);
-	moduleBegin,	// int (*xBegin)(sqlite3_vtab *pVTab);
-	moduleSync,	// int (*xSync)(sqlite3_vtab *pVTab);
-	moduleCommit,	// int (*xCommit)(sqlite3_vtab *pVTab);
-	moduleRollback,	// int (*xRollback)(sqlite3_vtab *pVTab);
-	moduleFindFunction,	// int (*xFindFunction)(sqlite3_vtab *pVtab, int nArg, const char *zName, void (**pxFunc)(sqlite3_context*,int,sqlite3_value**), void **ppArg);
+	
+	//The are called per table, so figure out how to implement them per table. Each table gets its own transaction perhaps?
+	0 /* moduleBegin */,	// int (*xBegin)(sqlite3_vtab *pVTab);
+	0 /* moduleSync */,	// int (*xSync)(sqlite3_vtab *pVTab);
+	0 /* moduleCommit */,	// int (*xCommit)(sqlite3_vtab *pVTab);
+	0 /*moduleRollback */,	// int (*xRollback)(sqlite3_vtab *pVTab);
+	0 /* moduleFindFunction */,	// int (*xFindFunction)(sqlite3_vtab *pVtab, int nArg, const char *zName, void (**pxFunc)(sqlite3_context*,int,sqlite3_value**), void **ppArg);
 	moduleRename,	// int (*xRename)(sqlite3_vtab *pVtab, const char *zNew);
 	
 	/* v2 methods */
-	moduleSavepoint,	// int (*xSavepoint)(sqlite3_vtab *pVTab, int);
-	moduleRelease,	// int (*xRelease)(sqlite3_vtab *pVTab, int);
-	moduleRollbackTo,	// int (*xRollbackTo)(sqlite3_vtab *pVTab, int);
+	0 /* moduleSavepoint */,	// int (*xSavepoint)(sqlite3_vtab *pVTab, int);
+	0 /* moduleRelease */,	// int (*xRelease)(sqlite3_vtab *pVTab, int);
+	0 /* moduleRollbackTo */,	// int (*xRollbackTo)(sqlite3_vtab *pVTab, int);
 };
-
-Database::Database(vector<ServerAddress> addresses)
-{
-	//_client = unique_ptr<fastore::client::Database>(new fastore::Database(addresses));
-
-	// Open and wrap the SQLite connection
-	sqlite3 *sqliteConnection = nullptr;
-	checkSQLiteResult(sqlite3_open(":memory:", &sqliteConnection), sqliteConnection);
-	_sqliteConnection = shared_ptr<sqlite3>(sqliteConnection, sqlite3_close);
-
-	// Register our module
-	checkSQLiteResult(sqlite3_create_module_v2(sqliteConnection, SQLITE_MODULE_NAME, &fastoreModule, this, nullptr), sqliteConnection);
-}
-
-unique_ptr<Cursor> Database::prepare(const std::string &sql)
-{
-	return unique_ptr<Cursor>(new Cursor(this, this->_sqliteConnection, sql));
-}
-
-unique_ptr<Transaction> Database::begin()
-{
-	return unique_ptr<Transaction>(new Transaction(this));
-}
-
-void Database::commit()
-{
-	//Stub for now.
-}

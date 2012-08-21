@@ -42,8 +42,8 @@ Database::Database(std::vector<ServiceAddress> addresses)
 	for (auto a : addresses)
 	{
 		NetworkAddress n;
-		n.__set_name(a.getName());
-		n.__set_port(a.getPort());
+		n.__set_name(a.Name);
+		n.__set_port(a.Port);
 		networkAddresses.push_back(n);
 	}
 

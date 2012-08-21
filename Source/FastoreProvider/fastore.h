@@ -10,10 +10,8 @@
 #   define FASTOREAPI __declspec(dllimport)
 #endif  
 
-typedef void *DatabaseHandle;
+typedef void *ConnectionHandle;
 typedef void *StatementHandle;
-typedef void *CursorHandle;
-typedef void *TransactionHandle;
 
 const int MAX_HOST_NAME = 255;
 const int MAX_ERROR_MESSAGE = 255;
@@ -51,17 +49,22 @@ struct ConnectResult
 	union
 	{
 		FastoreError error;
-		DatabaseHandle database;
+		ConnectionHandle connetion;
 	};
 };
 
-struct BeginResult
+struct ExecuteResult
 {
 	bool success;
 	union
 	{
 		FastoreError error;
-		TransactionHandle transaction;
+		struct
+		{
+			StatementHandle statement;
+			int columnCount;
+			bool eof;
+		};
 	};
 };
 
@@ -73,7 +76,7 @@ struct PrepareResult
 		FastoreError error;
 		struct
 		{
-			CursorHandle cursor;
+			StatementHandle statement;
 			int columnCount;
 		};
 	};
@@ -86,21 +89,6 @@ struct NextResult
 	{
 		FastoreError error;
 		bool eof;
-	};
-};
-
-struct ExecuteResult
-{
-	bool success;
-	union
-	{
-		FastoreError error;
-		struct
-		{
-			CursorHandle cursor;
-			int columnCount;
-			bool eof;
-		};
 	};
 };
 
@@ -121,25 +109,20 @@ struct ColumnInfoResult
 // Creates a new database connection
 FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct FastoreAddress addresses[]);
 // Dereferences the given database connection; the connection may remain open if any transactions are still open on it
-FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(DatabaseHandle database);
-
-// Begins a transaction against the given database.  The given handle must not be a transaction.
-FASTOREAPI BeginResult APIENTRY fastoreBegin(DatabaseHandle database);
-// Commits or rolls back a previously began transaction
-FASTOREAPI FastoreResult APIENTRY fastoreEnd(DatabaseHandle database, TransactionEndAction action);
+FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(ConnectionHandle connection);
 
 // Prepares a given query or statement statement and returns a cursor
-FASTOREAPI PrepareResult APIENTRY fastorePrepare(DatabaseHandle database, const char *sql);
+FASTOREAPI PrepareResult APIENTRY fastorePrepare(ConnectionHandle database, const char *sql);
 // Provides values for any parameters included in the prepared statement and resets the cursor
-FASTOREAPI FastoreResult APIENTRY fastoreBind(CursorHandle cursor, int argumentCount, void *arguments, const ArgumentType ArgumentType[]);
+FASTOREAPI FastoreResult APIENTRY fastoreBind(StatementHandle statement, int argumentCount, void *arguments, const fastore::provider::ArgumentType ArgumentType[]);
 // Executes the statement, or navigates to the first or next row
-FASTOREAPI NextResult APIENTRY fastoreNext(CursorHandle cursor);
+FASTOREAPI NextResult APIENTRY fastoreNext(StatementHandle statement);
 // Gets the column name for the given column index
-FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(CursorHandle cursor, int columnIndex);
+FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(StatementHandle statement, int columnIndex);
 // Gets the column value of the current row given an index
-FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(CursorHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget);
+FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
 // Closes the given cursor
-FASTOREAPI FastoreResult APIENTRY fastoreClose(CursorHandle cursor);
+FASTOREAPI FastoreResult APIENTRY fastoreClose(StatementHandle statement);
 
 // Short-hand for Prepare followed by Next... then close if eof.
-FASTOREAPI ExecuteResult APIENTRY fastoreExecute(DatabaseHandle database, const char *sql);
+FASTOREAPI ExecuteResult APIENTRY fastoreExecute(ConnectionHandle connection, const char *sql);
