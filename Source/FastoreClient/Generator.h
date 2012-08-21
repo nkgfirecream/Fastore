@@ -15,7 +15,7 @@ namespace fastore { namespace client
 		//TODO: Locking
 		boost::shared_ptr<boost::mutex> _lock;
 		std::map<int, boost::shared_ptr<IDGenerator>> _generators;
-		Database _database;
+		boost::shared_ptr<Database> _database;
 
 		std::vector<PodID>_podIDs;
 
@@ -31,7 +31,7 @@ namespace fastore { namespace client
 		void InitializeInstanceFields();
 
 	public:
-		Generator(const Database &database, std::vector<PodID> podIDs);
+		Generator(boost::shared_ptr<Database> database, std::vector<PodID> podIDs);
 
 		/// <summary> Generates the next value for the given table. </summary>
 		/// <param name="columnId"> The column an ID is being generated for. </param>

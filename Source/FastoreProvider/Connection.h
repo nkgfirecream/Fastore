@@ -3,11 +3,20 @@
 #include "fastore.h"
 #include "Statement.h"
 #include "Address.h"
-#include "Database.h"
+#include "..\FastoreClient\Database.h"
+#include "..\FastoreClient\Generator.h"
+#include "Table.h"
 
 
 namespace client = fastore::client;
-namespace module = fastore::module;
+
+namespace fastore
+{
+	namespace module
+	{
+		class Table;
+	}
+}
 
 namespace fastore 
 {
@@ -15,10 +24,13 @@ namespace fastore
 	{
 		class Connection
 		{
+			friend class fastore::module::Table;
 
 		private:
 			std::shared_ptr<sqlite3> _sqliteConnection;
-			std::shared_ptr<module::Database> _database;
+			boost::shared_ptr<client::Database> _database;
+			boost::shared_ptr<client::Generator> _generator;
+
 		public:
 			Connection(std::vector<Address> addresses);
 			std::unique_ptr<Statement> execute(const std::string &sql);

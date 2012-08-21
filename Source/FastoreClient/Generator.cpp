@@ -7,7 +7,7 @@
 using namespace fastore::client;
 using namespace boost::assign;
 
-Generator::Generator(const Database& database, std::vector<PodID> podIDs = std::vector<PodID>())
+Generator::Generator(boost::shared_ptr<Database> database, std::vector<PodID> podIDs = std::vector<PodID>())
 	: _database(database), _podIDs(podIDs)
 {
 	_lock = boost::shared_ptr<boost::mutex>(new boost::mutex());
@@ -65,7 +65,7 @@ long long Generator::InternalGenerate(int tableId, long long size)
 	{
 		try
 		{
-			auto transaction = _database.Begin(true, true);
+			auto transaction = _database->Begin(true, true);
 			try
 			{
 				std::string tableIdstring = Encoder<int>::Encode(tableId);
@@ -126,19 +126,19 @@ void Generator::EnsureGeneratorTable()
 	if (_podIDs.empty())
 		DefaultPods();
 
-	auto transaction = _database.Begin(true, true);
+	auto transaction = _database->Begin(true, true);
 	try
 	{
 		// Add the generator column
-		_database.Include
+		transaction->Include
 		(
 			Dictionary::ColumnColumns,
 			Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
 			list_of<std::string> 
 				(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
-				(Encoder<std::string>::Encode(std::string("Generator.Generator")))
-				(Encoder<std::string>::Encode(std::string("Long")))
-				(Encoder<std::string>::Encode(std::string("Int")))
+				("Generator.Generator")
+				("Long")
+				("Int")
 				(Encoder<bool>::Encode(true))
 		);
 
@@ -178,7 +178,7 @@ void Generator::DefaultPods()
 	Range podRange = Range();
 	podRange.Ascending = true;
 	podRange.ColumnID = Dictionary::PodID;
-	auto podIds = _database.GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
+	auto podIds = _database->GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
 	if (podIds.getData().size() == 0)

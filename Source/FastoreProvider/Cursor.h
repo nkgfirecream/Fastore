@@ -1,5 +1,6 @@
 #pragma once
-#include "Database.h"
+#include "Table.h"
+#include <string>
 
 namespace fastore
 {
@@ -8,7 +9,7 @@ namespace fastore
 		class Cursor
 		{
 			public:
-				Cursor(fastore::module::Database* database);
+				Cursor(fastore::module::Table* table);
 
 				void next();
 				int eof();
@@ -17,7 +18,7 @@ namespace fastore
 				std::string rowId();
 
 			private:
-				fastore::module::Database* _database;
+				fastore::module::Table* _table;
 		};
 	}
 }
