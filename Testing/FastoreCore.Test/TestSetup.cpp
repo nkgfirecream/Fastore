@@ -1,16 +1,4 @@
-#include "stdafx.h"
-#include "..\FastoreClient\ServiceAddress.h"
-#include "..\FastoreClient\Database.h"
-#include "..\FastoreClient\Client.h"
-#include "..\FastoreClient\Dictionary.h"
-#include "..\FastoreClient\Encoder.h"
-#include <vector>
-#include <boost\assign\list_of.hpp>
 #include "TestSetup.h"
-
-using namespace fastore::client;
-using namespace boost::assign;
-using namespace std;
 
 void TestSetup::createTableWithData()
 {
@@ -22,9 +10,9 @@ void TestSetup::createTableWithData()
 	std::vector<ServiceAddress> addresses;
 	addresses.push_back(address);
 
-	std::vector<ColumnID> _columns = list_of<ColumnID>(10000)(10001)(10002)(10003)(10004)(10005);
-
 	auto _database = Client::Connect(addresses);
+
+	_columns = list_of<ColumnID>(10000)(10001)(10002)(10003)(10004)(10005);
 
 	//create schema
 	_database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[0]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[0]))("ID")("Int")("Int")(Encoder<BufferType>::Encode(BufferType::Identity))(Encoder<bool>::Encode(true)));
