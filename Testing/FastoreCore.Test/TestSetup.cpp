@@ -6,19 +6,12 @@
 #include "..\FastoreClient\Encoder.h"
 #include <vector>
 #include <boost\assign\list_of.hpp>
+#include "TestSetup.h"
 
 using namespace fastore::client;
 using namespace boost::assign;
 using namespace std;
 
-class TestSetup{
-	boost::shared_ptr<fastore::client::Database> _database;
-public:
-	void createTableWithData();
-};
-
-//void Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-        
 void TestSetup::createTableWithData()
 {
 	//connect
@@ -51,7 +44,6 @@ void TestSetup::createTableWithData()
     dataaccess->Include(_columns, Encoder<int>::Encode(4), list_of<std::string>(Encoder<int>::Encode(4))("Andy")("Warhol")(Encoder<bool>::Encode(true))("9/14/1987")("New York"));
     dataaccess->Include(_columns, Encoder<int>::Encode(5), list_of<std::string>(Encoder<int>::Encode(5))("Carl")("Sagan")(Encoder<bool>::Encode(true))("4/1/1957")("Tokyo"));
     dataaccess->Include(_columns, Encoder<int>::Encode(6), list_of<std::string>(Encoder<int>::Encode(6))("Marie")("Curie")(Encoder<bool>::Encode(false))("1/13/1984")("Las Vegas"));
-
 }
     
 
