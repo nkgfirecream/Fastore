@@ -49,7 +49,7 @@ struct ConnectResult
 	union
 	{
 		FastoreError error;
-		ConnectionHandle connetion;
+		ConnectionHandle connection;
 	};
 };
 
