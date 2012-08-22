@@ -1,0 +1,10 @@
+﻿Build started 8/22/2012 3:47:02 PM.
+     1>Project "C:\projects\fastore\Testing\FastoreProvider.Test\FastoreProvider.Test\FastoreProvider.Test.vcxproj" on node 2 (Build target(s)).
+         C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\bin\CL.exe /c /I"C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\UnitTest\include" /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\FastoreProvider.Test.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /FC /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+     1>c:\projects\fastore\testing\fastoreprovider.test\fastoreprovider.test\targetver.h(8): fatal error C1083: Cannot open include file: 'SDKDDKVer.h': No such file or directory
+     1>Done Building Project "C:\projects\fastore\Testing\FastoreProvider.Test\FastoreProvider.Test\FastoreProvider.Test.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.75
