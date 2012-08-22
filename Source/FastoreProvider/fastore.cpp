@@ -57,7 +57,7 @@ FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct 
 			}
 
 			// Create database
-			result.connetion = new shared_ptr<prov::Connection>(new prov::Connection(serverAddresses));
+			result.connection = new shared_ptr<prov::Connection>(new prov::Connection(serverAddresses));
 		}
 	);
 }
