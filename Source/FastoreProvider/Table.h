@@ -3,6 +3,7 @@
 
 namespace provider = fastore::provider;
 namespace client = fastore::client;
+namespace communication = fastore::communication;
 
 namespace fastore
 {
@@ -16,13 +17,18 @@ namespace fastore
 {
 	namespace module
 	{
+		class Cursor;
+
 		class Table
 		{
+			friend class Cursor;
+
 		private:
 			boost::shared_ptr<client::Transaction> _transaction;
 			provider::Connection* _connection;
 			std::string _name;
 			std::vector<client::ColumnDef> _columns;
+			std::vector<communication::ColumnID> _columnIds;
 
 		public:
 			Table(provider::Connection* connection, std::string name, std::vector<client::ColumnDef> columns);
@@ -46,7 +52,19 @@ namespace fastore
 			void connect();
 
 			//Cursor operations: get range, etc.
-			
+			void deleteRow(sqlite3_value* rowId);
+
+			//Inserts a row. Sets pRowid to the id generated (if any)
+			void insertRow(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid);
+
+			//Determines best index for table
+			void bestIndex(sqlite3_index_info* info);
+
+		private:
+			void createColumn(client::ColumnDef& column, std::string combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod);
+
+			//For use by the cursor. Depending on how SQLite is implemented this may either need to go through the transaction or around it.
+			client::RangeSet getRange(client::Range& range, boost::optional<std::string>& startId);
 		};
 	}
 }

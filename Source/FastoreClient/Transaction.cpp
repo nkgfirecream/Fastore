@@ -113,7 +113,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 
 	// Process excludes from results
 	std::vector<DataSetRow> resultRows; 
-	for (auto row = raw.getData().begin(); row != raw.getData().end(); ++row)
+	for (auto row = raw.Data.begin(); row != raw.Data.end(); ++row)
 	{
 		DataSetRow newRow(row->Values.size());
 		newRow.ID = row->ID;
@@ -176,7 +176,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 	for (int i = 0; i < result.size(); i++)
 		result[i] = resultRows[i];
 
-	raw.setData(result);
+	raw.Data = result;
 
 	return raw;
 }

@@ -259,41 +259,13 @@ int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sql
 int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: set output information of info based on the inputs --
-	// sqlite3_index_info looks like:
-	//  struct sqlite3_index_info {
-	  /* Inputs */
-	  //  const int nConstraint;     /* Number of entries in aConstraint */
-	  //  const struct sqlite3_index_constraint {
-	  //     int iColumn;              /* Column on left-hand side of constraint */
-	  //     unsigned char op;         /* Constraint operator */
-	  //     unsigned char usable;     /* True if this constraint is usable */
-	  //     int iTermOffset;          /* Used internally - xBestIndex should ignore */
-	  //  } *const aConstraint;      /* Table of WHERE clause constraints */
-	  //  const int nOrderBy;        /* Number of terms in the ORDER BY clause */
-	  //  const struct sqlite3_index_orderby {
-	  //     int iColumn;              /* Column number */
-	  //     unsigned char desc;       /* True for DESC.  False for ASC. */
-	  //  } *const aOrderBy;         /* The ORDER BY clause */
-
-	  //  /* Outputs */
-	  //  struct sqlite3_index_constraint_usage {
-	  //    int argvIndex;           /* if >0, constraint is part of argv to xFilter */
-	  //    unsigned char omit;      /* Do not code a test for this constraint */
-	  //  } *const aConstraintUsage;
-	  //  int idxNum;                /* Number used to identify the index */
-	  //  char *idxStr;              /* String, possibly obtained from sqlite3_malloc */
-	  //  int needToFreeIdxStr;      /* Free idxStr using sqlite3_free() if true */
-	  //  int orderByConsumed;       /* True if output is already ordered */
-	  //  double estimatedCost;      /* Estimated cost of using this index */
-	  //};
+	v->table->bestIndex(info);
 	return SQLITE_OK;
 }
 
 int moduleDisconnect(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Release the vTab object only. Backing store should persist
 	v->table->disconnect();
 	delete v->table;
 	free(v);
@@ -317,8 +289,6 @@ int moduleOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor)
 	c = (fastore_vtab_cursor *) calloc(sizeof(fastore_vtab_cursor), 1);
 	*ppCursor = &c->base;
 	c->cursor = new module::Cursor(v->table);
-	//TODO: initalize other parts of fastore cursor?
-	//According to docs initial state is undefined. A subsequent call moduleFilter will intialize state.
 	return SQLITE_OK;
 }
 
@@ -333,14 +303,13 @@ int moduleClose(sqlite3_vtab_cursor* sqlSur)
 int moduleFilter(sqlite3_vtab_cursor* pCursor, int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
 {
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	//TODO: filter cursor based on the parameters.
+	c->cursor->filter(idxNum, idxStr, argc, argv);
 	return SQLITE_OK;
 }
 
 int moduleNext(sqlite3_vtab_cursor *pCursor)
 {
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	//Advance cursor
 	c->cursor->next();
 	return SQLITE_OK;
 }
@@ -348,49 +317,38 @@ int moduleNext(sqlite3_vtab_cursor *pCursor)
 int moduleEof(sqlite3_vtab_cursor *pCursor)
 {
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	//Returns true if not pointing at a valid row of a data. (False should be zero).
 	return c->cursor->eof();
 }
 
 int moduleColumn(sqlite3_vtab_cursor *pCursor, sqlite3_context *pContext, int index)
 {
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	//TODO: Find the value of the n-th column in the current row. Call one of the following functions based on type:
-	//sqlite3_result_blob()
-	//sqlite3_result_double()
-	//sqlite3_result_int()
-	//sqlite3_result_int64()
-	//sqlite3_result_null()
-	//sqlite3_result_text()
-	//sqlite3_result_text16()
-	//sqlite3_result_text16le()
-	//sqlite3_result_text16be()
-	//sqlite3_result_zeroblob()
+	c->cursor->setColumnResult(pContext, index);
 	return SQLITE_OK;
 }
 
 int moduleRowid(sqlite3_vtab_cursor *pCursor, sqlite3_int64 *pRowid)
 {
 	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	//TODO: Place the current row's Id int pRowId.
+	c->cursor->setRowId(pRowid);
 	return SQLITE_OK;
 }
 
 int moduleUpdate(sqlite3_vtab *pVTab, int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {	
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: This handles inserts, updates, and deletes on a table, one row at a time.
-	//The value of argc will be 1 for a pure delete operation or N+2 for an insert or replace or update where N is the number of columns in the table.
-	//The argv[0] parameter is the rowid of a row in the virtual table to be deleted. If argv[0] is an SQL NULL, then no deletion occurs.
-	//The argv[1] parameter is the rowid of a new row to be inserted into the virtual table. If argv[1] is an SQL NULL, then the implementation must choose a rowid for the newly inserted row. Subsequent argv[] entries contain values of the columns of the virtual table, in the order that the columns were declared.
-	//If we choose a rowId, we must place the value into pRowid
+	if (sqlite3_value_type(argv[0]) != SQLITE_NULL)
+		v->table->deleteRow(argv[0]);
+
+	if (argc > 1)
+		*pRowid = v->table->insertRow(argc, argv, pRowId);
+
 	return SQLITE_OK;
 }
 
 int moduleBegin(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Start a transaction on the table
 	v->table->begin();
 	return SQLITE_OK;
 }
@@ -398,7 +356,6 @@ int moduleBegin(sqlite3_vtab *pVTab)
 int moduleSync(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Start first phase of two-phase commit (prepare or apply?)
 	v->table->sync();
 	return SQLITE_OK;
 }
@@ -406,7 +363,6 @@ int moduleSync(sqlite3_vtab *pVTab)
 int moduleCommit(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Commit a transaction in progress.
 	v->table->commit();
 	return SQLITE_OK;
 }
@@ -414,7 +370,6 @@ int moduleCommit(sqlite3_vtab *pVTab)
 int moduleRollback(sqlite3_vtab *pVTab)
 {
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Rollback a transaction in progress.
 	v->table->rollback();
 	return SQLITE_OK;
 }

@@ -14,11 +14,17 @@ namespace fastore
 				void next();
 				int eof();
 				void close();
-				std::string column(int index);
-				std::string rowId();
+				void setColumnResult(sqlite3_context *pContext, int index);
+				void setRowId(sqlite3_int64 *pRowid);
+				void filter(int idxNum, const char *idxStr, int argc, sqlite3_value **argv);
 
 			private:
 				fastore::module::Table* _table;
+				client::RangeSet _set;
+				client::Range _range;
+
+				int _index;
+				void getNextSet();
 		};
 	}
 }

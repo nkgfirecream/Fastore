@@ -181,8 +181,8 @@ void Generator::DefaultPods()
 	auto podIds = _database->GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
-	if (podIds.getData().size() == 0)
+	if (podIds.Data.size() == 0)
 		throw ClientException("Can't create generator column. No pods in hive.", ClientException::Codes::NoWorkersInHive);
 
-	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.getData()[0].Values[0]));
+	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.Data[0].Values[0]));
 }

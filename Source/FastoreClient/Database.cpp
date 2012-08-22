@@ -643,9 +643,9 @@ RangeSet Database::ResultsToRangeSet(DataSet& set, const int rangeColumnId, cons
 {
 	RangeSet result;
 
-	result.setBof(rangeResult.bof);
-	result.setEof(rangeResult.eof);
-	result.setLimited(rangeResult.limited);
+	result.Bof = rangeResult.bof;
+	result.Eof = rangeResult.eof;
+	result.Limited = rangeResult.limited;
 
 
 	int valueRowValue = 0;
@@ -661,7 +661,7 @@ RangeSet Database::ResultsToRangeSet(DataSet& set, const int rangeColumnId, cons
 		}
 	}
 
-	result.setData(set);
+	result.Data = set;
 
 	return result;
 }
@@ -1067,7 +1067,7 @@ Schema Database::LoadSchema()
 		range.ColumnID = Dictionary::ColumnID;
 		RangeSet columns = GetRange(Dictionary::ColumnColumns, range, MaxFetchLimit);
 
-		for (auto column : columns.getData())
+		for (auto column : columns.Data)
 		{
 			ColumnDef def;
 			def.ColumnID = Encoder<ColumnID>::Decode(column.ID);
@@ -1080,7 +1080,7 @@ Schema Database::LoadSchema()
 			schema.insert(std::pair<int, ColumnDef>(def.ColumnID, def));
 		}
 		//TODO: this is wrong. We need to set the startId on the range above for this to resume properly
-		finished = !columns.getLimited();
+		finished = !columns.Limited;
 	}
 	return schema;
 }

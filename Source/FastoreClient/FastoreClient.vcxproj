@@ -37,7 +37,6 @@
     <ClCompile Include="Dictionary.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="IDGenerator.cpp" />
-    <ClCompile Include="RangeSet.cpp" />
     <ClCompile Include="ServiceAddress.cpp" />
     <ClCompile Include="Transaction.cpp" />
   </ItemGroup>

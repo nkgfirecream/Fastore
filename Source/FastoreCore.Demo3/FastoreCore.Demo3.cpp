@@ -95,8 +95,8 @@ void InsertRecord(std::vector<std::string>& record, std::vector<ColumnID>& colum
 int _tmain(int argc, _TCHAR* argv[])
 {
 	ServiceAddress address;
-	address.setName("localhost");
-	address.setPort(ServiceAddress::DefaultPort);
+	address.Name = "localhost";
+	address.Port = ServiceAddress::DefaultPort;
 
 	std::vector<ServiceAddress> addresses;
 	addresses.push_back(address);
