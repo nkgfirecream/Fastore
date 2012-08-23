@@ -29,14 +29,46 @@ using fastore::communication::Writes;
 # define DEBUG_FUNC() {}
 #endif
 
+class Md4 
+{
+ public:
+  enum { size = 16 };
+  
+ private:
+  unsigned char data[size]; // md4
+
+  Md4() {
+    memset(data, 0, size);
+  }
+
+  Md4( const unsigned char * input, size_t length ) {
+    MD4_CTX context;
+    MD4Init(&context);
+    MD4Update(&context, input, length);
+    MD4Final(this->data, &context);
+  }
+
+  bool operator==( const Md4& that ) {
+    return 0 == memcmp(data, that.data, size);
+  }
+  bool operator==( const unsigned char * that ) {
+    return 0 == memcmp(data, that, size);
+  }
+};
+
+
 class WalFile
 {
 public:
   class Header 
   {
+    friend char* operator<<( char* p, const WalFile::Header& h );
+
+    const string magic_version;
+    int32_t salt;
+
   public:
-    static const size_t osPageSize;
-    static const char *blankPage;
+    static const in32_t  osPageSize;
     static size_t sizeInPages() { return WAL_FILE_SIZE / osPageSize; }
 
     Header();
@@ -51,6 +83,7 @@ private:
   int os_error;
 
   static int random_fd;
+  static const char *blankPage;
 
 public:
   WalFile( const std::string& dirname, const wal_desc_t& desc );

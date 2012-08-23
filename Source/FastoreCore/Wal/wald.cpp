@@ -83,8 +83,9 @@ main( int argc, char *argv[] )
   const char *dir = dirname(req);
   if( -1 == stat(dir, &sb) ) {
     if( -1 == mkdir(dir, 0700) ) {
-    syslog( LOG_ERR, "%d: %m", __LINE__);
-    return EXIT_FAILURE;
+      syslog( LOG_ERR, "%d: %m", __LINE__);
+      return EXIT_FAILURE;
+    }
   }
 
   if( -1 == chdir(dir) ) {
@@ -169,7 +170,5 @@ main( int argc, char *argv[] )
     }
 
   }
-
-   
 }
 
