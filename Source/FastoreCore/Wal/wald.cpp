@@ -174,55 +174,69 @@ main( int argc, char *argv[] )
   syslog( LOG_INFO, "%d: opening '%s'", __LINE__, Wald::requests );
 
   int requests;
-  if( (requests = open(Wald::requests, O_RDONLY, O_NONBLOCK)) == -1 ) {
+  if( (requests = open(Wald::requests, O_RDONLY, 0)) == -1 ) {
     syslog( LOG_ERR, "%d: failed to open %s", __LINE__, Wald::requests );
     return EXIT_FAILURE;
   }
-  syslog( LOG_INFO, "%d: reading requests on '%s'", __LINE__, Wald::requests );
 
-  while( sizeof(wal_desc) == read(requests, &wal_desc, sizeof(wal_desc)) ) {
-    syslog( LOG_INFO, "%d: request from %d", __LINE__, wal_desc.pid );
-    // find or create response pipe
-    pidmap::iterator pout = results.find(wal_desc.pid);
-    int output;
-    if( pout == results.end() ) {
-      ostringstream name;
-      name << Wald::responses << wal_desc.pid;
-      if( -1 == stat(name.str().c_str(), &sb) ) {
-	/*
-	 * Response FIFO name *must* exist, else it's a logic error. 
-	 * Caller is responsible to set up FIFO and have read pending
-	 * on it. But failure to do so doesn't take down the daemon. 
-	 */
-	syslog( LOG_ERR, "%d: %s: %m", __LINE__, name.str().c_str() );
-	continue;
+  size_t nread(0);
+  while( nread == 0 && requests >= 0 ) {
+    syslog( LOG_INFO, "%d: reading requests on '%s'", __LINE__, Wald::requests );
+    while( (nread = read(requests, &wal_desc, sizeof(wal_desc)))
+	   == sizeof(wal_desc) ) {
+      syslog( LOG_INFO, "%d: request from %d", __LINE__, wal_desc.pid );
+      // find or create response pipe
+      pidmap::iterator pout = results.find(wal_desc.pid);
+      int output;
+      if( pout == results.end() ) {
+	ostringstream name;
+	name << Wald::responses << wal_desc.pid;
+	if( -1 == stat(name.str().c_str(), &sb) ) {
+	  /*
+	   * Response FIFO name *must* exist, else it's a logic error. 
+	   * Caller is responsible to set up FIFO and have read pending
+	   * on it. But failure to do so doesn't take down the daemon. 
+	   */
+	  syslog( LOG_ERR, "%d: %s: %m", __LINE__, name.str().c_str() );
+	  continue;
+	}
+	if( (output = open(name.str().c_str(), O_WRONLY, 0)) == -1 ) {
+	  syslog( LOG_ERR, "%d: %m", __LINE__);
+	  return EXIT_FAILURE;
+	}
+	results[wal_desc.pid] = output;
+      } else {
+	output = pout->second;
       }
-      if( (output = open(name.str().c_str(), O_WRONLY, O_NONBLOCK)) == -1 ) {
-	syslog( LOG_ERR, "%d: %m", __LINE__);
+
+      // initialize WAL and send status back to caller
+      int err;
+      try {
+	WalFile walfile( dirname, wal_desc );
+	string name(dirname + "/" + wal_desc.name());
+	syslog( LOG_INFO, "%d: generated %s", __LINE__, name.c_str() );
+	err = 0;
+      } 
+      catch( const std::exception& oops ) {
+	syslog( LOG_ERR, "%d: %s", __LINE__, oops.what() );
+	err = 1;
+      }
+
+      if( sizeof(err) != write(output, &err, sizeof(err)) ) {
+	syslog( LOG_ERR, "%d: %m", __LINE__ );
+	// FIXME: successful, but client will never hear.  What to do? 
+      }
+    }
+
+    if( 0 == nread ) { // no requests outstanding; re-open and wait
+      syslog( LOG_INFO, "%d: idle", __LINE__ );
+      if( (requests = open(Wald::requests, O_RDONLY, 0)) == -1 ) {
+	syslog( LOG_ERR, "%d: failed to open %s", __LINE__, Wald::requests );
 	return EXIT_FAILURE;
       }
-      results[wal_desc.pid] = output;
-    } else {
-      output = pout->second;
-    }
-
-
-    // initialize WAL and send status back to caller
-    int err;
-    try {
-      WalFile walfile( dirname, wal_desc );
-      err = 0;
-    } 
-    catch( const std::exception& oops ) {
-      syslog( LOG_ERR, "%d: %s", __LINE__, oops.what() );
-      err = 1;
-    }
-
-    if( sizeof(err) != write(output, &err, sizeof(err)) ) {
-      syslog( LOG_ERR, "%d: %m", __LINE__ );
-      // FIXME: successful, but client will never hear.  What to do? 
     }
   }
+  
   syslog( LOG_ERR, "%d: error reading %s: %m", __LINE__, Wald::requests );
 
 }

@@ -38,7 +38,7 @@ main( int argc, char *argv[] )
   
   cout << "opening " << Wald::requests << endl;
   int output;
-  if( (output = open(Wald::requests, O_WRONLY, O_NONBLOCK)) == -1 ) {
+  if( (output = open(Wald::requests, O_WRONLY, 0)) == -1 ) {
     perror(NULL);
     return EXIT_FAILURE;
   }
@@ -50,7 +50,7 @@ main( int argc, char *argv[] )
   }
 
   cout << "opening " << responses << endl;
-  if( (input = open(responses.c_str(), O_RDONLY, O_NONBLOCK)) == -1 ) {
+  if( (input = open(responses.c_str(), O_RDONLY, 0)) == -1 ) {
     perror(responses.c_str());
     return EXIT_FAILURE;
   }
