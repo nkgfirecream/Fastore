@@ -32,6 +32,11 @@ using fastore::communication::Writes;
 # define DEBUG_FUNC() {}
 #endif
 
+namespace Wald {
+  extern const char *requests;
+  extern const char *responses;
+}
+
 class Md4 
 {
   friend unsigned char* operator<<( unsigned char* buf, const Md4& md4 );
@@ -66,13 +71,15 @@ struct wal_desc_t
 {
   const char prefix[8];
   const char suffix[5];
-  char log_number[8];
+  char log_number[8+1]; // allow for NULL
   pid_t pid;
 
   std::string name() const {
     std::ostringstream os;
       
-    os << prefix << '.' << log_number << suffix;
+    os << prefix << '.' 
+       << std::string(log_number, sizeof(log_number)-1) 
+       << suffix;
     return os.str();
   }
 };

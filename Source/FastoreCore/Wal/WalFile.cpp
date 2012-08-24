@@ -28,7 +28,12 @@ using namespace std;
   throw std::runtime_error( oops.str() ); \
   }
 
-extern const char random_dev[];
+extern const char *random_dev;
+
+namespace Wald {
+  const char *requests = "/var/fastore/wald/request";
+  const char *responses = "/var/fastore/wald/";
+}
 
 WalFile::Header::Header()
   : magic_version("FASTORE\0")
@@ -95,7 +100,7 @@ randomness(int n, void *buf)
   }
 }
 
-int WalFile::random_fd( open(random_dev, O_RDONLY) );
+int WalFile::random_fd(-1);
 
 /*
  * Public
@@ -105,6 +110,9 @@ WalFile( const string& dirname, const wal_desc_t& desc )
   : dirname(dirname)
   , wal_desc(desc)
 {
+  if( random_fd  == -1 ) {
+    random_fd = open(random_dev, O_RDONLY);
+  }
   if( random_fd  == -1 ) {
     THROW("could not open random-number generator", random_dev );
   }
