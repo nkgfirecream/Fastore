@@ -13,7 +13,7 @@ Generator::Generator(boost::shared_ptr<Database> database, std::vector<PodID> po
 	_lock = boost::shared_ptr<boost::mutex>(new boost::mutex());
 }
 
-long long Generator::Generate(int columnId)
+int Generator::Generate(int columnId)
 {
 	// Take lock
 	_lock->lock();
@@ -34,7 +34,7 @@ long long Generator::Generate(int columnId)
 					(
 						new IDGenerator
 						(
-							[&, columnId](long long size) { return this->InternalGenerate(columnId, size); }
+							[&, columnId](int size) { return this->InternalGenerate(columnId, size); }
 						)
 					)
 				)
@@ -59,7 +59,7 @@ long long Generator::Generate(int columnId)
 	}
 }
 
-long long Generator::InternalGenerate(int tableId, long long size)
+int Generator::InternalGenerate(int tableId, int size)
 {
 	while (true)
 	{
@@ -71,20 +71,21 @@ long long Generator::InternalGenerate(int tableId, long long size)
 				std::string tableIdstring = Encoder<int>::Encode(tableId);
 				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
 				
-				boost::optional<long long> result;
+				int result = 0;
 
 				if (values.size() > 0)
 				{
-						result = Encoder<long long>::Decode(values[0].Values[0]);
-						transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
+						result = Encoder<int>::Decode(values[0].Values[0]);
+						if (result > 0 /* TODO: NULL Marker! Right now we just get garbage in a result wasn't found */)
+							transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
+						else
+							result = Dictionary::MaxClientColumnID + 1; //Seed value.. don't start with zero because we may have added those manually.
 				}
 
-				long long generatedValue = result ? *result : 1;
-
-				transaction->Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<long long>::Encode(generatedValue + size)));
+				transaction->Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<int>::Encode(result + size)));
 
 				transaction->Commit();
-				return generatedValue;
+				return result;
 			}		
 			catch (ClientException& e)
 			{
@@ -137,10 +138,14 @@ void Generator::EnsureGeneratorTable()
 			list_of<std::string> 
 				(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
 				("Generator.Generator")
-				("Long")
 				("Int")
+				("Int")
+				(Encoder<BufferType>::Encode(BufferType::Unique))
 				(Encoder<bool>::Encode(true))
 		);
+
+		transaction->Commit();
+		transaction = _database->Begin(true, true);
 
 		// Add the association with each pod
 		for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
@@ -155,13 +160,16 @@ void Generator::EnsureGeneratorTable()
 			);
 		}
 
+		transaction->Commit();
+		transaction = _database->Begin(true, true);
+
 		// Seed the column table to the first user ID
 		transaction->Include
 		(
 			Dictionary::GeneratorColumns, 
-			Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID),
+			Encoder<ColumnID>::Encode(Dictionary::ColumnID),
 			list_of<std::string> 
-				(Encoder<ColumnID>::Encode(Dictionary::ColumnID))
+				(Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID + 1))
 		);
 
 		transaction->Commit();

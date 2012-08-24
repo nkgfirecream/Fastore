@@ -28,16 +28,27 @@ int Cursor::eof()
 
 void Cursor::setColumnResult(sqlite3_context *pContext, int index)
 {
-	//sqlite3_result_blob()
-	//sqlite3_result_double()
-	//sqlite3_result_int()
-	//sqlite3_result_int64()
-	//sqlite3_result_null()
-	//sqlite3_result_text()
-	//sqlite3_result_text16()
-	//sqlite3_result_text16le()
-	//sqlite3_result_text16be()
-	//sqlite3_result_zeroblob()
+	auto type = _table->_columns[index].Type;
+	auto value = _set.Data[_index].Values[index];
+
+	//NULL Marker required...
+	//if (value is NULL)
+	// sqlite3_result_null(pContext);
+	// return;
+	
+	if (type == "Bool")
+		sqlite3_result_int(pContext, (int)Encoder<bool>::Decode(value));
+	else if (type == "Int")
+		sqlite3_result_int(pContext, Encoder<int>::Decode(value));
+	else if (type == "Long")
+		sqlite3_result_int64(pContext, Encoder<long long>::Decode(value));
+	else if (type == "String")
+		sqlite3_result_text(pContext, value.data(), value.length(), NULL);
+	else if (type == "WString")
+	{
+		std::wstring decoded = Encoder<std::wstring>::Decode(value);
+		sqlite3_result_text16(pContext, decoded.data(), decoded.length(), NULL);
+	}
 }
 
 void Cursor::setRowId(sqlite3_int64 *pRowid)
@@ -74,6 +85,10 @@ void Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_value **ar
 	_set = RangeSet();
 	//The goal here is to set up our private _range and then load data.
 	//_range = something...
+
+	_range = Range();
+	_range.Ascending; // = idxNum != 0;
+	_range.ColumnID = _table->_columns[0].ColumnID;
 
 	getNextSet();
 }

@@ -1,23 +1,31 @@
-#include <sqlite3.h>
-#include <vector>
-#include <memory>
-#include <exception>
-#include <sstream>
-#include <map>
+#pragma once
+
 #include "..\FastoreClient\ColumnDef.h"
 #include "Cursor.h"
 #include "Table.h"
+#include "Address.h"
 #include "Connection.h"
-
+#include <sqlite3.h>
 
 namespace client = fastore::client;
 namespace module = fastore::module;
-namespace provider = fastore::provider;
 
 using namespace std;
 
 // For questions on this SQLite module, see SQLite virtual table documentation: http://www.sqlite.org/vtab.html
 const char* const SQLITE_MODULE_NAME = "Fastore";
+
+
+void* initializeFastoreModule(std::vector<fastore::module::Address>& addresses)
+{
+	return new module::Connection(addresses);
+}
+
+void destroyFastoreModule(void* state)
+{
+	auto pConnection = (module::Connection*)state;
+	delete pConnection;
+}
 
 void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
 {
@@ -74,7 +82,7 @@ client::ColumnDef ParseColumnDef(string text)
 	istringstream reader(text, istringstream::in);
 	if (!std::getline(reader, result.Name, ' ')) 
 		throw exception("Missing column name");
-	if (!std::getline(reader, result.Type))
+	if (!std::getline(reader, result.Type, ' '))
 		result.Type = "String";
 	auto stringText = string(text);
 	//TODO: When should we use an identity buffer? Primary key?
@@ -178,6 +186,36 @@ struct fastore_vtab_cursor
 	module::Cursor* cursor;
 };
 
+fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab)
+{
+	auto connection = (module::Connection*)pAux;
+	auto tableName = argv[2];
+
+	// Parse each column into a ColumnDef
+	std::vector<client::ColumnDef> defs;
+	defs.reserve(argc - 3);
+	string idType = "Int";
+	for (int i = 3; i < argc; i++)
+	{
+		auto def = ParseColumnDef(argv[i]);
+		def.IDType = "Int";
+		defs.push_back(def);
+		// TODO: track row ID type candidates
+	}
+
+	auto vtab = (fastore_vtab*)sqlite3_malloc(sizeof(fastore_vtab));
+	*ppVTab = &vtab->base;
+	vtab->base.nRef = 0;
+	vtab->base.pModule = 0;
+	vtab->base.zErrMsg = 0;
+
+	//Create the table in fastore.
+	vtab->table = new module::Table(connection, string(tableName), defs);
+
+	moduleInit(db, defs);
+	return vtab;
+}
+
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
 int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**pzErr)
 {
@@ -185,32 +223,10 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 	(
 		[&]() -> int
 		{
-			auto connection = (provider::Connection*)pAux;
-			auto tableName = argv[2];
-
-			// Parse each column into a ColumnDef
-			std::vector<client::ColumnDef> defs;
-			defs.reserve(argc - 4);
-			string idType = "Int";
-			for (int i = 4; i < argc; i++)
-			{
-				defs.push_back(ParseColumnDef(argv[i]));
-				// TODO: track row ID type candidates
-			}
-			for (auto def : defs)
-				def.IDType = idType;
-
-			auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
-			*ppVTab = &vtab->base;
-
-			//Create the table in fastore.
-			vtab->table = new module::Table(connection, string(tableName), defs);
+			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);
 
 			//Try to create the table in Fastore
 			vtab->table->create();
-
-			vtab.reset();
-			moduleInit(db, defs);
 			return SQLITE_OK;
 		},
 		pzErr
@@ -224,32 +240,9 @@ int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sql
 	(
 		[&]() -> int
 		{
-			auto connection = (provider::Connection*)pAux;
-			auto tableName = argv[2];
-
-			// Parse each column into a ColumnDef
-			std::vector<client::ColumnDef> defs;
-			defs.reserve(argc - 4);
-			string idType = "Int";
-			for (int i = 4; i < argc; i++)
-			{
-				defs.push_back(ParseColumnDef(argv[i]));
-				// TODO: track row ID type candidates
-			}
-			for (auto def : defs)
-				def.IDType = idType;
-
-			auto vtab = unique_ptr<fastore_vtab>((fastore_vtab *)sqlite3_malloc(sizeof(fastore_vtab)));
-			*ppVTab = &vtab->base;
-
-			//Create the table in fastore.
-			vtab->table = new module::Table(connection, string(tableName), defs);
-
+			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);
 			//Try to connect to the table in Fastore -- test to see if the columns exist and update our local columnIds
-			vtab->table->connect();
-
-			vtab.reset();
-			moduleInit(db, defs);
+			vtab->table->connect();	
 			return SQLITE_OK;
 		},
 		pzErr
@@ -337,12 +330,7 @@ int moduleRowid(sqlite3_vtab_cursor *pCursor, sqlite3_int64 *pRowid)
 int moduleUpdate(sqlite3_vtab *pVTab, int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {	
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	if (sqlite3_value_type(argv[0]) != SQLITE_NULL)
-		v->table->deleteRow(argv[0]);
-
-	if (argc > 1)
-		*pRowid = v->table->insertRow(argc, argv, pRowId);
-
+	v->table->update(argc, argv, pRowid);
 	return SQLITE_OK;
 }
 

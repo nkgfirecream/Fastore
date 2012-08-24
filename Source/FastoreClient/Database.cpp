@@ -358,7 +358,7 @@ int Database::GetWorkerIDForColumn(int columnID)
 	auto iter = _columnWorkers.find(columnID);
 	if (iter == _columnWorkers.end())
 	{
-		ClientException error(boost::str(boost::format("No worker is currently available for column ID ({0}).") % columnID), ClientException::Codes::NoWorkerForColumn);
+		ClientException error(boost::str(boost::format("No worker is currently available for column ID (%1%).") % columnID), ClientException::Codes::NoWorkerForColumn);
 		
 		//TODO: Possibly add data to client exception
 		// (or build an exception base class analogous to the C# one)

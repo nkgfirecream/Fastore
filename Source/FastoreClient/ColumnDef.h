@@ -1,23 +1,26 @@
 ﻿#pragma once
 #include <string>
 
-namespace fastore { namespace client
-{
-	enum class BufferType
+namespace fastore 
+{ 
+	namespace client
 	{
-		Identity = 0,
-		Unique = 1,
-		Multi = 2
-	};
+		enum class BufferType
+		{
+			Identity = 0,
+			Unique = 1,
+			Multi = 2
+		};
 
-	class ColumnDef
-	{
-	public:
-		int ColumnID;
-		std::string Name;
-		std::string Type;
-		std::string IDType;
-		BufferType BufferType;
-		bool Required;
-	};
-}}
+		class ColumnDef
+		{
+		public:
+			int ColumnID;
+			std::string Name;
+			std::string Type;
+			std::string IDType;
+			BufferType BufferType;
+			bool Required;
+		};
+	}
+}

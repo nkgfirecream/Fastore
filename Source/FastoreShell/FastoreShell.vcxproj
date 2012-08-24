@@ -63,13 +63,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\SQLite</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\SQLite;$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SQLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SQLite.lib;libthrift.lib;FastoreModule.lib;FastoreClient.lib;FastoreCommunication.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Debug;$(SolutionDir)..\External\boost_1_49_0\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -81,7 +82,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\SQLite</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\SQLite;$(SolutionDir)..\External\Thrift\src;$(SolutionDir)..\External\Thrift\src\thrift\windows;$(SolutionDir)..\External\boost_1_49_0;$(SolutionDir)..\External\boost_1_49_0\boost\tr1</AdditionalIncludeDirectories>
+      <MinimalRebuild>true</MinimalRebuild>
+      <ShowIncludes>true</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -89,14 +92,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>SQLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Release;$(SolutionDir)..\External\boost_1_49_0\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="shell.c" />
+    <ClCompile Include=".\shell.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,8 +3,8 @@
 
 using namespace fastore::client;
 
-IDGenerator::IDGenerator(std::function<long long(long long)> _generateCallback, long long blockSize, int allocationThreshold)
-	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold)
+IDGenerator::IDGenerator(std::function<int(int)> _generateCallback, int blockSize, int allocationThreshold)
+	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold), _loadingBlock(false), _endOfRange(0), _nextId(0)
 {
 	if (blockSize < 1)
 		throw std::exception("Block size must be at least 1.");
@@ -22,13 +22,15 @@ IDGenerator::IDGenerator(std::function<long long(long long)> _generateCallback, 
 		//Set up a pool of threads so that the io service can process multiple "works"
 		_threads.create_thread(boost::bind(&boost::asio::io_service::run, &_io_service));
 	}
+
+	_spinlock.unlock();
 }
 
 void IDGenerator::AsyncGenerateBlock()
 {
 	try
 	{
-		long long newBlock;
+		int newBlock;
 		try
 		{
 			// Fetch the next ID block
@@ -37,7 +39,7 @@ void IDGenerator::AsyncGenerateBlock()
 		catch (std::exception &e)
 		{
 			// If an error happens here, any waiting requesters will block
-			ResetLoading(boost::optional<long long>(), e);
+			ResetLoading(boost::optional<int>(), e);
 			throw;
 		}
 
@@ -49,11 +51,10 @@ void IDGenerator::AsyncGenerateBlock()
 	}
 }
 
-void IDGenerator::ResetLoading(boost::optional<long long> newBlock, boost::optional<std::exception> e)
+void IDGenerator::ResetLoading(boost::optional<int> newBlock, boost::optional<std::exception> e)
 {
-	// Take the latch
-	
-	while (!_spinlock.try_lock());
+	// Take the latch	
+	_spinlock.lock();
 	bool taken = true;
 	try
 	{
@@ -73,7 +74,6 @@ void IDGenerator::ResetLoading(boost::optional<long long> newBlock, boost::optio
 		_spinlock.unlock();
 		taken = false;
 	}
-//C# TO C++ CONVERTER TODO TASK: There is no native C++ equivalent to the exception 'finally' clause:
 	catch(std::exception& e)
 	{
 		if (taken)
@@ -81,17 +81,21 @@ void IDGenerator::ResetLoading(boost::optional<long long> newBlock, boost::optio
 	}
 }
 
-long long IDGenerator::Generate()
+int IDGenerator::Generate()
 {
+	bool lockTaken = false;
 	while (true)
 	{
 		// Take ID generation latch
-		while (!_spinlock.try_lock());
-		bool lockTaken = true;
+		if (!lockTaken)
+		{
+			_spinlock.lock();
+			lockTaken = true;
+		}
 		try
 		{
 			// Generate
-			long long nextId = _nextId;
+			int nextId = _nextId;
 			++_nextId;
 
 			// Deal with low number of IDs remaining
@@ -121,7 +125,7 @@ long long IDGenerator::Generate()
 					_loadEvent.wait();
 
 					// Take the lock back
-					while (!_spinlock.try_lock());
+					_spinlock.lock();
 					lockTaken = true;
 
 					// Throw if there was an error attempting to load a new block
@@ -155,7 +159,7 @@ void IDGenerator::ResetCache()
 		_loadEvent.wait();
 
 		// Take latch
-		while (!_spinlock.try_lock());
+		_spinlock.lock();
 		bool taken = true;
 		try
 		{

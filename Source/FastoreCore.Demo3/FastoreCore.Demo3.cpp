@@ -125,7 +125,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	for (int i = 0; i < _columns.size(); i++)
 	{
-		_database->Include(Dictionary::PodColumnColumns, Encoder<int>::Encode(i), list_of<std::string>(podIds.getData()[i % podIds.getData().size()].Values[0])(Encoder<ColumnID>::Encode(_columns[i])));
+		_database->Include(Dictionary::PodColumnColumns, Encoder<int>::Encode(i), list_of<std::string>(podIds.Data[i % podIds.Data.size()].Values[0])(Encoder<ColumnID>::Encode(_columns[i])));
 	}
 
 

@@ -19,7 +19,7 @@ namespace fastore { namespace client
 
 		std::vector<PodID>_podIDs;
 
-		long long InternalGenerate(int tableId, long long size);
+		int InternalGenerate(int tableId, int size);
 
 		bool IsNoWorkerForColumnException(const ClientException &clientex);
 
@@ -35,6 +35,6 @@ namespace fastore { namespace client
 
 		/// <summary> Generates the next value for the given table. </summary>
 		/// <param name="columnId"> The column an ID is being generated for. </param>
-		long long Generate(int columnId);		
+		int Generate(int columnId);		
 	};
 }}

@@ -28,6 +28,7 @@
 # define _LARGEFILE_SOURCE 1
 #endif
 
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -35,6 +36,7 @@
 #include "sqlite3.h"
 #include <ctype.h>
 #include <stdarg.h>
+#include "..\FastoreModule\Module.h"
 
 #if !defined(_WIN32) && !defined(WIN32) && !defined(__OS2__)
 # include <signal.h>
@@ -347,13 +349,13 @@ static char *local_getline(char *zPrompt, FILE *in, int csvFlag){
     fflush(stdout);
   }
   nLine = 100;
-  zLine = malloc( nLine );
+  zLine = (char*)malloc( nLine );
   if( zLine==0 ) return 0;
   n = 0;
   while( 1 ){
     if( n+100>nLine ){
       nLine = nLine*2 + 100;
-      zLine = realloc(zLine, nLine);
+      zLine = (char*)realloc(zLine, nLine);
       if( zLine==0 ) return 0;
     }
     if( fgets(&zLine[n], nLine - n, in)==0 ){
@@ -375,7 +377,7 @@ static char *local_getline(char *zPrompt, FILE *in, int csvFlag){
       break;
     }
   }
-  zLine = realloc( zLine, n+1 );
+  zLine = (char*)realloc( zLine, n+1 );
   return zLine;
 }
 
@@ -878,7 +880,7 @@ static void set_table_name(struct callback_data *p, const char *zName){
     }
   }
   if( needQuote ) n += 2;
-  z = p->zDestTable = malloc( n+1 );
+  z = p->zDestTable = (char*)malloc( n+1 );
   if( z==0 ){
     fprintf(stderr,"Error: out of memory\n");
     exit(1);
@@ -1001,7 +1003,7 @@ static char *save_err_msg(
   sqlite3 *db            /* Database to query */
 ){
   int nErrMsg = 1+strlen30(sqlite3_errmsg(db));
-  char *zErrMsg = sqlite3_malloc(nErrMsg);
+  char *zErrMsg = (char*)sqlite3_malloc(nErrMsg);
   if( zErrMsg ){
     memcpy(zErrMsg, sqlite3_errmsg(db), nErrMsg);
   }
@@ -1367,7 +1369,7 @@ static int run_schema_dump_query(
       sqlite3_free(zErr);
       zErr = 0;
     }
-    zQ2 = malloc( len+100 );
+    zQ2 = (char*)malloc( len+100 );
     if( zQ2==0 ) return rc;
     sqlite3_snprintf(len+100, zQ2, "%s ORDER BY rowid DESC", zQuery);
     rc = sqlite3_exec(p->db, zQ2, dump_callback, p, &zErr);
@@ -1447,6 +1449,8 @@ static char zTimerHelp[] =
 /* Forward reference */
 static int process_input(struct callback_data *p, FILE *in);
 
+
+
 /*
 ** Make sure the database is open.  If it is not, then open it.  If
 ** the database fails to open, print an error message and exit.
@@ -1464,6 +1468,16 @@ static void open_db(struct callback_data *p){
           p->zDbFilename, sqlite3_errmsg(db));
       exit(1);
     }
+
+	//TODO: Make this part of the shell command line or someting...
+	std::vector<fastore::module::Address> mas;
+	fastore::module::Address a;
+	a.Port = 8765;
+	a.Name = "localhost";
+	mas.push_back(a);
+	sqlite3_create_module_v2(p->db, SQLITE_MODULE_NAME, &fastoreModule, initializeFastoreModule(mas), &destroyFastoreModule);
+
+
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
     sqlite3_enable_load_extension(p->db, 1);
 #endif
@@ -1818,7 +1832,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
     sqlite3_finalize(pStmt);
     pStmt = 0;
     if( nCol==0 ) return 0; /* no columns, no error */
-    zSql = malloc( nByte + 20 + nCol*2 );
+    zSql = (char*)malloc( nByte + 20 + nCol*2 );
     if( zSql==0 ){
       fprintf(stderr, "Error: out of memory\n");
       return 1;
@@ -1844,7 +1858,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
       sqlite3_finalize(pStmt);
       return 1;
     }
-    azCol = malloc( sizeof(azCol[0])*(nCol+1) );
+    azCol = (char**)malloc( sizeof(azCol[0])*(nCol+1) );
     if( azCol==0 ){
       fprintf(stderr, "Error: out of memory\n");
       fclose(in);
@@ -2298,7 +2312,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
       if( nRow>=nAlloc ){
         char **azNew;
         int n = nAlloc*2 + 10;
-        azNew = sqlite3_realloc(azResult, sizeof(azResult[0])*n);
+        azNew = (char**)sqlite3_realloc(azResult, sizeof(azResult[0])*n);
         if( azNew==0 ){
           fprintf(stderr, "Error: out of memory\n");
           break;
@@ -2630,7 +2644,7 @@ static int process_input(struct callback_data *p, FILE *in){
       for(i=0; zLine[i] && IsSpace(zLine[i]); i++){}
       if( zLine[i]!=0 ){
         nSql = strlen30(zLine);
-        zSql = malloc( nSql+3 );
+        zSql = (char*)malloc( nSql+3 );
         if( zSql==0 ){
           fprintf(stderr, "Error: out of memory\n");
           exit(1);
@@ -2640,7 +2654,7 @@ static int process_input(struct callback_data *p, FILE *in){
       }
     }else{
       int len = strlen30(zLine);
-      zSql = realloc( zSql, nSql + len + 4 );
+      zSql = (char*)realloc( zSql, nSql + len + 4 );
       if( zSql==0 ){
         fprintf(stderr,"Error: out of memory\n");
         exit(1);
@@ -2728,7 +2742,7 @@ static char *find_home_dir(void){
     zPath = getenv("HOMEPATH");
     if( zDrive && zPath ){
       n = strlen30(zDrive) + strlen30(zPath) + 1;
-      home_dir = malloc( n );
+      home_dir = (char*)malloc( n );
       if( home_dir==0 ) return 0;
       sqlite3_snprintf(n, home_dir, "%s%s", zDrive, zPath);
       return home_dir;
@@ -2741,7 +2755,7 @@ static char *find_home_dir(void){
 
   if( home_dir ){
     int n = strlen30(home_dir) + 1;
-    char *z = malloc( n );
+    char *z = (char*)malloc( n );
     if( z ) memcpy(z, home_dir, n);
     home_dir = z;
   }
@@ -3112,7 +3126,7 @@ int main(int argc, char **argv){
       zHome = find_home_dir();
       if( zHome ){
         nHistory = strlen30(zHome) + 20;
-        if( (zHistory = malloc(nHistory))!=0 ){
+        if( (zHistory = (char*)malloc(nHistory))!=0 ){
           sqlite3_snprintf(nHistory, zHistory,"%s/.sqlite_history", zHome);
         }
       }

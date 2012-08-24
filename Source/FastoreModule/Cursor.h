@@ -1,6 +1,5 @@
 #pragma once
 #include "Table.h"
-#include <string>
 
 namespace fastore
 {

@@ -2,13 +2,13 @@
 #include <memory>
 #include "Connection.h"
 #include "Statement.h"
+#include "Address.h"
 #include <exception>
 #include <functional>
 #include <vector>
 
 using namespace std;
 namespace prov = fastore::provider;
-namespace client = fastore::client;
 
 void ExceptionToFastoreResult(exception e, int code, FastoreResult &result)
 {
@@ -48,7 +48,7 @@ FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct 
 		[&](ConnectResult result)
 		{
 			// Convert addresses
-			vector<provider::Address> serverAddresses = vector<provider::Address>();
+			vector<prov::Address> serverAddresses = vector<prov::Address>();
 			serverAddresses.resize(addressCount);
 			for (auto i = 0; i < addressCount; i++)
 			{

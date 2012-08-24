@@ -1,13 +1,15 @@
+#include <sqlite3.h>
 #include "Table.h"
 #include "..\FastoreClient\Dictionary.h"
 #include "..\FastoreClient\Encoder.h"
+#include "..\FastoreClient\Transaction.h"
 #include <boost\assign\list_of.hpp>
 
 using namespace fastore::module;
 using namespace fastore::client;
 using namespace boost::assign;
 
-Table::Table(provider::Connection* connection, std::string name, std::vector<client::ColumnDef> columns) : _connection(connection), _name(name), _columns(columns) { }
+Table::Table(Connection* connection, std::string& name, std::vector<client::ColumnDef>& columns) : _connection(connection), _name(name), _columns(columns) { }
 
 void Table::begin()
 {
@@ -35,10 +37,14 @@ void Table::create()
 {
 	 // Pull a list of candidate pods
     Range podQuery;
-    podQuery.ColumnID = Dictionary::PodColumnPodID;
+    podQuery.ColumnID = Dictionary::PodID;
     podQuery.Ascending = true;
+
+	std::vector<ColumnID> podidv;
+	podidv.push_back(Dictionary::PodID);
+
 	//TODO: Gather pods - we may have more than 2000
-    auto podIds = _connection->_database->GetRange(Dictionary::PodColumnColumns, podQuery, 2000);
+    auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
     if (podIds.Data.size() == 0)
         throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
 
@@ -61,9 +67,7 @@ void Table::create()
     //List<int> columnIds = new List<int>();
 	for (int i = 0; i < _columns.size(); i++)
 	{
-		auto column = _columns[i];
-		int columnId = 0;
-		auto combinedName = _name + "." + column.Name;
+		auto combinedName = _name + "." + _columns[i].Name;
 
 		// Attempt to find the column by name
 		Range query;
@@ -83,10 +87,10 @@ void Table::create()
 		}
 		else
 		{
-			columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID);			
+			int columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID);			
 			_columnIds.push_back(columnId);
 			_columns[i].ColumnID = columnId;
-			createColumn(column, combinedName, _columns[0], podIds, nextPod);
+			createColumn(_columns[i], combinedName, _columns[0], podIds, nextPod);
 		}
 	}
 }
@@ -138,7 +142,7 @@ void Table::disconnect()
 	//Do nothing for now...
 }
 
-void Table::createColumn(client::ColumnDef& column, std::string combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod)
+void Table::createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod)
 {
 	//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
 	auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0];
@@ -175,33 +179,119 @@ void Table::createColumn(client::ColumnDef& column, std::string combinedName, cl
 
 void Table::bestIndex(sqlite3_index_info* info)
 {
-	//Inputs..
+	////Inputs..
+	//double constraintCost = 0.0;
+	//int constraintColumn = -1;
+	//bool constraintSupported = true;
+	//bool hasConstraint;
+	////Constraints Fastore can support...
+	////On a single column only
+	//// 1 =
+	//// 1 </<=
+	//// 1 >/>=
+	//// 1 </<= + 1 >/>=
 
-	//Where clause constraints
-	for (int i = 0; i < info->nConstraint; ++i)
-	{
-		auto pConstraint = &info->aConstraint[i];
-		pConstraint->iColumn; // Which column
-		pConstraint->op; // operator
-		pConstraint->usable; // true if this constraint is usable
-	}
+	////Can't support Match
+	//
+	////We can't support more than two constraints, ever.
+	//if (info->nConstraint > 2)
+	//	//Fail -- whatever that means
+	//	constraintSupported = false;
+	////If we have two constraints, they must be on the same column.
+	//if (info->nConstraint == 2 && (info->aConstraint[0].iColumn != info->aConstraint[1].iColumn))
+	//	//Fail -- whatever that means.
+	//	constraintSupported = false;
 
-	//Orderby clause (number of orders in order by)
-	for (int i = 0; i < info->nOrderBy; ++i)
-	{
-		auto pOrder = &info->aOrderBy[i];
-		pOrder->desc; // descending
-		pOrder->iColumn; // Which column
-	}
+	////We don't support match at all.
+	//for (int i = 0; i < info->nConstraint; ++i)
+	//{
+	//	if (info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_MATCH)
+	//		constraintSupported = false;
+	//}
 
-	//Outputs...
-	info->aConstraintUsage->argvIndex; // if >0, constraint is part of argv to xFilter
-	info->aConstraintUsage->omit; // String, possibly obtained from sqlite3_malloc
-	info->idxNum; // Number used to identify the index
-	info->idxStr; // String, possibly obtained from sqlite3_malloc
-	info->needToFreeIdxStr; //  Free idxStr using sqlite3_free() if true
-	info->orderByConsumed; // True if output is already ordered
-	info->estimatedCost; //  Estimated cost of using this index
+	////All other combinations should work, right? (assuming valid comibinations from SQlite -- < 5 && < 10 doesn't make too much sense... right? the docs says it will pass in an arbitrary EXPR. If that expression is more complicated than a value...)
+	//if (constraintSupported == true && info->nConstraint > 0)
+	//{
+	//	hasConstraint = true;
+	//	constraintColumn == info->aConstraint[0].iColumn;
+	//}
+
+	////Estimate constraint cost..
+	//if (hasConstraint && constraintSupported)
+	//{
+	//	if (info->aConstraint[0].op == SQLITE_INDEX_CONSTRAINT_EQ && info->nConstraint == 1)
+	//		constraintCost += 20.0; //Equality constraints should produce the fewest numbers of rows, but still involves a search.
+	//	else if (info->nConstraint == 2)
+	//		constraintCost += 50.0; //Two constaints will produce a middle number of rows..
+	//	else if (info->nConstraint == 1)
+	//		constraintCost += 80.0; //One constraint will produce more rows, and a single search.
+	//
+	//	if (_columns[constraintColumn].Type == "String" || _columns[constraintColumn].Type == "WString")
+	//		constraintCost += 10.0; // Searching over strings is more expensive than ints, bools, etc.
+	//}
+
+	////Where clause constraints
+	//for (int i = 0; i < info->nConstraint; ++i)
+	//{
+	//	auto pConstraint = &info->aConstraint[i];
+	//	pConstraint->iColumn; // Which column
+	//	pConstraint->op; // operator
+	//	pConstraint->usable; // true if this constraint is usable
+	//}
+
+	////Orders Fastore can support...
+	////One column, any direction.
+	////Two columns, if both are same direction and the second is RowId column.
+	////With a contraint, the used constraint must be on the first column of the order.
+	//bool hasOrder = false;
+	//bool orderSupported = false;
+	//double orderCost = 0.0;
+	//if (info->nOrderBy == 0)
+	//	orderSupported = true;
+	//if (info->nOrderBy == 1 && (!hasConstraint || (info->aOrderBy[0].iColumn == constraintColumn)))
+	//	orderSupported = true;
+	//else if (info->nOrderBy == 2 && (!hasConstraint || (info->aOrderBy[0].iColumn == constraintColumn && info->aOrderBy[1].iColumn == 0 /* TODO: rowId column.. */)))
+	//	orderSupported = true;
+
+	//if (orderSupported && info->nOrderBy > 0)
+	//	hasOrder = true;
+
+	////Estimate order cost
+	////Since we are already ordered, let's say it's always costless for now..
+	//orderCost = 0.0;
+
+	////Orderby clause (number of orders in order by)
+	////for (int i = 0; i < info->nOrderBy; ++i)
+	////{
+	////	auto pOrder = &info->aOrderBy[i];
+	////	pOrder->desc; // descending
+	////	pOrder->iColumn; // Which column
+	////}
+
+	////Outputs...
+	//for (int i = 0; i < info->nConstraint; ++i)
+	//{
+	//	if (i < 2 && constraintSupported)
+	//	{
+	//		info->aConstraintUsage[i].argvIndex = i; // if >0, constraint is part of argv to xFilter
+	//		info->aConstraintUsage[i].omit = true; // suppress double check on rows received.
+	//	}
+	//	else
+	//	{
+	//		info->aConstraintUsage[i].argvIndex = -1; // if >0, constraint is part of argv to xFilter
+	//		info->aConstraintUsage[i].omit = false; // suppress double check on rows received.
+	//	}
+	//}
+
+	////Calculate cost...
+	//double cost;
+	//cost += hasOrder ? (orderSupported ? orderCost : 2000000.0 ) : 0; //We don't know if it being unordered adds any cost to the overall query. They query might not care.
+	//cost += hasConstraint ? (constraintSupported ? constraintCost : 2000000.0 ) : 0; //Cost should be estimated from table size since the fewer constraints the larger the result.
+	//info->idxNum = orderSupported && hasOrder ? (info->aOrderBy[0].desc ? 0 : 1) : -1; // Number used to identify the index  -- hijacking this to say asc/desc order(-1 = any, 0 = desc, 1 = asc)
+	//info->idxStr; // String, possibly obtained from sqlite3_malloc
+	//info->needToFreeIdxStr = false; //  Free idxStr using sqlite3_free() if true
+	//info->orderByConsumed = hasOrder && orderSupported; //True if output is ordered..;
+	//info->estimatedCost = cost; //  Estimated cost of using this index
 }
 
 client::RangeSet Table::getRange(client::Range& range, boost::optional<std::string>& startId)
@@ -212,21 +302,21 @@ client::RangeSet Table::getRange(client::Range& range, boost::optional<std::stri
 		return _connection->_database->GetRange(_columnIds, range, 500, startId);
 }
 
-void Table::deleteRow(sqlite3_value* rowId)
+void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
-	int id = sqlite3_value_int(rowId);
-	std::string rowid = Encoder<int>::Encode(id);
+	if (sqlite3_value_type(argv[0]) != SQLITE_NULL)
+	{
+		sqlite3_int64 oldRowIdInt = sqlite3_value_int64(argv[0]);
+		std::string oldRowId = Encoder<int>::Encode(oldRowIdInt);
+		if (_transaction != NULL)
+			_transaction->Exclude(_columnIds, oldRowId);
+		else
+			_connection->_database->Exclude(_columnIds, oldRowId);
+	}
 
-	if (_transaction != NULL)
-		_transaction->Exclude(_columnIds, rowid);
-	else
-		_connection->_database->Exclude(_columnIds, rowid);
-}
-
-void Table::insertRow(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
-{
+	//If it was a delete only, return.
 	if (argc != _columnIds.size() + 2)
-		throw "Wrong number of values for row";
+		return;
 
 	sqlite3_int64 rowIdInt;
 	if (sqlite3_value_type(argv[1]) != SQLITE_NULL)
@@ -261,6 +351,10 @@ void Table::insertRow(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 			else if (type == "String")
 				value = std::string((const char *)sqlite3_value_text(pValue));
 			else if (type == "WString")
+			{
+				std::wstring toEncode((const wchar_t*)sqlite3_value_text16(pValue));
+				value = Encoder<std::wstring>::Encode(toEncode);
+			}
 
 			row.push_back(value);
 		}
