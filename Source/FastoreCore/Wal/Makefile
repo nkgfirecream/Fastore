@@ -10,13 +10,21 @@ CFLAGS += -o $@ -g  $(STD) \
 	-I$(PROJDIR)/External/Thrift/src \
 	-I/usr/pkg/include
 
-SRC = 	Wal.cpp 
+LDFLAGS = -lutil
+
+SRC = 	Wal.cpp WalFile.cpp
 
 SQLITE =	sqlite3/random.c \
 		sqlite3/randomness.parts.c \
 		sqlite3/support.c
 
 OBJ = 	$(SRC:R:S/$/.o/)
+
+WalFile.cpp: WalFile.h
+wald.cpp: WalFile.h
+wald: wald.cpp WalFile.o Wal.o
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(.ALLSRC)
+
 
 all: $(OBJ)
 

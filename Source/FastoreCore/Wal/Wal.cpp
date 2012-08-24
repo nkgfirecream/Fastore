@@ -40,7 +40,7 @@ using namespace std;
   throw std::runtime_error( oops.str() ); \
   }
 
-const static char random_dev[] = "/dev/random";
+const char *random_dev = "/dev/random";
 
 void 
 Wal::

@@ -1,12 +1,15 @@
 // $Id$
 #pragma once
 
-#include <string>
 #include <TransactionID.h>
 #include <Comm_types.h>
 
+#include <string>
+#include <sstream>
+
 #include <assert.h>
 #include <errno.h>
+#include <md4.h>
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
@@ -31,12 +34,15 @@ using fastore::communication::Writes;
 
 class Md4 
 {
+  friend unsigned char* operator<<( unsigned char* buf, const Md4& md4 );
+
  public:
   enum { size = 16 };
   
  private:
   unsigned char data[size]; // md4
 
+ public:
   Md4() {
     memset(data, 0, size);
   }
@@ -56,23 +62,37 @@ class Md4
   }
 };
 
+struct wal_desc_t
+{
+  const char prefix[8];
+  const char suffix[5];
+  char log_number[8];
+  pid_t pid;
+
+  std::string name() const {
+    std::ostringstream os;
+      
+    os << prefix << '.' << log_number << suffix;
+    return os.str();
+  }
+};
 
 class WalFile
 {
 public:
   class Header 
   {
-    friend char* operator<<( char* p, const WalFile::Header& h );
-
-    const string magic_version;
+    friend unsigned char* operator<<( unsigned char* p, 
+				      const WalFile::Header& h );
+    const std::string magic_version;
     int32_t salt;
 
   public:
-    static const in32_t  osPageSize;
-    static size_t sizeInPages() { return WAL_FILE_SIZE / osPageSize; }
+    static const int32_t  osPageSize;
+    static int32_t sizeInPages() { return WAL_FILE_SIZE / osPageSize; }
 
     Header();
-    Write(int fd);
+    size_t Write(int fd);
   };
 private:
   enum { WAL_FILE_SIZE = 1L << 30 };
@@ -83,13 +103,12 @@ private:
   int os_error;
 
   static int random_fd;
-  static const char *blankPage;
+  static const unsigned char *blankPage;
 
 public:
   WalFile( const std::string& dirname, const wal_desc_t& desc );
   
+private:
   int osError() const { return os_error; }
   static void randomness(int N, void *P);
-
-private:
 };
