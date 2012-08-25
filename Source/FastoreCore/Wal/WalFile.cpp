@@ -4,6 +4,7 @@
 
 #include <libgen.h>
 #include <md4.h>
+#include <signal.h>
 
 #include <sys/types.h>
 
@@ -33,6 +34,29 @@ extern const char *random_dev;
 namespace Wald {
   const char *requests = "/var/fastore/wald/request";
   const char *responses = "/var/fastore/wald/";
+}
+
+wal_desc_t::
+wal_desc_t( pid_t pid, const char *prefix, const char *suffix)
+  : pid(pid)
+{
+  if( pid == -1 || pid == 0 )
+    THROW("invalid pid", pid);
+  if( -1 == kill(pid, 0) ) 
+    THROW("invalid pid", pid);
+
+  if( prefix == NULL ) 
+    THROW("prefix string required", prefix);
+  if( suffix == NULL ) 
+    THROW("suffix string required", suffix);
+  if( sizeof(this->prefix) - 1 < strlen(prefix)  ) 
+    THROW("prefix string exceed max length", sizeof(this->prefix) - 1);
+  if( sizeof(this->suffix) - 1 < strlen(suffix)  ) 
+    THROW("suffix string exceed max length", sizeof(this->suffix) - 1);
+
+  strcpy(this->prefix, prefix);
+  strcpy(this->suffix, suffix);
+  memset(this->log_number, '\0', sizeof(this->log_number) );
 }
 
 WalFile::Header::Header()
@@ -132,7 +156,7 @@ WalFile( const string& dirname, const wal_desc_t& desc )
   string filename( dirname + "/" + wal_desc.name() );
 
   // open the WAL file
-  static const int flags = (O_WRONLY | O_CREAT);
+  static const int flags = (O_WRONLY | O_CREAT | O_EXCL);
   int fd;
   if( (fd = open( filename.c_str(), flags, 0600)) == -1 ) {
     THROW( "could not open WAL file", filename );

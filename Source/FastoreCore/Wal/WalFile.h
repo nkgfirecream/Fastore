@@ -69,18 +69,27 @@ class Md4
 
 struct wal_desc_t
 {
-  const char prefix[8];
-  const char suffix[5];
-  char log_number[8+1]; // allow for NULL
+  // lengths allow for NULLs
+  char prefix[7+1];
+  char suffix[3+1];
+  char log_number[8+1]; 
   pid_t pid;
+
+  wal_desc_t( pid_t pid = getpid(), 
+	      const char *prefix = "FASTORE", 
+	      const char *suffix = "LOG" );
 
   std::string name() const {
     std::ostringstream os;
       
     os << prefix << '.' 
        << std::string(log_number, sizeof(log_number)-1) 
-       << suffix;
+       << '.' << suffix;
     return os.str();
+  }
+
+  void lsn( size_t value ) {
+      sprintf(log_number, "%08u", value);
   }
 };
 

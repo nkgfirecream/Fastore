@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <string>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,7 +26,7 @@
 
 using namespace std;
 
-wal_desc_t wal_desc = { "FASTORE", ".LOG", "" };
+wal_desc_t wal_desc;
 
 istream&
 operator>>( istream& is, wal_desc_t& desc ) 
@@ -38,7 +40,7 @@ pidmap results;
 
 static void usage()
 {
-  cerr << "syntax: wald [-d dirname]\n"; 
+  cerr << "syntax: wald [-d logdir]\n"; 
 }
 
 static void unlink_pidfile(void)
@@ -51,7 +53,7 @@ static void unlink_pidfile(void)
 int
 main( int argc, char *argv[] )
 {
-  std::string dirname("/var/fastore");
+  std::string logdir("/var/fastore");
   const char *name = basename(argv[0]);
 
   extern char *optarg;
@@ -62,7 +64,7 @@ main( int argc, char *argv[] )
   while ((ch = getopt(argc, argv, "d:")) != -1) {
     switch (ch) {
     case 'd':
-      dirname = optarg;
+      logdir = optarg;
       break;
     case '?':
     default:
@@ -81,8 +83,6 @@ main( int argc, char *argv[] )
    * Kill parent process, become child of init.
    * Become session leader. 
    * Clear umask. 
-   * Change to correct working directory. 
-   * Point stdin etc. to /dev/null. 
    */
   pid_t pid = fork();
 
@@ -98,6 +98,9 @@ main( int argc, char *argv[] )
 
   umask(0);
 
+  /*
+   * Create the request directory if needed, and chdir there. 
+   */
   char req[ sizeof(Wald::requests) ];
   strcpy(req, Wald::requests);
   const char *dir = ::dirname(req);
@@ -110,12 +113,16 @@ main( int argc, char *argv[] )
     }
   }
 
+  syslog( LOG_INFO, "%d: changing to log-request directory %s", __LINE__, dir );
   if( -1 == chdir(dir) ) {
     syslog( LOG_ERR, "could not change to '%s' (based on  %s), %d: %m", 
 	    Wald::requests, dir, __LINE__ );
     return EXIT_FAILURE;
   }
     
+  /*
+   * Close existing descriptor and reopen them on the null device.
+   */  
   for( int fd=0; fd < 3; fd++ ) {
     static const char dev_null[] = "/dev/null";
     if( -1 == close(fd) ) {
@@ -127,7 +134,16 @@ main( int argc, char *argv[] )
       syslog( LOG_ERR, "%d: %m", __LINE__);
       return EXIT_FAILURE;
     }
-  }    
+  }
+
+  /*
+   * Ignore SIGPIPE in case writing to a dead requestor.
+   * Otherwise we'd be killed. 
+   */
+  if( SIG_ERR == signal(SIGPIPE, SIG_IGN) ) {
+    syslog( LOG_ERR, "%d: cannot ignore SIGPIPE: %m", __LINE__);
+    return EXIT_FAILURE;
+  }
 
   /*
    * Create request directory and FIFO if necessary, and open it.
@@ -211,10 +227,10 @@ main( int argc, char *argv[] )
 
       // initialize WAL and send status back to caller
       int err;
+      const string wal_name(logdir + "/" + wal_desc.name());
       try {
-	WalFile walfile( dirname, wal_desc );
-	string name(dirname + "/" + wal_desc.name());
-	syslog( LOG_INFO, "%d: generated %s", __LINE__, name.c_str() );
+	WalFile walfile( logdir, wal_desc );
+	syslog( LOG_INFO, "%d: generated %s", __LINE__, wal_name.c_str() );
 	err = 0;
       } 
       catch( const std::exception& oops ) {
@@ -223,8 +239,8 @@ main( int argc, char *argv[] )
       }
 
       if( sizeof(err) != write(output, &err, sizeof(err)) ) {
-	syslog( LOG_ERR, "%d: %m", __LINE__ );
-	// FIXME: successful, but client will never hear.  What to do? 
+	syslog( LOG_ERR, "%d: could not respond for %s: %m", 
+		__LINE__, wal_name.c_str() );
       }
     }
 
