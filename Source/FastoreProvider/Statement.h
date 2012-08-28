@@ -4,12 +4,13 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <map>
 #include "ArgumentType.h"
 
 namespace fastore 
 {
 	namespace provider
-	{	
+	{
 		struct Argument
 		{
 			ArgumentType type;
@@ -18,8 +19,7 @@ namespace fastore
 
 		struct ColumnInfo
 		{
-			std::string type;
-			std::string value;
+			ArgumentType type;
 			std::string name;
 		};
 
@@ -29,6 +29,9 @@ namespace fastore
 			sqlite3_stmt* _statement;
 			void internalBind(int index, ArgumentType type, std::string& value);
 			bool _eof;
+
+			std::map<int, ColumnInfo> _infos;
+			std::map<int, ArgumentType> _types;
 
 		public:
 			Statement(sqlite3* db, const std::string &sql);
