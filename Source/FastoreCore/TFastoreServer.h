@@ -15,7 +15,9 @@
 #include <unistd.h>
 #endif
 
+#if HAVE_POLL_H
 #include <poll.h>
+#endif
 
 namespace apache { namespace thrift { namespace server {
 
