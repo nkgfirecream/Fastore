@@ -15,7 +15,8 @@
 #include <unistd.h>
 #endif
 
-#if HAVE_POLL_H
+#if HAVE_SYS_POLL_H
+// slightly wrong test, but that's what thrift checks for --jkl
 #include <poll.h>
 #endif
 
