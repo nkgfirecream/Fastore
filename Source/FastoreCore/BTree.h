@@ -1,10 +1,12 @@
 #pragma once
-#include "Schema\scalar.h"
-#include "Schema\standardtypes.h"
+#include "Schema/scalar.h"
+#include "Schema/standardtypes.h"
 #include "treeentry.h"
 #include <functional>
 #include <sstream>
 #include <vector>
+
+#include <cstring>
 
 using namespace std;
 using namespace standardtypes;
@@ -48,10 +50,10 @@ class BTree
 
 		struct PathNode
 		{
-			PathNode(Node* node, const short index) : Node(node), Index(index) {}
-			PathNode(const PathNode& other) : Node(other.Node), Index(other.Index) {}
-			PathNode() : Node(nullptr), Index(0) {}
-			Node* Node;
+			PathNode(Node* node, const short index) : pNode(node), Index(index) {}
+			PathNode(const PathNode& other) : pNode(other.pNode), Index(other.Index) {}
+			PathNode() : pNode(nullptr), Index(0) {}
+			Node* pNode;
 			short Index;
 		};
 
@@ -408,7 +410,7 @@ class Node
 			}
 			else if (depth != 0)
 			{
-				pathNode.Node->UpdateKey(pathNode.Index, path, depth - 1);
+				pathNode.pNode->UpdateKey(pathNode.Index, path, depth - 1);
 			}
 
 			//Do nothing, we don't update the the first index on the root
@@ -421,7 +423,7 @@ class Node
 				if (_count >= _tree->DefaultListCapacity / 2 || depth == 0)
 					return NULL;
 
-				Node* parent = path.Branches.at(depth - 1).Node;
+				Node* parent = path.Branches.at(depth - 1).pNode;
 				short pIndex = path.Branches.at(depth - 1).Index;
 				Node* rightSib = pIndex < parent->_count ? *(Node**)((*parent)[pIndex + 1].value) : NULL;
 				Node* leftSib = pIndex > 0 ? *(Node**)((*parent)[pIndex - 1].value) : NULL;
@@ -527,7 +529,7 @@ class Node
 					return NULL;				
 
 				//At this point we know we are not root, so we have a parent.
-				Node* parent = path.Branches.at(depth - 1).Node;
+				Node* parent = path.Branches.at(depth - 1).pNode;
 				short pIndex = path.Branches.at(depth - 1).Index;
 				Node* rightSib = pIndex < parent->_count ? *(Node**)((*parent)[pIndex + 1].value) : NULL;
 				Node* leftSib = pIndex > 0 ? *(Node**)((*parent)[pIndex - 1].value) : NULL;
@@ -560,7 +562,8 @@ class Node
 
 					//Grab right item from left sibling.
 					memcpy(&_values[0], &leftSib->_values[leftSib->_count * _valueType.Size], _valueType.Size);
-					memcpy(&_keys[0],  (*(Node**)_values[1 * _valueType.Size])->GetChildKey(), _tree->_keyType.Size);
+					Node *v( reinterpret_cast<Node*>(_values + _valueType.Size) );
+					memcpy(&_keys[0],  v->GetChildKey(), _tree->_keyType.Size);
 					_count++;
 
 					leftSib->_count--;

@@ -15,6 +15,8 @@
 #include <unistd.h>
 #endif
 
+#include <poll.h>
+
 namespace apache { namespace thrift { namespace server {
 
 using apache::thrift::transport::TMemoryBuffer;

@@ -4,8 +4,9 @@
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <utility>
-#include <hash_set>
-#include "Schema\standardtypes.h"
+//include <hash_set>
+#include <unordered_set>
+#include "Schema/standardtypes.h"
 
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
@@ -38,7 +39,7 @@ void WorkerHandler::Bootstrap()
 	id.Name = "Column.ID";
 	id.ValueType = standardtypes::Int;
 	id.RowIDType = standardtypes::Int;
-	id.BufferType = BufferType::Identity;
+	id.BufferType = BufferType_t::Identity;
 	id.Required = true;
 	CreateRepo(id);	
 
@@ -47,7 +48,7 @@ void WorkerHandler::Bootstrap()
 	name.Name = "Column.Name";
 	name.ValueType = standardtypes::String;
 	name.RowIDType = standardtypes::Int;
-	name.BufferType = BufferType::Unique;
+	name.BufferType = BufferType_t::Unique;
 	name.Required = true;
 	CreateRepo(name);
 
@@ -56,7 +57,7 @@ void WorkerHandler::Bootstrap()
 	vt.Name = "Column.ValueType";
 	vt.ValueType = standardtypes::String;
 	vt.RowIDType = standardtypes::Int;
-	vt.BufferType = BufferType::Multi;
+	vt.BufferType = BufferType_t::Multi;
 	vt.Required = true;
 	CreateRepo(vt);	
 
@@ -65,7 +66,7 @@ void WorkerHandler::Bootstrap()
 	idt.Name = "Column.RowIDType";
 	idt.ValueType = standardtypes::String;
 	idt.RowIDType = standardtypes::Int;
-	idt.BufferType = BufferType::Multi;
+	idt.BufferType = BufferType_t::Multi;
 	idt.Required = true;
 	CreateRepo(idt);	
 
@@ -74,7 +75,7 @@ void WorkerHandler::Bootstrap()
 	unique.Name = "Column.BufferType";
 	unique.ValueType = standardtypes::Int;
 	unique.RowIDType = standardtypes::Int;
-	unique.BufferType = BufferType::Multi;
+	unique.BufferType = BufferType_t::Multi;
 	unique.Required = true;
 	CreateRepo(unique);	
 
@@ -83,7 +84,7 @@ void WorkerHandler::Bootstrap()
 	required.Name = "Column.Required";
 	required.ValueType = standardtypes::Bool;
 	required.RowIDType = standardtypes::Int;
-	required.BufferType = BufferType::Multi;
+	required.BufferType = BufferType_t::Multi;
 	required.Required = true;
 	CreateRepo(required);
 
@@ -92,7 +93,7 @@ void WorkerHandler::Bootstrap()
 	topo.Name = "Topology.ID";
 	topo.ValueType = standardtypes::Int;
 	topo.RowIDType = standardtypes::Int;
-	topo.BufferType = BufferType::Identity;
+	topo.BufferType = BufferType_t::Identity;
 	topo.Required = true;
 	CreateRepo(topo);
 
@@ -101,7 +102,7 @@ void WorkerHandler::Bootstrap()
 	hostId.Name = "Host.ID";
 	hostId.ValueType = standardtypes::Int;
 	hostId.RowIDType = standardtypes::Int;
-	hostId.BufferType = BufferType::Identity;
+	hostId.BufferType = BufferType_t::Identity;
 	hostId.Required = true;
 	CreateRepo(hostId);	
 
@@ -110,7 +111,7 @@ void WorkerHandler::Bootstrap()
 	podId.Name = "Pod.ID";
 	podId.ValueType = standardtypes::Int;
 	podId.RowIDType = standardtypes::Int;
-	podId.BufferType = BufferType::Unique;
+	podId.BufferType = BufferType_t::Unique;
 	podId.Required = true;
 	CreateRepo(podId);	
 
@@ -119,7 +120,7 @@ void WorkerHandler::Bootstrap()
 	podHostId.Name = "Pod.HostID";
 	podHostId.ValueType = standardtypes::Int;
 	podHostId.RowIDType = standardtypes::Int;
-	podHostId.BufferType = BufferType::Multi;
+	podHostId.BufferType = BufferType_t::Multi;
 	podHostId.Required = true;
 	CreateRepo(podHostId);	
 
@@ -128,7 +129,7 @@ void WorkerHandler::Bootstrap()
 	podColPodId.Name = "PodColumn.PodID";
 	podColPodId.ValueType = standardtypes::Int;
 	podColPodId.RowIDType = standardtypes::Int;
-	podColPodId.BufferType = BufferType::Multi;
+	podColPodId.BufferType = BufferType_t::Multi;
 	podColPodId.Required = true;
 	CreateRepo(podColPodId);	
 
@@ -137,7 +138,7 @@ void WorkerHandler::Bootstrap()
 	podColColId.Name = "PodColumn.ColumnID";
 	podColColId.ValueType = standardtypes::Int;
 	podColColId.RowIDType = standardtypes::Int;
-	podColColId.BufferType = BufferType::Multi;
+	podColColId.BufferType = BufferType_t::Multi;
 	podColColId.Required = true;
 	CreateRepo(podColColId);
 
@@ -201,7 +202,7 @@ void WorkerHandler::SyncToSchema()
 
 		answer = _repositories[401]->query(query);
 
-		std::hash_set<ColumnID> schemaIds;
+		std::unordered_set<ColumnID> schemaIds;
 
 		for (int i = 0; i < answer.rowIDValues.size(); i++)
 		{
@@ -344,7 +345,7 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 
 	//Unique
 	answer = _repositories[4]->query(query);
-	def.BufferType = (BufferType)*(int*)(answer.rowIDValues.at(0).data());
+	def.BufferType = (BufferType_t)*(int*)(answer.rowIDValues.at(0).data());
 
 	return def;
 }

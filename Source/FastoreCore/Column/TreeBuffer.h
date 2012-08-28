@@ -1,8 +1,8 @@
 #pragma once
 
-#include "..\Schema\standardtypes.h"
-#include "..\BTree.h"
-#include "..\Column\IColumnBuffer.h"
+#include "../Schema/standardtypes.h"
+#include "../BTree.h"
+#include "../Column/IColumnBuffer.h"
 
 class TreeBuffer : public IColumnBuffer
 {

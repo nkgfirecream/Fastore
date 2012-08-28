@@ -1,9 +1,9 @@
 #include "Serialization.h"
-#include <thrift\protocol\TJSONProtocol.h>
-#include <thrift\protocol\TBinaryProtocol.h>
-#include <thrift\protocol\TDebugProtocol.h>
+#include <thrift/protocol/TJSONProtocol.h>
+#include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/protocol/TDebugProtocol.h>
 #include "TFastoreFileTransport.h"
-#include <thrift\transport\TFileTransport.h>
+#include <thrift/transport/TFileTransport.h>
 
 //Buffer serializer
 BufferSerializer::BufferSerializer(IColumnBuffer& buffer, string filename) : _buffer(buffer)

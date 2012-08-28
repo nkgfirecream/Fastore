@@ -1,11 +1,11 @@
-#include "Column\IColumnBuffer.h"
-#include "Schema\scalar.h"
+#include "Column/IColumnBuffer.h"
+#include "Schema/scalar.h"
 #include <string>
 #include <fstream>
 
-#include <boost\shared_ptr.hpp>
-#include <thrift\protocol\TProtocol.h>
-#include <thrift\transport\TTransport.h>
+#include <boost/shared_ptr.hpp>
+#include <thrift/protocol/TProtocol.h>
+#include <thrift/transport/TTransport.h>
 
 
 using namespace std;

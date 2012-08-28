@@ -2,7 +2,8 @@
 #include "../FastoreCommunication/Worker.h"
 #include "../FastoreCommunication/Comm_types.h"
 #include <thrift/TProcessor.h>
-#include <hash_map>
+//include <hash_map>
+#include <unordered_map>
 #include "Repository.h"
 #include "Scheduler.h"
 #include "TFastoreServer.h"
@@ -12,7 +13,7 @@ class WorkerHandler : virtual public fastore::communication::WorkerIf , virtual 
 private: 
 	fastore::communication::PodID _podId;
 	std::string _path;
-	std::hash_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
+	std::unordered_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
 	boost::shared_ptr<Scheduler> _scheduler;
 
 	//Not a shared pointer because we don't own the connection.

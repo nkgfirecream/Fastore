@@ -8,6 +8,7 @@
 #include <boost/filesystem/path.hpp>
 #include <functional>
 #include <ctime>
+#include <stdexcept>
 
 using namespace boost::filesystem;
 using boost::shared_ptr;
@@ -194,7 +195,7 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 		{
 			ostringstream error;
 			error << "An address has not been given for host (" << host->first << ").";
-			throw std::exception(error.str().c_str());
+			throw std::runtime_error(error.str());
 		}
 
 		ServiceState state;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\BTree.h"
-#include "..\Column\IColumnBuffer.h"
+#include "../BTree.h"
+#include "../Column/IColumnBuffer.h"
 
 class IdentityBuffer : public IColumnBuffer
 {

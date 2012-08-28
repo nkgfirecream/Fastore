@@ -2,9 +2,9 @@
 #include <string>
 #include <exception>
 #include <memory>
-#include "Schema\column.h"
+#include "Schema/column.h"
 //#include "Logging/Log.h"
-#include "Column\IColumnBuffer.h"
+#include "Column/IColumnBuffer.h"
 #include "../FastoreCommunication/Comm_types.h"
 
 using namespace ::fastore::communication;

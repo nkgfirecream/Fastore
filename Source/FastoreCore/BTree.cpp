@@ -1,5 +1,5 @@
 #include "BTree.h"
-#include "Schema\scalar.h"
+#include "Schema/scalar.h"
 #include <sstream>
 
 using namespace std;
@@ -74,7 +74,7 @@ void BTree::Delete(Path& path)
 		if (path.LeafIndex == 0)
 		{
 			auto pathNode = path.Branches.at(path.Branches.size() - 1);
-			pathNode.Node->UpdateKey(pathNode.Index, path, path.Branches.size() - 1);
+			pathNode.pNode->UpdateKey(pathNode.Index, path, path.Branches.size() - 1);
 		}
 
 		//Rebalance tree after delete.
@@ -97,7 +97,7 @@ void BTree::Insert(Path& path, void* key, void* value)
 		Node* node = result->right;
 		delete result;
 
-		result = pathNode.Node->Insert(pathNode.Index, key, node);
+		result = pathNode.pNode->Insert(pathNode.Index, key, node);
 	}
 
 	if (result != NULL)
@@ -154,7 +154,7 @@ void BTree::iterator::MoveNext()
 		while (nummaxed < size && !open)
 		{
 			BTree::PathNode& pnode = _path.Branches.at(size - 1 - nummaxed);
-			if (pnode.Index == pnode.Node->_count)
+			if (pnode.Index == pnode.pNode->_count)
 				++nummaxed;
 			else
 				open = true;
@@ -174,7 +174,7 @@ void BTree::iterator::MoveNext()
 
 			BTree::PathNode& pnode = _path.Branches.back();
 			++pnode.Index;
-			(*(Node**)((*(Node*)pnode.Node)[pnode.Index].value))->SeekToFirst(_path);
+			(*(Node**)((*(Node*)pnode.pNode)[pnode.Index].value))->SeekToFirst(_path);
 		}
 	}
 	else
@@ -211,7 +211,7 @@ void BTree::iterator::MovePrior()
 
 			BTree::PathNode& pnode = _path.Branches.back();
 			--pnode.Index;
-			(*(Node**)((*(Node*)pnode.Node)[pnode.Index].value))->SeekToLast(_path);
+			(*(Node**)((*(Node*)pnode.pNode)[pnode.Index].value))->SeekToLast(_path);
 			_eof = false;
 		}
 	}

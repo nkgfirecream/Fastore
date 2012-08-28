@@ -2,7 +2,7 @@
 
 #include "scalar.h"
 
-enum BufferType
+enum BufferType_t
 {
 	Identity = 0,
 	Unique = 1,
@@ -15,6 +15,6 @@ struct ColumnDef
 	std::string Name;
 	ScalarType ValueType;
 	ScalarType RowIDType;
-	BufferType BufferType;
+	BufferType_t BufferType;
 	bool Required;
 };

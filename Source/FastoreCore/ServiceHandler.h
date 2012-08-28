@@ -4,7 +4,9 @@
 #include "Endpoint.h"
 #include <thrift/server/TServer.h>
 #include <thrift/transport/TSimpleFileTransport.h>
-#include <hash_map>
+#include <boost/thread.hpp>
+//include <hash_map>
+#include <unordered_map>
 #include <string>
 #include "Scheduler.h"
 #include "TFastoreServer.h"
