@@ -42,7 +42,7 @@ PROVIDER.BASE != ls FastoreProvider
 PROVIDER.SRC = $(PROVIDER.BASE:M*.cpp:S,^,FastoreProvider/,g)
 PROVIDER.OBJ = $(PROVIDER.SRC:.cpp=.o)
 
-SRC = $(THRIFT.SRC) $(CORE.SRC)
+SRC = $(CLIENT.SRC) $(THRIFT.SRC) $(CORE.SRC)
 
 .PHONY: client 	FastoreClient \
 	thrift	FastoreCommunication \
@@ -54,35 +54,43 @@ SRC = $(THRIFT.SRC) $(CORE.SRC)
 	SQLite \
 	packages
 
-client FastoreClient: libfastore-client.so
-libfastore-client.so: $(CLIENT.OBJ)
-	$(CXX) -shared -o $@ $(.ALLSRC)
+OBJ = $(THRIFT.OBJ) $(CORE.OBJ) $(MODULE.OBJ) $(PROVIDER.OBJ)
+OUTPUT =   \
+	FastoreCommunication/libthrift.so \
+	FastoreCore/libfastore-core.so \
+	FastoreModule/libfastore-module.so \
+	FastoreProvider/libfastore-provider.so
+
+all: $(THRIFT.SRC) $(OUTPUT)
+
+client FastoreClient: FastoreClient/libfastore-client.so
+FastoreClient/libfastore-client.so: $(CLIENT.OBJ)
+	$(CXX) -shared $(.ALLSRC)
 client-clean:
 	rm -f $(CLIENT.OBJ)
 
 thrift FastoreCommunication: FastoreCommunication/libthrift.so
 FastoreCommunication/libthrift.so: $(THRIFT.OBJ)
-	$(CXX) -shared -o $@ $(.ALLSRC)
-
+	$(CXX) -shared $(.ALLSRC)
 thrift-src: $(THRIFT.SRC)
 thrift-clean: 
 	rm -f $(THRIFT.SRC) $(THRIFT.OBJ) FastoreCommunication/libthrift.so
 
-core FastoreCore: libfastore-core.so
-libfastore-core.so: $(CORE.OBJ)
-	$(CXX) -shared -o $@ $(.ALLSRC)
+core FastoreCore: FastoreCore/libfastore-core.so
+FastoreCore/libfastore-core.so: $(CORE.OBJ)
+	$(CXX) -shared $(.ALLSRC)
 core-clean:
 	rm -f $(CORE.OBJ)
 
-module FastoreModule: libfastore-module.so
-libfastore-module.so: $(MODULE.OBJ)
-	$(CXX) -shared -o $@ $(.ALLSRC)
+module FastoreModule: FastoreModule/libfastore-module.so
+FastoreModule/libfastore-module.so: $(MODULE.OBJ)
+	$(CXX) -shared $(.ALLSRC)
 module-clean:
 	rm -f $(MODULE.OBJ)
 
-provide provider FastoreProvider: libfastore-provider.so
-libfastore-provider.so: $(PROVIDER.OBJ)
-	$(CXX) -shared -o $@ $(.ALLSRC)
+provide provider FastoreProvider: FastoreProvider/libfastore-provider.so
+FastoreProvider/libfastore-provider.so: $(PROVIDER.OBJ)
+	$(CXX) -shared $(.ALLSRC)
 provider-clean:
 	rm -f $(PROVIDER.OBJ)
 
