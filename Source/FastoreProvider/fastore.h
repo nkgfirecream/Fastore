@@ -3,12 +3,17 @@
 #include "stdafx.h"
 #include "ArgumentType.h"
 
+#if defined(_WIN32)
 // Import or export appropriately
-#if defined(FASTORE_EXPORT) 
+# if defined(FASTORE_EXPORT) 
 #   define FASTOREAPI __declspec(dllexport)
-#else
+# else
 #   define FASTOREAPI __declspec(dllimport)
-#endif  
+# endif  
+#else
+#   define FASTOREAPI
+#   define APIENTRY
+#endif
 
 typedef void *ConnectionHandle;
 typedef void *StatementHandle;

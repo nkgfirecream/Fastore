@@ -3,6 +3,7 @@ DBG = -O0
 CFLAGS += 
 CXXFLAGS += -g -o $@ -fPIC \
 	-std=c++0x \
+	-I ./SQLite \
 	-I /usr/local/include \
 	-I /usr/pkg/include \
 	-I /usr/local/include/thrift 
@@ -22,6 +23,10 @@ THRIFT.BASE =	Server_types.h \
 		Server_types.cpp \
 		Comm_constants.h
 
+CLIENT.BASE != ls FastoreClient
+CLIENT.SRC = $(CLIENT.BASE:M*.cpp:S,^,FastoreClient/,g)
+CLIENT.OBJ = $(CLIENT.SRC:.cpp=.o)
+
 THRIFT.SRC = $(THRIFT.BASE:S,^,FastoreCommunication/,g)
 THRIFT.OBJ = $(THRIFT.SRC:M*.cpp:N*.skeleton.*:S/.cpp/.o/)
 
@@ -29,17 +34,31 @@ CORE.BASE != ls FastoreCore
 CORE.SRC = $(CORE.BASE:M*.cpp:S,^,FastoreCore/,g)
 CORE.OBJ = $(CORE.SRC:.cpp=.o)
 
+MODULE.BASE != ls FastoreModule
+MODULE.SRC = $(MODULE.BASE:M*.cpp:S,^,FastoreModule/,g)
+MODULE.OBJ = $(MODULE.SRC:.cpp=.o)
+
+PROVIDER.BASE != ls FastoreProvider
+PROVIDER.SRC = $(PROVIDER.BASE:M*.cpp:S,^,FastoreProvider/,g)
+PROVIDER.OBJ = $(PROVIDER.SRC:.cpp=.o)
+
 SRC = $(THRIFT.SRC) $(CORE.SRC)
 
-.PHONY: FastoreClient \
+.PHONY: client 	FastoreClient \
 	thrift	FastoreCommunication \
 	core 	FastoreCore \
-	FastoreModule \
-	FastoreProvider \
+	module	FastoreModule \
+	provide	FastoreProvider \
 	FastoreService \
 	FastoreShell \
 	SQLite \
 	packages
+
+client FastoreClient: libfastore-client.so
+libfastore-client.so: $(CLIENT.OBJ)
+	$(CXX) -shared -o $@ $(.ALLSRC)
+client-clean:
+	rm -f $(CLIENT.OBJ)
 
 thrift FastoreCommunication: FastoreCommunication/libthrift.so
 FastoreCommunication/libthrift.so: $(THRIFT.OBJ)
@@ -52,9 +71,20 @@ thrift-clean:
 core FastoreCore: libfastore-core.so
 libfastore-core.so: $(CORE.OBJ)
 	$(CXX) -shared -o $@ $(.ALLSRC)
-
 core-clean:
 	rm -f $(CORE.OBJ)
+
+module FastoreModule: libfastore-module.so
+libfastore-module.so: $(MODULE.OBJ)
+	$(CXX) -shared -o $@ $(.ALLSRC)
+module-clean:
+	rm -f $(MODULE.OBJ)
+
+provide provider FastoreProvider: libfastore-provider.so
+libfastore-provider.so: $(PROVIDER.OBJ)
+	$(CXX) -shared -o $@ $(.ALLSRC)
+provider-clean:
+	rm -f $(PROVIDER.OBJ)
 
 clean: 
 	rm -f $(THRIFT.OBJ) FastoreCommunication/libthrift.so

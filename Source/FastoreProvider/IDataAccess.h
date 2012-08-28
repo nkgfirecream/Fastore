@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "Cursor.h"
+#include "../FastoreModule/Cursor.h"
 
 namespace fastore 
 {

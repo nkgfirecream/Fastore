@@ -1,7 +1,7 @@
 #pragma once
 #include <sqlite3.h>
 #include "Connection.h"
-#include "..\FastoreClient\ColumnDef.h"
+#include "../FastoreClient/ColumnDef.h"
 
 namespace client = fastore::client;
 namespace communication = fastore::communication;
@@ -24,7 +24,7 @@ namespace fastore
 			std::vector<communication::ColumnID> _columnIds;
 
 		public:
-			Table(Connection* connection, std::string& name, std::vector<client::ColumnDef>& columns);
+			Table(Connection* connection, const std::string& name, std::vector<client::ColumnDef>& columns);
 
 			//Transaction processing...
 			void begin();
@@ -54,7 +54,7 @@ namespace fastore
 			void createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod);
 
 			//For use by the cursor. Depending on how SQLite is implemented this may either need to go through the transaction or around it.
-			client::RangeSet getRange(client::Range& range, boost::optional<std::string>& startId);
+			client::RangeSet getRange(client::Range& range, const boost::optional<std::string>& startId);
 		};
 	}
 }

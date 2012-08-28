@@ -1,9 +1,9 @@
 #include <sqlite3.h>
 #include "Table.h"
-#include "..\FastoreClient\Dictionary.h"
-#include "..\FastoreClient\Encoder.h"
-#include "..\FastoreClient\Transaction.h"
-#include <boost\assign\list_of.hpp>
+#include "../FastoreClient/Dictionary.h"
+#include "../FastoreClient/Encoder.h"
+#include "../FastoreClient/Transaction.h"
+#include <boost/assign/list_of.hpp>
 
 using namespace fastore::module;
 using namespace fastore::client;
@@ -160,7 +160,7 @@ void Table::createColumn(client::ColumnDef& column, std::string& combinedName, c
 		(combinedName)
 		(column.Type)
 		(column.IDType)
-		(client::Encoder<client::BufferType>::Encode(column.BufferType))
+		(client::Encoder<client::BufferType_t>::Encode(column.BufferType))
 		(client::Encoder<bool>::Encode(column.Required))
 	);
 	transaction->Commit();
@@ -294,7 +294,7 @@ void Table::bestIndex(sqlite3_index_info* info)
 	//info->estimatedCost = cost; //  Estimated cost of using this index
 }
 
-client::RangeSet Table::getRange(client::Range& range, boost::optional<std::string>& startId)
+client::RangeSet Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
 {
 	if (_transaction != NULL)
 		return _transaction->GetRange(_columnIds, range, 500, startId);

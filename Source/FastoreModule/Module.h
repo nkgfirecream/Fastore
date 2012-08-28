@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\FastoreClient\ColumnDef.h"
+#include "../FastoreClient/ColumnDef.h"
 #include "Cursor.h"
 #include "Table.h"
 #include "Address.h"
@@ -32,7 +32,7 @@ void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
 	// TODO: thread safety
 	if (SQLITE_OK != sqliteResult)
 	{
-		throw exception(sqlite3_errmsg(sqliteConnection));
+		std::runtime_error(sqlite3_errmsg(sqliteConnection));
 	}
 }
 
@@ -69,7 +69,9 @@ public:
 template<typename T>
 int insensitiveStrPos(const T& str1, const T& str2, const std::locale& locale = std::locale() )
 {
-    T::const_iterator it = std::search(str1.begin(), str1.end(), str2.begin(), str2.end(), CaseInsensitiveComparer<T::value_type>(locale));
+    typename T::const_iterator it = std::search(str1.begin(), str1.end(), 
+						str2.begin(), str2.end(), 
+						CaseInsensitiveComparer<typename T::value_type>(locale));
     if (it != str1.end()) 
 		return it - str1.begin();
     else 
@@ -81,13 +83,17 @@ client::ColumnDef ParseColumnDef(string text)
 	client::ColumnDef result;
 	istringstream reader(text, istringstream::in);
 	if (!std::getline(reader, result.Name, ' ')) 
-		throw exception("Missing column name");
+		std::runtime_error("Missing column name");
 	if (!std::getline(reader, result.Type, ' '))
 		result.Type = "String";
 	auto stringText = string(text);
 	//TODO: When should we use an identity buffer? Primary key?
-	result.BufferType =	insensitiveStrPos(stringText, string("primary")) >= 0 ? client::BufferType::Identity : insensitiveStrPos(stringText, string("unique")) >= 0 ? client::BufferType::Unique : client::BufferType::Multi;
-	result.Required = insensitiveStrPos(stringText, string("not null")) >= 0 || insensitiveStrPos(stringText, string("primary")) >= 0;
+	result.BufferType =	insensitiveStrPos(stringText, string("primary")) >= 0 ? 
+	    client::BufferType_t::Identity : 
+	    	insensitiveStrPos(stringText, string("unique")) >= 0 ? 
+	    		client::BufferType_t::Unique : client::BufferType_t::Multi;
+	result.Required = insensitiveStrPos(stringText, string("not null")) >= 0 || 
+	                  insensitiveStrPos(stringText, string("primary")) >= 0;
 
 	return result;
 }
@@ -133,7 +139,7 @@ string FastoreTypeToSQLiteType(const string &fastoreType)
 	{
 		ostringstream message;
 		message << "Unknown type '" << fastoreType << "'.";
-		throw exception(message.str().c_str());
+		std::runtime_error(message.str());
 	}
 	return result->second;
 }
@@ -146,7 +152,7 @@ string SQLiteTypeToFastoreType(const string &SQLiteType)
 	{
 		ostringstream message;
 		message << "Unknown type '" << SQLiteType << "'.";
-		throw exception(message.str().c_str());
+		std::runtime_error(message.str());
 	}
 	return result->second;
 }

@@ -3,6 +3,12 @@
 #include <memory>
 #include "IDataAccess.h"
 
+
+#if defined(__GNUC__) &&  __GNUC__ < 5 &&  __GNUC_MINOR__ < 7
+// override keyword not supported 
+# define override
+#endif
+
 namespace fastore 
 {
 	namespace provider

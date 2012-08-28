@@ -1,6 +1,6 @@
 #pragma once
-#include "..\FastoreClient\Client.h"
-#include "..\FastoreClient\Generator.h"
+#include "../FastoreClient/Client.h"
+#include "../FastoreClient/Generator.h"
 #include "Address.h"
 
 namespace fastore

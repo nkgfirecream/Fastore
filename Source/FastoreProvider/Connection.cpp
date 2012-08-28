@@ -1,6 +1,6 @@
 #include "Connection.h"
 #include "Statement.h"
-#include "..\FastoreModule\Module.h"
+#include "../FastoreModule/Module.h"
 
 using namespace fastore::provider;
 

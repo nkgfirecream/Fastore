@@ -1,6 +1,6 @@
 #pragma once
 #include "Cursor.h"
-#include "..\FastoreClient\Encoder.h"
+#include "../FastoreClient/Encoder.h"
 
 using namespace fastore::module;
 namespace client = fastore::client;
@@ -61,7 +61,8 @@ void Cursor::getNextSet()
 	//First pull...
 	if (_set.Data.size() == 0)
 	{
-		_set = _table->getRange(_range, boost::optional<std::string>());
+	    const boost::optional<std::string> s;
+	    _set = _table->getRange(_range, s);
 		if (_set.Data.size() > 0)
 			_index = 0;
 	}

@@ -6,6 +6,7 @@
 #include <exception>
 #include <functional>
 #include <vector>
+#include <cstring>
 
 using namespace std;
 namespace prov = fastore::provider;
@@ -14,7 +15,9 @@ void ExceptionToFastoreResult(exception e, int code, FastoreResult &result)
 {
 	result.success = false;
 	result.error.code = code;
-	strcpy_s(result.error.message, MAX_ERROR_MESSAGE, e.what());
+	const size_t len = min(sizeof(result.error.message) - 1, std::strlen(e.what()) );
+	strncpy(result.error.message, e.what(), MAX_ERROR_MESSAGE);
+	result.error.message[len] = '\0';
 }
 
 template <typename TResult>
