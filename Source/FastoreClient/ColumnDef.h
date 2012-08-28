@@ -5,7 +5,7 @@ namespace fastore
 { 
 	namespace client
 	{
-		enum class BufferType
+		enum class BufferType_t
 		{
 			Identity = 0,
 			Unique = 1,
@@ -19,7 +19,7 @@ namespace fastore
 			std::string Name;
 			std::string Type;
 			std::string IDType;
-			BufferType BufferType;
+			BufferType_t BufferType;
 			bool Required;
 		};
 	}

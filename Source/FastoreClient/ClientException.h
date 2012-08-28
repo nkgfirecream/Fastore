@@ -8,7 +8,7 @@
 
 namespace fastore { namespace client
 {
-	class ClientException : public std::exception
+    class ClientException : public std::runtime_error
 	{
 	public:
 		enum class Codes

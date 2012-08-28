@@ -2,8 +2,13 @@
 
 using namespace fastore::client;
 
+#if 0 && REDEFINITION
 template<typename TKey, typename TClient>
-ConnectionPool<TKey, TClient>::ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, std::function<NetworkAddress(TKey)> determineAddress, std::function<void(TClient&)> destroyConnection, std::function<bool(TClient&)> isValid)
+ConnectionPool<TKey, TClient>::
+ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, 
+	       std::function<NetworkAddress(TKey)> determineAddress, 
+	       std::function<void(TClient&)> destroyConnection, 
+	       std::function<bool(TClient&)> isValid)
 	: 
 	_maxPooledPerKey(DefaultMaxPooledPerKey),
 	_lock(boost::shared_ptr<boost::mutex>(new boost::mutex()))
@@ -13,7 +18,6 @@ ConnectionPool<TKey, TClient>::ConnectionPool(std::function<TClient(boost::share
 	_destroyConnection = destroyConnection;
 	_isValid = isValid;
 }
-
 
 template<typename TKey, typename TClient>
 const int ConnectionPool<TKey, TClient>::getMaxPooledPerKey()
@@ -157,3 +161,4 @@ ConnectionPool<TKey, TClient>::~ConnectionPool()
 	}
 	_lock.unlock();
 }
+#endif 

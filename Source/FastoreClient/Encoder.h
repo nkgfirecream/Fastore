@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\FastoreCommunication\Comm_types.h"
+#include "../FastoreCommunication/Comm_types.h"
 
 using namespace fastore::communication;
 

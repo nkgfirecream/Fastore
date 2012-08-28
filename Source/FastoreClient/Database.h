@@ -13,10 +13,10 @@
 #include <cmath>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
-#include <thrift\protocol\TProtocol.h>
-#include "..\FastoreCommunication\Comm_types.h"
-#include "..\FastoreCommunication\Service.h"
-#include "..\FastoreCommunication\Worker.h"
+#include <thrift/protocol/TProtocol.h>
+#include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCommunication/Service.h"
+#include "../FastoreCommunication/Worker.h"
 #include "typedefs.h"
 #include <future>
 

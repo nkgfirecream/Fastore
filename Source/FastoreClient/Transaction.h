@@ -8,8 +8,8 @@
 #include <set>
 #include <algorithm>
 #include <boost/shared_ptr.hpp>
-#include "..\FastoreCommunication\Comm_types.h"
-#include <hash_set>
+#include "../FastoreCommunication/Comm_types.h"
+#include <unordered_set>
 
 using namespace fastore::communication;
 
@@ -31,10 +31,10 @@ namespace fastore { namespace client
 			LogColumn()
 			{
 				Includes = std::map<std::string, std::string>();
-				Excludes = std::hash_set<std::string>();	
+				Excludes = std::unordered_set<std::string>();	
 			}
 			std::map<std::string, std::string> Includes;
-			std::hash_set<std::string> Excludes;
+			std::unordered_set<std::string> Excludes;
 		};
 
 	private:

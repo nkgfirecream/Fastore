@@ -2,7 +2,8 @@
 
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
-#include <boost\optional.hpp>
+#include <boost/optional.hpp>
+#include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
 #include <boost/smart_ptr/detail/spinlock.hpp>
 #include <boost/asio/io_service.hpp>

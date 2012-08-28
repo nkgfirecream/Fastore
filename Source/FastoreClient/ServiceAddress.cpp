@@ -1,5 +1,6 @@
 ﻿#include "ServiceAddress.h"
-#include <boost\algorithm\string.hpp>
+#include <cerrno>
+#include <boost/algorithm/string.hpp>
 
 using namespace fastore::client;
 
@@ -21,7 +22,7 @@ ServiceAddress ServiceAddress::ParseOne(const std::string &address)
 	}
 
 	if (components.size() < 1 || components.size() > 2)
-		throw std::exception("Must provide at least one address.");
+	    throw std::runtime_error("Must provide at least one address.");
 
 	int port;
 
@@ -34,7 +35,7 @@ ServiceAddress ServiceAddress::ParseOne(const std::string &address)
 	result.Name = components[0];
 
 	if (result.Name.empty())
-		throw std::exception("Port is optional, but service host name must be given.");
+		throw std::runtime_error("Port is optional, but service host name must be given.");
 
 	return result;
 }
@@ -53,7 +54,7 @@ std::vector<ServiceAddress> ServiceAddress::ParseList(const std::string &composi
 	}
 
 	if (addressstrings.size() < 0)
-		throw std::exception("Must provide at least one address.");
+		throw std::runtime_error("Must provide at least one address.");
 
 	std::vector<ServiceAddress> addresses;
 

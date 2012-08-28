@@ -1,9 +1,12 @@
 ﻿#include "Database.h"
 #include "Dictionary.h"
-#include <boost\format.hpp>
+#include <boost/format.hpp>
 #include "Encoder.h"
 
+#include <future>
+
 using namespace fastore::client;
+///using fastore::communication::ServiceState;
 
 const int &Database::getWriteTimeout() const
 {
@@ -13,7 +16,7 @@ const int &Database::getWriteTimeout() const
 void Database::setWriteTimeout(const int &value)
 {
 	if (value < -1)
-		throw std::exception("WriteTimeout must be -1 or greater.");
+		throw std::runtime_error("WriteTimeout must be -1 or greater.");
 	_writeTimeout = value;
 }
 
@@ -229,6 +232,9 @@ NetworkAddress& Database::GetServiceAddress(int hostID)
 
 HiveState Database::GetHiveState()
 {
+    std::pair<int, ServiceState> testing1;
+    std::future<int> testing2;
+    std::future<std::pair<int, ServiceState>> testing123;
 	//TODO: Need to actually try to get new worker information, update topologyID, etc.
 	//This just assumes that we won't add any workers once we are up and running
 	HiveState newHive;

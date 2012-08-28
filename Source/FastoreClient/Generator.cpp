@@ -1,8 +1,8 @@
 ﻿#include "Generator.h"
 #include "Encoder.h"
 #include "Dictionary.h"
-#include "boost\assign\std\vector.hpp"
-#include "boost\assign\list_of.hpp"
+#include "boost/assign/std/vector.hpp"
+#include "boost/assign/list_of.hpp"
 
 using namespace fastore::client;
 using namespace boost::assign;
@@ -140,7 +140,7 @@ void Generator::EnsureGeneratorTable()
 				("Generator.Generator")
 				("Int")
 				("Int")
-				(Encoder<BufferType>::Encode(BufferType::Unique))
+				(Encoder<BufferType_t>::Encode(BufferType_t::Unique))
 				(Encoder<bool>::Encode(true))
 		);
 
