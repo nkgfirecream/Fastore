@@ -57,6 +57,7 @@ void Statement::internalBind(int index, ArgumentType type, std::string& value)
 bool Statement::next()
 {
 	_eof = (!(sqlite3_step(_statement) == SQLITE_ROW));
+	return _eof;
 }
 
 int Statement::columnCount()
@@ -72,4 +73,5 @@ ColumnInfo Statement::getColumnInfo(int index)
 	//to compare what sqlite reports and what we have actually defined the column as.
 	info.type = sqlite3_column_type(_statement, index);
 	info.name = sqlite3_column_name(_statement, index);
+	return info;
 }

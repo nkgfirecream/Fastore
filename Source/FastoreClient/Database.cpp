@@ -1080,7 +1080,7 @@ Schema Database::LoadSchema()
 			def.Name = Encoder<std::string>::Decode(column.Values[1]);
 			def.Type = Encoder<std::string>::Decode(column.Values[2]);
 			def.IDType = Encoder<std::string>::Decode(column.Values[3]);
-			def.BufferType = Encoder<BufferType>::Decode(column.Values[4]);
+			def.BufferType = Encoder<BufferType_t>::Decode(column.Values[4]);
 			def.Required = Encoder<bool>::Decode(column.Values[5]);
 
 			schema.insert(std::pair<int, ColumnDef>(def.ColumnID, def));
@@ -1104,7 +1104,7 @@ void Database::BootStrapSchema()
 	id.Name = "Column.ID";
 	id.Type = "Int";
 	id.IDType = "Int";
-	id.BufferType = BufferType::Identity;
+	id.BufferType = BufferType_t::Identity;
 	id.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnID, id));
 
@@ -1113,7 +1113,7 @@ void Database::BootStrapSchema()
 	name.Name = "Column.Name";
 	name.Type = "String";
 	name.IDType = "Int";
-	name.BufferType = BufferType::Unique;
+	name.BufferType = BufferType_t::Unique;
 	name.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnName, name));
 	
@@ -1122,7 +1122,7 @@ void Database::BootStrapSchema()
 	vt.Name = "Column.ValueType";
 	vt.Type = "String";
 	vt.IDType = "Int";
-	vt.BufferType = BufferType::Multi;
+	vt.BufferType = BufferType_t::Multi;
 	vt.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnValueType, vt));
 
@@ -1131,7 +1131,7 @@ void Database::BootStrapSchema()
 	idt.Name = "Column.RowIDType";
 	idt.Type = "String";
 	idt.IDType = "Int";
-	idt.BufferType = BufferType::Multi;
+	idt.BufferType = BufferType_t::Multi;
 	idt.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnRowIDType, idt));
 
@@ -1140,7 +1140,7 @@ void Database::BootStrapSchema()
 	unique.Name = "Column.BufferType";
 	unique.Type = "Int";
 	unique.IDType = "Int";
-	unique.BufferType = BufferType::Multi;
+	unique.BufferType = BufferType_t::Multi;
 	unique.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnBufferType, unique));
 
@@ -1149,7 +1149,7 @@ void Database::BootStrapSchema()
 	required.Name = "Column.Required";
 	required.Type = "Bool";
 	required.IDType = "Int";
-	required.BufferType = BufferType::Multi;
+	required.BufferType = BufferType_t::Multi;
 	required.Required = true;
 	_schema.insert(std::pair<ColumnID, ColumnDef>(Dictionary::ColumnRequired, required));	
 

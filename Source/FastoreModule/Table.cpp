@@ -9,7 +9,9 @@ using namespace fastore::module;
 using namespace fastore::client;
 using namespace boost::assign;
 
-Table::Table(Connection* connection, std::string& name, std::vector<client::ColumnDef>& columns) : _connection(connection), _name(name), _columns(columns) { }
+Table::Table(Connection* connection, const std::string& name, std::vector<client::ColumnDef>& columns) 
+	: _connection(connection), _name(name), _columns(columns) 
+{}
 
 void Table::begin()
 {
