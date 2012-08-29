@@ -22,3 +22,13 @@ bool fastore::communication::TransactionID::operator<(const fastore::communicati
 	return revision < other.revision;
 }
 
+bool fastore::communication::OptionalValue::operator<(const fastore::communication::OptionalValue& other) const
+{
+	if (__isset.value && other.__isset.value)
+		return value.compare(other.value) < 0;
+	else if(!__isset.value && other.__isset.value)
+		return true;
+	else
+		return false;
+}
+

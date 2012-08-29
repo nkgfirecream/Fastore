@@ -231,9 +231,14 @@ struct Query
 
 typedef map<ColumnID, Query> Queries
 
+struct OptionalValue
+{
+	1: optional binary value
+}
+
 struct Answer
 {
-	1: optional list<binary> rowIDValues,
+	1: optional list<OptionalValue> rowIDValues,
 	2: optional list<RangeResult> rangeValues
 }
 

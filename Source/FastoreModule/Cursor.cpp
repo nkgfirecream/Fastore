@@ -32,21 +32,19 @@ void Cursor::setColumnResult(sqlite3_context *pContext, int index)
 	auto value = _set.Data[_index].Values[index];
 
 	//NULL Marker required...
-	//if (value is NULL)
-	// sqlite3_result_null(pContext);
-	// return;
-	
-	if (type == "Bool")
-		sqlite3_result_int(pContext, (int)Encoder<bool>::Decode(value));
+	if (!value.__isset.value)
+		sqlite3_result_null(pContext);
+	else if (type == "Bool")
+		sqlite3_result_int(pContext, (int)Encoder<bool>::Decode(value.value));
 	else if (type == "Int")
-		sqlite3_result_int(pContext, Encoder<int>::Decode(value));
+		sqlite3_result_int(pContext, Encoder<int>::Decode(value.value));
 	else if (type == "Long")
-		sqlite3_result_int64(pContext, Encoder<long long>::Decode(value));
+		sqlite3_result_int64(pContext, Encoder<long long>::Decode(value.value));
 	else if (type == "String")
-		sqlite3_result_text(pContext, value.data(), value.length(), NULL);
+		sqlite3_result_text(pContext, value.value.data(), value.value.length(), NULL);
 	else if (type == "WString")
 	{
-		std::wstring decoded = Encoder<std::wstring>::Decode(value);
+		std::wstring decoded = Encoder<std::wstring>::Decode(value.value);
 		sqlite3_result_text16(pContext, decoded.data(), decoded.length(), NULL);
 	}
 }

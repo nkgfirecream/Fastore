@@ -147,7 +147,7 @@ void Table::disconnect()
 void Table::createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod)
 {
 	//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
-	auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0];
+	auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0].value;
 
 
 	//TODO: Make workers smart enough to create/instantiate a column within one transaction.
@@ -181,6 +181,10 @@ void Table::createColumn(client::ColumnDef& column, std::string& combinedName, c
 
 void Table::bestIndex(sqlite3_index_info* info)
 {
+	//Step 1. Group constraints by columns:
+	//std::map<int,std::vector<std::pair<int,sqlite3_index_info::sqlite3_index_constraint*>>> constraintMap;
+	//for (int i = 0;
+	//info->aConstraint[0]
 	////Inputs..
 	//double constraintCost = 0.0;
 	//int constraintColumn = -1;
@@ -336,6 +340,7 @@ void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 
 	std::vector<std::string> row;
 
+	communication::ColumnIDs includedColumns;
 	for (int i = 0; i < _columns.size(); ++i)
 	{
 		auto pValue = argv[i+2];
@@ -359,18 +364,16 @@ void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 			}
 
 			row.push_back(value);
+			includedColumns.push_back(_columns[i].ColumnID);
 		}
-		else if (!_columns[i].Required)
+		else if (_columns[i].Required)
 		{
-			//TODO: NULL marker;
-			row.push_back("");
-		}
-		else
 			throw "Got a NULL value on a required row!";
+		}
 	}	
 
 	if (_transaction != NULL)
-		_transaction->Include(_columnIds, rowid, row);
+		_transaction->Include(includedColumns, rowid, row);
 	else
-		_connection->_database->Include(_columnIds, rowid, row);
+		_connection->_database->Include(includedColumns, rowid, row);
 }

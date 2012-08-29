@@ -206,7 +206,7 @@ void WorkerHandler::SyncToSchema()
 
 		for (int i = 0; i < answer.rowIDValues.size(); i++)
 		{
-			schemaIds.insert(*(ColumnID*)(answer.rowIDValues.at(i).data()));
+			schemaIds.insert(*(ColumnID*)(answer.rowIDValues[i].value.data()));
 		}
 
 		// drop repos that we should no longer have
@@ -333,19 +333,19 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 
 	//Name column
 	Answer answer = _repositories[1]->query(query);
-	def.Name = answer.rowIDValues.at(0);
+	def.Name = answer.rowIDValues[0].value;
 
 	//ValueType
 	answer = _repositories[2]->query(query);
-	def.ValueType = GetTypeFromName(answer.rowIDValues.at(0));
+	def.ValueType = GetTypeFromName(answer.rowIDValues.at(0).value);
 
 	//RowType
 	answer = _repositories[3]->query(query);
-	def.RowIDType = GetTypeFromName(answer.rowIDValues.at(0));
+	def.RowIDType = GetTypeFromName(answer.rowIDValues[0].value);
 
 	//Unique
 	answer = _repositories[4]->query(query);
-	def.BufferType = (BufferType_t)*(int*)(answer.rowIDValues.at(0).data());
+	def.BufferType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
 
 	return def;
 }

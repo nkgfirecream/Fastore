@@ -75,9 +75,11 @@ int Generator::InternalGenerate(int tableId, int size)
 
 				if (values.size() > 0)
 				{
-						result = Encoder<int>::Decode(values[0].Values[0]);
-						if (result > 0 /* TODO: NULL Marker! Right now we just get garbage in a result wasn't found */)
+						//Not null
+						if (values[0].Values[0].__isset.value)
+						{
 							transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
+						}
 						else
 							result = Dictionary::MaxClientColumnID + 1; //Seed value.. don't start with zero because we may have added those manually.
 				}
@@ -189,8 +191,8 @@ void Generator::DefaultPods()
 	auto podIds = _database->GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
-	if (podIds.Data.size() == 0)
+	if (podIds.Data.size() == 0 || !podIds.Data[0].Values[0].__isset.value)
 		throw ClientException("Can't create generator column. No pods in hive.", ClientException::Codes::NoWorkersInHive);
 
-	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.Data[0].Values[0]));
+	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.Data[0].Values[0].value));
 }

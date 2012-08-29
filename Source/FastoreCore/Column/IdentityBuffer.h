@@ -8,7 +8,7 @@ class IdentityBuffer : public IColumnBuffer
 	public:
 		IdentityBuffer(const ScalarType& type);
 
-		vector<std::string> GetValues(const vector<std::string>& rowIds);		
+		vector<OptionalValue> GetValues(const vector<std::string>& rowIds);		
 		void Apply(const ColumnWrites& writes);
 		RangeResult GetRows(const RangeRequest& range);
 		Statistic GetStatistic();
@@ -37,14 +37,16 @@ inline Statistic IdentityBuffer::GetStatistic()
 	return stat;
 }
 
-inline vector<std::string> IdentityBuffer::GetValues(const vector<std::string>& rowIds)
+inline vector<OptionalValue> IdentityBuffer::GetValues(const vector<std::string>& rowIds)
 {
-	vector<std::string> values(rowIds.size());
+	vector<OptionalValue> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
 		auto path = _rows->GetPath(_type.GetPointer(rowIds[i]));
 		if (path.Match)
-			values[i] = rowIds[i];
+		{
+			values[i].__set_value(rowIds[i]);
+		}
 	}
 
 	return values;

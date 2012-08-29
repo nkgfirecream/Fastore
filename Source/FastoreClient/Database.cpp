@@ -658,7 +658,7 @@ RangeSet Database::ResultsToRangeSet(DataSet& set, const int rangeColumnId, cons
 	int valueRowRow = 0;
 	for (int y = 0; y < set.size(); y++)
 	{
-		set[y].Values[rangeColumnIndex] = rangeResult.valueRowsList[valueRowValue].value;
+		set[y].Values[rangeColumnIndex].__set_value(rangeResult.valueRowsList[valueRowValue].value);
 		valueRowRow++;
 		if (valueRowRow >= rangeResult.valueRowsList[valueRowValue].rowIDs.size())
 		{
@@ -1077,11 +1077,11 @@ Schema Database::LoadSchema()
 		{
 			ColumnDef def;
 			def.ColumnID = Encoder<ColumnID>::Decode(column.ID);
-			def.Name = Encoder<std::string>::Decode(column.Values[1]);
-			def.Type = Encoder<std::string>::Decode(column.Values[2]);
-			def.IDType = Encoder<std::string>::Decode(column.Values[3]);
-			def.BufferType = Encoder<BufferType_t>::Decode(column.Values[4]);
-			def.Required = Encoder<bool>::Decode(column.Values[5]);
+			def.Name = Encoder<std::string>::Decode(column.Values[1].value);
+			def.Type = Encoder<std::string>::Decode(column.Values[2].value);
+			def.IDType = Encoder<std::string>::Decode(column.Values[3].value);
+			def.BufferType = Encoder<BufferType_t>::Decode(column.Values[4].value);
+			def.Required = Encoder<bool>::Decode(column.Values[5].value);
 
 			schema.insert(std::pair<int, ColumnDef>(def.ColumnID, def));
 		}

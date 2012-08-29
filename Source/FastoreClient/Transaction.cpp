@@ -125,10 +125,10 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 			LogColumn col = changeMap[i];
 			if (!col.Excludes.empty() || !col.Includes.empty())
 			{
-				if (std::find(col.Excludes.begin(), col.Excludes.end(), row->Values[i]) != col.Excludes.end())
+				if (std::find(col.Excludes.begin(), col.Excludes.end(), row->ID) != col.Excludes.end())
 				{
-					//TODO: set null marker
-					newRow.Values[i].clear();
+					//Set null marker
+					newRow.Values[i] = fastore::communication::OptionalValue();
 				}
 				else
 				{

@@ -11,7 +11,7 @@ class UniqueBuffer : public IColumnBuffer
 	public:
 		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType);
 
-		vector<std::string> GetValues(const vector<std::string>& rowIds);		
+		vector<OptionalValue> GetValues(const vector<std::string>& rowIds);		
 		void Apply(const ColumnWrites& writes);
 		RangeResult GetRows(const RangeRequest& range);
 		Statistic GetStatistic();
@@ -56,14 +56,18 @@ inline Statistic UniqueBuffer::GetStatistic()
 	return stat;
 }
 
-inline vector<std::string> UniqueBuffer::GetValues(const vector<std::string>& rowIds)
+inline vector<OptionalValue> UniqueBuffer::GetValues(const vector<std::string>& rowIds)
 {
-	vector<std::string> values(rowIds.size());
+	vector<OptionalValue> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
 		auto result = GetValue(_rowType.GetPointer(rowIds[i]));
 		if (result != NULL)
-			_valueType.CopyOut(result, values[i]);
+		{
+			std::string value;
+			_valueType.CopyOut(result, value);
+			values[i].__set_value(value);
+		}
 	}
 
 	return values;

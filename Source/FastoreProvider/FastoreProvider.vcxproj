@@ -68,7 +68,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Debug;$(SolutionDir)..\External\boost_1_49_0\lib64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SQLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FastoreCore.lib;FastoreModule.lib;FastoreClient.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;libthriftnb.lib;SQLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -89,6 +90,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)bin\;$(SolutionDir)..\External\Thrift\x64\Release;$(SolutionDir)..\External\boost_1_49_0\lib64;$(SolutionDir)..\External\tbb\lib\intel64\vc10;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>FastoreCore.lib;FastoreModule.lib;FastoreClient.lib;FastoreCommunication.lib;libthrift.lib;ws2_32.lib;libthriftnb.lib;SQLite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>MSVCRT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

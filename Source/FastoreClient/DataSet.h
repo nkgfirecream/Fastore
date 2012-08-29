@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
+#include "..\FastoreCommunication\Comm_types.h"
 
 
 namespace fastore { namespace client
@@ -13,13 +14,13 @@ namespace fastore { namespace client
 		DataSetRow(int columns)
 			: ID(std::string())
 		{
-			Values = std::vector<std::string>(columns, std::string());
+			Values = std::vector<fastore::communication::OptionalValue>(columns, fastore::communication::OptionalValue());
 		}
 
-		std::vector<std::string> Values;
+		std::vector<fastore::communication::OptionalValue> Values;
 		std::string ID;
 
-		std::string& operator[](int index)
+		fastore::communication::OptionalValue& operator[](int index)
 		{
 			return Values[index];
 		}
