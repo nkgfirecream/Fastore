@@ -1,4 +1,6 @@
 #pragma once
+
+#if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -7,6 +9,13 @@
 SERVICE_STATUS          gSvcStatus; 
 SERVICE_STATUS_HANDLE   gSvcStatusHandle; 
 HANDLE                  ghSvcStopEvent = NULL;
+#else
+#define BOOL int
+#define VOID void
+#define WINAPI
+#define LPTSTR char*
+#define DWORD uint32_t
+#endif
 
 BOOL CtrlCHandler(DWORD);
 VOID SvcInstall(void);

@@ -1,21 +1,21 @@
 #include "InternalTypes.h"
-#include <hash_set>
+#include <unordered_set>
 #include "../BTree.h"
 
 void DeallocateHashSet(void* items, int count)
 {
-	// TODO: How to call a hash_set destructor?
+	// TODO: How to call a unordered_set destructor?
 	//for (int i = 0; i < count; i++)
-	//	((std::hash_set<void*, ScalarType, ScalarType>*)items)[i].~_Hash();
+	//	((std::unordered_set<void*, ScalarType, ScalarType>*)items)[i].~_Hash();
 }
 
 HashSetType::HashSetType()
 {
 	Name = "HashSet";
 	Compare = NULL;
-	Size = sizeof(std::hash_set<void*, ScalarType, ScalarType>*);
+	Size = sizeof(std::unordered_set<void*, ScalarType, ScalarType>*);
 	ToString = NULL;
-	CopyIn = CopyToArray<std::hash_set<void*, ScalarType, ScalarType>*>;
+	CopyIn = CopyToArray<std::unordered_set<void*, ScalarType, ScalarType>*>;
 	Deallocate = DeallocateHashSet;
 }
 

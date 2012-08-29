@@ -13,10 +13,10 @@
 
 #include "Service.h"
 #include "errors.h"
-#include "..\FastoreCore\Endpoint.h"
-#include "..\FastoreCore\ServiceHandler.h"
-#include "..\FastoreCore\EndpointConfig.h"
-#include "..\FastoreCore\StartupConfig.h"
+#include "../FastoreCore/Endpoint.h"
+#include "../FastoreCore/ServiceHandler.h"
+#include "../FastoreCore/EndpointConfig.h"
+#include "../FastoreCore/StartupConfig.h"
 
 
 using namespace std;

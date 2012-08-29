@@ -3,12 +3,11 @@ DBG = -O0
 CFLAGS += 
 CXXFLAGS += -g -o $@ -fPIC \
 	-std=c++0x \
-	-I ./SQLite \
 	-I /usr/local/include \
 	-I /usr/pkg/include \
 	-I /usr/local/include/thrift 
 
-THRIFT.BASE =	Server_types.h \
+COMM.THRIFT =	Server_types.h \
 		Service.cpp \
 		Server_constants.cpp \
 		Service.h \
@@ -27,11 +26,11 @@ CLIENT.BASE != ls FastoreClient
 CLIENT.SRC = $(CLIENT.BASE:M*.cpp:S,^,FastoreClient/,g)
 CLIENT.OBJ = $(CLIENT.SRC:.cpp=.o)
 
-THRIFT.SRC = $(THRIFT.BASE:S,^,FastoreCommunication/,g)
-THRIFT.OBJ = $(THRIFT.SRC:M*.cpp:N*.skeleton.*:S/.cpp/.o/)
+COMM.BASE = $(COMM.THRIFT) Operators.cpp
+COMM.SRC = $(COMM.BASE:S,^,FastoreCommunication/,g)
+COMM.OBJ = $(COMM.SRC:M*.cpp:N*.skeleton.*:S/.cpp/.o/)
 
-CORE.BASE != ls FastoreCore
-CORE.SRC = $(CORE.BASE:M*.cpp:S,^,FastoreCore/,g)
+CORE.SRC != find FastoreCore -name '*.cpp' |  grep -v /Wal/
 CORE.OBJ = $(CORE.SRC:.cpp=.o)
 
 MODULE.BASE != ls FastoreModule
@@ -42,61 +41,92 @@ PROVIDER.BASE != ls FastoreProvider
 PROVIDER.SRC = $(PROVIDER.BASE:M*.cpp:S,^,FastoreProvider/,g)
 PROVIDER.OBJ = $(PROVIDER.SRC:.cpp=.o)
 
-SRC = $(CLIENT.SRC) $(THRIFT.SRC) $(CORE.SRC)
+SERVICE.BASE != ls FastoreService/*.h FastoreService/fastored.cpp
+SERVICE.SRC = $(SERVICE.BASE:M*.cpp)
+SERVICE.OBJ = $(SERVICE.SRC:.cpp=.o)
+
+SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
 
 .PHONY: client 	FastoreClient \
-	thrift	FastoreCommunication \
+	comm	FastoreCommunication \
 	core 	FastoreCore \
 	module	FastoreModule \
 	provide	FastoreProvider \
-	FastoreService \
+	service	FastoreService \
 	FastoreShell \
 	SQLite \
 	packages
 
-OBJ = $(THRIFT.OBJ) $(CORE.OBJ) $(MODULE.OBJ) $(PROVIDER.OBJ)
-OUTPUT =   \
-	FastoreCommunication/libthrift.so \
+OBJ = $(COMM.OBJ) $(CORE.OBJ) $(MODULE.OBJ) $(PROVIDER.OBJ)
+LIBS =   \
+	FastoreCommunication/libfastore-communication.so \
 	FastoreCore/libfastore-core.so \
 	FastoreModule/libfastore-module.so \
 	FastoreProvider/libfastore-provider.so
 
-all: $(THRIFT.SRC) $(OUTPUT)
+all: $(COMM.SRC) $(LIBS)
+
+$(COMM.SRC): FastoreCommunication/.Comm.done FastoreCommunication/.Server.done
+
+FastoreCommunication/.Comm.done: Comm.thrift
+	thrift --gen cpp -strict -out FastoreCommunication/ Comm.thrift
+	@touch $@
+FastoreCommunication/.Server.done: Server.thrift
+	thrift --gen cpp -strict -out FastoreCommunication/ Server.thrift
+	@touch $@
 
 client FastoreClient: FastoreClient/libfastore-client.so
 FastoreClient/libfastore-client.so: $(CLIENT.OBJ)
-	$(CXX) -shared $(.ALLSRC)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
 client-clean:
-	rm -f $(CLIENT.OBJ)
+	rm -f $(CLIENT.OBJ) FastoreClient/libfastore-client.so
 
-thrift FastoreCommunication: FastoreCommunication/libthrift.so
-FastoreCommunication/libthrift.so: $(THRIFT.OBJ)
-	$(CXX) -shared $(.ALLSRC)
-thrift-src: $(THRIFT.SRC)
+comm FastoreCommunication: FastoreCommunication/libfastore-communication.so
+FastoreCommunication/libfastore-communication.so: $(COMM.OBJ)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
+thrift-src: $(COMM.SRC)
 thrift-clean: 
-	rm -f $(THRIFT.SRC) $(THRIFT.OBJ) FastoreCommunication/libthrift.so
+	rm -f $(COMM.SRC) $(COMM.OBJ) \
+		FastoreCommunication/libfastore-communication.so
 
 core FastoreCore: FastoreCore/libfastore-core.so
 FastoreCore/libfastore-core.so: $(CORE.OBJ)
-	$(CXX) -shared $(.ALLSRC)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
 core-clean:
-	rm -f $(CORE.OBJ)
+	rm -f $(CORE.OBJ) FastoreCore/libfastore-core.so
 
+MODULE.CLIENT.BASE = Client ClientException DataSet Dictionary Generator IDGenerator ServiceAddress Transaction
+MODULE.CLIENT.OBJ = $(MODULE.CLIENT.BASE:S,^,FastoreClient/,g:S/$/.o/g)
 module FastoreModule: FastoreModule/libfastore-module.so
-FastoreModule/libfastore-module.so: $(MODULE.OBJ)
-	$(CXX) -shared $(.ALLSRC)
+FastoreModule/libfastore-module.so: $(MODULE.OBJ) $(MODULE.CLIENT.OBJ)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC) 
 module-clean:
-	rm -f $(MODULE.OBJ)
+	rm -f $(MODULE.OBJ) FastoreModule/libfastore-module.so
 
 provide provider FastoreProvider: FastoreProvider/libfastore-provider.so
-FastoreProvider/libfastore-provider.so: $(PROVIDER.OBJ)
-	$(CXX) -shared $(.ALLSRC)
+FastoreProvider/libfastore-provider.so: $(PROVIDER.OBJ) 
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
 provider-clean:
-	rm -f $(PROVIDER.OBJ)
+	rm -f $(PROVIDER.OBJ) FastoreProvider/libfastore-provider.so
+
+service FastoreService: FastoreService/libfastore-service.so
+FastoreService/libfastore-service.so: $(SERVICE.OBJ) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(SERVICE.OBJ) \
+		-L /usr/local/lib \
+		$(LIBS:H:S,^,-L./,g) \
+		$(LIBS:T:R:S/^lib/-l/g) \
+		-lthrift -lsqlite3
+service-clean:
+	rm -f $(SERVICE.OBJ) FastoreService/libfastore-service.so
 
 clean: 
-	rm -f $(THRIFT.OBJ) FastoreCommunication/libthrift.so
-
+	rm -f 	$(CLIENT.OBJ) \
+		$(COMM.OBJ) \
+		$(CORE.OBJ) \
+		$(MODULE.OBJ) \
+		$(PROVIDER.OBJ) \
+		$(SERVICE.OBJ) \
+		$(LIBS)
 
 depend:
 	makedepend -- $(CFLAGS) -- $(SRC)

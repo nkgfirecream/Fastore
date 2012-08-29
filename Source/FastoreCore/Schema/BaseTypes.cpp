@@ -1,5 +1,5 @@
 #include "BaseTypes.h"
-#include "..\Util/utilities.h"
+#include "../Util/utilities.h"
 #include <sstream>
 #include <functional>
 
@@ -13,8 +13,9 @@ int LongCompare(const void* left, const void* right)
 std::wstring LongString(const void* item)
 {
 	long long temp = *(long long *)item;
-	std::wstring converted = to_wstring(temp);
-	return converted;
+	wostringstream os;
+	os << temp;
+	return os.str();
 }
 
 LongType::LongType()

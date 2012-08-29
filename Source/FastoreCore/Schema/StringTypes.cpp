@@ -2,6 +2,12 @@
 #include <functional>
 #include <algorithm>
 
+#if defined(_WIN32)
+# define strcasecmp(a,b) stricmp((a),(b))
+#else
+# include <strings.h>
+#endif
+
 using namespace std;
 
 template <>
@@ -19,7 +25,8 @@ void CopyOutOfArray<std::string>(const void* arrpointer, std::string& destinatio
 
 int StringCompare(const void* left, const void* right)
 {
-	return stricmp(((std::string*)left)->data(), ((std::string*)right)->data());
+	return strcasecmp( ((std::string*)left)->c_str(), 
+			   ((std::string*)right)->c_str() );
 }
 
 std::wstring StringString(const void* item)

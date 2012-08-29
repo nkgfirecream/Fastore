@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include "..\FastoreCommunication\Comm_types.h"
+#include "../FastoreCommunication/Comm_types.h"
 
 
 namespace fastore { namespace client

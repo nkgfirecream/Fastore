@@ -7,11 +7,11 @@ IDGenerator::IDGenerator(std::function<int(int)> _generateCallback, int blockSiz
 	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold), _loadingBlock(false), _endOfRange(0), _nextId(0)
 {
 	if (blockSize < 1)
-		throw std::exception("Block size must be at least 1.");
+		throw std::runtime_error("Block size must be at least 1.");
 	if (allocationThreshold < 0)
-		throw std::exception("Allocation threshold must be 0 or more.");
+		throw std::runtime_error("Allocation threshold must be 0 or more.");
 	if (allocationThreshold > blockSize)
-		throw std::exception("Allocation threshold must be no more than the block size.");
+		throw std::runtime_error("Allocation threshold must be no more than the block size.");
 
 	//Signals the io service to not shut down, since we will be continually
 	//posting work.
@@ -130,7 +130,7 @@ int IDGenerator::Generate()
 
 					// Throw if there was an error attempting to load a new block
 					if (_lastError)
-						throw std::exception(_lastError->what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
+						throw std::runtime_error(_lastError->what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
 
 					// Retry with new block
 					continue;

@@ -188,11 +188,11 @@ void Generator::DefaultPods()
 	Range podRange = Range();
 	podRange.Ascending = true;
 	podRange.ColumnID = Dictionary::PodID;
-	auto podIds = _database->GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
+	RangeSet podIds = _database->GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
 	if (podIds.Data.size() == 0 || !podIds.Data[0].Values[0].__isset.value)
 		throw ClientException("Can't create generator column. No pods in hive.", ClientException::Codes::NoWorkersInHive);
 
-	_podIDs = list_of<PodID> (Encoder<PodID>::Decode(podIds.Data[0].Values[0].value));
+	_podIDs = std::vector<PodID> (Encoder<PodID>::Decode(podIds.Data[0].Values[0].value));
 }
