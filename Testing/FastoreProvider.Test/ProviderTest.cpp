@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "string.h"
 #include "CppUnitTest.h"
 #include "..\..\Source\FastoreProvider\fastore.h"
 
@@ -12,12 +13,28 @@ namespace FastoreProviderTest
 		
 		TEST_METHOD(TestConnect)
 		{
-			// TODO: Your test code here
+			FastoreAddress addresses[1];
+			strcpy(addresses[0].hostName, "localhost");
+			addresses[0].port = 8064;
+			ConnectResult result = fastoreConnect(1, addresses);
+
+			Assert::IsTrue(result.success);
 		}
 
 		TEST_METHOD(TestDisconnect)
 		{
-			// TODO: Your test code here
+			//no transactions
+			FastoreAddress addresses;
+			strcpy(addresses.hostName, "localhost");
+			addresses.port = 8064;
+			ConnectResult result = fastoreConnect(1, addresses);
+
+			ConnectionHandle connection;
+			fastoreDisconnect(connection);
+
+			//transactions have been committed
+
+			//transactions still exist - db connection should remain open
 		}
 
 		TEST_METHOD(TestPrepare)
