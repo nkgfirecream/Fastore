@@ -6,9 +6,6 @@
     </ClCompile>
     <ClCompile Include="src\thrift\Thrift.cpp" />
     <ClCompile Include="src\thrift\TApplicationException.cpp" />
-    <ClCompile Include="src\thrift\windows\StdAfx.cpp">
-      <Filter>windows</Filter>
-    </ClCompile>
     <ClCompile Include="src\thrift\transport\TTransportException.cpp">
       <Filter>transport</Filter>
     </ClCompile>
