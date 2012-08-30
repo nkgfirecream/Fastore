@@ -194,5 +194,5 @@ void Generator::DefaultPods()
 	if (podIds.Data.size() == 0 || !podIds.Data[0].Values[0].__isset.value)
 		throw ClientException("Can't create generator column. No pods in hive.", ClientException::Codes::NoWorkersInHive);
 
-	_podIDs = std::vector<PodID> (Encoder<PodID>::Decode(podIds.Data[0].Values[0].value));
+	_podIDs.resize(1, Encoder<PodID>::Decode(podIds.Data[0].Values[0].value));
 }
