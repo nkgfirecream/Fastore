@@ -16,6 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+#pragma warning( push )
+#pragma warning( once : 4244 )
+#pragma warning( once : 4267 )
 
 #ifndef _THRIFT_PROTOCOL_TBINARYPROTOCOL_TCC_
 #define _THRIFT_PROTOCOL_TBINARYPROTOCOL_TCC_ 1
@@ -458,3 +461,4 @@ uint32_t TBinaryProtocolT<Transport_>::readStringBody(std::string& str,
 }}} // apache::thrift::protocol
 
 #endif // #ifndef _THRIFT_PROTOCOL_TBINARYPROTOCOL_TCC_
+#pragma warning( pop )

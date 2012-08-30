@@ -17,6 +17,10 @@
  * under the License.
  */
 
+#pragma warning( push )
+#pragma warning( once : 4244 )
+#pragma warning( once : 4267 )
+
 #ifndef _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_
 #define _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_ 1
 
@@ -731,3 +735,4 @@ class TMemoryBuffer : public TVirtualTransport<TMemoryBuffer, TBufferBase> {
 }}} // apache::thrift::transport
 
 #endif // #ifndef _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_
+#pragma warning( pop )
