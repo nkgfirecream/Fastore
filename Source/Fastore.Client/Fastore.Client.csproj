@@ -69,12 +69,6 @@
     <Compile Include="TransactionIDComparer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Fastore.Communication\Fastore.Communication.csproj">
-      <Project>{E417B076-B58A-4339-8142-089AB4761679}</Project>
-      <Name>Fastore.Communication</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

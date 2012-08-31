@@ -199,7 +199,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>thrift\windows\force_inc.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost_1_49_0;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost_1_51_0;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -213,7 +213,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>thrift\windows\force_inc.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost_1_49_0;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost_1_51_0;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

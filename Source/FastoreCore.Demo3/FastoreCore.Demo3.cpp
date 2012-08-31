@@ -7,6 +7,7 @@
 #include "..\FastoreClient\Client.h"
 #include "..\FastoreClient\Dictionary.h"
 #include "..\FastoreClient\Encoder.h"
+#include "..\FastoreClient\ColumnDef.h"
 #include <vector>
 #include <boost\assign\list_of.hpp>
 #include <iostream>
@@ -107,12 +108,12 @@ int _tmain(int argc, _TCHAR* argv[])
 
 
 	//Create schema
-	_database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[0]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[0]))("ID")("Int")("Int")(Encoder<BufferType>::Encode(BufferType::Identity))(Encoder<bool>::Encode(true)));
-	_database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[1]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[1]))("Given")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[2]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[2]))("Surname")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[3]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[3]))("Gender")("Bool")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[4]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[4]))("BirthDate")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
-    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[5]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[5]))("BirthPlace")("String")("Int")(Encoder<BufferType>::Encode(BufferType::Multi))(Encoder<bool>::Encode(true)));
+	_database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[0]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[0]))("ID")("Int")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Identity))(Encoder<bool>::Encode(true)));
+	_database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[1]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[1]))("Given")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[2]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[2]))("Surname")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[3]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[3]))("Gender")("Bool")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[4]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[4]))("BirthDate")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->Include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[5]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[5]))("BirthPlace")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
 
 	Range podIdRange;
 	podIdRange.Ascending = true;
@@ -125,7 +126,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	for (int i = 0; i < _columns.size(); i++)
 	{
-		_database->Include(Dictionary::PodColumnColumns, Encoder<int>::Encode(i), list_of<std::string>(podIds.Data[i % podIds.Data.size()].Values[0])(Encoder<ColumnID>::Encode(_columns[i])));
+		_database->Include(Dictionary::PodColumnColumns, Encoder<int>::Encode(i), list_of<std::string>(podIds.Data[i % podIds.Data.size()].Values[0].value)(Encoder<ColumnID>::Encode(_columns[i])));
 	}
 
 
