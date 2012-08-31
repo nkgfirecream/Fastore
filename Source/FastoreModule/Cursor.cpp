@@ -41,11 +41,11 @@ void Cursor::setColumnResult(sqlite3_context *pContext, int index)
 	else if (type == "Long")
 		sqlite3_result_int64(pContext, Encoder<long long>::Decode(value.value));
 	else if (type == "String")
-		sqlite3_result_text(pContext, value.value.data(), value.value.length(), NULL);
+		sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
 	else if (type == "WString")
 	{
 		std::wstring decoded = Encoder<std::wstring>::Decode(value.value);
-		sqlite3_result_text16(pContext, decoded.data(), decoded.length(), NULL);
+		sqlite3_result_text16(pContext, decoded.data(), -1, SQLITE_TRANSIENT);
 	}
 }
 

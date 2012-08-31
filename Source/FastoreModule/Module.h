@@ -158,10 +158,10 @@ string SQLiteTypeToFastoreType(const string &SQLiteType)
 }
 
 // This method is invoked by both Create and Connect
-int moduleInit(sqlite3 *db, const vector<client::ColumnDef> &defs)
+int moduleInit(sqlite3 *db, const char *tblName, const vector<client::ColumnDef> &defs)
 {
 	ostringstream tableDef;
-	tableDef << "create table x(";
+	tableDef << "create table " << tblName <<"(";
 	bool first = true;
 	for (auto def : defs)
 	{
@@ -218,7 +218,7 @@ fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *co
 	//Create the table in fastore.
 	vtab->table = new module::Table(connection, string(tableName), defs);
 
-	moduleInit(db, defs);
+	moduleInit(db, tableName, defs);
 	return vtab;
 }
 

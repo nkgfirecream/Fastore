@@ -69,15 +69,19 @@ void IDGenerator::ResetLoading(boost::optional<int> newBlock, boost::optional<st
 
 		// Release the loading status
 		_lastError = e;
-		_loadingBlock = false;
-		_loadEvent.set();
-		_spinlock.unlock();
+		_loadingBlock = false;		
 		taken = false;
+		_spinlock.unlock();
+		_loadEvent.set();
+
 	}
 	catch(std::exception& e)
 	{
 		if (taken)
+		{
+			taken = false;
 			_spinlock.unlock();
+		}
 	}
 }
 
@@ -117,8 +121,8 @@ int IDGenerator::Generate()
 					// Release latch
 					if (lockTaken)
 					{
-						_spinlock.unlock();
 						lockTaken = false;
+						_spinlock.unlock();						
 					}
 
 					// Wait for load to complete
@@ -138,7 +142,10 @@ int IDGenerator::Generate()
 			}
 
 			if(lockTaken)
+			{
+				lockTaken = false;
 				_spinlock.unlock();
+			}
 
 			return nextId;
 		}
@@ -146,7 +153,10 @@ int IDGenerator::Generate()
 		{
 			// Release latch
 			if (lockTaken)
+			{
+				lockTaken = false;
 				_spinlock.unlock();
+			}
 		}
 	}
 }

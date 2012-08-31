@@ -71,17 +71,14 @@ int Generator::InternalGenerate(int tableId, int size)
 				std::string tableIdstring = Encoder<int>::Encode(tableId);
 				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
 				
-				int result = 0;
+				//Our start id is MaxClientCoulmnID + 1 for the Columns table, 0 for any other table.
+				int result = tableId == Dictionary::ColumnID ? Dictionary::MaxClientColumnID + 1 : 0;
 
-				if (values.size() > 0)
-				{
-						//Not null
-						if (values[0].Values[0].__isset.value)
-						{
-							transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
-						}
-						else
-							result = Dictionary::MaxClientColumnID + 1; //Seed value.. don't start with zero because we may have added those manually.
+				//If we have an entry increment, otherwise leave at default.
+				if (values.size() > 0 && values[0].Values[0].__isset.value )
+				{	
+					transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
+					result = Encoder<int>::Decode(values[0].Values[0].value);
 				}
 
 				transaction->Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<int>::Encode(result + size)));
