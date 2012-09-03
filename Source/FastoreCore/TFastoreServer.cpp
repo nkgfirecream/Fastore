@@ -158,7 +158,7 @@ void TFastoreServer::TConnection::workSocket()
 				// Don't allow giant frame sizes.  This prevents bad clients from
 				// causing us to try and allocate a giant buffer.
 				GlobalOutput.printf("TFastoreServer: frame size too large "
-					"(%"PRIu32" > %zu) from client %s. remote side not "
+					"(%\"PRIu32\" > %zu) from client %s. remote side not "
 					"using TFramedTransport?",
 					readWant_, server_->getMaxFrameSize(),
 					tSocket_->getSocketInfo().c_str());

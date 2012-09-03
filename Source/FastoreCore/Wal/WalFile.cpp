@@ -141,11 +141,9 @@ WalFile( const string& dirname, const wal_desc_t& desc )
     THROW("could not open random-number generator", random_dev );
   }
 
-  // directory name must exist
+  // create name directory if need be 
   struct stat sb;
   int fOK;
-
-  // create name directory if need be 
   if( (fOK = stat(dirname.c_str(), &sb)) == -1 ) {
     if( (fOK = mkdir(dirname.c_str(), 0700)) != 0 ) {
       THROW( "could not create directory name", dirname );

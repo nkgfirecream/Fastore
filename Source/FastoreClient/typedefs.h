@@ -4,4 +4,4 @@
 
 using namespace fastore::client;
 
-typedef std::map<int, ColumnDef> Schema;
+typedef std::map<int, fastore::client::ColumnDef> Schema;

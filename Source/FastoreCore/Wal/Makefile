@@ -2,13 +2,25 @@
 
 PROJDIR = $(HOME)/projects/alphora/Fastore/trunk
 
-STD =  -std=c++0x
+UNAME != uname
+.if $(UNAME) == Darwin
+#STD = 	-std=c++98
+CXX = clang++
+.else
+STD =  	-std=c++0x
+.endif
+
+# 	-I../../../External/boost_1_49_0 
+MACDIR = /Developer/SDKs/MacOSX10.6.sdk/usr
 CFLAGS += -o $@ -g  $(STD) \
 	-DDEBUG_WAL_FUNC \
 	-I.. \
-	-I../../FastoreClient -I../../FastoreCommunication \
-	-I$(PROJDIR)/External/Thrift/src \
-	-I/usr/pkg/include
+	-I../../../External/Thrift/src \
+	-I../../FastoreClient \
+	-I../../FastoreCommunication \
+	-I/usr/local/include \
+	-I/usr/pkg/include \
+	-I $(MACDIR)/include
 
 LDFLAGS = -lutil
 

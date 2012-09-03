@@ -1,7 +1,7 @@
 # $Id$
 DBG = -O0
 CFLAGS += 
-CXXFLAGS += -g -o $@ -fPIC \
+CXXFLAGS += -g -o $@ -fPIC -fpermissive \
 	-std=c++0x \
 	-I /usr/local/include \
 	-I /usr/pkg/include \
@@ -174,13 +174,6 @@ FastoreCore/BTree.o: FastoreCore/Schema/InternalTypes.h
 FastoreCore/BTree.o: FastoreCore/treeentry.h
 FastoreCore/Endpoint.o: FastoreCore/Endpoint.h FastoreCore/EndpointConfig.h
 FastoreCore/Endpoint.o: FastoreCore/TFastoreServer.h /usr/include/errno.h
-FastoreCore/Endpoint.o: /usr/include/sys/cdefs.h /usr/include/machine/cdefs.h
-FastoreCore/Endpoint.o: /usr/include/sys/cdefs_elf.h /usr/include/sys/errno.h
-FastoreCore/Endpoint.o: /usr/include/sys/featuretest.h /usr/include/poll.h
-FastoreCore/Endpoint.o: /usr/include/sys/sigtypes.h
-FastoreCore/Endpoint.o: /usr/include/machine/int_types.h
-FastoreCore/Endpoint.o: /usr/include/machine/ansi.h
-FastoreCore/Endpoint.o: /usr/include/sys/satypes.h
 FastoreCore/Repository.o: FastoreCore/Repository.h
 FastoreCore/Repository.o: FastoreCore/Schema/column.h
 FastoreCore/Repository.o: FastoreCore/Schema/scalar.h
@@ -216,15 +209,6 @@ FastoreCore/ServiceHandler.o: FastoreCore/EndpointConfig.h
 FastoreCore/ServiceHandler.o: FastoreCore/Scheduler.h
 FastoreCore/ServiceHandler.o: FastoreCommunication/Comm_types.h
 FastoreCore/ServiceHandler.o: FastoreCore/TFastoreServer.h
-FastoreCore/ServiceHandler.o: /usr/include/errno.h /usr/include/sys/cdefs.h
-FastoreCore/ServiceHandler.o: /usr/include/machine/cdefs.h
-FastoreCore/ServiceHandler.o: /usr/include/sys/cdefs_elf.h
-FastoreCore/ServiceHandler.o: /usr/include/sys/errno.h
-FastoreCore/ServiceHandler.o: /usr/include/sys/featuretest.h
-FastoreCore/ServiceHandler.o: /usr/include/poll.h /usr/include/sys/sigtypes.h
-FastoreCore/ServiceHandler.o: /usr/include/machine/int_types.h
-FastoreCore/ServiceHandler.o: /usr/include/machine/ansi.h
-FastoreCore/ServiceHandler.o: /usr/include/sys/satypes.h
 FastoreCore/ServiceHandler.o: FastoreCore/WorkerHandler.h
 FastoreCore/ServiceHandler.o: FastoreCommunication/Worker.h
 FastoreCore/ServiceHandler.o: FastoreCore/Repository.h
@@ -235,16 +219,6 @@ FastoreCore/ServiceHandler.o: FastoreCore/Schema/scalar.h
 FastoreCore/ServiceHandler.o: FastoreCommunication/Comm_types.h
 FastoreCore/TFastoreFileTransport.o: FastoreCore/TFastoreFileTransport.h
 FastoreCore/TFastoreServer.o: FastoreCore/TFastoreServer.h
-FastoreCore/TFastoreServer.o: /usr/include/errno.h /usr/include/sys/cdefs.h
-FastoreCore/TFastoreServer.o: /usr/include/machine/cdefs.h
-FastoreCore/TFastoreServer.o: /usr/include/sys/cdefs_elf.h
-FastoreCore/TFastoreServer.o: /usr/include/sys/errno.h
-FastoreCore/TFastoreServer.o: /usr/include/sys/featuretest.h
-FastoreCore/TFastoreServer.o: /usr/include/poll.h /usr/include/sys/sigtypes.h
-FastoreCore/TFastoreServer.o: /usr/include/machine/int_types.h
-FastoreCore/TFastoreServer.o: /usr/include/machine/ansi.h
-FastoreCore/TFastoreServer.o: /usr/include/sys/satypes.h
-FastoreCore/TFastoreServer.o: /usr/include/assert.h
 FastoreCore/WorkerHandler.o: FastoreCore/WorkerHandler.h
 FastoreCore/WorkerHandler.o: FastoreCommunication/Worker.h
 FastoreCore/WorkerHandler.o: FastoreCommunication/Comm_types.h
@@ -257,15 +231,6 @@ FastoreCore/WorkerHandler.o: FastoreCore/Schema/scalar.h
 FastoreCore/WorkerHandler.o: FastoreCommunication/Comm_types.h
 FastoreCore/WorkerHandler.o: FastoreCore/Scheduler.h
 FastoreCore/WorkerHandler.o: FastoreCore/TFastoreServer.h
-FastoreCore/WorkerHandler.o: /usr/include/errno.h /usr/include/sys/cdefs.h
-FastoreCore/WorkerHandler.o: /usr/include/machine/cdefs.h
-FastoreCore/WorkerHandler.o: /usr/include/sys/cdefs_elf.h
-FastoreCore/WorkerHandler.o: /usr/include/sys/errno.h
-FastoreCore/WorkerHandler.o: /usr/include/sys/featuretest.h
-FastoreCore/WorkerHandler.o: /usr/include/poll.h /usr/include/sys/sigtypes.h
-FastoreCore/WorkerHandler.o: /usr/include/machine/int_types.h
-FastoreCore/WorkerHandler.o: /usr/include/machine/ansi.h
-FastoreCore/WorkerHandler.o: /usr/include/sys/satypes.h
 FastoreCore/WorkerHandler.o: FastoreCore/Schema/standardtypes.h
 FastoreCore/WorkerHandler.o: FastoreCore/Schema/BaseTypes.h
 FastoreCore/WorkerHandler.o: FastoreCore/Schema/StringTypes.h
