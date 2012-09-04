@@ -31,7 +31,7 @@ public:
 			range.ColumnID = 1000;
 			range.Ascending = true;
             RangeSet rangeData = _database->GetRange(_columns, range, 50);
-			DataSet data = rangeData.getData();
+			DataSet data = rangeData.Data;
 
             //Assert::AreEqual<int>(data.getColumnCount, 1);
             //Assert::AreEqual<>(data.Data[0].Values[1], "Shmoe");
@@ -123,5 +123,5 @@ public:
             Assert.AreEqual(data[3].Total, 7);
             Assert.AreEqual(data[3].Unique, 2);*/
         }
-    }//end class
+};//end class
 

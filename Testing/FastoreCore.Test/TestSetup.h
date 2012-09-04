@@ -1,3 +1,4 @@
+#pragma once
 #include "stdafx.h"
 #include "..\FastoreClient\Database.h"
 #include "..\FastoreClient\Client.h"

@@ -9,6 +9,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "Schema\standardtypes.h"
 #include "Column\TreeBuffer.h"
+#include "Extensions.h"
 
 using namespace std;
 
@@ -764,75 +765,75 @@ public:
 		Assert::IsTrue(result.limited == expectLimited);
 	}
 
-	TEST_METHOD(TreeBufferIncludeExclude)
-	{
-		throw "Not yet implemented";
-		//TreeBuffer buf(standardtypes::Int, standardtypes::Int);
+	//TEST_METHOD(TreeBufferIncludeExclude)
+	//{
+	//	throw "Not yet implemented";
+	//	//TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
-		//bool result;
-		//int v = 0;
-		//int k = 0;
+	//	//bool result;
+	//	//int v = 0;
+	//	//int k = 0;
 
-		////Non existing inserts should be ok
-		//result = buf.Include(&v, &k);
-		//Assert::AreEqual(result == true);
+	//	////Non existing inserts should be ok
+	//	//result = buf.Include(&v, &k);
+	//	//Assert::AreEqual(result == true);
 
-		////Duplicate insertions should not insert
-		//result = buf.Include(&v, &k);
-		//Assert::AreEqual(result == false);
+	//	////Duplicate insertions should not insert
+	//	//result = buf.Include(&v, &k);
+	//	//Assert::AreEqual(result == false);
 
-		////Duplicate keys should not insert
-		//v = 2;
-	 //   k = 0;
-		//result = buf.Include(&v, &k);
-		//Assert::AreEqual(result == false);
+	//	////Duplicate keys should not insert
+	//	//v = 2;
+	// //   k = 0;
+	//	//result = buf.Include(&v, &k);
+	//	//Assert::AreEqual(result == false);
 
-		////End of this should still be zero
-		//k = 0;
-		//void* value = buf.GetValue(&k);
-		//Assert::AreEqual(*(int*)value == 0);
+	//	////End of this should still be zero
+	//	//k = 0;
+	//	//void* value = buf.GetValue(&k);
+	//	//Assert::AreEqual(*(int*)value == 0);
 
-		////Values not present should not exclude
-		//v = 1;
-		//k = 0;
-		//result = buf.Exclude(&v, &k);
-		//Assert::AreEqual(result == false);
+	//	////Values not present should not exclude
+	//	//v = 1;
+	//	//k = 0;
+	//	//result = buf.Exclude(&v, &k);
+	//	//Assert::AreEqual(result == false);
 
-		////Keys not present should not exclude
-		//v = 0;
-		//k = 1;
-		//result = buf.Exclude(&k);
-		//Assert::AreEqual(result == false);
+	//	////Keys not present should not exclude
+	//	//v = 0;
+	//	//k = 1;
+	//	//result = buf.Exclude(&k);
+	//	//Assert::AreEqual(result == false);
 
-		//result = buf.Exclude(&v, &k);
-		//Assert::AreEqual(result == false);
+	//	//result = buf.Exclude(&v, &k);
+	//	//Assert::AreEqual(result == false);
 
-		////Keys present should exclude
-		//v = 0;
-		//k = 0;
-		//result = buf.Exclude(&v, &k);
-		//Assert::AreEqual(result == true);
+	//	////Keys present should exclude
+	//	//v = 0;
+	//	//k = 0;
+	//	//result = buf.Exclude(&v, &k);
+	//	//Assert::AreEqual(result == true);
 
-		////A bunch of insertions should work...
-		//int numrows = 10000;
-		//for (int i = 0; i <= numrows; i++)
-		//{
-		//	result = buf.Include(&i,&i);
-		//	Assert::AreEqual(result == true);
-		//}
+	//	////A bunch of insertions should work...
+	//	//int numrows = 10000;
+	//	//for (int i = 0; i <= numrows; i++)
+	//	//{
+	//	//	result = buf.Include(&i,&i);
+	//	//	Assert::AreEqual(result == true);
+	//	//}
 
-		////A bunch of exclusions should work...
-		//for (int i = numrows / 2; i <= numrows; i++)
-		//{
-		//	result = buf.Exclude(&i,&i);
-		//	Assert::AreEqual(result == true);
-		//}
+	//	////A bunch of exclusions should work...
+	//	//for (int i = numrows / 2; i <= numrows; i++)
+	//	//{
+	//	//	result = buf.Exclude(&i,&i);
+	//	//	Assert::AreEqual(result == true);
+	//	//}
 
-		////All the values should still be the same...
-		//for (int i = 0; i < numrows / 2; i++)
-		//{
-		//	value = buf.GetValue(&i);
-		//	Assert::AreEqual(*(int*)value == i);
-		//}
-	}
+	//	////All the values should still be the same...
+	//	//for (int i = 0; i < numrows / 2; i++)
+	//	//{
+	//	//	value = buf.GetValue(&i);
+	//	//	Assert::AreEqual(*(int*)value == i);
+	//	//}
+	//}
 };
