@@ -18,7 +18,7 @@ install: trunk/build/Makefile
 configure trunk/configure: trunk/bootstrap.sh
 	cd trunk && ./bootstrap.sh
 
-.patched:
+patch .patched:
 	sh -x apply-patch
 
 env: 
