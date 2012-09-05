@@ -71,8 +71,7 @@ SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
 	provide	FastoreProvider \
 	service	FastoreService \
 	shell	FastoreShell \
-	SQLite \
-	packages
+	sqlite	SQLite 
 
 OBJ = $(COMM.OBJ) $(CORE.OBJ) $(MODULE.OBJ) $(PROVIDER.OBJ)
 LIBS =   \
