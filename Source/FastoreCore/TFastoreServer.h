@@ -11,12 +11,12 @@
 #include <string>
 #include <errno.h>
 #include <cstdlib>
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#if HAVE_SYS_POLL_H
-// slightly wrong test, but that's what thrift checks for --jkl
+#if HAVE_POLL_H
 #include <poll.h>
 #endif
 
