@@ -89,7 +89,7 @@ void Table::create()
 		}
 		else
 		{
-			int columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID);			
+			int columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID,  + 1);			
 			_columnIds.push_back(columnId);
 			_columns[i].ColumnID = columnId;
 			createColumn(_columns[i], combinedName, _columns[0], podIds, nextPod);

@@ -16,9 +16,24 @@ using namespace std;
 const char* const SQLITE_MODULE_NAME = "Fastore";
 
 
-void* initializeFastoreModule(std::vector<fastore::module::Address>& addresses)
+module::Connection* createModuleConnection(std::vector<fastore::module::Address>& addresses)
 {
 	return new module::Connection(addresses);
+}
+
+void detectExistingSchema(module::Connection* connection, sqlite3* sqliteConnection)
+{
+	//Detect existing tables in the hive
+	
+	//Table.ID
+	//Table.Name
+	//Table.DDL
+
+	//TableColumn.TableID
+	//TableColumn.ColumnID
+	
+	//Create virtual tables in the module
+
 }
 
 void destroyFastoreModule(void* state)
@@ -406,7 +421,6 @@ int moduleRollbackTo(sqlite3_vtab *pVTab, int savePoint)
 	return SQLITE_OK;
 }
 
-
 sqlite3_module fastoreModule =
 {
 	0,	// iVersion;
@@ -437,3 +451,25 @@ sqlite3_module fastoreModule =
 	0 /* moduleRelease */,	// int (*xRelease)(sqlite3_vtab *pVTab, int);
 	0 /* moduleRollbackTo */,	// int (*xRollbackTo)(sqlite3_vtab *pVTab, int);
 };
+
+void intializeFastoreModule(sqlite3* db, std::vector<module::Address> addresses)
+{
+	module::Connection* conn = createModuleConnection( addresses);
+	sqlite3_create_module_v2(db, SQLITE_MODULE_NAME, &fastoreModule, conn, &destroyFastoreModule);
+	detectExistingSchema(conn, db);
+}
+
+#ifdef __cplusplus 
+extern "C" { 
+#endif 
+
+void intializeFastoreModule(sqlite3* db, int argc, void* argv)
+{
+
+}
+
+#ifdef __cplusplus 
+}
+#endif 
+
+

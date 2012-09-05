@@ -20,7 +20,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include=".\shell.cpp">
+    <ClCompile Include="shell.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

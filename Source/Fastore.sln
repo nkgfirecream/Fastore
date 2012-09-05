@@ -27,12 +27,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreService", "FastoreSe
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommunication", "FastoreCommunication\FastoreCommunication.vcxproj", "{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{568E2A87-B91E-4DB0-ABFB-36FFDD4E86B7}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SQLite", "SQLite\SQLite.vcxproj", "{9F4DA005-752E-4B25-934D-81A967DE9008}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreShell", "FastoreShell\FastoreShell.vcxproj", "{D38E1BBD-1972-451E-B28C-372EEBDFB047}"

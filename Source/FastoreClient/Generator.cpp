@@ -13,7 +13,7 @@ Generator::Generator(boost::shared_ptr<Database> database, std::vector<PodID> po
 	_lock = boost::shared_ptr<boost::mutex>(new boost::mutex());
 }
 
-int Generator::Generate(int columnId)
+int Generator::Generate(int generatorId, boost::optional<int> minId)
 {
 	// Take lock
 	_lock->lock();
@@ -21,7 +21,7 @@ int Generator::Generate(int columnId)
 	try
 	{
 		// Find or create generator
-		auto generator = _generators.find(columnId);
+		auto generator = _generators.find(generatorId);
 		if (generator == _generators.end())
 		{
 			
@@ -29,18 +29,18 @@ int Generator::Generate(int columnId)
 			(
 				std::pair<int, boost::shared_ptr<IDGenerator>>
 				(
-					columnId, 
+					generatorId, 
 					boost::shared_ptr<IDGenerator>
 					(
 						new IDGenerator
 						(
-							[&, columnId](int size) { return this->InternalGenerate(columnId, size); }
+							[&, generatorId, minId](int size) { return this->InternalGenerate(generatorId, size, minId); }
 						)
 					)
 				)
 			);
 
-			generator = _generators.find(columnId);
+			generator = _generators.find(generatorId);
 		}
 
 		// Release lock
@@ -59,7 +59,7 @@ int Generator::Generate(int columnId)
 	}
 }
 
-int Generator::InternalGenerate(int tableId, int size)
+int Generator::InternalGenerate(int tableId, int size, boost::optional<int> minId)
 {
 	while (true)
 	{
@@ -71,8 +71,7 @@ int Generator::InternalGenerate(int tableId, int size)
 				std::string tableIdstring = Encoder<int>::Encode(tableId);
 				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
 				
-				//Our start id is MaxClientCoulmnID + 1 for the Columns table, 0 for any other table.
-				int result = tableId == Dictionary::ColumnID ? Dictionary::MaxClientColumnID + 1 : 0;
+				int result = minId ? *minId : 0;
 
 				//If we have an entry increment, otherwise leave at default.
 				if (values.size() > 0 && values[0].Values[0].__isset.value )

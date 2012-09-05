@@ -24,11 +24,10 @@ Connection::Connection(vector<Address> addresses)
 		mas.push_back(ma);
 	}
 
-	// Register our module
-	checkSQLiteResult(sqlite3_create_module_v2(sqliteConnection, SQLITE_MODULE_NAME, &fastoreModule, initializeFastoreModule(mas), &destroyFastoreModule), sqliteConnection);
+	intializeFastoreModule(_sqliteConnection.get(), mas);
 }
 
 unique_ptr<Statement> Connection::execute(const std::string &sql)
 {
-	return unique_ptr<Statement>(new Statement((this->_sqliteConnection).get(), sql));
+	return unique_ptr<Statement>(new Statement(_sqliteConnection.get(), sql));
 }
