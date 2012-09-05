@@ -1,13 +1,24 @@
 # $Id$
+.SUFFIXES: .i
+
+# This HAVE business is made necessary because thrift's config.h 
+# fails to mention many installed include files.  
+HAVE.LIST = poll.h netdb.h fcntl.h
+HAVE.FILES != find /usr/include -maxdepth 1 \
+		\( $(HAVE.LIST:S/^/-or -name /g:S/^-or//1) \) \
+		&& test -f /usr/include/netinet/in.h && echo netinet_in.h
+HAVE.SYMS = $(HAVE.FILES:T:tu:S/./_/g:S/^/HAVE_/g)
+HAVES = $(HAVE.SYMS:S/^/-D/g)
+
 DBG = -O0
-CFLAGS += 
+#CFLAGS += 
 #PERMISSIVE=-fpermissive
-CXXFLAGS += -g -o $@ -fPIC $(PERMISSIVE) \
-	-std=c++0x \
-	-I SQLite \
-	-I /usr/local/include \
-	-I /usr/pkg/include \
-	-I /usr/local/include/thrift 
+
+CXXDIRS = 	-I SQLite \
+		-I /usr/local/include \
+		-I /usr/pkg/include \
+		-I /usr/local/include/thrift 
+CXXFLAGS += -g -o $@ -fPIC $(PERMISSIVE) -std=c++0x $(HAVES) $(CXXDIRS)
 
 COMM.THRIFT =	Server_types.h \
 		Service.cpp \
@@ -69,7 +80,8 @@ LIBS =   \
 	FastoreCommunication/libfastore-communication.so \
 	FastoreCore/libfastore-core.so \
 	FastoreModule/libfastore-module.so \
-	FastoreProvider/libfastore-provider.so
+	FastoreProvider/libfastore-provider.so \
+	FastoreShell/libfastore-shell.so
 
 all: $(COMM.SRC) $(LIBS)
 
@@ -102,7 +114,9 @@ FastoreCore/libfastore-core.so: $(CORE.OBJ)
 core-clean:
 	rm -f $(CORE.OBJ) FastoreCore/libfastore-core.so
 
-MODULE.CLIENT.BASE = Client ClientException DataSet Dictionary Generator IDGenerator ServiceAddress Transaction
+# FastoreModule depends on some client files.
+MODULE.CLIENT.BASE = Client ClientException DataSet Dictionary Generator \
+			IDGenerator ServiceAddress Transaction
 MODULE.CLIENT.OBJ = $(MODULE.CLIENT.BASE:S,^,FastoreClient/,g:S/$/.o/g)
 module FastoreModule: FastoreModule/libfastore-module.so
 FastoreModule/libfastore-module.so: $(MODULE.OBJ) $(MODULE.CLIENT.OBJ)
@@ -127,12 +141,8 @@ service-clean:
 	rm -f $(SERVICE.OBJ) FastoreService/libfastore-service.so
 
 shell FastoreShell: FastoreShell/libfastore-shell.so
-FastoreShell/libfastore-shell.so: $(SHELL.OBJ) $(LIBS)
-	$(CXX) $(CXXFLAGS) $(SHELL.OBJ) \
-		-L /usr/local/lib \
-		$(LIBS:H:S,^,-L./,g) \
-		$(LIBS:T:R:S/^lib/-l/g) \
-		-lthrift -lsqlite3
+FastoreShell/libfastore-shell.so: $(SHELL.OBJ)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
 shell-clean:
 	rm -f $(SHELL.OBJ) FastoreShell/libfastore-shell.so
 
@@ -144,6 +154,15 @@ clean:
 		$(PROVIDER.OBJ) \
 		$(SERVICE.OBJ) \
 		$(LIBS)
+
+.cpp.i:
+	$(CXX) -E $(CXXFLAGS) -c $(.ALLSRC)
+
+cscope.files:
+	echo $(CXXDIRS) | sed 's/-I  */-I/g' | tr \  \\n | grep '\-I' > .i
+	find . \( -name \*.cpp -or -name \*.h \) > .cscope.files
+	cat .i .cscope.files > cscope.files
+	rm -f .i .cscope.files
 
 depend:
 	makedepend -- $(CFLAGS) -- $(SRC)
