@@ -36,7 +36,7 @@
 #include "sqlite3.h"
 #include <ctype.h>
 #include <stdarg.h>
-#include "..\FastoreModule\Module.h"
+#include "../FastoreModule/Module.h"
 
 #if !defined(_WIN32) && !defined(WIN32) && !defined(__OS2__)
 # include <signal.h>
@@ -821,7 +821,7 @@ static int shell_callback(void *pArg, int nArg, char **azArg, char **azCol, int 
       if( azArg==0 ) break;
       fprintf(p->out,"INSERT INTO %s VALUES(",p->zDestTable);
       for(i=0; i<nArg; i++){
-        char *zSep = i>0 ? ",": "";
+        const char *zSep = i>0 ? ",": "";
         if( (azArg[i]==0) || (aiType && aiType[i]==SQLITE_NULL) ){
           fprintf(p->out,"%sNULL",zSep);
         }else if( aiType && aiType[i]==SQLITE_TEXT ){
@@ -1805,7 +1805,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
     char *zSql;                 /* An SQL statement */
     char *zLine;                /* A single line of input from the file */
     char **azCol;               /* zLine[] broken up into columns */
-    char *zCommit;              /* How to commit changes */   
+    const char *zCommit;              /* How to commit changes */   
     FILE *in;                   /* The input file */
     int lineno = 0;             /* Line number of input file */
 
@@ -2337,7 +2337,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
       nPrintRow = (nRow + nPrintCol - 1)/nPrintCol;
       for(i=0; i<nPrintRow; i++){
         for(j=i; j<nRow; j+=nPrintRow){
-          char *zSp = j<nPrintRow ? "" : "  ";
+          const char *zSp = j<nPrintRow ? "" : "  ";
           printf("%s%-*s", zSp, maxlen, azResult[j] ? azResult[j] : "");
         }
         printf("\n");
