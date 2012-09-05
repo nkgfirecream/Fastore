@@ -1,0 +1,4 @@
+#!/bin/sh
+PATCH=${PWD}/thrift.patch
+cd trunk/lib/cpp/src
+patch -p3 < ${PATCH}
