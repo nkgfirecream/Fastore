@@ -1,8 +1,10 @@
 # $Id$
 DBG = -O0
 CFLAGS += 
-CXXFLAGS += -g -o $@ -fPIC -fpermissive \
+#PERMISSIVE=-fpermissive
+CXXFLAGS += -g -o $@ -fPIC $(PERMISSIVE) \
 	-std=c++0x \
+	-I SQLite \
 	-I /usr/local/include \
 	-I /usr/pkg/include \
 	-I /usr/local/include/thrift 
@@ -45,6 +47,10 @@ SERVICE.BASE != ls FastoreService/*.h FastoreService/fastored.cpp
 SERVICE.SRC = $(SERVICE.BASE:M*.cpp)
 SERVICE.OBJ = $(SERVICE.SRC:.cpp=.o)
 
+SHELL.BASE != ls FastoreShell/*.h FastoreShell/*.cpp
+SHELL.SRC = $(SHELL.BASE:M*.cpp)
+SHELL.OBJ = $(SHELL.SRC:.cpp=.o)
+
 SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
 
 .PHONY: client 	FastoreClient \
@@ -53,12 +59,13 @@ SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
 	module	FastoreModule \
 	provide	FastoreProvider \
 	service	FastoreService \
-	FastoreShell \
+	shell	FastoreShell \
 	SQLite \
 	packages
 
 OBJ = $(COMM.OBJ) $(CORE.OBJ) $(MODULE.OBJ) $(PROVIDER.OBJ)
 LIBS =   \
+	FastoreClient/libfastore-client.so \
 	FastoreCommunication/libfastore-communication.so \
 	FastoreCore/libfastore-core.so \
 	FastoreModule/libfastore-module.so \
@@ -118,6 +125,16 @@ FastoreService/libfastore-service.so: $(SERVICE.OBJ) $(LIBS)
 		-lthrift -lsqlite3
 service-clean:
 	rm -f $(SERVICE.OBJ) FastoreService/libfastore-service.so
+
+shell FastoreShell: FastoreShell/libfastore-shell.so
+FastoreShell/libfastore-shell.so: $(SHELL.OBJ) $(LIBS)
+	$(CXX) $(CXXFLAGS) $(SHELL.OBJ) \
+		-L /usr/local/lib \
+		$(LIBS:H:S,^,-L./,g) \
+		$(LIBS:T:R:S/^lib/-l/g) \
+		-lthrift -lsqlite3
+shell-clean:
+	rm -f $(SHELL.OBJ) FastoreShell/libfastore-shell.so
 
 clean: 
 	rm -f 	$(CLIENT.OBJ) \
