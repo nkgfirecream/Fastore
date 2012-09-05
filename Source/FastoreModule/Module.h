@@ -459,17 +459,5 @@ void intializeFastoreModule(sqlite3* db, std::vector<module::Address> addresses)
 	detectExistingSchema(conn, db);
 }
 
-#ifdef __cplusplus 
-extern "C" { 
-#endif 
-
-void intializeFastoreModule(sqlite3* db, int argc, void* argv)
-{
-
-}
-
-#ifdef __cplusplus 
-}
-#endif 
 
 

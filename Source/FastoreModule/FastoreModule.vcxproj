@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CModule.h" />
     <ClInclude Include="Cursor.h" />
     <ClInclude Include=".\Connection.h" />
     <ClInclude Include="Module.h" />
@@ -89,6 +90,7 @@
     <ClInclude Include="Table.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CModule.cpp" />
     <ClCompile Include="Cursor.cpp" />
     <ClCompile Include="Table.cpp" />
   </ItemGroup>

@@ -36,7 +36,7 @@
 #include "sqlite3.h"
 #include <ctype.h>
 #include <stdarg.h>
-#include "../FastoreModule/Module.h"
+#include "../FastoreModule/CModule.h"
 
 #if !defined(_WIN32) && !defined(WIN32) && !defined(__OS2__)
 # include <signal.h>
@@ -1381,6 +1381,7 @@ static int run_schema_dump_query(
     sqlite3_free(zErr);
     free(zQ2);
   }
+
   return rc;
 }
 
@@ -1450,6 +1451,7 @@ static char zTimerHelp[] =
 static int process_input(struct callback_data *p, FILE *in);
 
 
+static char fAddress[] = "localhost;8765";
 
 /*
 ** Make sure the database is open.  If it is not, then open it.  If
@@ -1469,13 +1471,7 @@ static void open_db(struct callback_data *p){
       exit(1);
     }
 
-	//TODO: Make this part of the shell command line or someting...
-	std::vector<fastore::module::Address> mas;
-	fastore::module::Address a;
-	a.Port = 8765;
-	a.Name = "localhost";
-	mas.push_back(a);
-	sqlite3_create_module_v2(p->db, SQLITE_MODULE_NAME, &fastoreModule, initializeFastoreModule(mas), &destroyFastoreModule);
+	intializeFastoreModule(p->db, 1, fAddress);
 
 
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
