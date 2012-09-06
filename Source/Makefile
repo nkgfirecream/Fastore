@@ -58,8 +58,8 @@ SERVICE.BASE != ls FastoreService/*.h FastoreService/fastored.cpp
 SERVICE.SRC = $(SERVICE.BASE:M*.cpp)
 SERVICE.OBJ = $(SERVICE.SRC:.cpp=.o)
 
-SHELL.BASE != ls FastoreShell/*.h FastoreShell/*.cpp
-SHELL.SRC = $(SHELL.BASE:M*.cpp)
+SHELL.BASE != ls FastoreShell/*.h FastoreShell/*.c
+SHELL.SRC = $(SHELL.BASE:M*.c)
 SHELL.OBJ = $(SHELL.SRC:.cpp=.o)
 
 SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
@@ -74,8 +74,7 @@ SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
 	sqlite	SQLite 
 
 OBJ = $(COMM.OBJ) $(CORE.OBJ) $(MODULE.OBJ) $(PROVIDER.OBJ)
-LIBS =   \
-	FastoreClient/libfastore-client.so \
+LIBS =  FastoreClient/libfastore-client.so \
 	FastoreCommunication/libfastore-communication.so \
 	FastoreCore/libfastore-core.so \
 	FastoreModule/libfastore-module.so \
@@ -141,7 +140,7 @@ service-clean:
 
 shell FastoreShell: FastoreShell/libfastore-shell.so
 FastoreShell/libfastore-shell.so: $(SHELL.OBJ)
-	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
+	$(CC) $(CXXFLAGS:N-Wno-reorder:N-std=c++0x) -shared $(.ALLSRC)
 shell-clean:
 	rm -f $(SHELL.OBJ) FastoreShell/libfastore-shell.so
 
