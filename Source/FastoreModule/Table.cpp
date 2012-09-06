@@ -5,6 +5,29 @@
 #include "../FastoreClient/Transaction.h"
 #include <boost/assign/list_of.hpp>
 
+#define SAFE_CAST(t,f) safe_cast(__FILE__, __LINE__, (t), (f))
+
+template <typename T, typename F>
+T safe_cast(const char file[], size_t line, T, F input) {
+  using std::numeric_limits;
+  std::ostringstream msg;
+
+  if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
+    if( input < 0 ) {
+      msg << file << ":" << line << ": " 
+	  << "signed value " << input << " cannot be cast to unsigned type";
+      throw std::runtime_error(msg.str());
+    }
+    if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
+      msg << file << ":" << line << ": " 
+	  << input << ", size " << sizeof(F) 
+	  << ", cannot be cast to unsigned type of size" << sizeof(T);
+      throw std::runtime_error(msg.str());
+    }
+  }
+  return static_cast<T>(input);
+}
+
 using namespace fastore::module;
 using namespace fastore::client;
 using namespace boost::assign;
@@ -67,7 +90,7 @@ void Table::create()
     //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
     //TableVar Columns and pull the id each time.
     //List<int> columnIds = new List<int>();
-	for (int i = 0; i < _columns.size(); i++)
+    for (size_t i = 0; i < _columns.size(); i++)
 	{
 		auto combinedName = _name + "." + _columns[i].Name;
 
@@ -120,7 +143,7 @@ void Table::drop()
 
 		auto repoIds = _connection->_database->GetRange(list_of<communication::ColumnID>(Dictionary::PodColumnColumnID), repoQuery, 2000);
 
-        for (int i = 0; i < repoIds.Data.size(); i++)
+		for (size_t i = 0; i < repoIds.Data.size(); i++)
         {
             _connection->_database->Exclude(Dictionary::PodColumnColumns, repoIds.Data[i].ID);
         }
@@ -321,7 +344,7 @@ void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 	}
 
 	//If it was a delete only, return.
-	if (argc != _columnIds.size() + 2)
+	if (SAFE_CAST(size_t(), argc) != _columnIds.size() + 2)
 		return;
 
 	sqlite3_int64 rowIdInt;
@@ -341,7 +364,7 @@ void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 	std::vector<std::string> row;
 
 	communication::ColumnIDs includedColumns;
-	for (int i = 0; i < _columns.size(); ++i)
+	for (size_t i = 0; i < _columns.size(); ++i)
 	{
 		auto pValue = argv[i+2];
 		if (sqlite3_value_type(pValue) != SQLITE_NULL)

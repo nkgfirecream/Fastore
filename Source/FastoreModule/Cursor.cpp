@@ -1,6 +1,28 @@
-#pragma once
 #include "Cursor.h"
 #include "../FastoreClient/Encoder.h"
+
+#define SAFE_CAST(t,f) safe_cast(__FILE__, __LINE__, (t), (f))
+
+template <typename T, typename F>
+T safe_cast(const char file[], size_t line, T, F input) {
+  using std::numeric_limits;
+  std::ostringstream msg;
+
+  if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
+    if( input < 0 ) {
+      msg << file << ":" << line << ": " 
+	  << "signed value " << input << " cannot be cast to unsigned type";
+      throw std::runtime_error(msg.str());
+    }
+    if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
+      msg << file << ":" << line << ": " 
+	  << input << ", size " << sizeof(F) 
+	  << ", cannot be cast to unsigned type of size" << sizeof(T);
+      throw std::runtime_error(msg.str());
+    }
+  }
+  return static_cast<T>(input);
+}
 
 using namespace fastore::module;
 namespace client = fastore::client;
@@ -10,7 +32,7 @@ Cursor::Cursor(fastore::module::Table* table) : _table(table), _index(-1) { }
 void Cursor::next()
 {
 	++_index;
-	if (_index == _set.Data.size())
+	if (SAFE_CAST(size_t(), _index) == _set.Data.size())
 		getNextSet();
 }
 
@@ -86,7 +108,9 @@ void Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_value **ar
 	//_range = something...
 
 	_range = Range();
+#if WHEN_WE_CARE_ABOUT_range_Ascending
 	_range.Ascending; // = idxNum != 0;
+#endif
 	_range.ColumnID = _table->_columns[0].ColumnID;
 
 	getNextSet();
