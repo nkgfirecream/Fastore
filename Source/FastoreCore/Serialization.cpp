@@ -88,7 +88,7 @@ bool BufferSerializer::writeNextChunk()
 
 void BufferSerializer::writeValueRowsList(fastore::communication::ValueRowsList& list)
 {
-	for (int i = 0; i < list.size(); i++)
+  for (size_t i = 0; i < list.size(); i++)
 	{
 		ValueRows vr = list.at(i);
 		vr.write(_protocol.get());
@@ -152,7 +152,7 @@ bool BufferDeserializer::readNextChunk()
 	{
 		ValueRows vr;
 		vr.read(_protocol.get());
-		for (int j = 0; j < vr.rowIDs.size(); j++)
+		for (size_t j = 0; j < vr.rowIDs.size(); j++)
 		{
 			Include inc;
 			inc.__set_value(vr.value);

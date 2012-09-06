@@ -29,7 +29,7 @@ private:
 
 	void InitializeWorkers(const std::vector<fastore::communication::WorkerState>& workers);
 	void SaveConfiguration();
-	void EnsureWorkerPaths(int numWorkers);
+	void EnsureWorkerPaths(size_t numWorkers);
 	int GetRecommendedWorkerCount();
 	void CheckInHive();
 	void CheckNotInHive();

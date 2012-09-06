@@ -103,7 +103,7 @@ int ServiceHandler::GetRecommendedWorkerCount()
 	return max(1, (int)boost::thread::hardware_concurrency() - 1);
 }
 
-void ServiceHandler::EnsureWorkerPaths(int numWorkers)
+void ServiceHandler::EnsureWorkerPaths(size_t numWorkers)
 {
 	while (_config->workerPaths.size() < numWorkers)
 	{
@@ -127,7 +127,7 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
 	// Ensure that there enough configured paths for each worker
 	EnsureWorkerPaths((int)workers.size());
 
-	for (int i = 0; i < workers.size(); ++i)
+	for (size_t i = 0; i < workers.size(); ++i)
 	{
 		auto podID = workers[i].podID;
 

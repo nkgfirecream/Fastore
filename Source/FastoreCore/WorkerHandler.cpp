@@ -204,7 +204,7 @@ void WorkerHandler::SyncToSchema()
 
 		std::unordered_set<ColumnID> schemaIds;
 
-		for (int i = 0; i < answer.rowIDValues.size(); i++)
+		for (size_t i = 0; i < answer.rowIDValues.size(); i++)
 		{
 			schemaIds.insert(*(ColumnID*)(answer.rowIDValues[i].value.data()));
 		}
@@ -477,7 +477,7 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 
 void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)
 {	
-	for (int i = 0; i < columnIDs.size(); i++)
+  for (size_t i = 0; i < columnIDs.size(); i++)
 	{		
 		boost::shared_ptr<Repository> repo = _repositories[columnIDs[i]];
 		Statistic stat = repo->getStatistic();

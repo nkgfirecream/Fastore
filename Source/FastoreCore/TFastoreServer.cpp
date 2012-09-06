@@ -521,7 +521,7 @@ void TFastoreServer::markForClose(int socket)
 void TFastoreServer::closeMarkedConnections()
 {
 	//clean any dead connections discovered by socket id;
-	for (int i = 0; i < closePool_.size(); ++i)
+  for (size_t i = 0; i < closePool_.size(); ++i)
 	{
 		returnConnection(closePool_[i]);
 	}

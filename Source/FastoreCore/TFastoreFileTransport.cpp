@@ -71,7 +71,8 @@ uint32_t TFastoreFileTransport::read(uint8_t* buf, uint32_t len)
 
 void TFastoreFileTransport::write(const uint8_t* buf, uint32_t len)
 {
-    if (::write)
+
+  if (_read)
 	{
 
 		flush();

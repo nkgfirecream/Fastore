@@ -126,7 +126,7 @@ Answer Repository::query(const fastore::communication::Query& query)
 	if (query.ranges.size() > 0)
 	{
 		std::vector<RangeResult> results;
-		for (int i = 0; i < query.ranges.size(); i++)
+		for (size_t i = 0; i < query.ranges.size(); i++)
 		{
 			
 			auto range = query.ranges[i];
