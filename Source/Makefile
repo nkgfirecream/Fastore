@@ -62,7 +62,13 @@ SHELL.BASE != ls FastoreShell/*.h FastoreShell/*.c
 SHELL.SRC = $(SHELL.BASE:M*.c)
 SHELL.OBJ = $(SHELL.SRC:.cpp=.o)
 
-SRC = $(CLIENT.SRC) $(COMM.SRC) $(CORE.SRC)
+SRC = 	$(CLIENT.SRC) \
+	$(COMM.SRC) \
+	$(CORE.SRC) \
+	$(MODULE.SRC) \
+	$(PROVIDER.SRC) \
+	$(SERVICE.SRC) \
+	$(SHELL.SRC)
 
 .PHONY: client 	FastoreClient \
 	comm	FastoreCommunication \
@@ -151,14 +157,15 @@ clean:
 		$(MODULE.OBJ) \
 		$(PROVIDER.OBJ) \
 		$(SERVICE.OBJ) \
+		$(SHELL.OBJ) \
 		$(LIBS)
 
 .cpp.i:
 	$(CXX) -E $(CXXFLAGS) -c $(.ALLSRC)
 
-cscope.files:
+cscope.files: $(SRC)
 	echo $(CXXDIRS) | sed 's/-I  */-I/g' | tr \  \\n | grep '\-I' > .i
-	find . \( -name \*.cpp -or -name \*.h \) > .cscope.files
+	find . \( -name \*.c -or -name \*.cpp -or -name \*.h \) > .cscope.files
 	cat .i .cscope.files > cscope.files
 	rm -f .i .cscope.files
 
