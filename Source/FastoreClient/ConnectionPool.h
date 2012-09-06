@@ -39,14 +39,14 @@ namespace fastore { namespace client
 		std::function<bool(TClient&)> _isValid;
 
 
-		int _maxPooledPerKey;
+		size_t _maxPooledPerKey;
 		void InitializeInstanceFields();
 
 	public:
 		ConnectionPool(std::function<TClient(boost::shared_ptr<TProtocol>)> createConnection, std::function<NetworkAddress(TKey)> determineAddress, std::function<void(TClient&)> destroyConnection, std::function<bool(TClient&)> isValid);
 		~ConnectionPool();
 
-		const int getMaxPooledPerKey();
+		const size_t getMaxPooledPerKey();
 		void setMaxPooledPerKey(const int &value);
 
 		TClient operator[] (TKey key);
@@ -78,7 +78,7 @@ namespace fastore { namespace client
 
 
 	template<typename TKey, typename TClient>
-	const int ConnectionPool<TKey, TClient>::getMaxPooledPerKey()
+	const size_t ConnectionPool<TKey, TClient>::getMaxPooledPerKey()
 	{
 		return _maxPooledPerKey;
 	}

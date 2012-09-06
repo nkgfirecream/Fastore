@@ -52,7 +52,7 @@ Database::Database(std::vector<ServiceAddress> addresses)
 
 	// Number of potential workers for each service (in case we nee to create the hive)
 	std::vector<int> serviceWorkers(networkAddresses.size());
-	for (int i = 0; i < networkAddresses.size(); i++)
+	for (size_t i = 0; i < networkAddresses.size(); i++)
 	{
 		auto service = _services.Connect(networkAddresses[i]);
 		try
@@ -92,13 +92,13 @@ Database::Database(std::vector<ServiceAddress> addresses)
 	auto newTopology = CreateTopology(serviceWorkers);
 
 	auto addressesByHost = std::map<int, NetworkAddress>();
-	for (int hostID = 0; hostID  < networkAddresses.size(); hostID++)
+	for (size_t hostID = 0; hostID  < networkAddresses.size(); hostID++)
 		addressesByHost.insert(std::pair<int,NetworkAddress>(hostID, networkAddresses[hostID]));
 
 	HiveState newHive;
 	newHive.__set_topologyID(newTopology.topologyID);
 	newHive.__set_services(std::map<int, ServiceState>());
-	for (int hostID = 0; hostID < networkAddresses.size(); hostID++)
+	for (size_t hostID = 0; hostID < networkAddresses.size(); hostID++)
 	{
 		auto service = _services.Connect(networkAddresses[hostID]);
 		try
@@ -179,7 +179,7 @@ Topology Database::CreateTopology(const std::vector<int>& serviceWorkers)
 	newTopology.__set_topologyID(0);
 	newTopology.__set_hosts(std::map<HostID, Pods>());
 	auto podID = 0;
-	for (auto hostID = 0; hostID < serviceWorkers.size(); hostID++)
+	for (size_t hostID = 0; hostID < serviceWorkers.size(); hostID++)
 	{
 		auto pods = std::map<int, std::vector<int>>();
 		for (int i = 0; i < serviceWorkers[hostID]; i++)
@@ -562,7 +562,7 @@ RangeSet Database::GetRange(const ColumnIDs& columnIds, const Range& range, cons
 DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const int exclusionColumnId, const Query& rowIdQuery)
 {
 	std::vector<boost::shared_ptr<std::future<ReadResults>>> tasks;
-	for (int i = 0; i < columnIds.size(); ++i)
+	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		auto columnId = columnIds[i];
 		if (columnId != exclusionColumnId)
@@ -627,11 +627,11 @@ DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector
 {
 	DataSet result (rowIDs.size(), columnIds.size());
 
-	for (int y = 0; y < rowIDs.size(); y++)
+	for (size_t y = 0; y < rowIDs.size(); y++)
 	{
 		result[y].ID = rowIDs[y];
 
-		for (int x = 0; x < columnIds.size(); ++x)
+		for (size_t x = 0; x < columnIds.size(); ++x)
 		{
 			auto columnId = columnIds[x];
 			auto iter = rowResults.find(columnId);
@@ -654,9 +654,8 @@ RangeSet Database::ResultsToRangeSet(DataSet& set, const int rangeColumnId, cons
 	result.Limited = rangeResult.limited;
 
 
-	int valueRowValue = 0;
-	int valueRowRow = 0;
-	for (int y = 0; y < set.size(); y++)
+	size_t valueRowValue = 0, valueRowRow = 0;
+	for (size_t y = 0; y < set.size(); y++)
 	{
 		set[y].Values[rangeColumnIndex].__set_value(rangeResult.valueRowsList[valueRowValue].value);
 		valueRowRow++;
@@ -840,16 +839,19 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 
 	// Wait for critical number of workers to flush
 	auto neededCount =  workers.size() / 2 > 1 ? workers.size() / 2 : 1;
-	for (int i = 0; i < flushTasks.size() && i < neededCount; i++)
+	for (size_t i = 0; i < flushTasks.size() && i < neededCount; i++)
 		flushTasks[i]->wait();
 }
 
-std::map<TransactionID, std::vector<Database::WorkerInfo>> Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers, const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, std::map<int, boost::shared_ptr<TProtocol>>& failedWorkers)
+std::map<TransactionID, std::vector<Database::WorkerInfo>> 
+Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers, 
+			      const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, 
+				std::map<int, boost::shared_ptr<TProtocol>>& failedWorkers)
 {
-	clock_t start = clock();
+  ///	clock_t start = clock();
 
 	std::map<TransactionID, std::vector<WorkerInfo>> workersByTransaction;
-	for (int i = 0; i < tasks.size(); i++)
+	for (size_t i = 0; i < tasks.size(); i++)
 	{
 		// Attempt to fetch the result for each task
 		TransactionID resultId;
@@ -973,7 +975,7 @@ std::map<int, boost::shared_ptr<ColumnWrites>> Database::CreateIncludes(const Co
 {
 	std::map<int, boost::shared_ptr<ColumnWrites>> writes;
 
-	for (int i = 0; i < columnIds.size(); ++i)
+	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		fastore::communication::Include inc;
 		inc.__set_rowID(rowId);
@@ -996,7 +998,7 @@ std::map<int, boost::shared_ptr<ColumnWrites>> Database::CreateExcludes(const Co
 {
 	std::map<int, boost::shared_ptr<ColumnWrites>> writes;
 
-	for (int i = 0; i < columnIds.size(); ++i)
+	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		fastore::communication::Exclude ex;
 		ex.__set_rowID(rowId);
@@ -1013,7 +1015,7 @@ std::vector<Statistic> Database::GetStatistics(const std::vector<int>& columnIds
 {
 	// Make the request against each column
 	std::vector<boost::shared_ptr<std::future<Statistic>>> tasks;
-	for (int i = 0; i < columnIds.size(); ++i)
+	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		auto columnId = columnIds[i];
 		auto task = boost::shared_ptr<std::future<Statistic>>
@@ -1169,7 +1171,7 @@ std::map<int, long long> Database::Ping()
 	_lock->unlock();
 
 	std::vector<boost::shared_ptr<std::future<std::pair<int, long long>>>> tasks;
-	for (int i = 0; i < hostIds.size(); ++i)
+	for (size_t i = 0; i < hostIds.size(); ++i)
 	{		
 		int hostId = hostIds[i];
 		auto task = boost::shared_ptr<std::future<std::pair<int, long long>>>

@@ -97,7 +97,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 	// Find a per-column change map for each column in the selection
 	std::vector<LogColumn> changeMap(columnIds.size());
 	auto anyMapped = false;
-	for (int x = 0; x < columnIds.size(); ++x)
+	for (size_t x = 0; x < columnIds.size(); ++x)
 	{
 		auto col = _log.find(columnIds[x]);
 		if (col != _log.end())
@@ -120,7 +120,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 		newRow.Values = row->Values;
 		auto allNull = true;
 
-		for (int i = 0; i < row->Values.size(); i++)
+		for (size_t i = 0; i < row->Values.size(); i++)
 		{
 			LogColumn col = changeMap[i];
 			if (!col.Excludes.empty() || !col.Includes.empty())
@@ -156,7 +156,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 	//This could cause the rows to get out of order if you've updated a row in the range.
 	//foreach (var row in resultRows)
 	//{
-	//    for (int i = 0; i < row.Values.Length; i++)
+	//    for (size_t i = 0; i < row.Values.Length; i++)
 	//    {
 	//        LogColumn col = changeMap[i];
 	//        if (col != null)
@@ -173,7 +173,7 @@ RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, c
 
 	// Turn the rows back into a dataset
 	DataSet result(resultRows.size(), columnIds.size());
-	for (int i = 0; i < result.size(); i++)
+	for (size_t i = 0; i < result.size(); i++)
 		result[i] = resultRows[i];
 
 	raw.Data = result;
@@ -189,7 +189,7 @@ DataSet Transaction::GetValues(const ColumnIDs& columnIds, const std::vector<std
 
 void Transaction::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
-	for (int i = 0; i < columnIds.size(); ++i)
+  for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		LogColumn& column = EnsureColumnLog(columnIds[i]);
 		column.Includes[rowId] = row[i];
@@ -198,7 +198,7 @@ void Transaction::Include(const ColumnIDs& columnIds, const std::string& rowId, 
 
 void Transaction::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
 {
-	for (int i = 0; i < columnIds.size(); ++i)
+  for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		LogColumn& column = EnsureColumnLog(columnIds[i]);
 		column.Excludes.insert(rowId);
