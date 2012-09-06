@@ -42,11 +42,11 @@ void Statement::reset()
 void Statement::bind(std::vector<Argument> arguments)
 {
 	sqlite3_reset(_statement);
-	int parameterCount = sqlite3_bind_parameter_count(_statement);
+	size_t parameterCount = sqlite3_bind_parameter_count(_statement);
 	if (parameterCount != arguments.size())
 		throw "Wrong number of arguments";
 
-	for (int i = 0; i < parameterCount; ++i)
+	for (size_t i = 0; i < parameterCount; ++i)
 	{
 		auto arg = arguments[i];
 		internalBind(i, arg.type, arg.value);

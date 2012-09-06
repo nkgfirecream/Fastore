@@ -1,4 +1,6 @@
 #pragma once
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 #include "../FastoreClient/ColumnDef.h"
 #include "Cursor.h"
@@ -461,3 +463,4 @@ void intializeFastoreModule(sqlite3* db, std::vector<module::Address> addresses)
 
 
 
+#pragma GCC diagnostic pop
