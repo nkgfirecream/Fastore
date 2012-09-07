@@ -10,3 +10,17 @@ Index: trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc
  #include <limits>
  
  
+@@ -164,6 +165,13 @@
+ }
+ 
+ template <class Transport_>
++uint32_t TBinaryProtocolT<Transport_>::writeI64(const uint64_t i64) {
++  uint64_t net = (uint64_t)htonll(i64);
++  this->trans_->write((uint8_t*)&net, 8);
++  return 8;
++}
++
++template <class Transport_>
+ uint32_t TBinaryProtocolT<Transport_>::writeDouble(const double dub) {
+   BOOST_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t));
+   BOOST_STATIC_ASSERT(std::numeric_limits<double>::is_iec559);
