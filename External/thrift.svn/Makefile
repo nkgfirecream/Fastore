@@ -1,6 +1,9 @@
 # $Id$
 
-.PHONY: install build install env
+.PHONY: install build install env patch
+
+MODIFIED != svn status trunk | awk '/^M/ {print $$2}'
+PATCH = $(MODIFIED:T:S/^/patch\//g:S/$/.diff/)
 
 all: build
 
@@ -18,8 +21,19 @@ install: trunk/build/Makefile
 configure trunk/configure: trunk/bootstrap.sh
 	cd trunk && ./bootstrap.sh
 
-patch .patched:
-	sh -x apply-patch
+PATCHED != awk '/^Index/ {print $$2}' patch/*diff
+repatch:
+	svn revert $(PATCHED)
+	sh -x apply-patches
+
+apply-edits: $(PATCH)
+
+THRIFT.DIR ?= /usr/local/include/thrift
+
+$(PATCH)::
+	./apply-edits $(:!find trunk $(THRIFT.DIR) -name $(@:T:R)!)
+	svn diff $(:!find trunk -name $(@:T:R)!) > $@~ 
+	@mv $@~ $@
 
 env: 
 	apt-get install flex bison libssl-dev libssl-doc

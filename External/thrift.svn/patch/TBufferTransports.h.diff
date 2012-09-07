@@ -1,0 +1,99 @@
+Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(working copy)
+@@ -20,7 +20,12 @@
+ #ifndef _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_
+ #define _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_ 1
+ 
++#include <sstream>
++#include <limits>
++#include <stdexcept>
+ #include <cstring>
++#include <cstdlib>
++
+ #include "boost/scoped_array.hpp"
+ 
+ #include <thrift/transport/TTransport.h>
+@@ -34,6 +39,35 @@
+ #define TDB_UNLIKELY(val) (val)
+ #endif
+ 
++#define THRIFT_SAFE_CAST(t,f) \
++	apache::thrift::safe_cast<t>(__FILE__, __LINE__, (f))
++
++
++namespace apache { namespace thrift { 
++	template <typename T, typename F>
++	T safe_cast(const char file[], std::size_t line, F input) 
++	{
++		using std::numeric_limits;
++		std::ostringstream msg;
++
++		if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
++			if( input < 0 ) {
++				msg << file << ":" << line << ": " 
++					<< "signed value " << input 
++					<< " cannot be cast to unsigned type";
++				throw std::runtime_error(msg.str());
++			}
++		}
++		if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
++			msg << file << ":" << line << ": " 
++				<< input << ", size " << sizeof(F) 
++				<< ", cannot be cast to unsigned type of size" << sizeof(T);
++			throw std::runtime_error(msg.str());
++		}
++		return static_cast<T>(input);
++	}
++	}} // end namespace
++
+ namespace apache { namespace thrift { namespace transport {
+ 
+ 
+@@ -472,6 +506,12 @@
+     // rBound_ is really an artifact.  In principle, it should always be
+     // equal to wBase_.  We update it in a few places (computeRead, etc.).
+   }
++  void initCommon(uint8_t* buf, size_t size, bool owner, size_t wPos) {
++    initCommon( buf, 
++		THRIFT_SAFE_CAST(uint32_t, size), 
++		owner, 
++		THRIFT_SAFE_CAST(uint32_t, wPos) );
++  }
+ 
+  public:
+   static const uint32_t defaultSize = 1024;
+@@ -519,6 +559,9 @@
+   TMemoryBuffer(uint32_t sz) {
+     initCommon(NULL, sz, true, 0);
+   }
++  TMemoryBuffer(size_t sz) {
++    initCommon(NULL, sz, true, 0);
++  }
+ 
+   /**
+    * Construct a TMemoryBuffer with buf as its initial contents.
+@@ -530,7 +573,7 @@
+    * @param sz     The size of @c buf.
+    * @param policy See @link MemoryPolicy @endlink .
+    */
+-  TMemoryBuffer(uint8_t* buf, uint32_t sz, MemoryPolicy policy = OBSERVE) {
++  TMemoryBuffer(uint8_t* buf, size_t sz, MemoryPolicy policy = OBSERVE) {
+     if (buf == NULL && sz != 0) {
+       throw TTransportException(TTransportException::BAD_ARGS,
+                                 "TMemoryBuffer given null buffer with non-zero size.");
+@@ -628,7 +671,12 @@
+   }
+ 
+   /// See constructor documentation.
+-  void resetBuffer(uint32_t sz) {
++  void resetBuffer(size_t sz) {
++    if( std::numeric_limits<uint32_t>::max() < sz ) {
++      std::ostringstream msg;
++      msg << __FUNCTION__ << ": " << sz << " exceeds maximum value for uint32_t";
++      throw std::runtime_error(msg.str());
++    }
+     // Construct the new buffer.
+     TMemoryBuffer new_buffer(sz);
+     // Move it into ourself.

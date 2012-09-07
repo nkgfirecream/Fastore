@@ -1,0 +1,18 @@
+Index: trunk/lib/cpp/src/thrift/transport/TSocket.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TSocket.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TSocket.h	(working copy)
+@@ -22,6 +22,13 @@
+ 
+ #include <string>
+ 
++#if HAVE_SYS_SOCKET_H
++# include <sys/socket.h>
++#endif
++#if HAVE_NETINET_IN_H
++# include <netinet/in.h>
++#endif
++
+ #include "TTransport.h"
+ #include "TVirtualTransport.h"
+ #include "TServerSocket.h"

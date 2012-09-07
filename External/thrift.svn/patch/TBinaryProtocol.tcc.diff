@@ -1,0 +1,12 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc	(working copy)
+@@ -22,6 +22,7 @@
+ 
+ #include "TBinaryProtocol.h"
+ 
++#include <arpa/inet.h>
+ #include <limits>
+ 
+ 

@@ -1,0 +1,13 @@
+#! /bin/sh
+if [ "$1" -ot "$2" ]
+then
+    OLD=$1
+    NEW=$2
+else
+    OLD=$2
+    NEW=$1
+fi
+
+diff -u ${OLD} ${NEW} | patch ${OLD}
+
+# $Id$
