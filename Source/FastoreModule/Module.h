@@ -3,39 +3,206 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
 #include "../FastoreClient/ColumnDef.h"
+#include "../FastoreClient/Dictionary.h"
+#include "../FastoreClient/Encoder.h"
+#include <boost/assign/list_of.hpp>
 #include "Cursor.h"
 #include "Table.h"
 #include "Address.h"
 #include "Connection.h"
+#include "Dictionary.h"
 #include <sqlite3.h>
 
 namespace client = fastore::client;
 namespace module = fastore::module;
+namespace communication = fastore::communication;
 
 using namespace std;
 
 // For questions on this SQLite module, see SQLite virtual table documentation: http://www.sqlite.org/vtab.html
 const char* const SQLITE_MODULE_NAME = "Fastore";
 
-
 module::Connection* createModuleConnection(std::vector<fastore::module::Address>& addresses)
 {
 	return new module::Connection(addresses);
 }
 
+void createVirtualTables(module::Connection* connection, sqlite3* sqliteConnection)
+{
+	client::Range tableRange;
+	tableRange.Ascending = true;
+	tableRange.ColumnID = module::Dictionary::TableID;
+
+	boost::optional<std::string> startId;
+
+	while (true)
+	{
+		client::RangeSet result = connection->_database->GetRange(module::Dictionary::TableColumns, tableRange, 500, startId);
+
+		for(int i = 0; i < result.Data.size(); i++)
+		{
+			//NULL
+			if (!result.Data[i].Values[2].__isset.value)
+				throw "Null value found for table definition!";
+
+			std::string ddl = result.Data[i].Values[2].value;
+
+			std::string statement = "create virtual table " + result.Data[i].Values[1].value + " using fastore(" + ddl + ");";
+
+			sqlite3_exec(sqliteConnection, statement.c_str(), NULL, NULL, NULL);
+		}
+
+		if (result.Eof)
+			break;
+		else
+			startId = result.Data[result.Data.size() - 1].ID;
+	}
+}
+
+void ensureColumns(module::Connection* connection, std::vector<fastore::client::ColumnDef>& defs)
+{
+	//TODO: This is more or less a duplicate of the table create code. Refactor to reduce duplication
+
+	 // Pull a list of candidate pods
+    Range podQuery;
+    podQuery.ColumnID = client::Dictionary::PodID;
+    podQuery.Ascending = true;
+
+	std::vector<ColumnID> podidv;
+	podidv.push_back(client::Dictionary::PodID);
+
+	//TODO: Gather pods - we may have more than 2000 
+    auto podIds = connection->_database->GetRange(podidv, podQuery, 2000);
+    if (podIds.Data.size() == 0)
+        throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
+
+    int nextPod = rand() % (podIds.Data.size() - 1);
+
+    //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
+    //TableVar Columns and pull the id each time.
+    //List<int> columnIds = new List<int>();
+    for (size_t i = 0; i < defs.size(); i++)
+	{
+		// Attempt to find the column by name
+		Range query;
+		query.ColumnID = Dictionary::ColumnName;
+
+		client::RangeBound bound;
+		bound.Bound = defs[i].Name;
+		bound.Inclusive = true;
+		query.Start = bound;
+		query.End = bound;
+
+		//Just pull one row. If any exist we should verify it's the correct one.
+		auto result = connection->_database->GetRange(ColumnIDs(), query, 1);
+
+		if (result.Data.size() == 0)
+		{
+			//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
+			auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0].value;
+
+
+			//TODO: Make workers smart enough to create/instantiate a column within one transaction.
+			//(They currently don't check for actions to perform until the end of the transaction, which means they may miss part of it currently)
+			auto transaction = connection->_database->Begin(true, true);
+			transaction->Include
+			(
+				Dictionary::ColumnColumns,
+				client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID),
+				boost::assign::list_of<std::string>
+				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
+				(defs[i].Name)
+				(defs[i].Type)
+				(defs[i].IDType)
+				(client::Encoder<client::BufferType_t>::Encode(defs[i].BufferType))
+				(client::Encoder<bool>::Encode(defs[i].Required))
+			);
+			transaction->Commit();
+
+			transaction = connection->_database->Begin(true, true);
+			transaction->Include
+			(
+				Dictionary::PodColumnColumns,
+				client::Encoder<long long>::Encode(connection->_generator->Generate(Dictionary::PodColumnPodID)),
+				boost::assign::list_of<std::string>
+				(podId)
+				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
+			);
+			transaction->Commit();		
+		}
+		
+		//TODO: if column does exist, compare values to 
+	}
+}
+
+void ensureTablesTable(module::Connection* connection)
+{
+	std::vector<fastore::client::ColumnDef> defs;
+
+	//TableTable
+	//Table.ID
+	ColumnDef tableId;
+	tableId.BufferType = BufferType_t::Identity;
+	tableId.ColumnID = module::Dictionary::TableID;
+	tableId.IDType = "Int";
+	tableId.Name = "Table.ID";
+	tableId.Required = true;
+	tableId.Type = "Int";
+
+	defs.push_back(tableId);
+	
+	//Table.Name
+	ColumnDef tableName;
+	tableName.BufferType = BufferType_t::Unique;
+	tableName.ColumnID = module::Dictionary::TableName;
+	tableName.IDType = "Int";
+	tableName.Name = "Table.Name";
+	tableName.Required = true;
+	tableName.Type = "String";
+
+	defs.push_back(tableName);
+
+	//Table.DDL
+	ColumnDef tableDDL;
+	tableName.BufferType = BufferType_t::Unique;
+	tableName.ColumnID = module::Dictionary::TableDDL;
+	tableName.IDType = "Int";
+	tableName.Name = "Table.DDL";
+	tableName.Required = true;
+	tableName.Type = "String";
+
+	defs.push_back(tableDDL);
+	
+	//TableColumnTable
+	//TableColumn.TableID
+	ColumnDef tableColumnTableId;
+	tableColumnTableId.BufferType = BufferType_t::Multi;
+	tableColumnTableId.ColumnID = module::Dictionary::TableColumnTableID;
+	tableColumnTableId.IDType = "Int";
+	tableColumnTableId.Name = "TableColumn.TableID";
+	tableColumnTableId.Required = true;
+	tableColumnTableId.Type = "Int";
+
+	defs.push_back(tableColumnTableId);
+
+	//TableColumn.ColumnID
+	ColumnDef tableColumnColumnId;
+	tableColumnColumnId.BufferType = BufferType_t::Multi;
+	tableColumnColumnId.ColumnID = module::Dictionary::TableColumnTableID;
+	tableColumnColumnId.IDType = "Int";
+	tableColumnColumnId.Name = "TableColumn.TableID";
+	tableColumnColumnId.Required = true;
+	tableColumnColumnId.Type = "Int";
+
+	defs.push_back(tableColumnColumnId);
+
+	ensureColumns(connection, defs);
+}
+
 void detectExistingSchema(module::Connection* connection, sqlite3* sqliteConnection)
 {
-	//Detect existing tables in the hive
-	
-	//Table.ID
-	//Table.Name
-	//Table.DDL
-
-	//TableColumn.TableID
-	//TableColumn.ColumnID
-	
-	//Create virtual tables in the module
-
+	ensureTablesTable(connection);
+	createVirtualTables(connection, sqliteConnection);
 }
 
 void destroyFastoreModule(void* state)
@@ -71,126 +238,11 @@ int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
 	return SQLITE_ERROR;
 }
 
-template<typename charT>
-class CaseInsensitiveComparer
-{
-    const std::locale& _locale;
-public:
-    CaseInsensitiveComparer(const std::locale& loc) : _locale(loc) {}
-    bool operator()(charT ch1, charT ch2) 
-	{
-        return std::toupper(ch1, _locale) == std::toupper(ch2, _locale);
-    }
-};
-
-template<typename T>
-int insensitiveStrPos(const T& str1, const T& str2, const std::locale& locale = std::locale() )
-{
-    typename T::const_iterator it = std::search(str1.begin(), str1.end(), 
-						str2.begin(), str2.end(), 
-						CaseInsensitiveComparer<typename T::value_type>(locale));
-    if (it != str1.end()) 
-		return it - str1.begin();
-    else 
-		return -1;
-}
-
-client::ColumnDef ParseColumnDef(string text)
-{
-	client::ColumnDef result;
-	istringstream reader(text, istringstream::in);
-	if (!std::getline(reader, result.Name, ' ')) 
-		std::runtime_error("Missing column name");
-	if (!std::getline(reader, result.Type, ' '))
-		result.Type = "String";
-	auto stringText = string(text);
-	//TODO: When should we use an identity buffer? Primary key?
-	result.BufferType =	insensitiveStrPos(stringText, string("primary")) >= 0 ? 
-	    client::BufferType_t::Identity : 
-	    	insensitiveStrPos(stringText, string("unique")) >= 0 ? 
-	    		client::BufferType_t::Unique : client::BufferType_t::Multi;
-	result.Required = insensitiveStrPos(stringText, string("not null")) >= 0 || 
-	                  insensitiveStrPos(stringText, string("primary")) >= 0;
-
-	return result;
-}
-
-static map<string, string> fastoreTypesToSQLiteTypes;
-static map<string, string> sqliteTypesToFastoreTypes;
-static map<int, string> sqliteTypeIDToFastoreTypes;
-
-void EnsureFastoreTypeMaps()
-{
-	if (fastoreTypesToSQLiteTypes.size() == 0)
-	{
-		fastoreTypesToSQLiteTypes["WString"] = "nvarchar";
-		fastoreTypesToSQLiteTypes["String"] = "varchar";
-		fastoreTypesToSQLiteTypes["Int"] = "int";
-		fastoreTypesToSQLiteTypes["Long"] = "bigint";
-		fastoreTypesToSQLiteTypes["Bool"] = "int";
-	}
-
-	if (sqliteTypesToFastoreTypes.size() == 0)
-	{
-		sqliteTypesToFastoreTypes["nvarchar"] = "WString";
-		sqliteTypesToFastoreTypes["varchar"] = "String";
-		sqliteTypesToFastoreTypes["int"] = "Int";
-		sqliteTypesToFastoreTypes["bigint"] = "Long";
-		//TODO: Must add special handling for bool. Either don't use it in Fastore, or check column def.
-		//(actually, can we even define a bool column in sqlite?)
-		//sqliteTypesToFastoreTypes["int"] = "Bool";
-	}
-
-	if (sqliteTypesToFastoreTypes.size() == 0)
-	{
-		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
-		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
-	}
-}
-
-string FastoreTypeToSQLiteType(const string &fastoreType)
-{
-	EnsureFastoreTypeMaps();
-	auto result = fastoreTypesToSQLiteTypes.find(fastoreType);
-	if (result == fastoreTypesToSQLiteTypes.end())
-	{
-		ostringstream message;
-		message << "Unknown type '" << fastoreType << "'.";
-		std::runtime_error(message.str());
-	}
-	return result->second;
-}
-
-string SQLiteTypeToFastoreType(const string &SQLiteType)
-{
-	EnsureFastoreTypeMaps();
-	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
-	if (result == sqliteTypesToFastoreTypes.end())
-	{
-		ostringstream message;
-		message << "Unknown type '" << SQLiteType << "'.";
-		std::runtime_error(message.str());
-	}
-	return result->second;
-}
-
 // This method is invoked by both Create and Connect
-int moduleInit(sqlite3 *db, const char *tblName, const vector<client::ColumnDef> &defs)
+int moduleInit(sqlite3 *db, const char *tblName, const char* ddl)
 {
 	ostringstream tableDef;
-	tableDef << "create table " << tblName <<"(";
-	bool first = true;
-	for (auto def : defs)
-	{
-		if (first)
-			first = false;
-		else
-			tableDef << ", ";
-
-		tableDef << def.Name << " " << FastoreTypeToSQLiteType(def.Type);
-	}
-	tableDef << ")";
-
+	tableDef << "create table " << tblName <<"(" << ddl << ")";
 	sqlite3_declare_vtab(db, tableDef.str().c_str());
 
 	return SQLITE_OK;
@@ -214,16 +266,13 @@ fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *co
 	auto connection = (module::Connection*)pAux;
 	auto tableName = argv[2];
 
-	// Parse each column into a ColumnDef
-	std::vector<client::ColumnDef> defs;
-	defs.reserve(argc - 3);
-	string idType = "Int";
+	ostringstream ddl;
 	for (int i = 3; i < argc; i++)
 	{
-		auto def = ParseColumnDef(argv[i]);
-		def.IDType = "Int";
-		defs.push_back(def);
-		// TODO: track row ID type candidates
+		if (i != 0)
+			ddl << ",";
+		//TODO: Clean arguments. Make sure they are SQLite compatible.
+		ddl << argv[i];
 	}
 
 	auto vtab = (fastore_vtab*)sqlite3_malloc(sizeof(fastore_vtab));
@@ -232,10 +281,10 @@ fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *co
 	vtab->base.pModule = 0;
 	vtab->base.zErrMsg = 0;
 
-	//Create the table in fastore.
-	vtab->table = new module::Table(connection, string(tableName), defs);
+	//Create a fastore table
+	vtab->table = new module::Table(connection, string(tableName), ddl.str());
 
-	moduleInit(db, tableName, defs);
+	moduleInit(db, tableName, ddl.str().c_str());
 	return vtab;
 }
 
@@ -246,7 +295,7 @@ int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqli
 	(
 		[&]() -> int
 		{
-			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);
+			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);	
 
 			//Try to create the table in Fastore
 			vtab->table->create();
@@ -264,6 +313,7 @@ int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sql
 		[&]() -> int
 		{
 			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);
+
 			//Try to connect to the table in Fastore -- test to see if the columns exist and update our local columnIds
 			vtab->table->connect();	
 			return SQLITE_OK;

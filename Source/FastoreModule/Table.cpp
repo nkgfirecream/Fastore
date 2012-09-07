@@ -1,139 +1,145 @@
-#include <sqlite3.h>
 #include "Table.h"
+#include "Dictionary.h"
+#include "SafeCast.h"
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/Transaction.h"
 #include <boost/assign/list_of.hpp>
+#include "Utilities.h"
+#include <sstream>
 
-#define SAFE_CAST(t,f) safe_cast(__FILE__, __LINE__, (t), (f))
+namespace module = fastore::module;
+namespace client = fastore::client;
+namespace communication = fastore::communication;
 
-template <typename T, typename F>
-T safe_cast(const char file[], size_t line, T, F input) {
-  using std::numeric_limits;
-  std::ostringstream msg;
-
-  if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
-    if( input < 0 ) {
-      msg << file << ":" << line << ": " 
-	  << "signed value " << input << " cannot be cast to unsigned type";
-      throw std::runtime_error(msg.str());
-    }
-    if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
-      msg << file << ":" << line << ": " 
-	  << input << ", size " << sizeof(F) 
-	  << ", cannot be cast to unsigned type of size" << sizeof(T);
-      throw std::runtime_error(msg.str());
-    }
-  }
-  return static_cast<T>(input);
-}
-
-using namespace fastore::module;
-using namespace fastore::client;
-using namespace boost::assign;
-
-Table::Table(Connection* connection, const std::string& name, std::vector<client::ColumnDef>& columns) 
-	: _connection(connection), _name(name), _columns(columns) 
+module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
+	: _connection(connection), _name(name),  _ddl(ddl) 
 {}
 
-void Table::begin()
+void module::Table::begin()
 {
 	_transaction = _connection->_database->Begin(true, true);
 }
 
-void Table::sync()
+void module::Table::sync()
 {
 	//Do nothing for now.. we may need to expose two stage transactions on the client.
 }
 
-void Table::commit()
+void module::Table::commit()
 {
 	_transaction->Commit();
 	_transaction.reset();
 }
 
-void Table::rollback()
+void module::Table::rollback()
 {
 	_transaction->Rollback();
 	_transaction.reset();
 }
 
-void Table::create()
+//This code makes the assumption that the module has
+//Already bootstrapped the Table of Tables.
+void module::Table::create()
 {
-	 // Pull a list of candidate pods
-    Range podQuery;
-    podQuery.ColumnID = Dictionary::PodID;
-    podQuery.Ascending = true;
-
-	std::vector<ColumnID> podidv;
-	podidv.push_back(Dictionary::PodID);
-
-	//TODO: Gather pods - we may have more than 2000
-    auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
-    if (podIds.Data.size() == 0)
-        throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
-
-
-	//TODO: Determine key -- if it's more than one column, we need to create a surrogate.
-	//For now, just assume the first column is the key.
-
-
-	//var minKey = TableVar.Keys.MinimumKey(false, false);
-	//if (minKey != null && minKey.Columns.Count != 1)
-	//	minKey = null;
-	//var rowIDColumn = minKey != null && RowIDCandidateType(minKey.Columns[0].DataType) ? minKey.Columns[0] : null;
-	//var rowIDmappedType = rowIDColumn == null ? "Int" : MapTypeNames(rowIDColumn.DataType);
-
-    // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
-    int nextPod = rand() % (podIds.Data.size() - 1);
-
-    //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
-    //TableVar Columns and pull the id each time.
-    //List<int> columnIds = new List<int>();
-    for (size_t i = 0; i < _columns.size(); i++)
-	{
-		auto combinedName = _name + "." + _columns[i].Name;
-
-		// Attempt to find the column by name
-		Range query;
-		query.ColumnID = Dictionary::ColumnName;
-
-		client::RangeBound bound;
-		bound.Bound = combinedName;
-		bound.Inclusive = true;
-		query.Start = bound;
-		query.End = bound;
-		//Just pull one row. If any exist we have a problem.
-		auto result = _connection->_database->GetRange(ColumnIDs(), query, 1);
-
-		if (result.Data.size() > 0)
-		{
-			throw "Column " + combinedName + " already exists in store. Cannot create column";
-		}
-		else
-		{
-			int columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID,  + 1);			
-			_columnIds.push_back(columnId);
-			_columns[i].ColumnID = columnId;
-			createColumn(_columns[i], combinedName, _columns[0], podIds, nextPod);
-		}
-	}
+	ensureTable();
+	ensureColumns();
+	updateStats();
 }
 
-void Table::connect()
+void module::Table::ensureTable()
+{
+	//See if the table already exists.
+	client::RangeBound bound;
+	bound.Bound = _name;
+	bound.Inclusive = true;
+
+	client::Range tableQuery;
+	tableQuery.Ascending = true;
+	tableQuery.ColumnID = module::Dictionary::TableName;
+	tableQuery.End = bound;
+	tableQuery.Start = bound;
+	
+}
+
+void module::Table::ensureColumns()
+{
+	//Gives us a valid set of column defs -- except for ids, which we need to determine.
+	parseDDL();
+	 // Pull a list of candidate pods
+ //   Range podQuery;
+ //   podQuery.ColumnID = Dictionary::PodID;
+ //   podQuery.Ascending = true;
+
+	//std::vector<ColumnID> podidv;
+	//podidv.push_back(Dictionary::PodID);
+
+	////TODO: Gather pods - we may have more than 2000
+ //   auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
+ //   if (podIds.Data.size() == 0)
+ //       throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
+
+
+	////TODO: Determine key -- if it's more than one column, we need to create a surrogate.
+	////For now, just assume the first column is the key.
+
+
+	////var minKey = TableVar.Keys.MinimumKey(false, false);
+	////if (minKey != null && minKey.Columns.Count != 1)
+	////	minKey = null;
+	////var rowIDColumn = minKey != null && RowIDCandidateType(minKey.Columns[0].DataType) ? minKey.Columns[0] : null;
+	////var rowIDmappedType = rowIDColumn == null ? "Int" : MapTypeNames(rowIDColumn.DataType);
+
+ //   // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
+ //   int nextPod = rand() % (podIds.Data.size() - 1);
+
+ //   //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
+ //   //TableVar Columns and pull the id each time.
+ //   //List<int> columnIds = new List<int>();
+ //   for (size_t i = 0; i < _columns.size(); i++)
+	//{
+	//	auto combinedName = _name + "." + _columns[i].Name;
+
+	//	// Attempt to find the column by name
+	//	Range query;
+	//	query.ColumnID = Dictionary::ColumnName;
+
+	//	client::RangeBound bound;
+	//	bound.Bound = combinedName;
+	//	bound.Inclusive = true;
+	//	query.Start = bound;
+	//	query.End = bound;
+	//	//Just pull one row. If any exist we have a problem.
+	//	auto result = _connection->_database->GetRange(ColumnIDs(), query, 1);
+
+	//	if (result.Data.size() > 0)
+	//	{
+	//		throw "Column " + combinedName + " already exists in store. Cannot create column";
+	//	}
+	//	else
+	//	{
+	//		int columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID,  + 1);			
+	//		_columnIds.push_back(columnId);
+	//		_columns[i].ColumnID = columnId;
+	//		createColumn(_columns[i], combinedName, _columns[0], podIds, nextPod);
+	//	}
+	//}
+}
+
+void module::Table::connect()
 {
 	//Try to locate all the columns (range over the columns table with "tablename.") and gather their ids
 	//so that we can use them.
 	//Try to locate rowId column if the column exists. 
 }
 
-void Table::drop()
+void module::Table::drop()
 {
 	for (auto col : _columnIds)
 	{
         // Pull a list of the current repos so we can drop them all.
         Range repoQuery;
-        repoQuery.ColumnID = Dictionary::PodColumnColumnID;
+        repoQuery.ColumnID = client::Dictionary::PodColumnColumnID;
         repoQuery.Ascending = true;
 		client::RangeBound bound;
 		bound.Inclusive = true;
@@ -141,33 +147,33 @@ void Table::drop()
         repoQuery.Start = bound;
         repoQuery.End = bound;
 
-		auto repoIds = _connection->_database->GetRange(list_of<communication::ColumnID>(Dictionary::PodColumnColumnID), repoQuery, 2000);
+		auto repoIds = _connection->_database->GetRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::PodColumnColumnID), repoQuery, 2000);
 
 		for (size_t i = 0; i < repoIds.Data.size(); i++)
         {
-            _connection->_database->Exclude(Dictionary::PodColumnColumns, repoIds.Data[i].ID);
+            _connection->_database->Exclude(client::Dictionary::PodColumnColumns, repoIds.Data[i].ID);
         }
 
 		Range query;
-        query.ColumnID = Dictionary::ColumnID;
+        query.ColumnID = client::Dictionary::ColumnID;
         query.Start = bound;
         query.End = bound;
 
-        auto columnExists = _connection->_database->GetRange(list_of<communication::ColumnID>(Dictionary::ColumnID), query, 2000);
+        auto columnExists = _connection->_database->GetRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::ColumnID), query, 2000);
 
         if (columnExists.Data.size() > 0)
         {
-            _connection->_database->Exclude(Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
+            _connection->_database->Exclude(client::Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
         }
 	}
 }
 
-void Table::disconnect()
+void module::Table::disconnect()
 {
 	//Do nothing for now...
 }
 
-void Table::createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod)
+void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod)
 {
 	//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
 	auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0].value;
@@ -178,9 +184,9 @@ void Table::createColumn(client::ColumnDef& column, std::string& combinedName, c
 	auto transaction = _connection->_database->Begin(true, true);
 	transaction->Include
 	(
-		Dictionary::ColumnColumns,
+		client::Dictionary::ColumnColumns,
 		client::Encoder<communication::ColumnID>::Encode(column.ColumnID),
-		list_of<std::string>
+		boost::assign::list_of<std::string>
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
 		(combinedName)
 		(column.Type)
@@ -193,16 +199,16 @@ void Table::createColumn(client::ColumnDef& column, std::string& combinedName, c
 	transaction = _connection->_database->Begin(true, true);
 	transaction->Include
 	(
-		Dictionary::PodColumnColumns,
-		client::Encoder<long long>::Encode(_connection->_generator->Generate(Dictionary::PodColumnPodID)),
-		list_of<std::string>
+		client::Dictionary::PodColumnColumns,
+		client::Encoder<long long>::Encode(_connection->_generator->Generate(client::Dictionary::PodColumnPodID)),
+		boost::assign::list_of<std::string>
 		(podId)
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
 	transaction->Commit();		
 }
 
-void Table::bestIndex(sqlite3_index_info* info)
+void module::Table::bestIndex(sqlite3_index_info* info)
 {
 	//Step 1. Group constraints by columns:
 	//std::map<int,std::vector<std::pair<int,sqlite3_index_info::sqlite3_index_constraint*>>> constraintMap;
@@ -323,7 +329,7 @@ void Table::bestIndex(sqlite3_index_info* info)
 	//info->estimatedCost = cost; //  Estimated cost of using this index
 }
 
-client::RangeSet Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
+client::RangeSet module::Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
 {
 	if (_transaction != NULL)
 		return _transaction->GetRange(_columnIds, range, 500, startId);
@@ -331,8 +337,14 @@ client::RangeSet Table::getRange(client::Range& range, const boost::optional<std
 		return _connection->_database->GetRange(_columnIds, range, 500, startId);
 }
 
-void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
+void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
+	//Update statistics every MAXOPERATIONS
+	_numoperations = ++_numoperations % MAXTABLEOPERATIONS;
+
+	if(_numoperations == 0)
+		updateStats();
+
 	if (sqlite3_value_type(argv[0]) != SQLITE_NULL)
 	{
 		sqlite3_int64 oldRowIdInt = sqlite3_value_int64(argv[0]);
@@ -354,8 +366,8 @@ void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 	}
 	else
 	{
-		//TODO: generate on key column..
-		rowIdInt = _connection->_generator->Generate(_columnIds[0]);
+		//TODO: generate on table Id
+		rowIdInt = _connection->_generator->Generate(_id);
 		*pRowid = rowIdInt;
 	}
 
@@ -399,4 +411,102 @@ void Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		_transaction->Include(includedColumns, rowid, row);
 	else
 		_connection->_database->Include(includedColumns, rowid, row);
+}
+
+void module::Table::updateStats()
+{
+	if (_transaction != NULL)
+		_stats = _transaction->GetStatistics(_columnIds);
+	else
+		_connection->_database->GetStatistics(_columnIds);
+
+	++_numoperations;
+}
+
+void module::Table::parseDDL()
+{
+	//Split on commas. Find columns definitions. Create defs based on definitions.
+	//For now, assume all definitions are column defs.
+
+}
+
+client::ColumnDef module::Table::parseColumnDef(std::string text)
+{
+	client::ColumnDef result;
+	std::istringstream reader(text, std::istringstream::in);
+	if (!std::getline(reader, result.Name, ' ')) 
+		std::runtime_error("Missing column name");
+
+	std::string type;
+	if (!std::getline(reader, type, ' '))
+		result.Type = "String";
+	else
+		result.Type = SQLiteTypeToFastoreType(type);
+
+	auto stringText = std::string(text);
+	//TODO: When should we use an identity buffer? Primary key?
+	result.BufferType =	insensitiveStrPos(stringText, std::string("primary")) >= 0 ? 
+	    client::BufferType_t::Identity : 
+	    	insensitiveStrPos(stringText, std::string("unique")) >= 0 ? 
+	    		client::BufferType_t::Unique : client::BufferType_t::Multi;
+	result.Required = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
+	                  insensitiveStrPos(stringText, std::string("primary")) >= 0;
+
+	result.IDType = "Int";
+	return result;
+}
+
+void module::Table::EnsureFastoreTypeMaps()
+{
+	if (fastoreTypesToSQLiteTypes.size() == 0)
+	{
+		fastoreTypesToSQLiteTypes["WString"] = "nvarchar";
+		fastoreTypesToSQLiteTypes["String"] = "varchar";
+		fastoreTypesToSQLiteTypes["Int"] = "int";
+		fastoreTypesToSQLiteTypes["Long"] = "bigint";
+		fastoreTypesToSQLiteTypes["Bool"] = "int";
+	}
+
+	if (sqliteTypesToFastoreTypes.size() == 0)
+	{
+		sqliteTypesToFastoreTypes["nvarchar"] = "WString";
+		sqliteTypesToFastoreTypes["varchar"] = "String";
+		sqliteTypesToFastoreTypes["int"] = "Int";
+		sqliteTypesToFastoreTypes["bigint"] = "Long";
+		//TODO: Must add special handling for bool. Either don't use it in Fastore, or check column def.
+		//(actually, can we even define a bool column in sqlite?)
+		//sqliteTypesToFastoreTypes["int"] = "Bool";
+	}
+
+	if (sqliteTypesToFastoreTypes.size() == 0)
+	{
+		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
+		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
+	}
+}
+
+std::string module::Table::FastoreTypeToSQLiteType(const std::string &fastoreType)
+{
+	EnsureFastoreTypeMaps();
+	auto result = fastoreTypesToSQLiteTypes.find(fastoreType);
+	if (result == fastoreTypesToSQLiteTypes.end())
+	{
+		std::ostringstream message;
+		message << "Unknown type '" << fastoreType << "'.";
+		std::runtime_error(message.str());
+	}
+	return result->second;
+}
+
+std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)
+{
+	EnsureFastoreTypeMaps();
+	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
+	if (result == sqliteTypesToFastoreTypes.end())
+	{
+		std::ostringstream message;
+		message << "Unknown type '" << SQLiteType << "'.";
+		std::runtime_error(message.str());
+	}
+	return result->second;			
 }
