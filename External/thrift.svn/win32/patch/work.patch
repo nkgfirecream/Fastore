@@ -1,0 +1,87 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h	(working copy)
+@@ -130,7 +130,8 @@
+ 
+   inline uint32_t writeI32(const int32_t i32);
+ 
+-  inline uint32_t writeI64(const int64_t i64);
++  inline uint32_t writeI64(const  int64_t i64);
++  inline uint32_t writeI64(const uint64_t i64);
+ 
+   inline uint32_t writeDouble(const double dub);
+ 
+Index: trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc	(working copy)
+@@ -164,6 +164,13 @@
+ }
+ 
+ template <class Transport_>
++uint32_t TBinaryProtocolT<Transport_>::writeI64(const uint64_t i64) {
++  uint64_t net = (uint64_t)htonll(i64);
++  this->trans_->write((uint8_t*)&net, 8);
++  return 8;
++}
++
++template <class Transport_>
+ uint32_t TBinaryProtocolT<Transport_>::writeDouble(const double dub) {
+   BOOST_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t));
+   BOOST_STATIC_ASSERT(std::numeric_limits<double>::is_iec559);
+Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(working copy)
+@@ -26,6 +26,9 @@
+ #include <thrift/transport/TTransport.h>
+ #include <thrift/transport/TVirtualTransport.h>
+ 
++// Microsoft defines max egregiously.
++#undef max
++
+ #ifdef __GNUC__
+ #define TDB_LIKELY(val) (__builtin_expect((val), 1))
+ #define TDB_UNLIKELY(val) (__builtin_expect((val), 0))
+@@ -516,7 +519,7 @@
+    *
+    * @param sz  The initial size of the buffer.
+    */
+-  TMemoryBuffer(uint32_t sz) {
++  TMemoryBuffer(size_t sz) {
+     initCommon(NULL, sz, true, 0);
+   }
+ 
+@@ -646,16 +649,28 @@
+ 
+   // return number of bytes read
+   uint32_t readEnd() {
+-    uint32_t bytes = rBase_ - buffer_;
++    size_t bytes = rBase_ - buffer_;
+     if (rBase_ == wBase_) {
+       resetBuffer();
+     }
+-    return bytes;
++	if( std::numeric_limits<uint32_t>::max() < bytes) {
++		std::ostringstream msg;
++		msg << __FUNCTION__ << ": " << bytes << " too large to fit in uint32_t";
++		throw std::runtime_error(msg.str());
++	}
++    return static_cast<uint32_t>(bytes);
+   }
+ 
+   // Return number of bytes written
+   uint32_t writeEnd() {
+-    return wBase_ - buffer_;
++    size_t bytes = wBase_ - buffer_;
++	if( std::numeric_limits<uint32_t>::max() < bytes) {
++		std::ostringstream msg;
++		msg << __FUNCTION__ << ": " << bytes << " too large to fit in uint32_t";
++		throw std::runtime_error(msg.str());
++	}
++    return static_cast<uint32_t>(bytes);
++
+   }
+ 
+   uint32_t available_read() const {
