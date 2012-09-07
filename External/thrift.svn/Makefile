@@ -38,7 +38,7 @@ $(PATCH)::
 
 install-patched: $(PATCHED.TGT)
 $(THRIFT.DIR)/protocol/TBinaryProtocol.tcc: \
-	$(SVN.DIR)/TBinaryProtocol.tcc
+	$(SVN.DIR)/protocol/TBinaryProtocol.tcc
 	install $(.ALLSRC) $@
 $(THRIFT.DIR)/transport/TBufferTransports.h: \
 	$(SVN.DIR)/transport/TBufferTransports.h
@@ -46,6 +46,8 @@ $(THRIFT.DIR)/transport/TBufferTransports.h: \
 $(THRIFT.DIR)/transport/TSocket.h: \
 	$(SVN.DIR)/transport/TSocket.h
 	install $(.ALLSRC) $@
+
+
 
 env: 
 	apt-get install flex bison libssl-dev libssl-doc
