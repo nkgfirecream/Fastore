@@ -216,7 +216,7 @@ inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 
 		vr.__set_rowIDs(rowIds);
 		vrl.push_back(vr);
-		result.__set_limited(vrl.size() == SAFE_CAST(size_t(), range.limit));
+		result.__set_limited(vrl.size() == SAFE_CAST(size_t, range.limit));
 
 		if (range.ascending)
 				++begin;

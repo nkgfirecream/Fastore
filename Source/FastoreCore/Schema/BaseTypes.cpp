@@ -7,12 +7,13 @@ using namespace std;
 
 int LongCompare(const void* left, const void* right)
 {
-	return (*(long long*)left - *(long long*)right);
+	return  SAFE_CAST( int,  (  *reinterpret_cast<const long long*>(left) 
+							  - *reinterpret_cast<const long long*>(right)) );
 }
 
 std::wstring LongString(const void* item)
 {
-	long long temp = *(long long *)item;
+	const long long temp = *reinterpret_cast<const long long*>(item) ;
 	wostringstream os;
 	os << temp;
 	return os.str();

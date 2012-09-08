@@ -13,7 +13,7 @@ HAVES = $(HAVE.SYMS:S/^/-D/g)
 DBG = -O0
 #CFLAGS += 
 #PERMISSIVE=-fpermissive
-PERMISSIVE = -Wall -Werror -Wno-reorder
+PERMISSIVE = -Wall -Werror -Wno-reorder -Wconversion
 CXXDIRS = 	-I SQLite \
 		-I /usr/local/include \
 		-I /usr/pkg/include \

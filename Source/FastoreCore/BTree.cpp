@@ -148,9 +148,9 @@ void BTree::iterator::MoveNext()
 	//If not, set pointer to one past end of tree and set eof flag.
 	if (_path.LeafIndex >= _path.Leaf->_count - 1)
 	{
-		int nummaxed = 0;
+		size_t nummaxed = 0;
 		bool open = false;
-		int size = _path.Branches.size();
+		size_t size = _path.Branches.size();
 		while (nummaxed < size && !open)
 		{
 			BTree::PathNode& pnode = _path.Branches.at(size - 1 - nummaxed);
@@ -167,7 +167,7 @@ void BTree::iterator::MoveNext()
 		}
 		else
 		{
-			for(int i = 0; i < nummaxed; i++)
+			for(size_t i = 0; i < nummaxed; i++)
 			{
 				_path.Branches.pop_back();
 			}
@@ -188,9 +188,9 @@ void BTree::iterator::MovePrior()
 		//We are at the minimum for this leaf. Check the path for any nodes with lesser values
 		//If we find one, rebuild the path.
 		//If not, throw exception (iteration past beginning).
-		int nummin = 0;
+		size_t nummin = 0;
 		bool open = false;
-		int size = _path.Branches.size();
+		size_t size = _path.Branches.size();
 		while (nummin < size && !open)
 		{
 			BTree::PathNode& pnode = _path.Branches.at(size - 1 - nummin);
@@ -204,7 +204,7 @@ void BTree::iterator::MovePrior()
 			throw "Iteration past start of tree";
 		else
 		{
-			for(int i = 0; i < nummin; i++)
+			for(size_t i = 0; i < nummin; i++)
 			{
 				_path.Branches.pop_back();
 			}

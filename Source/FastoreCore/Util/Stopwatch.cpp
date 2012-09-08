@@ -49,5 +49,5 @@ void Stopwatch::Reset()
 
 double Stopwatch::TotalTime()
 {
-	return total / frequency;
+  return static_cast<double>(total) / frequency;
 }

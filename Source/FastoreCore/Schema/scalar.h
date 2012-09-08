@@ -1,5 +1,8 @@
 #pragma once
 #include <string>
+
+#include "../safe_cast.h"
+
 // The physical representation of a scalar type
 struct ScalarType
 {
@@ -77,22 +80,38 @@ int ScaledIndexOf(const char* items, const int count, void *key)
 	return ~lo;
 }
 
-inline int SignNum(int value)
+inline int SignNum(long value)
 {
 	return (value > 0) - (value < 0);
 }
 
 template <typename T>
-int TargetedIndexOf(const char* items, const int count, void *key)
+bool ReasonablySmall( T value )
+{
+  if( ! std::numeric_limits<T>::is_integer ) 
+    return true;
+
+  if( std::numeric_limits<T>::is_signed && value < 0 ) 
+    value = -value;
+
+  enum { ndigits = std::numeric_limits<T>::digits };
+  enum { max_root = std::numeric_limits<T>::max() >> (ndigits/2) };
+
+  return max_root < value;
+}
+
+template <typename T>
+int TargetedIndexOf(const char* item_buf, const int count, void *key)
 {
 	if (count == 0)
 		return ~0;
 
 	int hi = count - 1;
+	const T* items =  reinterpret_cast<const T*>(item_buf);
+	T val = *reinterpret_cast<T*>(key);
 
-	T loVal = ((T*)items)[0];
-	T hiVal = ((T*)items)[hi];
-	T val = *(T*)key;
+	T loVal = items[0];
+	T hiVal = items[hi];
 
 	// Test for value on or over range bounds
 	if (val <= loVal)
@@ -101,12 +120,15 @@ int TargetedIndexOf(const char* items, const int count, void *key)
 		return val == hiVal ? hi : ~count;
 
 	// Split proportionately to the value scaling
-	int pos = (int)((val - (double)loVal) / (hiVal - (double)loVal) * hi);
+	long pos = ReasonablySmall(hi)? 
+	           hi * (val - loVal) / (hiVal - loVal)
+	         :
+	                (val - loVal) / ((hiVal - loVal) / hi);
 
-	int diff = (int)(val - ((T*)items)[pos]);
+	long diff = val - items[pos];
 
 	if (diff == 0)
-		return pos;
+	  return INT_CAST(pos);
 
 	//normalize direction
 	int direction = SignNum(diff);
@@ -115,10 +137,9 @@ int TargetedIndexOf(const char* items, const int count, void *key)
 	{
 		while (diff > 0)
 		{
-			++pos;
-			if (pos > hi)
+			if (++pos > hi)
 				return ~count;
-			diff = (int)(val - ((T*)items)[pos]);
+			diff = val - items[pos];
 		}
 	}
 	else
@@ -128,10 +149,10 @@ int TargetedIndexOf(const char* items, const int count, void *key)
 			--pos;
 			if (pos < 0)
 				return ~0;
-			diff = (int)(val - ((T*)items)[pos]);
+			diff = val - items[pos];
 		}
 	}
-	return diff == 0 ? pos : ~pos;
+	return INT_CAST(diff == 0 ? pos : ~pos);
 }
 
 template <typename T>

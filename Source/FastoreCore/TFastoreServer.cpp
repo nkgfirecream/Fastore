@@ -8,7 +8,7 @@
 #include <thrift/windows/force_inc.h>
 #endif
 
-
+#include "safe_cast.h"
 #include "TFastoreServer.h"
 #include <thrift/transport/TSocket.h>
 
@@ -679,7 +679,7 @@ bool  TFastoreServer::serverOverloaded()
 	} 
 	else
 	{
-		if (overloaded_ && (activeConnections <= overloadHysteresis_ * maxConnections_))
+	  if (overloaded_ && activeConnections <= SAFE_CAST(size_t, overloadHysteresis_ * double(maxConnections_)))
 		{
 			GlobalOutput.printf("TFastoreServer: overload ended; %u dropped (%llu total)", nConnectionsDropped_, nTotalConnectionsDropped_);
 			nConnectionsDropped_ = 0;

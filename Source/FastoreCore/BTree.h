@@ -5,7 +5,10 @@
 #include <functional>
 #include <sstream>
 #include <vector>
+#include <limits>
+#include <stdexcept>
 
+#include <cassert>
 #include <cstring>
 
 using namespace std;
@@ -191,9 +194,14 @@ class Node
 
 		short IndexOf(void* key, bool& match)
 		{
- 			auto result = _tree->_keyType.IndexOf(_keys, _count, key);
-			match = result >= 0;
-			return match ? result : ~result;
+		  const int n = _tree->_keyType.IndexOf(_keys, _count, key);
+
+		  assert( std::numeric_limits<short>::min() <= n );
+		  assert( n <= std::numeric_limits<short>::max() );
+
+		  match = n >= 0;
+
+		  return SHORT_CAST(match ? n : ~n);
 		}
 
 		void* GetKey(function<bool(void*)> predicate)
@@ -289,7 +297,7 @@ class Node
 			else
 			{
 				path.Leaf = this;
-				path.LeafIndex = _count > 0 ? _count - 1 : 0;
+				path.LeafIndex = short(_count > 0 ? _count = 1 : 0);
 			}
 		}
 
@@ -310,7 +318,7 @@ class Node
 		//Only valid for leaves!
 		bool Delete(short index)
 		{	
-			short size = _count - index - 1;
+			const int size = _count - index - 1;
 			//Assumption -- Count > 0 (otherwise the key would not have been found)
 
 			// Deallocate and shift keys
@@ -333,36 +341,41 @@ class Node
 		{
 			if (_count != _tree->DefaultListCapacity)
 			{
-				InternalInsertIndex(index, key, value);
-				return NULL;
+			    InternalInsertIndex(index, key, value);
+			    return NULL;
 			}
-			else
+
+			Node* node = new Node(_tree);
+			if (index != _count)
 			{
-				Node* node = new Node(_tree);
-				if (index != _count)
-				{
-					node->_count = (_tree->DefaultListCapacity + 1) / 2;
-					_count = _count - node->_count;
+			    node->_count = (_tree->DefaultListCapacity + 1) / 2;
+			    _count = short(_count - node->_count);
 
-					memcpy(&node->_keys[0], &_keys[node->_count * _tree->_keyType.Size],  node->_count * _tree->_keyType.Size);
-					if (_values != NULL)
-						memcpy(&node->_values[0], &_values[node->_count *_valueType.Size], node->_count * _valueType.Size);
-				}
+			    memcpy( node->_keys, 
+				    _keys + node->_count * _tree->_keyType.Size,
+				    node->_count * _tree->_keyType.Size );
 
-				if (index < _count)
-					InternalInsertIndex(index, key, value);
-				else
-					node->InternalInsertIndex(index - _count, key, value);
-
-				_tree->DoValuesMoved(node);
-
-				Split* split = new Split();
-				split->key = &node->_keys[0];
-				split->right = node;
-
-				return split;
+			    if (_values != NULL)
+			      memcpy( node->_values, 
+				      _values + node->_count *_valueType.Size, 
+				      node->_count * _valueType.Size );
 			}
+
+			if (index < _count)
+			  InternalInsertIndex(index, key, value);
+			else
+			  node->InternalInsertIndex(short(index - _count), key, value);
+
+			_tree->DoValuesMoved(node);
+
+			Split* split = new Split();
+			split->key = node->_keys;
+			split->right = node;
+
+			return split;
 		}
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
 
 		Split* Insert(short index, void* key, Node* child)
 		{
@@ -400,7 +413,7 @@ class Node
 		}
 
 		//Should only be called on type 1s
-		void UpdateKey(short index, BTree::Path& path, int depth)
+		void UpdateKey(short index, BTree::Path& path, size_t depth)
 		{
 			auto pathNode = path.Branches.at(depth);
 			if (index != 0)
@@ -417,7 +430,7 @@ class Node
 		}
 
 
-		Node* RebalanceLeaf(BTree::Path& path, int depth)
+		Node* RebalanceLeaf(BTree::Path& path, size_t depth)
 		{
 				//No need to rebalance
 				if (_count >= _tree->DefaultListCapacity / 2 || depth == 0)
@@ -743,6 +756,6 @@ class Node
 	friend class BTree::iterator;
 };
 
-
+#pragma GCC diagnostic pop
 
 
