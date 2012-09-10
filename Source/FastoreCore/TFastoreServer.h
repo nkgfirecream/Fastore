@@ -20,6 +20,10 @@
 #include <poll.h>
 #endif
 
+#if !defined(_WIN32)
+# define SOCKET int
+#endif
+
 namespace apache { namespace thrift { namespace server {
 
 using apache::thrift::transport::TMemoryBuffer;

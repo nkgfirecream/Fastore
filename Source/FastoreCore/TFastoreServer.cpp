@@ -607,7 +607,7 @@ void TFastoreServer::createAndListenOnSocket()
 	// Set reuseaddr to avoid 2MSL delay on server restart
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, const_cast_sockopt(&one), sizeof(one));
 
-	if (::bind(s, res->ai_addr, static_cast<int>(res->ai_addrlen)) == (size_t)-1)
+	if (::bind(s, res->ai_addr, static_cast<int>(res->ai_addrlen)) == -1)
 	{
 		::close(s);
 		freeaddrinfo(res0);
