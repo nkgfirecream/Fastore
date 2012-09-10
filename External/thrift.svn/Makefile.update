@@ -1,0 +1,200 @@
+SRC.DIR = trunk/lib/cpp/src/thrift
+TGT.DIR = /usr/local/include/thrift
+FILES =  processor/StatsProcessor.h processor/PeekProcessor.h async/TAsyncProtocolProcessor.h async/TAsyncDispatchProcessor.h async/TAsyncBufferProcessor.h async/TAsyncChannel.h async/TEvhttpClientChannel.h async/TEvhttpServer.h async/TAsyncProcessor.h qt/TQTcpServer.h qt/TQIODeviceTransport.h concurrency/PosixThreadFactory.h concurrency/Exception.h concurrency/PlatformThreadFactory.h concurrency/Thread.h concurrency/TimerManager.h concurrency/ThreadManager.h concurrency/Mutex.h concurrency/FunctionRunner.h concurrency/BoostThreadFactory.h concurrency/Util.h concurrency/Monitor.h transport/TPipe.h transport/TTransport.h transport/TSSLServerSocket.h transport/TSimpleFileTransport.h transport/TServerSocket.h transport/THttpServer.h transport/TSocket.h transport/TZlibTransport.h transport/THttpClient.h transport/TTransportUtils.h transport/TShortReadTransport.h transport/TTransportException.h transport/TServerTransport.h transport/TBufferTransports.h transport/TFDTransport.h transport/TFileTransport.h transport/THttpTransport.h transport/TPipeServer.h transport/TVirtualTransport.h transport/TSSLSocket.h transport/TSocketPool.h TDispatchProcessor.h TLogging.h TProcessor.h TApplicationException.h protocol/TVirtualProtocol.h protocol/TBase64Utils.h protocol/TProtocolTap.h protocol/TBinaryProtocol.h protocol/TProtocolException.h protocol/TDebugProtocol.h protocol/TDenseProtocol.h protocol/TCompactProtocol.tcc protocol/TProtocol.h protocol/TCompactProtocol.h protocol/TBinaryProtocol.tcc protocol/TJSONProtocol.h Thrift.h server/TSimpleServer.h server/TThreadedServer.h server/TNonblockingServer.h server/TServer.h server/TThreadPoolServer.h TReflectionLocal.h
+SRC = $(FILES:S:^:${SRC.DIR}/:g)
+
+all: $(SRC)
+
+
+trunk/lib/cpp/src/thrift/processor/StatsProcessor.h: /usr/local/include/thrift/processor/StatsProcessor.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/processor/PeekProcessor.h: /usr/local/include/thrift/processor/PeekProcessor.h
+	cp $(.ALLSRC) $@
+# processor/PeekProcessor.cpp not installed
+# async/TEvhttpServer.cpp not installed
+trunk/lib/cpp/src/thrift/async/TAsyncProtocolProcessor.h: /usr/local/include/thrift/async/TAsyncProtocolProcessor.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/async/TAsyncDispatchProcessor.h: /usr/local/include/thrift/async/TAsyncDispatchProcessor.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/async/TAsyncBufferProcessor.h: /usr/local/include/thrift/async/TAsyncBufferProcessor.h
+	cp $(.ALLSRC) $@
+# async/TEvhttpClientChannel.cpp not installed
+trunk/lib/cpp/src/thrift/async/TAsyncChannel.h: /usr/local/include/thrift/async/TAsyncChannel.h
+	cp $(.ALLSRC) $@
+# async/TAsyncProtocolProcessor.cpp not installed
+trunk/lib/cpp/src/thrift/async/TEvhttpClientChannel.h: /usr/local/include/thrift/async/TEvhttpClientChannel.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/async/TEvhttpServer.h: /usr/local/include/thrift/async/TEvhttpServer.h
+	cp $(.ALLSRC) $@
+# async/TAsyncChannel.cpp not installed
+trunk/lib/cpp/src/thrift/async/TAsyncProcessor.h: /usr/local/include/thrift/async/TAsyncProcessor.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/qt/TQTcpServer.h: /usr/local/include/thrift/qt/TQTcpServer.h
+	cp $(.ALLSRC) $@
+# qt/TQIODeviceTransport.cpp not installed
+trunk/lib/cpp/src/thrift/qt/TQIODeviceTransport.h: /usr/local/include/thrift/qt/TQIODeviceTransport.h
+	cp $(.ALLSRC) $@
+# qt/TQTcpServer.cpp not installed
+trunk/lib/cpp/src/thrift/concurrency/PosixThreadFactory.h: /usr/local/include/thrift/concurrency/PosixThreadFactory.h
+	cp $(.ALLSRC) $@
+# concurrency/BoostThreadFactory.cpp not installed
+# concurrency/Util.cpp not installed
+trunk/lib/cpp/src/thrift/concurrency/Exception.h: /usr/local/include/thrift/concurrency/Exception.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/concurrency/PlatformThreadFactory.h: /usr/local/include/thrift/concurrency/PlatformThreadFactory.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/concurrency/Thread.h: /usr/local/include/thrift/concurrency/Thread.h
+	cp $(.ALLSRC) $@
+# concurrency/Mutex.cpp not installed
+trunk/lib/cpp/src/thrift/concurrency/TimerManager.h: /usr/local/include/thrift/concurrency/TimerManager.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/concurrency/ThreadManager.h: /usr/local/include/thrift/concurrency/ThreadManager.h
+	cp $(.ALLSRC) $@
+# concurrency/Monitor.cpp not installed
+trunk/lib/cpp/src/thrift/concurrency/Mutex.h: /usr/local/include/thrift/concurrency/Mutex.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/concurrency/FunctionRunner.h: /usr/local/include/thrift/concurrency/FunctionRunner.h
+	cp $(.ALLSRC) $@
+# concurrency/BoostMonitor.cpp not installed
+trunk/lib/cpp/src/thrift/concurrency/BoostThreadFactory.h: /usr/local/include/thrift/concurrency/BoostThreadFactory.h
+	cp $(.ALLSRC) $@
+# concurrency/PosixThreadFactory.cpp not installed
+# concurrency/ThreadManager.cpp not installed
+# concurrency/BoostMutex.cpp not installed
+# concurrency/TimerManager.cpp not installed
+trunk/lib/cpp/src/thrift/concurrency/Util.h: /usr/local/include/thrift/concurrency/Util.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/concurrency/Monitor.h: /usr/local/include/thrift/concurrency/Monitor.h
+	cp $(.ALLSRC) $@
+# transport/TFileTransport.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TPipe.h: /usr/local/include/thrift/transport/TPipe.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TTransport.h: /usr/local/include/thrift/transport/TTransport.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TSSLServerSocket.h: /usr/local/include/thrift/transport/TSSLServerSocket.h
+	cp $(.ALLSRC) $@
+# transport/TSSLSocket.cpp not installed
+# transport/THttpClient.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TSimpleFileTransport.h: /usr/local/include/thrift/transport/TSimpleFileTransport.h
+	cp $(.ALLSRC) $@
+# transport/TServerSocket.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TServerSocket.h: /usr/local/include/thrift/transport/TServerSocket.h
+	cp $(.ALLSRC) $@
+# transport/TPipeServer.cpp not installed
+# transport/TSimpleFileTransport.cpp not installed
+# transport/TFDTransport.cpp not installed
+# transport/TSSLServerSocket.cpp not installed
+trunk/lib/cpp/src/thrift/transport/THttpServer.h: /usr/local/include/thrift/transport/THttpServer.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TSocket.h: /usr/local/include/thrift/transport/TSocket.h
+	cp $(.ALLSRC) $@
+# transport/TSocketPool.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TZlibTransport.h: /usr/local/include/thrift/transport/TZlibTransport.h
+	cp $(.ALLSRC) $@
+# transport/TZlibTransport.cpp not installed
+# transport/THttpServer.cpp not installed
+# transport/TPipe.cpp not installed
+trunk/lib/cpp/src/thrift/transport/THttpClient.h: /usr/local/include/thrift/transport/THttpClient.h
+	cp $(.ALLSRC) $@
+# transport/TBufferTransports.cpp not installed
+# transport/THttpTransport.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TTransportUtils.h: /usr/local/include/thrift/transport/TTransportUtils.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TShortReadTransport.h: /usr/local/include/thrift/transport/TShortReadTransport.h
+	cp $(.ALLSRC) $@
+# transport/TTransportException.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TTransportException.h: /usr/local/include/thrift/transport/TTransportException.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TServerTransport.h: /usr/local/include/thrift/transport/TServerTransport.h
+	cp $(.ALLSRC) $@
+# transport/TTransportUtils.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TBufferTransports.h: /usr/local/include/thrift/transport/TBufferTransports.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TFDTransport.h: /usr/local/include/thrift/transport/TFDTransport.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TFileTransport.h: /usr/local/include/thrift/transport/TFileTransport.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/THttpTransport.h: /usr/local/include/thrift/transport/THttpTransport.h
+	cp $(.ALLSRC) $@
+# transport/TSocket.cpp not installed
+trunk/lib/cpp/src/thrift/transport/TPipeServer.h: /usr/local/include/thrift/transport/TPipeServer.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TVirtualTransport.h: /usr/local/include/thrift/transport/TVirtualTransport.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TSSLSocket.h: /usr/local/include/thrift/transport/TSSLSocket.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/transport/TSocketPool.h: /usr/local/include/thrift/transport/TSocketPool.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/TDispatchProcessor.h: /usr/local/include/thrift/TDispatchProcessor.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/TLogging.h: /usr/local/include/thrift/TLogging.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/TProcessor.h: /usr/local/include/thrift/TProcessor.h
+	cp $(.ALLSRC) $@
+# windows/Operators.h not installed
+# windows/tr1/functional not installed
+# windows/StdAfx.h not installed
+# windows/force_inc.h not installed
+# windows/GetTimeOfDay.cpp not installed
+# windows/SocketPair.cpp not installed
+# windows/WinFcntl.cpp not installed
+# windows/SocketPair.h not installed
+# windows/TWinsockSingleton.cpp not installed
+# windows/TargetVersion.h not installed
+# windows/WinFcntl.h not installed
+# windows/config.h not installed
+# windows/TWinsockSingleton.h not installed
+# windows/GetTimeOfDay.h not installed
+# windows/StdAfx.cpp not installed
+# Thrift.cpp not installed
+trunk/lib/cpp/src/thrift/TApplicationException.h: /usr/local/include/thrift/TApplicationException.h
+	cp $(.ALLSRC) $@
+# TApplicationException.cpp not installed
+trunk/lib/cpp/src/thrift/protocol/TVirtualProtocol.h: /usr/local/include/thrift/protocol/TVirtualProtocol.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TBase64Utils.h: /usr/local/include/thrift/protocol/TBase64Utils.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TProtocolTap.h: /usr/local/include/thrift/protocol/TProtocolTap.h
+	cp $(.ALLSRC) $@
+# protocol/TBase64Utils.cpp not installed
+trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h: /usr/local/include/thrift/protocol/TBinaryProtocol.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TProtocolException.h: /usr/local/include/thrift/protocol/TProtocolException.h
+	cp $(.ALLSRC) $@
+# protocol/TDebugProtocol.cpp not installed
+trunk/lib/cpp/src/thrift/protocol/TDebugProtocol.h: /usr/local/include/thrift/protocol/TDebugProtocol.h
+	cp $(.ALLSRC) $@
+# protocol/TJSONProtocol.cpp not installed
+# protocol/TDenseProtocol.cpp not installed
+trunk/lib/cpp/src/thrift/protocol/TDenseProtocol.h: /usr/local/include/thrift/protocol/TDenseProtocol.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TCompactProtocol.tcc: /usr/local/include/thrift/protocol/TCompactProtocol.tcc
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TProtocol.h: /usr/local/include/thrift/protocol/TProtocol.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TCompactProtocol.h: /usr/local/include/thrift/protocol/TCompactProtocol.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.tcc: /usr/local/include/thrift/protocol/TBinaryProtocol.tcc
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/protocol/TJSONProtocol.h: /usr/local/include/thrift/protocol/TJSONProtocol.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/Thrift.h: /usr/local/include/thrift/Thrift.h
+	cp $(.ALLSRC) $@
+# server/TThreadedServer.cpp not installed
+trunk/lib/cpp/src/thrift/server/TSimpleServer.h: /usr/local/include/thrift/server/TSimpleServer.h
+	cp $(.ALLSRC) $@
+# server/TNonblockingServer.cpp not installed
+trunk/lib/cpp/src/thrift/server/TThreadedServer.h: /usr/local/include/thrift/server/TThreadedServer.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/server/TNonblockingServer.h: /usr/local/include/thrift/server/TNonblockingServer.h
+	cp $(.ALLSRC) $@
+trunk/lib/cpp/src/thrift/server/TServer.h: /usr/local/include/thrift/server/TServer.h
+	cp $(.ALLSRC) $@
+# server/TThreadPoolServer.cpp not installed
+trunk/lib/cpp/src/thrift/server/TThreadPoolServer.h: /usr/local/include/thrift/server/TThreadPoolServer.h
+	cp $(.ALLSRC) $@
+# server/TSimpleServer.cpp not installed
+# server/TServer.cpp not installed
+# VirtualProfiling.cpp not installed
+trunk/lib/cpp/src/thrift/TReflectionLocal.h: /usr/local/include/thrift/TReflectionLocal.h
+	cp $(.ALLSRC) $@

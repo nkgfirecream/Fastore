@@ -1,0 +1,35 @@
+#! /bin/sh
+# Generate a makefile of dependencies if installed files change. 
+
+set -e
+SRC=$1
+test "${SRC}"
+TGT=$2
+test "${TGT}"
+
+TMP=/tmp/depends
+printf '\n' > ${TMP}
+
+
+for F in $(find ${SRC} -type f | sed -e"s:${SRC}/::g; /\.svn\//d;")
+do
+    if [ -e ${TGT}/$F ]
+    then
+	echo  ${SRC}/$F: ${TGT}/$F >> ${TMP}
+	echo "	cp \$(.ALLSRC) \$@"  >> ${TMP}
+	BASES="${BASES} $F"
+    else
+	echo \# $F not installed >> ${TMP}
+    fi
+done
+
+printf 'SRC.DIR = %s\nTGT.DIR = %s\n' ${SRC} ${TGT}
+
+printf 'FILES = %s\n' "${BASES}"
+printf 'SRC = $(FILES:S:^:${SRC.DIR}/:g)\n\n'
+printf 'all: $(SRC)\n\n'
+
+cat ${TMP}
+
+
+

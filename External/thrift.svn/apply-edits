@@ -8,6 +8,6 @@ else
     NEW=$1
 fi
 
-diff -u ${OLD} ${NEW} | patch ${OLD}
+diff -q ${OLD} ${NEW} && diff -u ${OLD} ${NEW} | patch ${OLD}
 
 # $Id$

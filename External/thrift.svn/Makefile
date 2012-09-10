@@ -1,6 +1,6 @@
 # $Id$
 
-.PHONY: install build install env patch
+.PHONY: install build install env patch apply-edits apply-patches
 
 MODIFIED != svn status trunk | awk '/^M/ {print $$2}'
 PATCH = $(MODIFIED:T:S/^/patch\//g:S/$/.diff/)
@@ -30,11 +30,15 @@ repatch:
 	svn revert $(PATCHED.SRC)
 	sh -x apply-patches
 
+Makefile.update::
+	./update-from-installed $(SVN.DIR)  $(THRIFT.DIR) \
+	> $@~
+	@mv $@~ $@
+
 apply-edits: $(PATCH)
 $(PATCH)::
 	./apply-edits $(:!find trunk $(THRIFT.DIR) -name $(@:T:R)!)
-	svn diff $(:!find trunk -name $(@:T:R)!) > $@~ 
-	@mv $@~ $@
+	svn diff $(:!find trunk -name $(@:T:R)!) > $@~ ||  @mv $@~ $@
 
 install-patched: $(PATCHED.TGT)
 $(THRIFT.DIR)/protocol/TBinaryProtocol.tcc: \
