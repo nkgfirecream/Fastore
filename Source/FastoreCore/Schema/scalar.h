@@ -80,7 +80,8 @@ int ScaledIndexOf(const char* items, const int count, void *key)
 	return ~lo;
 }
 
-inline int SignNum(long value)
+template <typename T>
+inline int SignNum(T value)
 {
 	return (value > 0) - (value < 0);
 }
@@ -95,7 +96,7 @@ bool ReasonablySmall( T value )
     value = -value;
 
   enum { ndigits = std::numeric_limits<T>::digits };
-  enum { max_root = std::numeric_limits<T>::max() >> (ndigits/2) };
+  static const T max_root = std::numeric_limits<T>::max() >> (ndigits/2);
 
   return max_root < value;
 }
@@ -120,12 +121,12 @@ int TargetedIndexOf(const char* item_buf, const int count, void *key)
 		return val == hiVal ? hi : ~count;
 
 	// Split proportionately to the value scaling
-	long pos = ReasonablySmall(hi)? 
+	T pos = ReasonablySmall(hi)? 
 	           hi * (val - loVal) / (hiVal - loVal)
 	         :
 	                (val - loVal) / ((hiVal - loVal) / hi);
 
-	long diff = val - items[pos];
+	T diff = val - items[pos];
 
 	if (diff == 0)
 	  return INT_CAST(pos);

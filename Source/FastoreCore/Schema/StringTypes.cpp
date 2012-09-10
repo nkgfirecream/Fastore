@@ -4,6 +4,7 @@
 
 #if defined(_WIN32)
 # define strcasecmp(a,b) stricmp((a),(b))
+# pragma warning( disable : 4996 )
 #else
 # include <strings.h>
 #endif

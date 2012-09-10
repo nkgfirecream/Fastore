@@ -145,7 +145,7 @@ private:
 	static const int SHUTDOWN_TIMEOUT = 5000;
 
 	/// Server socket file descriptor
-	int serverSocket_;
+	SOCKET serverSocket_;
 
 	/// Port server runs on
 	int port_;
@@ -160,7 +160,7 @@ private:
 	size_t maxFrameSize_;
 
 	/// Time in milliseconds before a connection expires (0 == infinite).
-	int64_t connectionExpireTime_;
+	long connectionExpireTime_;
 
 	/// number of milliseconds to poll for events
 	int pollTimeout_;
@@ -217,7 +217,7 @@ private:
 	std::stack<TConnection*> connectionPool_;
 
 	//List of Active connections (by socket fd id).
-	std::map<int, TConnection*> activeConnections_;
+	std::map<SOCKET, TConnection*> activeConnections_;
 
 	//List of connections to close when no longer in use
 	std::vector<int> closePool_;
@@ -512,7 +512,7 @@ public:
 	*
 	* @return a 64-bit time in milliseconds.
 	*/
-	int64_t getconnectionExpireTime() const
+	long getconnectionExpireTime() const
 	{
 		return connectionExpireTime_;
 	}
@@ -522,7 +522,7 @@ public:
 	*
 	* @param connectionExpireTime a 64-bit time in milliseconds.
 	*/
-	void setconnectionExpireTime(int64_t connectionExpireTime)
+	void setconnectionExpireTime(long connectionExpireTime)
 	{
 		connectionExpireTime_ = connectionExpireTime;
 	}
@@ -687,7 +687,7 @@ private:
 	*
 	* @param fd descriptor of socket to be initialized/
 	*/
-	void listenSocket(int fd);
+	void listenSocket(SOCKET fd);
 	/**
 	* Return an initialized connection object.  Creates or recovers from
 	* pool a TConnection and initializes it with the provided socket FD
@@ -698,8 +698,7 @@ private:
 	* @param addrLen the length of addr
 	* @return pointer to initialized TConnection object.
 	*/
-	TConnection* createConnection(int socket, const sockaddr* addr,
-		socklen_t addrLen);
+	TConnection* createConnection(SOCKET socket, const sockaddr* addr, socklen_t addrLen);
 
 	/**
 	* Returns a connection to pool (or deletes it if pool is full).
@@ -805,7 +804,7 @@ public:
 	/// Constructor
 	TConnection
 		(
-			int socket, TFastoreServer* server,
+			SOCKET socket, TFastoreServer* server,
 			const sockaddr* addr, socklen_t addrLen
 		)
 		{
@@ -836,7 +835,7 @@ public:
 	void checkIdleBufferMemLimit(size_t readLimit, size_t writeLimit);
 
 	/// Initialize
-	void init(int socket, TFastoreServer* server, const sockaddr* addr, socklen_t addrLen);
+	void init(SOCKET socket, TFastoreServer* server, const sockaddr* addr, socklen_t addrLen);
 
 	/**
 	* This is called when the application transitions from one state into

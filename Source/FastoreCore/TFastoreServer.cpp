@@ -61,9 +61,9 @@ using apache::thrift::transport::TTransportException;
 using boost::shared_ptr;
 
 
-void TFastoreServer::TConnection::init(int socket, TFastoreServer * server,	const sockaddr* addr, socklen_t addrLen)
+void TFastoreServer::TConnection::init(SOCKET socket, TFastoreServer * server,	const sockaddr* addr, socklen_t addrLen)
 {
-	tSocket_->setSocketFD(socket);
+	tSocket_->setSocketFD(INT_CAST(socket));
 	tSocket_->setCachedAddress(addr, addrLen);
 
 	server_ = server;
@@ -490,7 +490,8 @@ TFastoreServer::~TFastoreServer()
 * Creates a new connection either by reusing an object off the stack or
 * by allocating a new one entirely
 */
-TFastoreServer::TConnection* TFastoreServer::createConnection(int socket, const sockaddr* addr, socklen_t addrLen)
+TFastoreServer::TConnection* TFastoreServer::
+	createConnection(SOCKET socket, const sockaddr* addr, socklen_t addrLen)
 {
 	// Check the connection stack to see if we can re-use
 	TConnection* result = NULL;
@@ -505,7 +506,7 @@ TFastoreServer::TConnection* TFastoreServer::createConnection(int socket, const 
 		result->init(socket, this, addr, addrLen);
 	}
 
-	activeConnections_.insert(pair<int,TConnection*>(socket, result));
+	activeConnections_.insert(pair<SOCKET,TConnection*>(socket, result));
 
 	return result;
 }
@@ -555,7 +556,7 @@ void TFastoreServer::returnConnection(int socket)
 */
 void TFastoreServer::createAndListenOnSocket()
 {
-	int s;
+	SOCKET s;
 
 	struct addrinfo hints, *res, *res0;
 	int error;
@@ -606,7 +607,7 @@ void TFastoreServer::createAndListenOnSocket()
 	// Set reuseaddr to avoid 2MSL delay on server restart
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, const_cast_sockopt(&one), sizeof(one));
 
-	if (::bind(s, res->ai_addr, res->ai_addrlen) == -1)
+	if (::bind(s, res->ai_addr, static_cast<int>(res->ai_addrlen)) == (size_t)-1)
 	{
 		::close(s);
 		freeaddrinfo(res0);
@@ -620,11 +621,15 @@ void TFastoreServer::createAndListenOnSocket()
 	listenSocket(s);
 }
 
+static int fcntl(SOCKET fd, int cmd, int flags)
+{
+	return ::fcntl(static_cast<int>(fd), cmd, flags);
+}
 /**
 * Takes a socket created by listenSocket() and sets various options on it
 * to prepare for use in the server.
 */
-void TFastoreServer::listenSocket(int s)
+void TFastoreServer::listenSocket(SOCKET s)
 {
 	// Set socket to nonblocking mode
 	int flags;
@@ -842,7 +847,7 @@ void TFastoreServer::acceptConnections()
 	addrLen = sizeof(addrStorage);
 
 	// Going to accept a new client socket
-	int clientSocket;
+	SOCKET clientSocket;
 
 	// Accept as many new clients as possible, even though libevent signaled only
 	// one, this helps us to avoid having to go back into the libevent engine so

@@ -2,6 +2,7 @@
 #include <sstream>
 #include <stdexcept>
 
+#include "safe_cast.h"
 #include "TFastoreFileTransport.h"
 
 #ifdef HAVE_UNISTD_H
@@ -11,30 +12,6 @@
 #ifdef _WIN32
 #include <io.h>
 #endif
-
-#define SAFE_CAST(t,f) safe_cast(__FILE__, __LINE__, (t), (f))
-#define SHORT_CAST(x) safe_cast(__FILE__, __LINE__, short(), (x))
-
-template <typename T, typename F>
-T safe_cast(const char file[], size_t line, T, F input) {
-  using std::numeric_limits;
-  std::ostringstream msg;
-
-  if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
-    if( input < 0 ) {
-      msg << file << ":" << line << ": " 
-	  << "signed value " << input << " cannot be cast to unsigned type";
-      throw std::runtime_error(msg.str());
-    }
-  }
-  if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
-    msg << file << ":" << line << ": " 
-	<< input << ", size " << sizeof(F) 
-	<< ", cannot be cast to unsigned type of size" << sizeof(T);
-    throw std::runtime_error(msg.str());
-  }
-  return static_cast<T>(input);
-}
 
 using namespace std;
 
@@ -85,7 +62,7 @@ uint32_t TFastoreFileTransport::read(uint8_t* buf, uint32_t len)
 				throw TTransportException(TTransportException::UNKNOWN, "FastoreFileTransport::read()", errno);
 			}
 
-			return SAFE_CAST(uint32_t(), rv);
+			return SAFE_CAST(uint32_t, rv);
 		}
 	}
 	else

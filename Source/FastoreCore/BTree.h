@@ -196,7 +196,7 @@ class Node
 		{
 		  const int n = _tree->_keyType.IndexOf(_keys, _count, key);
 
-		  assert( std::numeric_limits<short>::min() <= n );
+		  assert(     -std::numeric_limits<short>::max() <= n );
 		  assert( n <= std::numeric_limits<short>::max() );
 
 		  match = n >= 0;
@@ -526,7 +526,7 @@ class Node
 				throw "Leaf rebalancing failed";
 		}
 
-		Node* RebalanceBranch(BTree::Path& path, int depth)
+		Node* RebalanceBranch(BTree::Path& path, size_t depth)
 		{
 			//Only one item, we are root, replace root with child
 				if (depth == 0 && _count == 0)
