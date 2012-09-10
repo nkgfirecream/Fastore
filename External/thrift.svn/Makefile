@@ -1,9 +1,6 @@
 # $Id$
 
-.PHONY: install build install env patch apply-edits apply-patches
-
-MODIFIED != svn status trunk | awk '/^M/ {print $$2}'
-PATCH = $(MODIFIED:T:S/^/patch\//g:S/$/.diff/)
+.PHONY: install build install env patches repatch 
 
 all: build
 
@@ -23,22 +20,30 @@ configure trunk/configure: trunk/bootstrap.sh
 
 THRIFT.DIR ?= /usr/local/include/thrift
 SVN.DIR = trunk/lib/cpp/src/thrift
-PATCHED.SRC != awk '/^Index/ {print $$2}' patch/*diff
+PATCHED.SRC != awk '/^Index/ {print $$2}' patch/*/*.diff
 PATCHED.TGT = $(PATCHED.SRC:S!$(SVN.DIR)!$(THRIFT.DIR)!g)
 
 repatch:
 	svn revert $(PATCHED.SRC)
 	sh -x apply-patches
 
+# Generate a makefile to update the working directory 
+# in case updates were made to the installed files. 
 Makefile.update::
 	./update-from-installed $(SVN.DIR)  $(THRIFT.DIR) \
 	> $@~
 	@mv $@~ $@
 
-apply-edits: $(PATCH)
-$(PATCH)::
-	./apply-edits $(:!find trunk $(THRIFT.DIR) -name $(@:T:R)!)
-	svn diff $(:!find trunk -name $(@:T:R)!) > $@~ ||  @mv $@~ $@
+# N.B. Update this by hand as needed.
+# See also dependencies below. 
+PATCHES = 	patch/protocol/TBinaryProtocol.tcc.diff \
+		patch/transport/TBufferTransports.h.diff \
+		patch/transport/TSocket.h.diff 
+
+patches: $(PATCHES)
+$(PATCHES):
+	svn diff $(@:S!^patch!$(SVN.DIR)!g:S!.diff!!g) > $@~ 
+	@mv $@~ $@
 
 install-patched: $(PATCHED.TGT)
 $(THRIFT.DIR)/protocol/TBinaryProtocol.tcc: \
@@ -55,3 +60,12 @@ $(THRIFT.DIR)/transport/TSocket.h: \
 
 env: 
 	apt-get install flex bison libssl-dev libssl-doc
+
+#patches
+##patch/TBinaryProtocol.h.diff: $(SVN.DIR)/TBinaryProtocol.h
+patch/protocol/TBinaryProtocol.tcc.diff: \
+	$(SVN.DIR)/protocol/TBinaryProtocol.tcc
+patch/transport/TBufferTransports.h.diff: \
+	$(SVN.DIR)/transport/TBufferTransports.h
+patch/transport/TSocket.h.diff: \
+	$(SVN.DIR)/transport/TSocket.h
