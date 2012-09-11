@@ -90,6 +90,15 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
      if (buf == NULL && sz != 0) {
        throw TTransportException(TTransportException::BAD_ARGS,
                                  "TMemoryBuffer given null buffer with non-zero size.");
+@@ -543,7 +586,7 @@
+         break;
+       case COPY:
+         initCommon(NULL, sz, true, 0);
+-        this->write(buf, sz);
++        this->write(buf, THRIFT_SAFE_CAST(uint32_t, sz));
+         break;
+       default:
+         throw TTransportException(TTransportException::BAD_ARGS,
 @@ -628,7 +671,12 @@
    }
  
