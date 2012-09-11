@@ -1,0 +1,21 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TProtocol.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TProtocol.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TProtocol.h	(working copy)
+@@ -130,8 +130,14 @@
+ #  define ntohll(n) bswap_64(n)
+ #  define htonll(n) bswap_64(n)
+ # else /* GNUC & GLIBC */
+-#  define ntohll(n) ( (((uint64_t)ntohl(n)) << 32) + ntohl(n >> 32) )
+-#  define htonll(n) ( (((uint64_t)htonl(n)) << 32) + htonl(n >> 32) )
++#  define BSWAP_8(x)      ((x) & 0xff)
++#  define BSWAP_16(x)     ((BSWAP_8(x) << 8) | BSWAP_8((x) >> 8))
++#  define BSWAP_32(x)     ((BSWAP_16(x) << 16) | BSWAP_16((x) >> 16))
++#  define BSWAP_64(x)     ((BSWAP_32(x) << 32) | BSWAP_32((x) >> 32))
++#  define htonll(x) BSWAP_64((x))
++#  define ntohll(x) BSWAP_64((x))
++// define htonll(n) ( (((uint64_t)htonl(n)) << 32) + htonl(n >> 32) )
++// define ntohll(n) ( (((uint64_t)ntohl(n)) << 32) + ntohl(n >> 32) )
+ # endif /* GNUC & GLIBC */
+ #else /* __THRIFT_BYTE_ORDER */
+ # error "Can't define htonll or ntohll!"
