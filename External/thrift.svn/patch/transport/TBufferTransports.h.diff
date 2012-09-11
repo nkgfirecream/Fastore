@@ -1,6 +1,6 @@
 Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
 ===================================================================
---- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1383147)
+--- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1381333)
 +++ trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(working copy)
 @@ -20,12 +20,20 @@
  #ifndef _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_
@@ -23,43 +23,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
  #ifdef __GNUC__
  #define TDB_LIKELY(val) (__builtin_expect((val), 1))
  #define TDB_UNLIKELY(val) (__builtin_expect((val), 0))
-@@ -34,6 +42,35 @@
- #define TDB_UNLIKELY(val) (val)
- #endif
- 
-+#define THRIFT_SAFE_CAST(t,f) \
-+	apache::thrift::safe_cast<t>(__FILE__, __LINE__, (f))
-+
-+
-+namespace apache { namespace thrift { 
-+	template <typename T, typename F>
-+	T safe_cast(const char file[], std::size_t line, F input) 
-+	{
-+		using std::numeric_limits;
-+		std::ostringstream msg;
-+
-+		if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
-+			if( input < 0 ) {
-+				msg << file << ":" << line << ": " 
-+					<< "signed value " << input 
-+					<< " cannot be cast to unsigned type";
-+				throw std::runtime_error(msg.str());
-+			}
-+		}
-+		if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
-+			msg << file << ":" << line << ": " 
-+				<< input << ", size " << sizeof(F) 
-+				<< ", cannot be cast to unsigned type of size" << sizeof(T);
-+			throw std::runtime_error(msg.str());
-+		}
-+		return static_cast<T>(input);
-+	}
-+	}} // end namespace
-+
- namespace apache { namespace thrift { namespace transport {
- 
- 
-@@ -472,6 +509,12 @@
+@@ -472,6 +480,12 @@
      // rBound_ is really an artifact.  In principle, it should always be
      // equal to wBase_.  We update it in a few places (computeRead, etc.).
    }
@@ -72,7 +36,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
  
   public:
    static const uint32_t defaultSize = 1024;
-@@ -516,7 +559,7 @@
+@@ -516,7 +530,7 @@
     *
     * @param sz  The initial size of the buffer.
     */
@@ -81,7 +45,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
      initCommon(NULL, sz, true, 0);
    }
  
-@@ -530,7 +573,7 @@
+@@ -530,7 +544,7 @@
     * @param sz     The size of @c buf.
     * @param policy See @link MemoryPolicy @endlink .
     */
@@ -90,7 +54,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
      if (buf == NULL && sz != 0) {
        throw TTransportException(TTransportException::BAD_ARGS,
                                  "TMemoryBuffer given null buffer with non-zero size.");
-@@ -543,7 +586,7 @@
+@@ -543,7 +557,7 @@
          break;
        case COPY:
          initCommon(NULL, sz, true, 0);
@@ -99,7 +63,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
          break;
        default:
          throw TTransportException(TTransportException::BAD_ARGS,
-@@ -628,7 +671,12 @@
+@@ -628,7 +642,12 @@
    }
  
    /// See constructor documentation.
@@ -113,7 +77,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
      // Construct the new buffer.
      TMemoryBuffer new_buffer(sz);
      // Move it into ourself.
-@@ -646,16 +694,28 @@
+@@ -646,16 +665,28 @@
  
    // return number of bytes read
    uint32_t readEnd() {
