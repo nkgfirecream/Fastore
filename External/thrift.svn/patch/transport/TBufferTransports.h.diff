@@ -1,6 +1,6 @@
 Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
 ===================================================================
---- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1381333)
+--- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1383147)
 +++ trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(working copy)
 @@ -20,12 +20,20 @@
  #ifndef _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_
@@ -72,7 +72,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
  
   public:
    static const uint32_t defaultSize = 1024;
-@@ -516,9 +559,12 @@
+@@ -516,7 +559,7 @@
     *
     * @param sz  The initial size of the buffer.
     */
@@ -80,13 +80,8 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
 +  TMemoryBuffer(size_t sz) {
      initCommon(NULL, sz, true, 0);
    }
-+  TMemoryBuffer(size_t sz) {
-+    initCommon(NULL, sz, true, 0);
-+  }
  
-   /**
-    * Construct a TMemoryBuffer with buf as its initial contents.
-@@ -530,7 +576,7 @@
+@@ -530,7 +573,7 @@
     * @param sz     The size of @c buf.
     * @param policy See @link MemoryPolicy @endlink .
     */
@@ -95,7 +90,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
      if (buf == NULL && sz != 0) {
        throw TTransportException(TTransportException::BAD_ARGS,
                                  "TMemoryBuffer given null buffer with non-zero size.");
-@@ -628,7 +674,12 @@
+@@ -628,7 +671,12 @@
    }
  
    /// See constructor documentation.
@@ -109,7 +104,7 @@ Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
      // Construct the new buffer.
      TMemoryBuffer new_buffer(sz);
      // Move it into ourself.
-@@ -646,16 +697,28 @@
+@@ -646,16 +694,28 @@
  
    // return number of bytes read
    uint32_t readEnd() {

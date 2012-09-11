@@ -39,11 +39,21 @@ Makefile.update::
 PATCHES = 	patch/protocol/TBinaryProtocol.tcc.diff \
 		patch/transport/TBufferTransports.h.diff \
 		patch/transport/TSocket.h.diff 
+PATCHES.BASE = $(PATCHES:S!patch/!!g:.diff=)
+
 
 patches: $(PATCHES)
 $(PATCHES):
 	svn diff $(@:S!^patch!$(SVN.DIR)!g:S!.diff!!g) > $@~ 
 	@mv $@~ $@
+
+AWK = awk '/---/ {print $$2}' patch/$@.diff
+
+compare-patched: $(PATCHES.BASE)
+$(PATCHES.BASE): 
+	diff -u $(AWK:sh) $(AWK:sh:S!$(SVN.DIR)!$(THRIFT.DIR)!) || \
+	diff    $(AWK:sh) $(AWK:sh:S!$(SVN.DIR)!$(THRIFT.DIR)!) \
+		| cmp patch/$@.diff /dev/stdin
 
 install-patched: $(PATCHED.TGT)
 $(THRIFT.DIR)/protocol/TBinaryProtocol.tcc: \
