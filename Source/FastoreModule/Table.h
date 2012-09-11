@@ -18,7 +18,6 @@ namespace fastore
 			friend class Cursor;
 
 		private:
-
 			
 			static std::map<std::string, std::string> fastoreTypesToSQLiteTypes;
 			static std::map<std::string, std::string> sqliteTypesToFastoreTypes;
@@ -73,7 +72,7 @@ namespace fastore
 			void parseDDL();
 			client::ColumnDef parseColumnDef(std::string text);
 
-			void createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod);
+			void createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod);
 
 			//For use by the cursor. Depending on how SQLite is implemented this may either need to go through the transaction or around it.
 			client::RangeSet getRange(client::Range& range, const boost::optional<std::string>& startId);

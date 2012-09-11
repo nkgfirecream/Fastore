@@ -1,6 +1,7 @@
 #pragma once
 #include "Schema/scalar.h"
 #include "Schema/standardtypes.h"
+
 #include "treeentry.h"
 #include <functional>
 #include <sstream>
@@ -10,6 +11,11 @@
 
 #include <cassert>
 #include <cstring>
+
+//TODO: Preventing windows from defining this.
+#ifdef max
+#undef max
+#endif
 
 using namespace std;
 using namespace standardtypes;

@@ -1,7 +1,14 @@
+//TODO: We need to decide whether to use include guards everywhere or simply rely on pragma directives.
+#pragma once 
 #ifndef SAFE_CAST
 #include <sstream>
 #include <stdexcept>
 #include <limits>
+
+//TODO: Make this windows specific (windows defines max as a macro)
+#ifdef max
+#undef max
+#endif
 
 #define SAFE_CAST(t,f) safe_cast<t>(__FILE__, __LINE__, (f))
 

@@ -88,7 +88,6 @@
     <ClInclude Include="Module.h" />
     <ClInclude Include=".\Address.h" />
     <ClInclude Include="Dictionary.h" />
-    <ClInclude Include="SafeCast.h" />
     <ClInclude Include="Table.h" />
     <ClInclude Include="Utilities.h" />
   </ItemGroup>

@@ -1,6 +1,6 @@
 #include "Table.h"
 #include "Dictionary.h"
-#include "SafeCast.h"
+#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/Transaction.h"
@@ -11,6 +11,10 @@
 namespace module = fastore::module;
 namespace client = fastore::client;
 namespace communication = fastore::communication;
+
+std::map<std::string, std::string> module::Table::fastoreTypesToSQLiteTypes;
+std::map<std::string, std::string>  module::Table::sqliteTypesToFastoreTypes;
+std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
 	: _connection(connection), _name(name),  _ddl(ddl) 
@@ -59,71 +63,89 @@ void module::Table::ensureTable()
 	tableQuery.ColumnID = module::Dictionary::TableName;
 	tableQuery.End = bound;
 	tableQuery.Start = bound;
+
+	auto result = _connection->_database->GetRange(module::Dictionary::TableColumns, tableQuery, 1);
 	
+	if (result.Data.size() > 0)
+	{
+		_id = Encoder<communication::ColumnID>::Decode(result.Data[0].ID);
+		//TODO: Test ddl and name to make sure they match;
+	}
+	else
+	{
+		_id = _connection->_generator->Generate(module::Dictionary::TableID);
+		auto transaction =  _connection->_database->Begin(true, true);
+		transaction->Include
+		(
+			module::Dictionary::TableColumns,
+			client::Encoder<communication::ColumnID>::Encode(_id),
+			boost::assign::list_of<std::string>
+			(client::Encoder<communication::ColumnID>::Encode(_id))
+			(_name)
+			(_ddl)
+		);
+		transaction->Commit();
+	}	
 }
 
 void module::Table::ensureColumns()
 {
 	//Gives us a valid set of column defs -- except for ids, which we need to determine.
 	parseDDL();
-	 // Pull a list of candidate pods
- //   Range podQuery;
- //   podQuery.ColumnID = Dictionary::PodID;
- //   podQuery.Ascending = true;
 
-	//std::vector<ColumnID> podidv;
-	//podidv.push_back(Dictionary::PodID);
+	 // Pull a list of candidate pods
+	 Range podQuery;
+	podQuery.ColumnID = client::Dictionary::PodID;
+	podQuery.Ascending = true;
+
+	std::vector<ColumnID> podidv;
+	podidv.push_back(client::Dictionary::PodID);
 
 	////TODO: Gather pods - we may have more than 2000
- //   auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
- //   if (podIds.Data.size() == 0)
- //       throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
+    auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
+    if (podIds.Data.size() == 0)
+        throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
 
 
-	////TODO: Determine key -- if it's more than one column, we need to create a surrogate.
-	////For now, just assume the first column is the key.
+	//TODO: Determine key -- if it's more than one column, we need to create a surrogate.
+	//For now, just assume a "hidden" key.
 
+    // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
+    int nextPod = rand() % (podIds.Data.size() - 1);
 
-	////var minKey = TableVar.Keys.MinimumKey(false, false);
-	////if (minKey != null && minKey.Columns.Count != 1)
-	////	minKey = null;
-	////var rowIDColumn = minKey != null && RowIDCandidateType(minKey.Columns[0].DataType) ? minKey.Columns[0] : null;
-	////var rowIDmappedType = rowIDColumn == null ? "Int" : MapTypeNames(rowIDColumn.DataType);
+    //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
+    //TableVar Columns and pull the id each time.
+    //List<int> columnIds = new List<int>();
+    for (size_t i = 0; i < _columns.size(); i++)
+	{
+		auto combinedName = _name + "." + _columns[i].Name;
 
- //   // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
- //   int nextPod = rand() % (podIds.Data.size() - 1);
+		// Attempt to find the column by name
+		Range query;
+		query.ColumnID = client::Dictionary::ColumnName;
 
- //   //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
- //   //TableVar Columns and pull the id each time.
- //   //List<int> columnIds = new List<int>();
- //   for (size_t i = 0; i < _columns.size(); i++)
-	//{
-	//	auto combinedName = _name + "." + _columns[i].Name;
+		client::RangeBound bound;
+		bound.Bound = combinedName;
+		bound.Inclusive = true;
+		query.Start = bound;
+		query.End = bound;
+		//Just pull one row. If any exist we have a problem.
+		auto result = _connection->_database->GetRange(client::Dictionary::ColumnColumns, query, 1);
 
-	//	// Attempt to find the column by name
-	//	Range query;
-	//	query.ColumnID = Dictionary::ColumnName;
-
-	//	client::RangeBound bound;
-	//	bound.Bound = combinedName;
-	//	bound.Inclusive = true;
-	//	query.Start = bound;
-	//	query.End = bound;
-	//	//Just pull one row. If any exist we have a problem.
-	//	auto result = _connection->_database->GetRange(ColumnIDs(), query, 1);
-
-	//	if (result.Data.size() > 0)
-	//	{
-	//		throw "Column " + combinedName + " already exists in store. Cannot create column";
-	//	}
-	//	else
-	//	{
-	//		int columnId = (int)_connection->_generator->Generate(Dictionary::ColumnID,  + 1);			
-	//		_columnIds.push_back(columnId);
-	//		_columns[i].ColumnID = columnId;
-	//		createColumn(_columns[i], combinedName, _columns[0], podIds, nextPod);
-	//	}
-	//}
+		if (result.Data.size() > 0)
+		{
+			int columnId = Encoder<int>::Decode(result.Data[i].ID);
+			_columns[i].ColumnID = columnId;
+			_columnIds.push_back(columnId);
+		}
+		else
+		{
+			int columnId = (int)_connection->_generator->Generate(client::Dictionary::ColumnID, module::Dictionary::MaxModuleColumnID + 1);			
+			_columnIds.push_back(columnId);
+			_columns[i].ColumnID = columnId;
+			createColumn(_columns[i], combinedName, podIds, nextPod);
+		}
+	}
 }
 
 void module::Table::connect()
@@ -135,6 +157,8 @@ void module::Table::connect()
 
 void module::Table::drop()
 {
+	//TODO: drop module tables as well
+
 	for (auto col : _columnIds)
 	{
         // Pull a list of the current repos so we can drop them all.
@@ -173,15 +197,25 @@ void module::Table::disconnect()
 	//Do nothing for now...
 }
 
-void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, client::ColumnDef& rowIDColumn, RangeSet& podIds, int nextPod)
+void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod)
 {
 	//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
 	auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0].value;
 
-
 	//TODO: Make workers smart enough to create/instantiate a column within one transaction.
 	//(They currently don't check for actions to perform until the end of the transaction, which means they may miss part of it currently)
-	auto transaction = _connection->_database->Begin(true, true);
+	auto transaction =  _connection->_database->Begin(true, true);
+	transaction->Include
+	(
+		module::Dictionary::TableColumnColumns,
+		client::Encoder<communication::ColumnID>::Encode(_connection->_generator->Generate(module::Dictionary::TableColumnTableID)),
+		boost::assign::list_of<std::string>
+		(Encoder<communication::ColumnID>::Encode(_id))
+		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
+	);
+	transaction->Commit();
+
+	transaction =  _connection->_database->Begin(true, true);
 	transaction->Include
 	(
 		client::Dictionary::ColumnColumns,
@@ -211,122 +245,117 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 void module::Table::bestIndex(sqlite3_index_info* info)
 {
 	//Step 1. Group constraints by columns:
-	//std::map<int,std::vector<std::pair<int,sqlite3_index_info::sqlite3_index_constraint*>>> constraintMap;
-	//for (int i = 0;
-	//info->aConstraint[0]
-	////Inputs..
-	//double constraintCost = 0.0;
-	//int constraintColumn = -1;
-	//bool constraintSupported = true;
-	//bool hasConstraint;
-	////Constraints Fastore can support...
-	////On a single column only
-	//// 1 =
-	//// 1 </<=
-	//// 1 >/>=
-	//// 1 </<= + 1 >/>=
+	//Key is column, Value is list of array indicies pointing to constraints.
+	std::map<int,std::vector<int>> constraintMap;
 
-	////Can't support Match
-	//
-	////We can't support more than two constraints, ever.
-	//if (info->nConstraint > 2)
-	//	//Fail -- whatever that means
-	//	constraintSupported = false;
-	////If we have two constraints, they must be on the same column.
-	//if (info->nConstraint == 2 && (info->aConstraint[0].iColumn != info->aConstraint[1].iColumn))
-	//	//Fail -- whatever that means.
-	//	constraintSupported = false;
+	for (int i = 0; i < info->nConstraint; ++i)
+	{
+		//Skip unusable constraints
+		if (!info->aConstraint[i].usable)
+			continue;
 
-	////We don't support match at all.
-	//for (int i = 0; i < info->nConstraint; ++i)
-	//{
-	//	if (info->aConstraint[i].op == SQLITE_INDEX_CONSTRAINT_MATCH)
-	//		constraintSupported = false;
-	//}
+		int col = info->aConstraint[i].iColumn;
+		auto iter = constraintMap.find(col);
 
-	////All other combinations should work, right? (assuming valid comibinations from SQlite -- < 5 && < 10 doesn't make too much sense... right? the docs says it will pass in an arbitrary EXPR. If that expression is more complicated than a value...)
-	//if (constraintSupported == true && info->nConstraint > 0)
-	//{
-	//	hasConstraint = true;
-	//	constraintColumn == info->aConstraint[0].iColumn;
-	//}
+		if (iter != constraintMap.end())
+		{
+			iter->second.push_back(i);
+		}
+		else
+		{
+			std::vector<int> cons;
+			cons.push_back(i);
+			constraintMap.insert(std::pair<int,std::vector<int>>(col, cons));
+		}
+	}
 
-	////Estimate constraint cost..
-	//if (hasConstraint && constraintSupported)
-	//{
-	//	if (info->aConstraint[0].op == SQLITE_INDEX_CONSTRAINT_EQ && info->nConstraint == 1)
-	//		constraintCost += 20.0; //Equality constraints should produce the fewest numbers of rows, but still involves a search.
-	//	else if (info->nConstraint == 2)
-	//		constraintCost += 50.0; //Two constaints will produce a middle number of rows..
-	//	else if (info->nConstraint == 1)
-	//		constraintCost += 80.0; //One constraint will produce more rows, and a single search.
-	//
-	//	if (_columns[constraintColumn].Type == "String" || _columns[constraintColumn].Type == "WString")
-	//		constraintCost += 10.0; // Searching over strings is more expensive than ints, bools, etc.
-	//}
+	//Step 2. Weight constraint groups
+	//We want to to weight towards columns that  have a low average number of keys per value, and also have a low total number of keys (it that right? All columns should have ~the same number of keys within a table..).
+	//Weight -> column
+	std::map<int64_t, int> weights;
 
-	////Where clause constraints
-	//for (int i = 0; i < info->nConstraint; ++i)
-	//{
-	//	auto pConstraint = &info->aConstraint[i];
-	//	pConstraint->iColumn; // Which column
-	//	pConstraint->op; // operator
-	//	pConstraint->usable; // true if this constraint is usable
-	//}
+	//Column -> supported
+	std::map<int, bool> supported;
+	for (auto iter = constraintMap.begin(); iter != constraintMap.end(); ++iter)
+	{
+		bool isSupported = true;
 
-	////Orders Fastore can support...
-	////One column, any direction.
-	////Two columns, if both are same direction and the second is RowId column.
-	////With a contraint, the used constraint must be on the first column of the order.
-	//bool hasOrder = false;
-	//bool orderSupported = false;
-	//double orderCost = 0.0;
-	//if (info->nOrderBy == 0)
-	//	orderSupported = true;
-	//if (info->nOrderBy == 1 && (!hasConstraint || (info->aOrderBy[0].iColumn == constraintColumn)))
-	//	orderSupported = true;
-	//else if (info->nOrderBy == 2 && (!hasConstraint || (info->aOrderBy[0].iColumn == constraintColumn && info->aOrderBy[1].iColumn == 0 /* TODO: rowId column.. */)))
-	//	orderSupported = true;
+		//column
+		int col = iter->first;
 
-	//if (orderSupported && info->nOrderBy > 0)
-	//	hasOrder = true;
+		//type factor -- strings are a bit more expensive to compare/search than integers.
+		double type = _columns[col].Type == "String" || _columns[col].Type == "WString" ? 1.1 : 1;
 
-	////Estimate order cost
-	////Since we are already ordered, let's say it's always costless for now..
-	//orderCost = 0.0;
+		//Average ids per value
+		int64_t avg = _stats[col].unique > 0 ? _stats[col].total / _stats[col].unique : 0;
+		
+		int64_t size = 100; // = 100% percent of the column for our purposes. Every constraint divides this by approx 2.
+		if (iter->second.size() > 2)
+			isSupported = false;
+		else
+		{
+			for (size_t i = 0; i < iter->second.size(); ++i)
+			{
+				auto constraint = info->aConstraint[iter->second[i]];
 
-	////Orderby clause (number of orders in order by)
-	////for (int i = 0; i < info->nOrderBy; ++i)
-	////{
-	////	auto pOrder = &info->aOrderBy[i];
-	////	pOrder->desc; // descending
-	////	pOrder->iColumn; // Which column
-	////}
+				if (constraint.op == SQLITE_INDEX_CONSTRAINT_MATCH)
+					isSupported = false;
+				else if (constraint.op == SQLITE_INDEX_CONSTRAINT_EQ)
+					size = 1;					
+				else
+					size = size / 2;
+			}
+		}
 
-	////Outputs...
-	//for (int i = 0; i < info->nConstraint; ++i)
-	//{
-	//	if (i < 2 && constraintSupported)
-	//	{
-	//		info->aConstraintUsage[i].argvIndex = i; // if >0, constraint is part of argv to xFilter
-	//		info->aConstraintUsage[i].omit = true; // suppress double check on rows received.
-	//	}
-	//	else
-	//	{
-	//		info->aConstraintUsage[i].argvIndex = -1; // if >0, constraint is part of argv to xFilter
-	//		info->aConstraintUsage[i].omit = false; // suppress double check on rows received.
-	//	}
-	//}
+		int64_t total = size * avg * type * (isSupported ? 1 : 1000000000); //Arbitrarily huge number to bubble non-supported constraints to the top. That way we only need to check the lowest and see if it's supported. -- consider the overflow case...
 
-	////Calculate cost...
-	//double cost;
-	//cost += hasOrder ? (orderSupported ? orderCost : 2000000.0 ) : 0; //We don't know if it being unordered adds any cost to the overall query. They query might not care.
-	//cost += hasConstraint ? (constraintSupported ? constraintCost : 2000000.0 ) : 0; //Cost should be estimated from table size since the fewer constraints the larger the result.
-	//info->idxNum = orderSupported && hasOrder ? (info->aOrderBy[0].desc ? 0 : 1) : -1; // Number used to identify the index  -- hijacking this to say asc/desc order(-1 = any, 0 = desc, 1 = asc)
-	//info->idxStr; // String, possibly obtained from sqlite3_malloc
-	//info->needToFreeIdxStr = false; //  Free idxStr using sqlite3_free() if true
-	//info->orderByConsumed = hasOrder && orderSupported; //True if output is ordered..;
-	//info->estimatedCost = cost; //  Estimated cost of using this index
+		weights[total] = col;
+		supported[col] = isSupported;
+	}
+
+	//Step 3. If we have a supported constraint, use it
+	bool useConstraint = constraintMap.size() > 0 && supported[weights.begin()->second];
+	int whichColumn = weights.begin()->second;
+
+	char* idxstr = NULL;
+
+	if (useConstraint)
+	{
+		std::string params;
+		auto vector = constraintMap[whichColumn];
+		for (size_t i = 0 ; i < vector.size(); ++i)
+		{
+			info->aConstraintUsage[vector[i]].argvIndex = i + 1;
+			info->aConstraintUsage[vector[i]].omit = true;
+			params += info->aConstraint[vector[i]].op;
+		}
+
+		idxstr = (char*)sqlite3_malloc(params.size() + 1);
+		memcpy(idxstr, params.c_str(), params.size() + 1);		
+	}
+
+	//Step 4. Match the index to the constraint if possible, if not, see if order is usable by itself.
+	bool useOrder = false;
+	if (info->nOrderBy == 0 || (info->nOrderBy == 1 && !useConstraint) || (info->nOrderBy == 1 && info->aOrderBy[0].iColumn == whichColumn))
+	{
+		info->orderByConsumed = true;
+		useOrder = true;
+	}
+
+	//Step 5. Estimate total cost
+	double cost = 0;
+	if (useConstraint)
+		cost = weights.begin()->first;
+	else if (useOrder)
+		cost = _stats[info->aOrderBy[0].iColumn].total;
+	else
+		cost = _stats[0].total; //If no ordering, size of whole table -- pick a key column.
+
+	//Step 6. Set remaining outputs.
+	info->estimatedCost = cost;
+	info->idxNum = useOrder ? (info->aOrderBy[0].desc ?  ~(info->aOrderBy[0].iColumn + 1) : (info->aOrderBy[0].iColumn + 1)) : 0; //TODO: Else should pick a required column.
+	info->idxStr = idxstr;
+	info->needToFreeIdxStr = true;
 }
 
 client::RangeSet module::Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
@@ -356,7 +385,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 	}
 
 	//If it was a delete only, return.
-	if (SAFE_CAST(size_t(), argc) != _columnIds.size() + 2)
+	if (SAFE_CAST(size_t, argc) != _columnIds.size() + 2)
 		return;
 
 	sqlite3_int64 rowIdInt;
@@ -427,7 +456,13 @@ void module::Table::parseDDL()
 {
 	//Split on commas. Find columns definitions. Create defs based on definitions.
 	//For now, assume all definitions are column defs.
-
+	std::string col;
+	std::istringstream reader(_ddl, std::istringstream::in);
+	while (std::getline(reader, col, ','))
+	{
+		auto def = parseColumnDef(col);
+		_columns.push_back(def);
+	}
 }
 
 client::ColumnDef module::Table::parseColumnDef(std::string text)

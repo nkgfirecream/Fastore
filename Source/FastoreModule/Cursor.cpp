@@ -1,5 +1,5 @@
 #include "Cursor.h"
-#include "SafeCast.h"
+#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Encoder.h"
 
 namespace client = fastore::client;
@@ -10,7 +10,7 @@ module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1) { }
 void module::Cursor::next()
 {
 	++_index;
-	if (SAFE_CAST(size_t(), _index) == _set.Data.size())
+	if (SAFE_CAST(size_t, _index) == _set.Data.size())
 		getNextSet();
 }
 
@@ -87,10 +87,74 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 
 	_range = Range();
 	//TODO: Make ascending dependent on index information that comes in.
-	_range.Ascending = true;
-	_range.ColumnID = _table->_columns[0].ColumnID;
+	//Idxnum > 0 = ascending, < 0 = desc, 0 = no index column (full table pull)
+	_range.Ascending = idxNum >= 0;
+	
+	//idxNum is either colIdx + 1, ~(colIdx + 1) or 0
+	int colIndex = idxNum > 0 ? idxNum - 1 : (idxNum < 0 ? (~idxNum) - 1 : 0);
+	_range.ColumnID = _table->_columns[colIndex].ColumnID;
+
+	if (idxStr != NULL)
+	{
+		if (idxStr[0] == SQLITE_INDEX_CONSTRAINT_EQ)
+		{
+			client::RangeBound bound;
+			bound.Bound = convertSqliteValueToString(colIndex, argv[1]);
+			bound.Inclusive = true;
+		
+			_range.End = bound;
+			_range.Start = bound;
+		}
+		else
+		{
+			_range.Start = getBound(colIndex, idxStr[0], argv[1]);
+			if (argc > 1)
+				_range.End = getBound(colIndex, idxStr[1], argv[2]);
+		}
+	}
+
 
 	getNextSet();
+}
+
+client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg)
+{
+	client::RangeBound bound;
+	if (op == SQLITE_INDEX_CONSTRAINT_GE || SQLITE_INDEX_CONSTRAINT_LE)
+		bound.Inclusive = true;
+	else
+		bound.Inclusive = false;
+
+	bound.Bound = convertSqliteValueToString(col, arg);
+
+	return bound;
+}
+
+std::string module::Cursor::convertSqliteValueToString(int col, sqlite3_value* arg)
+{
+	std::string type = _table->_columns[col].Type;
+	std::string result;
+
+	if (type == "String")
+		result = std::string((char *)sqlite3_value_text(arg));
+	else if (type == "Int")
+		result = Encoder<int>::Encode(sqlite3_value_int(arg));
+	else if (type == "Long")
+		result = Encoder<int64_t>::Encode(sqlite3_value_int64(arg));
+	else if (type == "Double")
+		result = Encoder<double>::Encode(sqlite3_value_double(arg));
+	else if (type == "Bool")
+		result = Encoder<bool>::Encode((bool)sqlite3_value_int(arg));
+	else if (type == "WString")
+	{
+		std::wstring toEncode((wchar_t*)sqlite3_value_text16(arg));
+		result = Encoder<std::wstring>::Encode(toEncode);
+	}
+	else
+		throw "ModuleCursor can't find correct type for RangeBound encoding!";
+
+	return result;
+
 }
 
 
