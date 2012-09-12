@@ -4,8 +4,6 @@ Status
 ======
 
 Patches allow Fastore to compile without warnings on VS2012. 
-Linking fails because building thrift in this directory hasn't been 
-worked out yet.  Real Soon Now. 
 
 To generate patches in Windows, use "add-patch.pl -x".  Without the -x it only 
 displays the patch status.  
@@ -24,9 +22,17 @@ to the current revision.  (This is just a function of how Subversion works.)
 Required Software
 =================
 
-
 Perl can be installed from ActiveState. 
 
 Scripted patch application can be effected if "patch" is installed from the 
 GNU Win32 project. http://gnuwin32.sourceforge.net/packages.html. 
 
+Build Preconditions
+===================
+
+1.  Define THIRD_PARTY=%CD%\..\boost_1_51_0 environment variable
+2.  Copy libthrift.vcxproj to trunk\lib\cpp or use the infomation in 
+    that file to update yours.  Changes are a
+
+    a.  reference to THIRD_PARTY
+    b.  define _CRT_SECURE_NO_WARNINGS
