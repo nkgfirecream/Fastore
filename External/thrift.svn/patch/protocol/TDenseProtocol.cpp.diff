@@ -1,0 +1,24 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TDenseProtocol.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TDenseProtocol.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TDenseProtocol.cpp	(working copy)
+@@ -245,7 +245,7 @@
+ 
+   while (vlq > 0) {
+     assert(pos >= 0);
+-    buf[pos] = (vlq | 0x80);
++    buf[pos] = (THRIFT_SAFE_CAST(uint8_t, vlq) | 0x80);
+     vlq >>= 7;
+     pos--;
+   }
+@@ -463,8 +463,8 @@
+ }
+ 
+ uint32_t TDenseProtocol::subWriteString(const std::string& str) {
+-  uint32_t size = str.size();
+-  uint32_t xfer = subWriteI32((int32_t)size);
++  uint32_t size = THRIFT_SAFE_CAST(uint32_t, str.size());
++  uint32_t xfer = subWriteI32(THRIFT_SAFE_CAST(int32_t, size));
+   if (size > 0) {
+     trans_->write((uint8_t*)str.data(), size);
+   }

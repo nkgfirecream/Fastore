@@ -2,8 +2,9 @@
 #$Id$
 
 use Getopt::Std;
+use File::Basename;
 
-getopts('px', \%opts);
+getopts('pxv', \%opts);
 
 sub up_to_date
 { my($patch, $src) = @_;
@@ -31,7 +32,11 @@ stat "$pwd" or die qq(no such dir "$pwd"\n);
 chomp @patches;
 print "Existing patches:\n\t", join ("\n\t", @patches), $/;
 
-@changes = grep { s!\Q$pwd\E!!g; ($a, $_) = split } qx(svn status  trunk);
+@changes = grep { 
+    s!\Q$pwd\E!!g; 
+    my $status;
+    ($status, $_) = split; 
+    $status eq 'M' }  qx(svn status  trunk);
 #print join $/, @changes;
 
 Change:
@@ -51,12 +56,19 @@ if( ! $opts{x} ) {
     exit 0;
 }
 
+print join $/, @todo if $opts{v};
+
 for $f (@todo) {
+    next unless $f =~ /\.(tcc|cpp|h)$/;
     my @diff = qx(svn diff trunk/lib/cpp/src/thrift/$f);
-    die unless @diff;
+    die "bad: $f" unless @diff;
     my $name = "patch\\$f.diff";
     my $verb = (-e $name)? 'overwriting:' : 'creating:';
     printf "%-16s $name\n", $verb;
+    my $dir = dirname $name;
+    if( ! stat $dir ) {
+	mkdir $dir or die "could not create $dir\n";
+    }
     open PATCH, ">$name" or die "cannot open file '$name': $!\n";
     print PATCH @diff;
     close PATCH;

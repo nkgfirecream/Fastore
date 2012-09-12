@@ -1,0 +1,24 @@
+Index: trunk/lib/cpp/src/thrift/concurrency/Util.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/concurrency/Util.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/concurrency/Util.h	(working copy)
+@@ -29,6 +29,8 @@
+ #include <sys/time.h>
+ #endif
+ 
++#include "../Thrift.h"
++
+ namespace apache { namespace thrift { namespace concurrency {
+ 
+ /**
+@@ -67,8 +69,8 @@
+   }
+ 
+   static void toTimeval(struct timeval& result, int64_t value) {
+-    result.tv_sec = value / MS_PER_S; // ms to s
+-    result.tv_usec = (value % MS_PER_S) * US_PER_MS; // ms to us
++    result.tv_sec = THRIFT_SAFE_CAST(long, value) / MS_PER_S; // ms to s
++    result.tv_usec = (THRIFT_SAFE_CAST(long, value) % MS_PER_S) * US_PER_MS; // ms to us
+   }
+ 
+   static void toTicks(int64_t& result, int64_t secs, int64_t oldTicks,

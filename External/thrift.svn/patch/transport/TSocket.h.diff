@@ -16,3 +16,16 @@ Index: trunk/lib/cpp/src/thrift/transport/TSocket.h
  #include "TTransport.h"
  #include "TVirtualTransport.h"
  #include "TServerSocket.h"
+@@ -259,8 +266,11 @@
+   std::string path_;
+ 
+   /** Underlying UNIX socket handle */
++#ifdef _WIN64not
++  SOCKET socket_;
++#else
+   int socket_;
+-
++#endif
+   /** Connect timeout in ms */
+   int connTimeout_;
+ 
