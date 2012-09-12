@@ -1,0 +1,32 @@
+$Id$
+
+Status
+======
+
+Patches allow Fastore to compile without warnings on VS2012. 
+Linking fails because building thrift in this directory hasn't been 
+worked out yet.  Real Soon Now. 
+
+To generate patches in Windows, use "add-patch.pl -x".  Without the -x it only 
+displays the patch status.  
+
+To apply patches in Linux, use "make repatch".  Note this starts by
+reverting any changes in the thrift working directory, because patches
+are generated against the repository. 
+
+There is no script yet to automate applying patches in Windows. 
+
+N.B. When using "svn update", take care *not* to update the trunk directory
+explicitly.  Update thrift.svn only; the svn:external property will bring 
+thrift to a specific revision.  If you update trunk, you will bring it 
+to the current revision.  (This is just a function of how Subversion works.) 
+
+Required Software
+=================
+
+
+Perl can be installed from ActiveState. 
+
+Scripted patch application can be effected if "patch" is installed from the 
+GNU Win32 project. http://gnuwin32.sourceforge.net/packages.html. 
+
