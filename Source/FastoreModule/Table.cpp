@@ -78,9 +78,9 @@ void module::Table::ensureTable()
 		transaction->Include
 		(
 			module::Dictionary::TableColumns,
-			client::Encoder<communication::ColumnID>::Encode(_id),
+			client::Encoder<communication::ColumnID>::Crunch(_id),
 			boost::assign::list_of<std::string>
-			(client::Encoder<communication::ColumnID>::Encode(_id))
+			(client::Encoder<communication::ColumnID>::Crunch(_id))
 			(_name)
 			(_ddl)
 		);
@@ -210,7 +210,7 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		module::Dictionary::TableColumnColumns,
 		client::Encoder<communication::ColumnID>::Encode(_connection->_generator->Generate(module::Dictionary::TableColumnTableID)),
 		boost::assign::list_of<std::string>
-		(Encoder<communication::ColumnID>::Encode(_id))
+		(Encoder<communication::ColumnID>::Crunch(_id))
 		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
 	transaction->Commit();
@@ -240,6 +240,12 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
 	transaction->Commit();		
+}
+
+char *
+sqlite3_safe_malloc( size_t n )
+{
+	return reinterpret_cast<char*>( sqlite3_malloc(SAFE_CAST(int,n)) );
 }
 
 void module::Table::bestIndex(sqlite3_index_info* info)
@@ -283,8 +289,8 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 		//column
 		int col = iter->first;
 
-		//type factor -- strings are a bit more expensive to compare/search than integers.
-		double type = _columns[col].Type == "String" || _columns[col].Type == "WString" ? 1.1 : 1;
+		//cost factor -- strings are a bit more expensive to compare/search than integers.
+		double cost = _columns[col].Type == "String" || _columns[col].Type == "WString" ? 1.1 : 1;
 
 		//Average ids per value
 		int64_t avg = _stats[col].unique > 0 ? _stats[col].total / _stats[col].unique : 0;
@@ -306,8 +312,9 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 					size = size / 2;
 			}
 		}
-
-		int64_t total = size * avg * type * (isSupported ? 1 : 1000000000); //Arbitrarily huge number to bubble non-supported constraints to the top. That way we only need to check the lowest and see if it's supported. -- consider the overflow case...
+		// Arbitrarily huge number to bubble non-supported constraints to the top. 
+		// That way we only need to check the lowest and see if it's supported. -- consider the overflow case...
+		int64_t total = static_cast<int64_t>(size * avg * cost * (isSupported ? 1 : 1000000000)); 
 
 		weights[total] = col;
 		supported[col] = isSupported;
@@ -325,12 +332,12 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 		auto vector = constraintMap[whichColumn];
 		for (size_t i = 0 ; i < vector.size(); ++i)
 		{
-			info->aConstraintUsage[vector[i]].argvIndex = i + 1;
+			info->aConstraintUsage[vector[i]].argvIndex = SAFE_CAST(int,i) + 1;
 			info->aConstraintUsage[vector[i]].omit = true;
 			params += info->aConstraint[vector[i]].op;
 		}
 
-		idxstr = (char*)sqlite3_malloc(params.size() + 1);
+		idxstr = sqlite3_safe_malloc(params.size() + 1);
 		memcpy(idxstr, params.c_str(), params.size() + 1);		
 	}
 
@@ -345,11 +352,11 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 	//Step 5. Estimate total cost
 	double cost = 0;
 	if (useConstraint)
-		cost = weights.begin()->first;
+		cost = static_cast<double>(weights.begin()->first);
 	else if (useOrder)
-		cost = _stats[info->aOrderBy[0].iColumn].total;
+		cost = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
 	else
-		cost = _stats[0].total; //If no ordering, size of whole table -- pick a key column.
+		cost = static_cast<double>(_stats[0].total); //If no ordering, size of whole table -- pick a key column.
 
 	//Step 6. Set remaining outputs.
 	info->estimatedCost = cost;

@@ -137,7 +137,7 @@ std::string module::Cursor::convertSqliteValueToString(int col, sqlite3_value* a
 	else if (type == "Double")
 		result = Encoder<double>::Encode(sqlite3_value_double(arg));
 	else if (type == "Bool")
-		result = Encoder<bool>::Encode((bool)sqlite3_value_int(arg));
+		result = Encoder<bool>::Encode(sqlite3_value_int(arg) != 0);
 	else if (type == "WString")
 	{
 		std::wstring toEncode((wchar_t*)sqlite3_value_text16(arg));

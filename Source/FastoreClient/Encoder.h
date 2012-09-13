@@ -19,6 +19,14 @@ namespace fastore { namespace client
 			return result;
 		}
 
+		static std::string Crunch(size_t input)
+		{
+			const T item( SAFE_CAST(T, input) );
+			std::string result;
+			result.assign((const char*)&item, sizeof(T));
+			return result;
+		}
+
 		static T Decode(const std::string& item)
 		{
 			return T(*(T*)item.data());
