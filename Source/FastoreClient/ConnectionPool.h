@@ -183,7 +183,7 @@ namespace fastore { namespace client
 				transport->open();
 				break;
 			}
-			catch (std::exception& e)
+			catch (const std::exception&)
 			{
 				if (retries == 0)
 					throw;

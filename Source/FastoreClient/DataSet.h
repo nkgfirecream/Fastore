@@ -11,7 +11,7 @@ namespace fastore { namespace client
 	class DataSetRow
 	{
 	public:
-		DataSetRow(int columns)
+		DataSetRow(size_t columns)
 			: ID(std::string())
 		{
 			Values = std::vector<fastore::communication::OptionalValue>(columns, fastore::communication::OptionalValue());
@@ -20,7 +20,7 @@ namespace fastore { namespace client
 		std::vector<fastore::communication::OptionalValue> Values;
 		std::string ID;
 
-		fastore::communication::OptionalValue& operator[](int index)
+		fastore::communication::OptionalValue& operator[](size_t index)
 		{
 			return Values[index];
 		}
@@ -31,12 +31,12 @@ namespace fastore { namespace client
 	{
 
 	private:
-		int _columnCount;
+		size_t _columnCount;
 
 	public:
-		DataSet(int rows, int columnCount);
+		DataSet(size_t rows, size_t columnCount);
 		DataSet() : _columnCount(0) { }
 
-		int getColumnCount() { return _columnCount; }
+		size_t getColumnCount() { return _columnCount; }
 	};
 }}

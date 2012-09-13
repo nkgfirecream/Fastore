@@ -2,5 +2,5 @@
 
 using namespace fastore::client;
 
-DataSet::DataSet(int rows, int columnCount)
+DataSet::DataSet(size_t rows, size_t columnCount)
 	: _columnCount(columnCount), std::vector<DataSetRow>(rows, DataSetRow(columnCount)) { }

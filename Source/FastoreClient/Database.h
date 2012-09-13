@@ -155,16 +155,19 @@ namespace fastore { namespace client
 
 		DataSet InternalGetValues(const ColumnIDs& columnIds, const int exclusionColumnId, const Query& rowIdQuery);	
 		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults);
-		RangeSet ResultsToRangeSet(DataSet& set, const int rangeColumnId, const int rangeColumnIndex, const RangeResult& rangeResult);	
+		RangeSet ResultsToRangeSet(DataSet& set, size_t rangeColumnId, size_t rangeColumnIndex, const RangeResult& rangeResult);	
 
 		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
 
-		std::map<TransactionID, std::vector<WorkerInfo>> ProcessWriteResults(const std::vector<WorkerInfo>& workers, const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, std::map<int, boost::shared_ptr<TProtocol>>& failedWorkers);
+		std::map<TransactionID, std::vector<WorkerInfo>> 
+				ProcessWriteResults(const std::vector<WorkerInfo>& workers, 
+									const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, 
+									std::map<size_t, boost::shared_ptr<TProtocol>>& failedWorkers);
 
-		bool FinalizeTransaction(const std::vector<WorkerInfo>& workers, const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, std::map<int, boost::shared_ptr<TProtocol>>& failedWorkers);
+		bool FinalizeTransaction(const std::vector<WorkerInfo>& workers, const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, std::map<size_t, boost::shared_ptr<TProtocol>>& failedWorkers);
 
 		/// <summary> Invokes a given command against a worker. </summary>
-		void WorkerInvoke(int podID, std::function<void(WorkerClient)> work);
+		void WorkerInvoke(size_t podID, std::function<void(WorkerClient)> work);
 
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
 		std::vector<boost::shared_ptr<std::future<TransactionID>>> StartWorkerWrites(const std::map<int, boost::shared_ptr<ColumnWrites>> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);

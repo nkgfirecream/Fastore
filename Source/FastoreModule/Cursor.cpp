@@ -16,14 +16,7 @@ void module::Cursor::next()
 
 int module::Cursor::eof()
 {
-	if (_set.Data.size() == 0 || _index == -1)
-	{
-		return 1;
-	}
-	else
-	{
-		return 0;
-	}
+	return (_set.Data.size() == 0 || _index == -1)? 1 : 0;
 }
 
 void module::Cursor::setColumnResult(sqlite3_context *pContext, int index)

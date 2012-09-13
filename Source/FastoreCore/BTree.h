@@ -12,10 +12,7 @@
 #include <cassert>
 #include <cstring>
 
-//TODO: Preventing windows from defining this.
-#ifdef max
 #undef max
-#endif
 
 using namespace std;
 using namespace standardtypes;

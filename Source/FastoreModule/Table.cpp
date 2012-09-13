@@ -377,7 +377,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 	if (sqlite3_value_type(argv[0]) != SQLITE_NULL)
 	{
 		sqlite3_int64 oldRowIdInt = sqlite3_value_int64(argv[0]);
-		std::string oldRowId = Encoder<int>::Encode(oldRowIdInt);
+		std::string oldRowId = Encoder<sqlite3_int64>::Encode(oldRowIdInt);
 		if (_transaction != NULL)
 			_transaction->Exclude(_columnIds, oldRowId);
 		else
@@ -396,11 +396,11 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 	else
 	{
 		//TODO: generate on table Id
-		rowIdInt = _connection->_generator->Generate(_id);
+		rowIdInt = _connection->_generator->Generate(SAFE_CAST(int, _id));
 		*pRowid = rowIdInt;
 	}
 
-	std::string rowid = Encoder<int>::Encode(rowIdInt);
+	std::string rowid = Encoder<sqlite3_int64>::Encode(rowIdInt);
 
 	std::vector<std::string> row;
 
@@ -414,7 +414,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 
 			std::string value;
 			if (type == "Bool")
-				value = Encoder<bool>::Encode((bool)sqlite3_value_int(pValue));
+				value = Encoder<bool>::Encode(0 != sqlite3_value_int(pValue));
 			else if (type == "Int")
 				value = Encoder<int>::Encode(sqlite3_value_int(pValue));
 			else if (type == "Long")

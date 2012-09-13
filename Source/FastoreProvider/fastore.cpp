@@ -28,7 +28,7 @@ TResult WrapCall(const function<void(TResult)> &callback)
 	{
 		callback(result);
 	}
-	catch (exception &e)
+	catch (const exception &)
 	{
 		//result.error = ExceptionToFastoreResult(e, 0, &(FastoreResult)result);
 	}

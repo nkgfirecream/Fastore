@@ -5,10 +5,7 @@
 #include <stdexcept>
 #include <limits>
 
-//TODO: Make this windows specific (windows defines max as a macro)
-#ifdef max
 #undef max
-#endif
 
 #define SAFE_CAST(t,f) safe_cast<t>(__FILE__, __LINE__, (f))
 

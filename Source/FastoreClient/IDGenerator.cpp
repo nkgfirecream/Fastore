@@ -75,7 +75,7 @@ void IDGenerator::ResetLoading(boost::optional<int> newBlock, boost::optional<st
 		_loadEvent.set();
 
 	}
-	catch(std::exception& e)
+	catch(const std::exception&)
 	{
 		if (taken)
 		{
@@ -149,7 +149,7 @@ int IDGenerator::Generate()
 
 			return nextId;
 		}
-		catch(std::exception& e)
+		catch(const std::exception&)
 		{
 			// Release latch
 			if (lockTaken)
@@ -189,7 +189,7 @@ void IDGenerator::ResetCache()
 
 			break;
 		}
-		catch(std::exception& e)
+		catch(const std::exception&)
 		{
 			if(taken)
 				_spinlock.unlock();
