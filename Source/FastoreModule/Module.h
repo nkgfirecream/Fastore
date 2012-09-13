@@ -2,6 +2,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
+#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/ColumnDef.h"
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
@@ -39,7 +40,7 @@ void createVirtualTables(module::Connection* connection, sqlite3* sqliteConnecti
 	{
 		client::RangeSet result = connection->_database->GetRange(module::Dictionary::TableColumns, tableRange, 500, startId);
 
-		for(int i = 0; i < result.Data.size(); i++)
+		for(size_t i = 0; i < result.Data.size(); i++)
 		{
 			//NULL
 			if (!result.Data[i].Values[2].__isset.value)
@@ -76,7 +77,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
     if (podIds.Data.size() == 0)
         throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
 
-    int nextPod = rand() % (podIds.Data.size() - 1);
+    int nextPod = rand() % SAFE_CAST(int,(podIds.Data.size() - 1));
 
     //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
     //TableVar Columns and pull the id each time.

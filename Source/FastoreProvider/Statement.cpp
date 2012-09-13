@@ -43,8 +43,8 @@ void Statement::reset()
 void Statement::bind(std::vector<Argument> arguments)
 {
 	sqlite3_reset(_statement);
-	size_t parameterCount = sqlite3_bind_parameter_count(_statement);
-	if (parameterCount != arguments.size())
+	int parameterCount = sqlite3_bind_parameter_count(_statement);
+	if (parameterCount != SAFE_CAST(int,arguments.size()))
 		throw "Wrong number of arguments";
 
 	for (int i = 0; i < parameterCount; ++i)

@@ -81,6 +81,9 @@ bool ServiceAddress::intTryParse (int &i, char const *s)
     if (*s == '\0' || *end != '\0') {
         return false;
     }
-    i = l;
+	if (std::numeric_limits<int>::max() < l)
+		return false;
+
+    i = static_cast<int>(l);
     return true;
 }

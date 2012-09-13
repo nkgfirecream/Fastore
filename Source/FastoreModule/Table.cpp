@@ -111,7 +111,7 @@ void module::Table::ensureColumns()
 	//For now, just assume a "hidden" key.
 
     // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
-    int nextPod = rand() % (podIds.Data.size() - 1);
+    int nextPod = rand() % SAFE_CAST(int, (podIds.Data.size() - 1));
 
     //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
     //TableVar Columns and pull the id each time.
@@ -314,7 +314,7 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 		}
 		// Arbitrarily huge number to bubble non-supported constraints to the top. 
 		// That way we only need to check the lowest and see if it's supported. -- consider the overflow case...
-		int64_t total = static_cast<int64_t>(size * avg * cost * (isSupported ? 1 : 1000000000)); 
+		int64_t total = static_cast<int64_t>(static_cast<double>(size * avg) * cost * (isSupported ? 1 : 1000000000)); 
 
 		weights[total] = col;
 		supported[col] = isSupported;
@@ -376,7 +376,8 @@ client::RangeSet module::Table::getRange(client::Range& range, const boost::opti
 void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
 	//Update statistics every MAXOPERATIONS
-	_numoperations = ++_numoperations % MAXTABLEOPERATIONS;
+	++_numoperations;
+	_numoperations = _numoperations % MAXTABLEOPERATIONS;
 
 	if(_numoperations == 0)
 		updateStats();
