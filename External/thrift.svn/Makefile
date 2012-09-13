@@ -36,8 +36,7 @@ Makefile.update::
 
 # N.B. Update this by hand as needed.
 # See also dependencies below. 
-PATCHES = 	patch/protocol/TBinaryProtocol.tcc.diff \
-		patch/transport/TBufferTransports.h.diff \
+PATCHES = 	patch/transport/TBufferTransports.h.diff \
 		patch/transport/TSocket.h.diff 
 PATCHES.BASE = $(PATCHES:S!patch/!!g:.diff=)
 
@@ -69,12 +68,8 @@ $(THRIFT.DIR)/transport/TSocket.h: \
 
 
 env: 
-	apt-get install flex bison libssl-dev libssl-doc
+	apt-get install flex bison libssl-dev libssl-doc dos2unix
 
-#patches
-##patch/TBinaryProtocol.h.diff: $(SVN.DIR)/TBinaryProtocol.h
-patch/protocol/TBinaryProtocol.tcc.diff: \
-	$(SVN.DIR)/protocol/TBinaryProtocol.tcc
 patch/transport/TBufferTransports.h.diff: \
 	$(SVN.DIR)/transport/TBufferTransports.h
 patch/transport/TSocket.h.diff: \
