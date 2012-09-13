@@ -1,5 +1,13 @@
 #!/bin/sh
-for F in patch/*.diff
+
+set -e
+
+if [ "$1" ]
+then
+    cd $1
+fi
+
+for F in patch/*.diff patch/*/*.diff
 do
     patch -p0 < $F
 done

@@ -26,7 +26,7 @@ PATCHED.TGT = $(PATCHED.SRC:S!$(SVN.DIR)!$(THRIFT.DIR)!g)
 
 repatch:
 	svn revert $(PATCHED.SRC)
-	sh -x apply-patches
+	PATCHES="$(PATCHED.SRC)" sh -x apply-patches
 
 # Generate a makefile to update the working directory 
 # in case updates were made to the installed files. 
