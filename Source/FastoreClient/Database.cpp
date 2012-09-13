@@ -376,7 +376,8 @@ int Database::GetWorkerIDForColumn(int columnID)
 	}
 	else
 	{
-		iter->second.Next = (iter->second.Next + 1) % iter->second.Pods.size();
+		iter->second.Next = (iter->second.Next + 1) 
+			                % SAFE_CAST(int, iter->second.Pods.size());
 		auto podId = iter->second.Pods[iter->second.Next];
 		_lock->unlock();
 		return podId;
@@ -389,7 +390,7 @@ std::pair<int, WorkerClient> Database::GetWorkerForSystemColumn()
 	int podID;
 	_lock->lock();
 	podID = std::next(_workerStates.begin(), _nextSystemWorker)->first;
-	_nextSystemWorker = (_nextSystemWorker + 1) % _workerStates.size();
+	_nextSystemWorker = (_nextSystemWorker + 1) % SAFE_CAST(int, _workerStates.size());
 	_lock->unlock();
 
 	return std::make_pair(podID, _workers[podID]);

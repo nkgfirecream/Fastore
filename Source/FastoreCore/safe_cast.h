@@ -24,7 +24,7 @@ T safe_cast(const char file[], size_t line, F input) {
 			throw std::runtime_error(msg.str());
 		}
 	}
-	if( numeric_limits<T>::max() < static_cast<size_t>(input) ) {
+	if(  static_cast<size_t>(numeric_limits<T>::max()) < static_cast<size_t>(input) ) {
 		msg << file << ":" << line << ": " 
 			<< input << ", size " << sizeof(F) 
 			<< ", cannot be cast to unsigned type of size" << sizeof(T);
