@@ -7,10 +7,10 @@ all: build
 build: trunk/build/Makefile
 	cd trunk/build && make
 
-trunk/build/Makefile: .patched trunk/configure
+OPTIONS != grep -v '\#' .build-options
+trunk/build/Makefile: trunk/configure .build-options
 	test -d trunk/build || mkdir trunk/build
-	OPTIONS=$$(grep -v '#' .build-options) \
-	&& cd trunk/build && ../configure $${OPTIONS}
+	cd trunk/build && ../configure ${OPTIONS}
 
 install: trunk/build/Makefile
 	cd trunk/build && make install
@@ -20,7 +20,7 @@ configure trunk/configure: trunk/bootstrap.sh
 
 THRIFT.DIR ?= /usr/local/include/thrift
 SVN.DIR = trunk/lib/cpp/src/thrift
-PATCHED.SRC != awk '/^Index/ {print $$2}' patch/*/*.diff
+PATCHED.SRC != awk '/^Index/ {print $$2}' patch/*/*.diff | dos2unix 
 PATCHED.TGT = $(PATCHED.SRC:S!$(SVN.DIR)!$(THRIFT.DIR)!g)
 
 repatch:
