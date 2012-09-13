@@ -28,14 +28,16 @@
 # define _LARGEFILE_SOURCE 1
 #endif
 
-
+#include <assert.h>
+#include <ctype.h>
+#include <err.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <assert.h>
+
 #include "sqlite3.h"
-#include <ctype.h>
-#include <stdarg.h>
 #include "../FastoreModule/CModule.h"
 
 #if !defined(_WIN32) && !defined(WIN32) && !defined(__OS2__)
@@ -110,10 +112,41 @@ static void beginTimer(void){
   }
 }
 
+/* http://www.delorie.com/gnu/docs/glibc/libc_428.html */
+static int
+timeval_subtract (result, x, y)
+     struct timeval *result, *x, *y;
+{
+	/* Perform the carry for the later subtraction by updating y. */
+	if (x->tv_usec < y->tv_usec) {
+		long nsec = (y->tv_usec - x->tv_usec) / 1000000 + 1;
+		y->tv_usec -= 1000000 * nsec;
+		y->tv_sec += nsec;
+	}
+	if (x->tv_usec - y->tv_usec > 1000000) {
+		long nsec = (x->tv_usec - y->tv_usec) / 1000000;
+		y->tv_usec += 1000000 * nsec;
+		y->tv_sec -= nsec;
+	}
+
+	/* Compute the time remaining to wait.
+	   tv_usec is certainly positive. */
+	result->tv_sec = x->tv_sec - y->tv_sec;
+	result->tv_usec = x->tv_usec - y->tv_usec;
+
+	/* Return 1 if result is negative. */
+	return x->tv_sec < y->tv_sec;
+}
+
 /* Return the difference of two time_structs in seconds */
-static double timeDiff(struct timeval *pStart, struct timeval *pEnd){
-  return (pEnd->tv_usec - pStart->tv_usec)*0.000001 + 
-         (double)(pEnd->tv_sec - pStart->tv_sec);
+static double timeDiff(struct timeval *pStart, struct timeval *pEnd)
+{
+	struct timeval output;
+	int fneg = timeval_subtract( &output, pEnd, pStart );
+	if( fneg ) 
+		fprintf(stderr, "%s:%d: subtracted time backwards\n", 
+				__FILE__, __LINE__);
+	return (double)output.tv_sec + (double)output.tv_usec / 1000000;
 }
 
 /*
@@ -340,8 +373,7 @@ static void shellstaticFunc(
 */
 static char *local_getline(char *zPrompt, FILE *in, int csvFlag){
   char *zLine;
-  int nLine;
-  int n;
+  size_t nLine, n;
   int inQuote = 0;
 
   if( zPrompt && *zPrompt ){
@@ -352,13 +384,18 @@ static char *local_getline(char *zPrompt, FILE *in, int csvFlag){
   zLine = (char*)malloc( nLine );
   if( zLine==0 ) return 0;
   n = 0;
+  assert(nLine <= INT_MAX);
+  if( nLine > INT_MAX) {
+	  warn("nLIne %lu exceeds INT_MAX, truncated\n", nLine);
+	  nLine = INT_MAX;
+  }
   while( 1 ){
     if( n+100>nLine ){
       nLine = nLine*2 + 100;
       zLine = (char*)realloc(zLine, nLine);
       if( zLine==0 ) return 0;
     }
-    if( fgets(&zLine[n], nLine - n, in)==0 ){
+    if( fgets(&zLine[n], (int)(nLine - n), in)==0 ){
       if( n==0 ){
         free(zLine);
         return 0;
@@ -535,6 +572,8 @@ static void output_quoted_string(FILE *out, const char *z){
   }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 /*
 ** Output the given string as a quoted according to C or TCL quoting rules.
 */
@@ -562,6 +601,7 @@ static void output_c_string(FILE *out, const char *z){
   }
   fputc('"', out);
 }
+#pragma GCC diagnostic pop
 
 /*
 ** Output the given string with characters that are special to
@@ -635,7 +675,7 @@ static void output_csv(struct callback_data *p, const char *z, int bSep){
     for(i=0; z[i]; i++){
       if( needCsvQuote[((unsigned char*)z)[i]] 
          || (z[i]==p->separator[0] && 
-             (nSep==1 || memcmp(z, p->separator, nSep)==0)) ){
+             (nSep==1 || memcmp(z, p->separator, (size_t)nSep)==0)) ){
         i = 0;
         break;
       }
@@ -863,7 +903,7 @@ static int callback(void *pArg, int nArg, char **azArg, char **azCol){
 ** table name.
 */
 static void set_table_name(struct callback_data *p, const char *zName){
-  int i, n;
+  size_t i, n;
   int needQuote;
   char *z;
 
@@ -915,9 +955,10 @@ static char *appendText(char *zIn, char const *zAppend, char quote){
     for(i=0; i<nAppend; i++){
       if( zAppend[i]==quote ) len++;
     }
+	assert(len < INT_MAX);
   }
 
-  zIn = (char *)realloc(zIn, len);
+  zIn = (char *)realloc(zIn, (size_t)len);
   if( !zIn ){
     return 0;
   }
@@ -933,7 +974,7 @@ static char *appendText(char *zIn, char const *zAppend, char quote){
     *zCsr++ = '\0';
     assert( (zCsr-zIn)==len );
   }else{
-    memcpy(&zIn[nIn], zAppend, nAppend);
+	  memcpy(&zIn[nIn], zAppend, (size_t)nAppend);
     zIn[len-1] = '\0';
   }
 
@@ -1001,13 +1042,14 @@ static int run_table_dump_query(
 */
 static char *save_err_msg(
   sqlite3 *db            /* Database to query */
-){
-  int nErrMsg = 1+strlen30(sqlite3_errmsg(db));
-  char *zErrMsg = (char*)sqlite3_malloc(nErrMsg);
-  if( zErrMsg ){
-    memcpy(zErrMsg, sqlite3_errmsg(db), nErrMsg);
-  }
-  return zErrMsg;
+)
+{
+	int nErrMsg = 1+strlen30(sqlite3_errmsg(db));
+	char *zErrMsg = (char*)sqlite3_malloc(nErrMsg);
+	if( zErrMsg ){
+		memcpy(zErrMsg, sqlite3_errmsg(db), (size_t)nErrMsg);
+	}
+	return zErrMsg;
 }
 
 /*
@@ -1175,7 +1217,7 @@ static int shell_exec(
         if( xCallback ){
           /* allocate space for col name ptr, value ptr, and type */
           int nCol = sqlite3_column_count(pStmt);
-          void *pData = sqlite3_malloc(3*nCol*sizeof(const char*) + 1);
+          void *pData = sqlite3_malloc(3*nCol*(int)sizeof(const char*) + 1);
           if( !pData ){
             rc = SQLITE_NOMEM;
           }else{
@@ -1369,7 +1411,7 @@ static int run_schema_dump_query(
       sqlite3_free(zErr);
       zErr = 0;
     }
-    zQ2 = (char*)malloc( len+100 );
+    zQ2 = (char*)malloc( (size_t)len+100 );
     if( zQ2==0 ) return rc;
     sqlite3_snprintf(len+100, zQ2, "%s ORDER BY rowid DESC", zQuery);
     rc = sqlite3_exec(p->db, zQ2, dump_callback, p, &zErr);
@@ -1480,6 +1522,9 @@ static void open_db(struct callback_data *p){
   }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 /*
 ** Do C-language style dequoting.
 **
@@ -1517,6 +1562,7 @@ static void resolve_backslashes(char *z){
   }
   z[j] = 0;
 }
+#pragma GCC diagnostic pop
 
 /*
 ** Interpret zArg as a boolean value.  Return either 0 or 1.
@@ -1581,6 +1627,9 @@ static void test_breakpoint(void){
   nCall++;
 }
 
+#pragma GCC diagnostic push
+/* pragma GCC diagnostic ignored "-Wconversion" */
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 /*
 ** If an input line begins with "." then invoke this routine to
 ** process that line.
@@ -2308,8 +2357,8 @@ static int do_meta_command(char *zLine, struct callback_data *p){
       if( nRow>=nAlloc ){
         char **azNew;
         int n = nAlloc*2 + 10;
-        azNew = (char**)sqlite3_realloc(azResult, sizeof(azResult[0])*n);
-        if( azNew==0 ){
+        azNew = (char**)sqlite3_realloc(azResult, (int)sizeof(azResult[0])*n);
+        if( azNew==0 || INT_MAX / sizeof(azResult[0]) < n ){
           fprintf(stderr, "Error: out of memory\n");
           break;
         }
@@ -2520,6 +2569,7 @@ static int do_meta_command(char *zLine, struct callback_data *p){
 
   return rc;
 }
+#pragma GCC diagnostic pop
 
 /*
 ** Return TRUE if a semicolon occurs anywhere in the first N characters
@@ -2640,23 +2690,23 @@ static int process_input(struct callback_data *p, FILE *in){
       for(i=0; zLine[i] && IsSpace(zLine[i]); i++){}
       if( zLine[i]!=0 ){
         nSql = strlen30(zLine);
-        zSql = (char*)malloc( nSql+3 );
+        zSql = (char*)malloc( (size_t)nSql+3 );
         if( zSql==0 ){
           fprintf(stderr, "Error: out of memory\n");
           exit(1);
         }
-        memcpy(zSql, zLine, nSql+1);
+        memcpy(zSql, zLine, (size_t)nSql+1);
         startline = lineno;
       }
     }else{
       int len = strlen30(zLine);
-      zSql = (char*)realloc( zSql, nSql + len + 4 );
+      zSql = (char*)realloc( zSql, (size_t)(nSql + len) + 4 );
       if( zSql==0 ){
         fprintf(stderr,"Error: out of memory\n");
         exit(1);
       }
       zSql[nSql++] = '\n';
-      memcpy(&zSql[nSql], zLine, len+1);
+      memcpy(&zSql[nSql], zLine, (size_t)len+1);
       nSql += len;
     }
     if( zSql && _contains_semicolon(&zSql[nSqlPrior], nSql-nSqlPrior)
@@ -2750,7 +2800,7 @@ static char *find_home_dir(void){
 #endif /* !_WIN32_WCE */
 
   if( home_dir ){
-    int n = strlen30(home_dir) + 1;
+    size_t n = (size_t)strlen30(home_dir) + 1;
     char *z = (char*)malloc( n );
     if( z ) memcpy(z, home_dir, n);
     home_dir = z;
@@ -3122,7 +3172,7 @@ int main(int argc, char **argv){
       zHome = find_home_dir();
       if( zHome ){
         nHistory = strlen30(zHome) + 20;
-        if( (zHistory = (char*)malloc(nHistory))!=0 ){
+        if( (zHistory = (char*)malloc((size_t)nHistory))!=0 ){
           sqlite3_snprintf(nHistory, zHistory,"%s/.sqlite_history", zHome);
         }
       }
