@@ -20,7 +20,8 @@ configure trunk/configure: trunk/bootstrap.sh
 
 THRIFT.DIR ?= /usr/local/include/thrift
 SVN.DIR = trunk/lib/cpp/src/thrift
-PATCHED.SRC != awk '/^Index/ {print $$2}' patch/*/*.diff | dos2unix 
+PATCHED.SRC != awk '/^Index/ {print $$2}' \
+			patch/*/*.diff patch/*.diff | dos2unix 
 PATCHED.TGT = $(PATCHED.SRC:S!$(SVN.DIR)!$(THRIFT.DIR)!g)
 
 repatch:
