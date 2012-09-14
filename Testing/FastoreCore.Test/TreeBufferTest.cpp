@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
+#include <cassert>
 #include <sstream>
 #include <iostream>
 #include <hash_set>
@@ -36,7 +37,7 @@ public:
 		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
 		ColumnWrites cw;
-		std:vector<Include> includes;
+		std::vector<Include> includes;
 
 		//Insert values 0 - 98 (inclusive) in increments of 2 into buffer
 		for (int i = 0; i < 100; i += 2)
@@ -362,7 +363,7 @@ public:
 		TreeBuffer buf(standardtypes::Int, standardtypes::Int);
 
 		ColumnWrites cw;
-		std:vector<Include> includes;
+		std::vector<Include> includes;
 
 		//Insert 2 consecutive values from 0 - 98 (inclusive) in increments of 2 into buffer
 		//e.g.  [
@@ -698,7 +699,8 @@ public:
 		RangeResult result = buf.GetRows(range);
 		
 		//Right number of values...
-		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
+		assert(0 <= expectedValuesCount);
+		Assert::AreEqual<size_t>(result.valueRowsList.size(), static_cast<size_t>(expectedValuesCount));
 
 		int expectedNum = expectedStart;
 		for (int i = 0; i < result.valueRowsList.size(); i++)
@@ -756,7 +758,7 @@ public:
 		//We should see the expectedEnd + increment if we've iterated all values, or just expected end if we didn't iterate.
 		Assert::AreEqual<int>(expectedNum, expectedValueEnd + (result.valueRowsList.size() > 0 ? valueIncrement : 0));	
 		//Right number of values
-		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValueCount);
+		Assert::AreEqual<size_t>(result.valueRowsList.size(), expectedValueCount);
 		//Right number of total values & rowIds
 		Assert::AreEqual<int>(expectedTotal, expectedTotalRowIds);
 

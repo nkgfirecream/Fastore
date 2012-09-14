@@ -26,7 +26,7 @@ public:
 		UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
 
 		ColumnWrites cw;
-		std:vector<Include> includes;
+		std::vector<Include> includes;
 
 		//Insert values 0 - 98 (inclusive) in increments of 2 into buffer
 		for (int i = 0; i < 100; i += 2)
@@ -377,7 +377,7 @@ public:
 		RangeResult result = buf.GetRows(range);
 		
 		//Right number of values...
-		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
+		Assert::AreEqual<size_t>(result.valueRowsList.size(), expectedValuesCount);
 
 		int expectedNum = expectedStart;
 		for (int i = 0; i < result.valueRowsList.size(); i++)
