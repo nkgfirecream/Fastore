@@ -1,0 +1,13 @@
+Index: trunk/lib/cpp/src/thrift/transport/THttpTransport.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/THttpTransport.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/THttpTransport.cpp	(working copy)
+@@ -171,7 +171,7 @@
+       // Return pointer to next line
+       *eol = '\0';
+       char* line = httpBuf_+httpPos_;
+-      httpPos_ = (eol-httpBuf_) + CRLF_LEN;
++      httpPos_ = THRIFT_SAFE_CAST(uint32_t, (eol-httpBuf_) + CRLF_LEN);
+       return line;
+     }
+   }

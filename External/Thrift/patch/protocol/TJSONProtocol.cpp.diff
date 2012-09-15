@@ -1,0 +1,112 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TJSONProtocol.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TJSONProtocol.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TJSONProtocol.cpp	(working copy)
+@@ -380,7 +380,7 @@
+ // Write the character ch as a JSON escape sequence ("\u00xx")
+ uint32_t TJSONProtocol::writeJSONEscapeChar(uint8_t ch) {
+   trans_->write((const uint8_t *)kJSONEscapePrefix.c_str(),
+-                kJSONEscapePrefix.length());
++                THRIFT_SAFE_CAST(uint32_t, kJSONEscapePrefix.length()));
+   uint8_t outCh = hexChar(ch >> 4);
+   trans_->write(&outCh, 1);
+   outCh = hexChar(ch);
+@@ -442,7 +442,7 @@
+   trans_->write(&kJSONStringDelimiter, 1);
+   uint8_t b[4];
+   const uint8_t *bytes = (const uint8_t *)str.c_str();
+-  uint32_t len = str.length();
++  uint32_t len = THRIFT_SAFE_CAST(uint32_t, str.length());
+   while (len >= 3) {
+     // Encode 3 bytes at a time
+     base64_encode(bytes, 3, b);
+@@ -471,8 +471,8 @@
+     trans_->write(&kJSONStringDelimiter, 1);
+     result += 1;
+   }
+-  trans_->write((const uint8_t *)val.c_str(), val.length());
+-  result += val.length();
++  trans_->write((const uint8_t *)val.c_str(), THRIFT_SAFE_CAST(uint32_t, val.length()));
++  result += THRIFT_SAFE_CAST(uint32_t, val.length());
+   if (escapeNum) {
+     trans_->write(&kJSONStringDelimiter, 1);
+     result += 1;
+@@ -483,7 +483,7 @@
+ // Convert the given double to a JSON string, which is either the number,
+ // "NaN" or "Infinity" or "-Infinity".
+ uint32_t TJSONProtocol::writeJSONDouble(double num) {
+-  uint32_t result = context_->write(*trans_);
++  size_t result = context_->write(*trans_);
+   std::string val(boost::lexical_cast<std::string>(num));
+ 
+   // Normalize output of boost::lexical_cast for NaNs and Infinities
+@@ -512,13 +512,13 @@
+     trans_->write(&kJSONStringDelimiter, 1);
+     result += 1;
+   }
+-  trans_->write((const uint8_t *)val.c_str(), val.length());
++  trans_->write((const uint8_t *)val.c_str(), THRIFT_SAFE_CAST(uint32_t, val.length()));
+   result += val.length();
+   if (escapeNum) {
+     trans_->write(&kJSONStringDelimiter, 1);
+     result += 1;
+   }
+-  return result;
++  return THRIFT_SAFE_CAST(uint32_t, result);
+ }
+ 
+ uint32_t TJSONProtocol::writeJSONObjectStart() {
+@@ -721,7 +721,7 @@
+   std::string tmp;
+   uint32_t result = readJSONString(tmp);
+   uint8_t *b = (uint8_t *)tmp.c_str();
+-  uint32_t len = tmp.length();
++  uint32_t len = THRIFT_SAFE_CAST(uint32_t, tmp.length());
+   str.clear();
+   while (len >= 4) {
+     base64_decode(b, 4);
+@@ -869,7 +869,7 @@
+   result += readJSONInteger(tmpVal);
+   messageType = (TMessageType)tmpVal;
+   result += readJSONInteger(tmpVal);
+-  seqid = tmpVal;
++  seqid = THRIFT_SAFE_CAST(int32_t, tmpVal);
+   return result;
+ }
+ 
+@@ -900,7 +900,7 @@
+     uint64_t tmpVal = 0;
+     std::string tmpStr;
+     result += readJSONInteger(tmpVal);
+-    fieldId = tmpVal;
++    fieldId = THRIFT_SAFE_CAST(int16_t, tmpVal);
+     result += readJSONObjectStart();
+     result += readJSONString(tmpStr);
+     fieldType = getTypeIDForTypeName(tmpStr);
+@@ -923,7 +923,7 @@
+   result += readJSONString(tmpStr);
+   valType = getTypeIDForTypeName(tmpStr);
+   result += readJSONInteger(tmpVal);
+-  size = tmpVal;
++  size = THRIFT_SAFE_CAST(int32_t, tmpVal);
+   result += readJSONObjectStart();
+   return result;
+ }
+@@ -940,7 +940,7 @@
+   result += readJSONString(tmpStr);
+   elemType = getTypeIDForTypeName(tmpStr);
+   result += readJSONInteger(tmpVal);
+-  size = tmpVal;
++  size = THRIFT_SAFE_CAST(int32_t, tmpVal);
+   return result;
+ }
+ 
+@@ -956,7 +956,7 @@
+   result += readJSONString(tmpStr);
+   elemType = getTypeIDForTypeName(tmpStr);
+   result += readJSONInteger(tmpVal);
+-  size = tmpVal;
++  size = THRIFT_SAFE_CAST(int32_t, tmpVal);
+   return result;
+ }
+ 

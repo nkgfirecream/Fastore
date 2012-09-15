@@ -1,0 +1,23 @@
+#! /bin/sh
+set -e
+
+THRIFT=http://svn.apache.org/repos/asf/thrift/trunk
+
+find . -type d | grep -Ev '\.svn|\./build|/patch' | while read F 
+do
+    svn proplist ${THRIFT}/$F | grep -v ${THRIFT} | while read P
+    do 
+	if [ $P = svn:ignore-false ]
+	then
+	    svn propget $P ${THRIFT}/$F > .property
+	    set -x
+	    svn propset $P -F .property $F
+	    set +x
+	else
+	    V=$(svn propget $P ${THRIFT}/$F)
+	    set -x
+	    svn propset $P "$V" $F
+	    set +x
+	fi
+    done
+done

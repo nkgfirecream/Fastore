@@ -1,0 +1,22 @@
+Index: trunk/lib/cpp/src/thrift/transport/TFDTransport.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TFDTransport.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TFDTransport.cpp	(working copy)
+@@ -66,7 +66,7 @@
+                                 "TFDTransport::read()",
+                                 errno_copy);
+     }
+-    return rv;
++    return THRIFT_SAFE_CAST(uint32_t, rv);
+   }
+ }
+ 
+@@ -85,7 +85,7 @@
+     }
+ 
+     buf += rv;
+-    len -= rv;
++    len -= THRIFT_SAFE_CAST(uint32_t, rv);
+   }
+ }
+ 

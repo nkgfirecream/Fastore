@@ -1,0 +1,22 @@
+Index: trunk/lib/cpp/src/thrift/transport/THttpServer.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/THttpServer.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/THttpServer.cpp	(working copy)
+@@ -39,7 +39,7 @@
+   if (colon == NULL) {
+     return;
+   }
+-  uint32_t sz = colon - header;
++  uint32_t sz = THRIFT_SAFE_CAST(uint32_t, colon - header);
+   char* value = colon+1;
+ 
+   if (strncmp(header, "Transfer-Encoding", sz) == 0) {
+@@ -96,7 +96,7 @@
+   string header = h.str();
+ 
+   // Write the header, then the data, then flush
+-  transport_->write((const uint8_t*)header.c_str(), header.size());
++  transport_->write(header.c_str(), header.size());
+   transport_->write(buf, len);
+   transport_->flush();
+ 

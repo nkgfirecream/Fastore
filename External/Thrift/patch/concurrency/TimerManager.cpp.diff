@@ -1,0 +1,13 @@
+Index: trunk/lib/cpp/src/thrift/concurrency/TimerManager.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/concurrency/TimerManager.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/concurrency/TimerManager.cpp	(working copy)
+@@ -102,7 +102,7 @@
+           assert((timeout != 0 && manager_->taskCount_ > 0) || (timeout == 0 && manager_->taskCount_ == 0));
+           try {
+             manager_->monitor_.wait(timeout);
+-          } catch (TimedOutException &e) {}
++          } catch (const TimedOutException&) {}
+           now = Util::currentTime();
+         }
+ 

@@ -1,0 +1,13 @@
+Index: trunk/lib/cpp/src/thrift/transport/THttpClient.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/THttpClient.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/THttpClient.cpp	(working copy)
+@@ -102,7 +102,7 @@
+   string header = h.str();
+ 
+   // Write the header, then the data, then flush
+-  transport_->write((const uint8_t*)header.c_str(), header.size());
++  transport_->write(header.c_str(), header.size());
+   transport_->write(buf, len);
+   transport_->flush();
+ 

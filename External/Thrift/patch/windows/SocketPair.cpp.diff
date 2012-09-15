@@ -1,0 +1,37 @@
+Index: trunk/lib/cpp/src/thrift/windows/SocketPair.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/windows/SocketPair.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/windows/SocketPair.cpp	(working copy)
+@@ -62,8 +62,9 @@
+     a.inaddr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+     a.inaddr.sin_port = 0; 
+ 
+-    sv[0] = sv[1] = INVALID_SOCKET;
++    sv[0] = sv[1] = -1;
+     do {
++		SOCKET s[2];
+         if (setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, 
+                (char*) &reuse, (socklen_t) sizeof(reuse)) == -1)
+             break;
+@@ -73,14 +74,16 @@
+             break;
+         if (listen(listener, 1) == SOCKET_ERROR)
+             break;
+-        sv[0] = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, flags);
+-        if (sv[0] == INVALID_SOCKET)
++        s[0] = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, flags);
++        if (s[0] == INVALID_SOCKET)
+             break;
+-        if (connect(sv[0], &a.addr, sizeof(a.inaddr)) == SOCKET_ERROR)
++		sv[0] = static_cast<int>(s[0]);
++        if (connect(s[0], &a.addr, sizeof(a.inaddr)) == SOCKET_ERROR)
+             break;
+-        sv[1] = accept(listener, NULL, NULL);
+-        if (sv[1] == INVALID_SOCKET)
++        s[1] = accept(listener, NULL, NULL);
++        if (s[1] == INVALID_SOCKET)
+             break;
++		sv[1] = static_cast<int>(s[1]);
+ 
+         closesocket(listener);
+         return 0;

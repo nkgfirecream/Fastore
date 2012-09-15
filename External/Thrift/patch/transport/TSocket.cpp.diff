@@ -1,0 +1,43 @@
+Index: trunk/lib/cpp/src/thrift/transport/TSocket.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TSocket.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TSocket.cpp	(working copy)
+@@ -186,9 +186,9 @@
+   }
+ 
+   if (! path_.empty()) {
+-    socket_ = socket(PF_UNIX, SOCK_STREAM, IPPROTO_IP);
++    socket_ = THRIFT_SAFE_CAST(int, socket(PF_UNIX, SOCK_STREAM, IPPROTO_IP));
+   } else {
+-    socket_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
++    socket_ = THRIFT_SAFE_CAST(int, socket(res->ai_family, res->ai_socktype, res->ai_protocol));
+   }
+ 
+   if (socket_ == -1) {
+@@ -264,7 +264,7 @@
+ #endif
+ 
+   } else {
+-    ret = connect(socket_, res->ai_addr, res->ai_addrlen);
++    ret = connect(socket_, res->ai_addr, THRIFT_SAFE_CAST(socklen_t, res->ai_addrlen));
+   }
+ 
+   // success case
+@@ -319,7 +319,7 @@
+   fcntl(socket_, F_SETFL, flags);
+ 
+   if (path_.empty()) {
+-    setCachedAddress(res->ai_addr, res->ai_addrlen);
++    setCachedAddress(res->ai_addr, THRIFT_SAFE_CAST(socklen_t, res->ai_addrlen));
+   }
+ }
+ 
+@@ -382,7 +382,7 @@
+     try {
+       openConnection(res);
+       break;
+-    } catch (TTransportException& ttx) {
++    } catch (const TTransportException&) {
+       if (res->ai_next) {
+         close();
+       } else {

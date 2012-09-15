@@ -1,0 +1,24 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TDebugProtocol.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TDebugProtocol.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TDebugProtocol.cpp	(working copy)
+@@ -74,14 +74,14 @@
+ }
+ 
+ uint32_t TDebugProtocol::writePlain(const string& str) {
+-  trans_->write((uint8_t*)str.data(), str.length());
+-  return str.length();
++  trans_->write((uint8_t*)str.data(), THRIFT_SAFE_CAST(uint32_t, str.length()));
++  return THRIFT_SAFE_CAST(uint32_t, str.length());
+ }
+ 
+ uint32_t TDebugProtocol::writeIndented(const string& str) {
+-  trans_->write((uint8_t*)indent_str_.data(), indent_str_.length());
+-  trans_->write((uint8_t*)str.data(), str.length());
+-  return indent_str_.length() + str.length();
++  trans_->write(indent_str_.data(), indent_str_.length());
++  trans_->write(str.data(), str.length());
++  return THRIFT_SAFE_CAST(uint32_t, indent_str_.length() + str.length());
+ }
+ 
+ uint32_t TDebugProtocol::startItem() {

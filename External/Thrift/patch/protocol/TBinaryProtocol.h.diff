@@ -1,0 +1,14 @@
+Index: trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/protocol/TBinaryProtocol.h	(working copy)
+@@ -130,7 +130,8 @@
+ 
+   inline uint32_t writeI32(const int32_t i32);
+ 
+-  inline uint32_t writeI64(const int64_t i64);
++  inline uint32_t writeI64(const  int64_t i64);
++  inline uint32_t writeI64(const uint64_t i64);
+ 
+   inline uint32_t writeDouble(const double dub);
+ 

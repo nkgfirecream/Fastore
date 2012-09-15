@@ -1,0 +1,78 @@
+Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TBufferTransports.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TBufferTransports.cpp	(working copy)
+@@ -28,7 +28,7 @@
+ 
+ 
+ uint32_t TBufferedTransport::readSlow(uint8_t* buf, uint32_t len) {
+-  uint32_t have = rBound_ - rBase_;
++  uint32_t have = THRIFT_SAFE_CAST(uint32_t, rBound_ - rBase_);
+ 
+   // We should only take the slow path if we can't satisfy the read
+   // with the data already in the buffer.
+@@ -60,8 +60,8 @@
+ }
+ 
+ void TBufferedTransport::writeSlow(const uint8_t* buf, uint32_t len) {
+-  uint32_t have_bytes = wBase_ - wBuf_.get();
+-  uint32_t space = wBound_ - wBase_;
++  uint32_t have_bytes = THRIFT_SAFE_CAST(uint32_t, wBase_ - wBuf_.get());
++  uint32_t space = THRIFT_SAFE_CAST(uint32_t, wBound_ - wBase_);
+   // We should only take the slow path if we can't accomodate the write
+   // with the free space already in the buffer.
+   assert(wBound_ - wBase_ < static_cast<ptrdiff_t>(len));
+@@ -118,7 +118,7 @@
+ 
+ void TBufferedTransport::flush()  {
+   // Write out any data waiting in the write buffer.
+-  uint32_t have_bytes = wBase_ - wBuf_.get();
++  uint32_t have_bytes = THRIFT_SAFE_CAST(uint32_t, wBase_ - wBuf_.get());
+   if (have_bytes > 0) {
+     // Note that we reset wBase_ prior to the underlying write
+     // to ensure we're in a sane state (i.e. internal buffer cleaned)
+@@ -134,7 +134,7 @@
+ 
+ uint32_t TFramedTransport::readSlow(uint8_t* buf, uint32_t len) {
+   uint32_t want = len;
+-  uint32_t have = rBound_ - rBase_;
++  uint32_t have = THRIFT_SAFE_CAST(uint32_t, rBound_ - rBase_);
+ 
+   // We should only take the slow path if we can't satisfy the read
+   // with the data already in the buffer.
+@@ -212,7 +212,7 @@
+ 
+ void TFramedTransport::writeSlow(const uint8_t* buf, uint32_t len) {
+   // Double buffer size until sufficient.
+-  uint32_t have = wBase_ - wBuf_.get();
++  uint32_t have = THRIFT_SAFE_CAST(uint32_t, wBase_ - wBuf_.get());
+   uint32_t new_size = wBufSize_;
+   if (len + have < have /* overflow */ || len + have > 0x7fffffff) {
+     throw TTransportException(TTransportException::BAD_ARGS,
+@@ -247,7 +247,7 @@
+   assert(wBufSize_ > sizeof(sz_nbo));
+ 
+   // Slip the frame size into the start of the buffer.
+-  sz_hbo = wBase_ - (wBuf_.get() + sizeof(sz_nbo));
++  sz_hbo = THRIFT_SAFE_CAST(uint32_t, wBase_ - (wBuf_.get() + sizeof(sz_nbo)));
+   sz_nbo = (int32_t)htonl((uint32_t)(sz_hbo));
+   memcpy(wBuf_.get(), (uint8_t*)&sz_nbo, sizeof(sz_nbo));
+ 
+@@ -267,7 +267,7 @@
+ }
+ 
+ uint32_t TFramedTransport::writeEnd() {
+-  return wBase_ - wBuf_.get();
++  return THRIFT_SAFE_CAST(uint32_t, wBase_ - wBuf_.get());
+ }
+ 
+ const uint8_t* TFramedTransport::borrowSlow(uint8_t* buf, uint32_t* len) {
+@@ -281,7 +281,7 @@
+ 
+ uint32_t TFramedTransport::readEnd() {
+   // include framing bytes
+-  return rBound_ - rBuf_.get() + sizeof(uint32_t);
++  return THRIFT_SAFE_CAST(uint32_t, rBound_ - rBuf_.get() + sizeof(uint32_t));
+ }
+ 
+ void TMemoryBuffer::computeRead(uint32_t len, uint8_t** out_start, uint32_t* out_give) {

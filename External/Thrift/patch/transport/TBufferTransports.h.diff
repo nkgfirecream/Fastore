@@ -1,0 +1,113 @@
+Index: trunk/lib/cpp/src/thrift/transport/TBufferTransports.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TBufferTransports.h	(working copy)
+@@ -20,12 +20,20 @@
+ #ifndef _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_
+ #define _THRIFT_TRANSPORT_TBUFFERTRANSPORTS_H_ 1
+ 
++#include <sstream>
++#include <limits>
++#include <stdexcept>
+ #include <cstring>
++#include <cstdlib>
++
+ #include "boost/scoped_array.hpp"
+ 
+ #include <thrift/transport/TTransport.h>
+ #include <thrift/transport/TVirtualTransport.h>
+ 
++// Microsoft defines max egregiously.
++#undef max
++
+ #ifdef __GNUC__
+ #define TDB_LIKELY(val) (__builtin_expect((val), 1))
+ #define TDB_UNLIKELY(val) (__builtin_expect((val), 0))
+@@ -472,6 +480,14 @@
+     // rBound_ is really an artifact.  In principle, it should always be
+     // equal to wBase_.  We update it in a few places (computeRead, etc.).
+   }
++#if defined(_WIN64) || !defined(_WIN32)
++  void initCommon(uint8_t* buf, size_t size, bool owner, size_t wPos) {
++    initCommon( buf, 
++		THRIFT_SAFE_CAST(uint32_t, size), 
++		owner, 
++		THRIFT_SAFE_CAST(uint32_t, wPos) );
++  }
++#endif
+ 
+  public:
+   static const uint32_t defaultSize = 1024;
+@@ -516,7 +532,7 @@
+    *
+    * @param sz  The initial size of the buffer.
+    */
+-  TMemoryBuffer(uint32_t sz) {
++  TMemoryBuffer(size_t sz) {
+     initCommon(NULL, sz, true, 0);
+   }
+ 
+@@ -530,7 +546,7 @@
+    * @param sz     The size of @c buf.
+    * @param policy See @link MemoryPolicy @endlink .
+    */
+-  TMemoryBuffer(uint8_t* buf, uint32_t sz, MemoryPolicy policy = OBSERVE) {
++  TMemoryBuffer(uint8_t* buf, size_t sz, MemoryPolicy policy = OBSERVE) {
+     if (buf == NULL && sz != 0) {
+       throw TTransportException(TTransportException::BAD_ARGS,
+                                 "TMemoryBuffer given null buffer with non-zero size.");
+@@ -543,7 +559,7 @@
+         break;
+       case COPY:
+         initCommon(NULL, sz, true, 0);
+-        this->write(buf, sz);
++        this->write(buf, THRIFT_SAFE_CAST(uint32_t, sz));
+         break;
+       default:
+         throw TTransportException(TTransportException::BAD_ARGS,
+@@ -628,7 +644,12 @@
+   }
+ 
+   /// See constructor documentation.
+-  void resetBuffer(uint32_t sz) {
++  void resetBuffer(size_t sz) {
++    if( std::numeric_limits<uint32_t>::max() < sz ) {
++      std::ostringstream msg;
++      msg << __FUNCTION__ << ": " << sz << " exceeds maximum value for uint32_t";
++      throw std::runtime_error(msg.str());
++    }
+     // Construct the new buffer.
+     TMemoryBuffer new_buffer(sz);
+     // Move it into ourself.
+@@ -646,16 +667,28 @@
+ 
+   // return number of bytes read
+   uint32_t readEnd() {
+-    uint32_t bytes = rBase_ - buffer_;
++    size_t bytes = rBase_ - buffer_;
+     if (rBase_ == wBase_) {
+       resetBuffer();
+     }
+-    return bytes;
++	if( std::numeric_limits<uint32_t>::max() < bytes) {
++		std::ostringstream msg;
++		msg << __FUNCTION__ << ": " << bytes << " too large to fit in uint32_t";
++		throw std::runtime_error(msg.str());
++	}
++    return static_cast<uint32_t>(bytes);
+   }
+ 
+   // Return number of bytes written
+   uint32_t writeEnd() {
+-    return wBase_ - buffer_;
++    size_t bytes = wBase_ - buffer_;
++	if( std::numeric_limits<uint32_t>::max() < bytes) {
++		std::ostringstream msg;
++		msg << __FUNCTION__ << ": " << bytes << " too large to fit in uint32_t";
++		throw std::runtime_error(msg.str());
++	}
++    return static_cast<uint32_t>(bytes);
++
+   }
+ 
+   uint32_t available_read() const {

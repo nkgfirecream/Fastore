@@ -1,0 +1,63 @@
+Index: trunk/lib/cpp/src/thrift/Thrift.h
+===================================================================
+--- trunk/lib/cpp/src/thrift/Thrift.h	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/Thrift.h	(working copy)
+@@ -37,13 +37,16 @@
+ #ifdef HAVE_INTTYPES_H
+ #include <inttypes.h>
+ #endif
+-#include <string>
++#include <exception>
++#include <limits>
++#include <list>
+ #include <map>
+-#include <list>
+ #include <set>
++#include <sstream>
++#include <stdexcept>
++#include <string>
++#include <typeinfo>
+ #include <vector>
+-#include <exception>
+-#include <typeinfo>
+ 
+ #include <boost/utility/enable_if.hpp>
+ #include <boost/type_traits/is_convertible.hpp>
+@@ -72,8 +75,37 @@
+ #define THRIFT_OVERLOAD_IF(T, Y) \
+   THRIFT_OVERLOAD_IF_DEFN(T, Y) = NULL
+ 
++#define THRIFT_SAFE_CAST(t,f) \
++	apache::thrift::safe_cast<t>(__FILE__, __LINE__, (f))
++
++// Microsoft defines max egregiously.
++#undef max
++
+ namespace apache { namespace thrift {
+ 
++	template <typename T, typename F>
++	T safe_cast(const char file[], std::size_t line, F input) 
++	{
++		using std::numeric_limits;
++		std::ostringstream msg;
++
++		if( numeric_limits<F>::is_signed && !numeric_limits<T>::is_signed ) {
++			if( input < 0 ) {
++				msg << file << ":" << line << ": " 
++					<< "signed value " << input 
++					<< " cannot be cast to unsigned type";
++				throw std::runtime_error(msg.str());
++			}
++		}
++		if( static_cast<size_t>(numeric_limits<T>::max()) < static_cast<size_t>(input) ) {
++			msg << file << ":" << line << ": " 
++				<< input << ", size " << sizeof(F) 
++				<< ", cannot be cast to unsigned type of size" << sizeof(T);
++			throw std::runtime_error(msg.str());
++		}
++		return static_cast<T>(input);
++	}
++
+ class TEnumIterator : public std::iterator<std::forward_iterator_tag, std::pair<int, const char*> > {
+  public:
+   TEnumIterator(int n,

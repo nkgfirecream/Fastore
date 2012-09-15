@@ -1,0 +1,36 @@
+Index: trunk/lib/cpp/src/thrift/transport/TFileTransport.cpp
+===================================================================
+--- trunk/lib/cpp/src/thrift/transport/TFileTransport.cpp	(revision 1381333)
++++ trunk/lib/cpp/src/thrift/transport/TFileTransport.cpp	(working copy)
+@@ -116,7 +116,7 @@
+ 
+ void TFileTransport::resetOutputFile(int fd, string filename, int64_t offset) {
+   filename_ = filename;
+-  offset_ = offset;
++  offset_ = THRIFT_SAFE_CAST(off_t, offset);
+ 
+   // check if current file is still open
+   if (fd_ > 0) {
+@@ -1079,11 +1079,11 @@
+       if ( (numEvents > 0) && (numProcessed == numEvents)) {
+         return;
+       }
+-    } catch (TEOFException& teof) {
++    } catch (const TEOFException&) {
+       if (!tail) {
+         break;
+       }
+-    } catch (TException &te) {
++    } catch (const TException &te) {
+       cerr << te.what() << endl;
+       break;
+     }
+@@ -1110,7 +1110,7 @@
+       if (curChunk != inputTransport_->getCurChunk()) {
+         break;
+       }
+-    } catch (TEOFException& teof) {
++    } catch (const TEOFException&) {
+       break;
+     } catch (TException &te) {
+       cerr << te.what() << endl;
