@@ -94,9 +94,16 @@ INSTALLED = 	$(LIBS:T:S,^,$(PREFIX)/lib/,g) \
 all: $(COMM.THRIFT) $(LIBS) $(BINS)
 
 install: $(INSTALLED)
-$(INSTALLED): $(LIBS) $(BINS)
+$(INSTALLED): 
 	install */$(@:T) $@ 
 
+$(PREFIX)/lib/libfastore-client.so: FastoreClient/libfastore-client.so
+$(PREFIX)/lib/libfastore-communication.so: FastoreCommunication/libfastore-communication.so
+$(PREFIX)/lib/libfastore-core.so: FastoreCore/libfastore-core.so
+$(PREFIX)/lib/libfastore-module.so: FastoreModule/libfastore-module.so
+$(PREFIX)/lib/libfastore-provider.so: FastoreProvider/libfastore-provider.so 
+$(PREFIX)/bin/fastored: FastoreService/fastored
+$(PREFIX)/bin/shell: FastoreShell/shell
 
 $(COMM.THRIFT): FastoreCommunication/.Comm.done FastoreCommunication/.Server.done
 
@@ -139,15 +146,16 @@ MODULE.COMMUNICATION.OBJ = $(MODULE.COMMUNICATION.BASE:S,^,FastoreCommunication/
 
 module FastoreModule: FastoreModule/libfastore-module.so
 FastoreModule/libfastore-module.so: 	$(MODULE.OBJ) \
-					$(MODULE.CLIENT.OBJ)
-	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC) \
+					$(MODULE.CLIENT.OBJ) \
+				$(PREFIX)/lib/libfastore-communication.so
+	$(CXX) $(CXXFLAGS) -shared $(MODULE.OBJ) $(MODULE.CLIENT.OBJ) \
 		-Wl,-L$(PREFIX)/lib \
 		-Wl,-rpath -Wl,$(PREFIX)/lib \
 		-lfastore-communication
 module-clean:
 	rm -f $(MODULE.OBJ) FastoreModule/libfastore-module.so
 
-provide provider FastoreProvider: FastoreProvider/libfastore-provider.so
+provider FastoreProvider: FastoreProvider/libfastore-provider.so
 FastoreProvider/libfastore-provider.so: $(PROVIDER.OBJ) 
 	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
 provider-clean:
