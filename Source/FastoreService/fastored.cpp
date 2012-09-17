@@ -34,50 +34,48 @@ void RunService(ServiceEventCallback started,
 		const EndpointConfig& endpointConfig, 
 		const StartupConfig& startupConfig)
 {
-    int err;
-
     try	{
-	ServiceStartup startup;
-	startup.__set_path(startupConfig.dataPath);
-	startup.__set_port(endpointConfig.port);
+		ServiceStartup startup;
+		startup.__set_path(startupConfig.dataPath);
+		startup.__set_port(endpointConfig.port);
 
-	boost::shared_ptr<ServiceHandler> 
-	    handler(new ServiceHandler(startup));
+		boost::shared_ptr<ServiceHandler> 
+			handler(new ServiceHandler(startup));
 
-	boost::shared_ptr<TProcessor> 
-	    processor(new ServiceProcessor(handler));
+		boost::shared_ptr<TProcessor> 
+			processor(new ServiceProcessor(handler));
 
-	processor->setEventHandler(handler);
+		processor->setEventHandler(handler);
 
-	endpoint = boost::shared_ptr<Endpoint>(
-				 new Endpoint(endpointConfig, processor));
+		endpoint = boost::shared_ptr<Endpoint>(
+								 new Endpoint(endpointConfig, processor));
     } 
     catch (const exception& e) {
-	cout << "Error starting service: " << e.what();
-	return;
+		cout << "Error starting service: " << e.what();
+		return;
     }
 
     if (started != NULL)
-	started();
+		started();
 
     // Start main execution
     try {
-	endpoint->Run();
+		endpoint->Run();
     }
     catch (const exception& e) {
-	cout << "Error during service execution: " << e.what();
+		cout << "Error during service execution: " << e.what();
     }
 
     if (stopping != NULL)
-	stopping();
+		stopping();
 
     // Stop the service
     try {
-	endpoint.reset();			
+		endpoint.reset();			
     }
     catch (const exception& e) {
-	cout << "Error shutting down service: " << e.what();
-	return;
+		cout << "Error shutting down service: " << e.what();
+		return;
     }
 }
 
