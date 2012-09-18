@@ -77,7 +77,9 @@ int Generator::InternalGenerate(int tableId, int size, boost::optional<int> minI
 				if (values.size() > 0 && values[0].Values[0].__isset.value )
 				{	
 					transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
-					result = Encoder<int>::Decode(values[0].Values[0].value);
+					int tempresult = Encoder<int>::Decode(values[0].Values[0].value);
+					if (result < tempresult)
+						result = tempresult;
 				}
 
 				transaction->Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<int>::Encode(result + size)));

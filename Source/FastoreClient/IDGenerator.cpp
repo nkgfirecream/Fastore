@@ -119,14 +119,12 @@ int IDGenerator::Generate()
 				if (remaining < 0)
 				{
 					// Release latch
-					if (lockTaken)
-					{
-						lockTaken = false;
-						_spinlock.unlock();						
-					}
-
+					lockTaken = false;
+					_spinlock.unlock();						
+				
 					// Wait for load to complete
 					_loadEvent.wait();
+
 
 					// Take the lock back
 					_spinlock.lock();

@@ -378,6 +378,10 @@ int Database::GetWorkerIDForColumn(int columnID)
 	{
 		iter->second.Next = (iter->second.Next + 1) 
 			                % SAFE_CAST(int, iter->second.Pods.size());
+
+		if (iter->second.Next < 0)
+			iter->second.Next = 0;
+
 		auto podId = iter->second.Pods[iter->second.Next];
 		_lock->unlock();
 		return podId;
@@ -605,7 +609,6 @@ DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const int exclus
 	ReadResults resultsByColumn;
 	for (auto task = tasks.begin(); task != tasks.end(); ++task)
 	{
-		(*task)->wait();
 		auto taskresult = (*task)->get();
 		for (auto result = taskresult.begin(); result != taskresult.end(); ++result)
 		{

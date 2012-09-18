@@ -31,7 +31,7 @@
 #define NOMINMAX
 #define BOOST_ALL_NO_LIB 1
 #define BOOST_THREAD_NO_LIB 1
-#define TARGET_WIN_XP
+//#define TARGET_WIN_XP
 
 #ifdef TARGET_WIN_XP
 #  define WINVER 0x0501

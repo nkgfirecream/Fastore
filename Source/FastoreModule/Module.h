@@ -86,7 +86,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 	{
 		// Attempt to find the column by name
 		Range query;
-		query.ColumnID = Dictionary::ColumnName;
+		query.ColumnID = client::Dictionary::ColumnName;
 
 		client::RangeBound bound;
 		bound.Bound = defs[i].Name;
@@ -95,7 +95,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 		query.End = bound;
 
 		//Just pull one row. If any exist we should verify it's the correct one.
-		auto result = connection->_database->GetRange(ColumnIDs(), query, 1);
+		auto result = connection->_database->GetRange(client::Dictionary::ColumnColumns, query, 1);
 
 		if (result.Data.size() == 0)
 		{
@@ -165,12 +165,12 @@ void ensureTablesTable(module::Connection* connection)
 
 	//Table.DDL
 	ColumnDef tableDDL;
-	tableName.BufferType = BufferType_t::Unique;
-	tableName.ColumnID = module::Dictionary::TableDDL;
-	tableName.IDType = "Int";
-	tableName.Name = "Table.DDL";
-	tableName.Required = true;
-	tableName.Type = "String";
+	tableDDL.BufferType = BufferType_t::Unique;
+	tableDDL.ColumnID = module::Dictionary::TableDDL;
+	tableDDL.IDType = "Int";
+	tableDDL.Name = "Table.DDL";
+	tableDDL.Required = true;
+	tableDDL.Type = "String";
 
 	defs.push_back(tableDDL);
 	
@@ -189,9 +189,9 @@ void ensureTablesTable(module::Connection* connection)
 	//TableColumn.ColumnID
 	ColumnDef tableColumnColumnId;
 	tableColumnColumnId.BufferType = BufferType_t::Multi;
-	tableColumnColumnId.ColumnID = module::Dictionary::TableColumnTableID;
+	tableColumnColumnId.ColumnID = module::Dictionary::TableColumnColumnID;
 	tableColumnColumnId.IDType = "Int";
-	tableColumnColumnId.Name = "TableColumn.TableID";
+	tableColumnColumnId.Name = "TableColumn.ColumnID";
 	tableColumnColumnId.Required = true;
 	tableColumnColumnId.Type = "Int";
 
@@ -270,7 +270,7 @@ fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *co
 	ostringstream ddl;
 	for (int i = 3; i < argc; i++)
 	{
-		if (i != 0)
+		if (i != 3)
 			ddl << ",";
 		//TODO: Clean arguments. Make sure they are SQLite compatible.
 		ddl << argv[i];
@@ -335,7 +335,7 @@ int moduleDisconnect(sqlite3_vtab *pVTab)
 	fastore_vtab* v = (fastore_vtab *)pVTab;
 	v->table->disconnect();
 	delete v->table;
-	free(v);
+	//free(v);
 	return SQLITE_OK;
 }
 
@@ -344,7 +344,7 @@ int moduleDestroy(sqlite3_vtab *pVTab)
 	fastore_vtab* v = (fastore_vtab *)pVTab;
 	v->table->drop();
 	delete v->table;
-	free(v);
+	//free(v);
 	return SQLITE_OK;
 }
 

@@ -11,7 +11,7 @@ using namespace std;
 */
 
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
-	_keyType(keyType), _valueType(valueType)
+	_keyType(keyType), _valueType(valueType), _count(0)
 {
 	_keyOnly = false;
 	_nodeType = NodeType();
@@ -19,7 +19,7 @@ BTree::BTree(ScalarType keyType, ScalarType valueType) :
 }
 
 BTree::BTree(ScalarType keyType) :
-	_keyType(keyType)
+	_keyType(keyType), _count(0)
 {
 	_keyOnly = true;
 	_nodeType = NodeType();

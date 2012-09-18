@@ -300,7 +300,7 @@ class Node
 			else
 			{
 				path.Leaf = this;
-				path.LeafIndex = short(_count > 0 ? _count = 1 : 0);
+				path.LeafIndex = short(_count > 0 ? _count - 1 : 0);
 			}
 		}
 

@@ -123,6 +123,7 @@ void module::Table::ensureColumns()
 		// Attempt to find the column by name
 		Range query;
 		query.ColumnID = client::Dictionary::ColumnName;
+		query.Ascending = true;
 
 		client::RangeBound bound;
 		bound.Bound = combinedName;
@@ -134,7 +135,7 @@ void module::Table::ensureColumns()
 
 		if (result.Data.size() > 0)
 		{
-			int columnId = Encoder<int>::Decode(result.Data[i].ID);
+			int columnId = Encoder<int>::Decode(result.Data[0].ID);
 			_columns[i].ColumnID = columnId;
 			_columnIds.push_back(columnId);
 		}
@@ -322,7 +323,9 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 
 	//Step 3. If we have a supported constraint, use it
 	bool useConstraint = constraintMap.size() > 0 && supported[weights.begin()->second];
-	int whichColumn = weights.begin()->second;
+	int whichColumn = 0;
+	if (useConstraint)
+		whichColumn = weights.begin()->second;
 
 	char* idxstr = NULL;
 
@@ -343,7 +346,7 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 
 	//Step 4. Match the index to the constraint if possible, if not, see if order is usable by itself.
 	bool useOrder = false;
-	if (info->nOrderBy == 0 || (info->nOrderBy == 1 && !useConstraint) || (info->nOrderBy == 1 && info->aOrderBy[0].iColumn == whichColumn))
+	if ((info->nOrderBy == 1 && !useConstraint) || (info->nOrderBy == 1 && info->aOrderBy[0].iColumn == whichColumn))
 	{
 		info->orderByConsumed = true;
 		useOrder = true;
@@ -356,7 +359,7 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 	else if (useOrder)
 		cost = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
 	else
-		cost = static_cast<double>(_stats[0].total); //If no ordering, size of whole table -- pick a key column.
+		cost = 0; //static_cast<double>(_stats[0].total); //If no ordering, size of whole table -- pick a key column.
 
 	//Step 6. Set remaining outputs.
 	info->estimatedCost = cost;
@@ -452,10 +455,10 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 
 void module::Table::updateStats()
 {
-	if (_transaction != NULL)
+	/*if (_transaction != NULL)
 		_stats = _transaction->GetStatistics(_columnIds);
 	else
-		_connection->_database->GetStatistics(_columnIds);
+		_connection->_database->GetStatistics(_columnIds);*/
 
 	++_numoperations;
 }
