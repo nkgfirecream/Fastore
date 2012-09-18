@@ -209,7 +209,7 @@ SQLite/build/Makefile:
 	cd $(@:H) && ../configure
 
 sqlite: SQLite/build/libsqlite3.so
-SQLite/build/libsqlite3.so:
+SQLite/build/libsqlite3.so: SQLite/build/Makefile
 	cd $(@:H) && make && make install
 
 depend: .depend 
