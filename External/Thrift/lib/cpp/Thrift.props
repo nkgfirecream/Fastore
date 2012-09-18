@@ -1,14 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <THIRD_PARTY>$(SolutionDir)..\</THIRD_PARTY>
+    <THIRD_PARTY>$(SolutionDir)..\..\..\..\</THIRD_PARTY>
+    <BOOST>$(SolutionDir)..\..\..\..\boost_1_51_0</BOOST>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
   <ItemGroup>
     <BuildMacro Include="THIRD_PARTY">
       <Value>$(THIRD_PARTY)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="BOOST">
+      <Value>$(BOOST)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>
