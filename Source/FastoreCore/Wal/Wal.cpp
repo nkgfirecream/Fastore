@@ -1,4 +1,3 @@
-#pragma once
 #include "Wal.h"
 // $Id$
 
@@ -188,9 +187,9 @@ struct header_t
 
     fingerprint_t( const unsigned char * input, size_t length ) {
       MD4_CTX context;
-      MD4Init(&context);
-      MD4Update(&context, input, length);
-      MD4Final(this->data, &context);
+      MD4_Init(&context);
+      MD4_Update(&context, input, length);
+      MD4_Final(this->data, &context);
     }
 
     bool operator==( const fingerprint_t& that ) {
@@ -219,9 +218,9 @@ struct header_t
   { 
     MD4_CTX context;
 
-    MD4Init(&context);
+    MD4_Init(&context);
 
-    MD4Update(&context, 
+    MD4_Update(&context, 
 	      reinterpret_cast<const unsigned char*>(magic_version.c_str()), 
 	      magic_version.size() );
 
@@ -230,10 +229,10 @@ struct header_t
       + sizeof(mem)/sizeof(mem[0]);
     for( const unsigned char *p = reinterpret_cast<const unsigned char*>(mem);  
 	 p <  pend; p += sizeof(mem[0]) ) {
-      MD4Update(&context, p, sizeof(mem[0]) );
+      MD4_Update(&context, p, sizeof(mem[0]) );
     }
     
-    MD4Final(output.data, &context);
+    MD4_Final(output.data, &context);
     
     return output;
   }

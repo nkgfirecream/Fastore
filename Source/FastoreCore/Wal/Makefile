@@ -1,4 +1,4 @@
-.SUFFIXES: .ms .dvi .ps .pdf
+.SUFFIXES: .ms .dvi .ps .pdf .i
 
 PROJDIR = $(HOME)/projects/alphora/Fastore/trunk
 
@@ -10,16 +10,13 @@ CXX = clang++
 STD =  	-std=c++0x
 .endif
 
-# 	-I../../../External/boost_1_49_0 
 MACDIR = /Developer/SDKs/MacOSX10.6.sdk/usr
-CFLAGS += -o $@ -g  $(STD) \
+CXXFLAGS += -o $@ -g  $(STD) \
 	-DDEBUG_WAL_FUNC \
 	-I.. \
-	-I../../../External/Thrift/src \
 	-I../../FastoreClient \
 	-I../../FastoreCommunication \
 	-I/usr/local/include \
-	-I/usr/pkg/include \
 	-I $(MACDIR)/include
 
 LDFLAGS = -lutil
@@ -32,13 +29,12 @@ SQLITE =	sqlite3/random.c \
 
 OBJ = 	$(SRC:R:S/$/.o/)
 
+wald: wald.cpp $(OBJ) pidfile.c
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(.ALLSRC) -lcrypto
+
+
 WalFile.cpp: WalFile.h
 wald.cpp: WalFile.h
-wald: wald.cpp WalFile.o Wal.o
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(.ALLSRC)
-
-
-all: $(OBJ)
 
 clean: 
 	rm -f $(OBJ) libwal.a t/wal_test t/wal_test.o
@@ -50,6 +46,9 @@ libwal.a: $(OBJ)
 
 t/wal_test: t/wal_test.cpp libwal.a
 	c++ $(CFLAGS) $(@:R).cpp -L. -lwal
+
+.cpp.i:
+	$(CXX) -E $(CXXFLAGS) -c $(.ALLSRC)
 
 .ms.ps:
 	dformat $(.ALLSRC) | groff -pet -ms -Tps > $@~

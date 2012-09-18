@@ -9,7 +9,7 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <md4.h>
+#include <openssl/md4.h>
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
@@ -54,9 +54,9 @@ class Md4
 
   Md4( const unsigned char * input, size_t length ) {
     MD4_CTX context;
-    MD4Init(&context);
-    MD4Update(&context, input, length);
-    MD4Final(this->data, &context);
+    MD4_Init(&context);
+    MD4_Update(&context, input, length);
+    MD4_Final(this->data, &context);
   }
 
   bool operator==( const Md4& that ) {
@@ -89,7 +89,7 @@ struct wal_desc_t
   }
 
   void lsn( size_t value ) {
-      sprintf(log_number, "%08u", value);
+      sprintf(log_number, "%08zu", value);
   }
 };
 

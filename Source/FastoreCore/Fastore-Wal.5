@@ -1,0 +1,27 @@
+Nate asked me some good questions about the WAL format.  
+
+First surprise: I see no need to concern ourselves with pages.  Because we're using a memory=mapped file, we can simply write records in memory and let the OS manage the pages.  
+, and ends with an MD4.  On opening a cold file after a reboot (say), it will be possible to determine how many records there are and whether they're correct, provided we know where to start.  
+
+We start, naturally enough, at the beginning.  The file header states where the first record lies, using a byte offset (off_t in C).  lseek and ye shall find.  Read length, read data, check MD4.  Repeat until MD4 fails or the next transaction number is zero.  Failure flags the end of the useful part of the log, sad face.  Zero means one of:
+
+1.  beginning of pre-initialized portion
+2.  end-of-wal record
+
+
+
+We can scan a 1GB log in a few seconds, so it isn't absolutely necessary to maintain start & end locations as long as they're derivable from the information in the log.  But for the sake of certainty in applying the checkpoint, it seems wise to keep an accounting.  
+
+
+
+I'd keep the two copies at the beginning and immediately after the last active record.  
+
+WAL writes then proceed as follows: 
+
+1.  Update head record with copy of current. 
+2.  Write record (overwriting tail). 
+3.  Write tail record. 
+
+
+  
+

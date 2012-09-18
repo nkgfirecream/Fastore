@@ -1,6 +1,13 @@
 #include <cstdio>
 
+#include <err.h>
+#include <fcntl.h>
+#include <libgen.h>
+#include <signal.h>
+#include <syslog.h>
+
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -29,11 +36,24 @@ boost::shared_ptr<Endpoint> endpoint;
 
 typedef void (*ServiceEventCallback)();
 
-void RunService(ServiceEventCallback started, 
-		ServiceEventCallback stopping, 
-		const EndpointConfig& endpointConfig, 
-		const StartupConfig& startupConfig)
+int pidfile(const char *basename);
+
+static char * getprogname() { return program_invocation_short_name; }
+
+static void term_handler(int, siginfo *, void *)
 {
+	if( endpoint ) 
+		endpoint->Stop();
+	return;
+}
+
+void RunService(ServiceEventCallback started, 
+				ServiceEventCallback stopping, 
+				const EndpointConfig& endpointConfig, 
+				const StartupConfig& startupConfig)
+{
+	const char *name = getprogname();
+
     try	{
 		ServiceStartup startup;
 		startup.__set_path(startupConfig.dataPath);
@@ -58,12 +78,66 @@ void RunService(ServiceEventCallback started,
     if (started != NULL)
 		started();
 
+	// attach to syslogd
+	openlog( name, LOG_CONS|LOG_PID, LOG_DAEMON);
+
+	/*
+	 * Kill parent process, become child of init.
+	 * Become session leader. 
+	 * Clear umask. 
+	 */
+	pid_t pid = fork();
+
+	if( pid != 0 ) {
+		if( pid == -1 ) {
+			err(errno, "wald");
+		}
+		exit(EXIT_SUCCESS);
+	}
+
+	syslog( LOG_INFO, "%d: %s: started", __LINE__, name);
+
+	if( (pid = setsid()) == -1 ) {
+		syslog( LOG_ERR, "%d: %m", __LINE__);
+		exit(EXIT_FAILURE);
+	}
+
+	umask(0);
+
+	/*
+	 * Create pid file if possible. 
+	 */
+	if( -1 == pidfile(name) ) {
+		syslog( LOG_ERR, "%d: pidfile '%s': %m", __LINE__, name );
+		char *user = getenv("USER");
+		if( user && string("jklowden") == user )
+			syslog( LOG_INFO, "%d: continuing without pidfile", __LINE__ );
+		else
+			exit(EXIT_FAILURE);
+	} 
+
+	struct sigaction act;
+	sigset_t set;
+	if( -1 == sigemptyset(&set) ) {
+		syslog( LOG_ERR, "%d: %m", __LINE__ );
+		exit(EXIT_FAILURE);
+	}
+	act.sa_sigaction = term_handler;
+	act.sa_mask = set;
+	act.sa_flags = SA_SIGINFO;
+
+	if( -1 == sigaction(SIGTERM, &act, NULL) ) {
+		syslog( LOG_ERR, "%d: %m", __LINE__ );
+		exit(EXIT_FAILURE);
+	}		
+
     // Start main execution
     try {
 		endpoint->Run();
+		syslog( LOG_INFO, "%d: endpoint stopped", __LINE__ );
     }
     catch (const exception& e) {
-		cout << "Error during service execution: " << e.what();
+		syslog( LOG_ERR, "%d: %s", __LINE__, e.what() );
     }
 
     if (stopping != NULL)
@@ -72,9 +146,10 @@ void RunService(ServiceEventCallback started,
     // Stop the service
     try {
 		endpoint.reset();			
+		syslog( LOG_INFO, "%d: endpoint reset", __LINE__ );
     }
     catch (const exception& e) {
-		cout << "Error shutting down service: " << e.what();
+		syslog( LOG_ERR, "%d: %s", __LINE__, e.what() );
 		return;
     }
 }
@@ -83,26 +158,26 @@ void RunService(ServiceEventCallback started,
 void ShutdownEndpoint()
 {
     try {
-	boost::shared_ptr<TSocket> 
-	    socket(new TSocket("localhost", endpoint->getConfig().port));
-	boost::shared_ptr<TTransport> 
-	    transport(new TFramedTransport(socket));
-	boost::shared_ptr<TProtocol> 
-	    protocol(new TBinaryProtocol(transport));
+		boost::shared_ptr<TSocket> 
+			socket(new TSocket("localhost", endpoint->getConfig().port));
+		boost::shared_ptr<TTransport> 
+			transport(new TFramedTransport(socket));
+		boost::shared_ptr<TProtocol> 
+			protocol(new TBinaryProtocol(transport));
 
-	ServiceClient client(protocol);
-	transport->open();
-	client.shutdown();
-	transport->close();
+		ServiceClient client(protocol);
+		transport->open();
+		client.shutdown();
+		transport->close();
     }
     catch(...) {
-	// For now we expect a transport exception upon shutting down, 
-	// since the server will immediately
-	// close and terminate all connections.
+		// For now we expect a transport exception upon shutting down, 
+		// since the server will immediately
+		// close and terminate all connections.
     }
 
     if (endpoint != NULL)
-	endpoint->Stop();
+		endpoint->Stop();
 }
 
 #if defined(_WIN32)
@@ -113,14 +188,14 @@ void ShutdownEndpoint()
 BOOL CtrlCHandler(DWORD fdwCtrlType) 
 { 
     switch (fdwCtrlType) { 
-	// Handle the CTRL-C signal. 
+		// Handle the CTRL-C signal. 
     case CTRL_C_EVENT: 
-	cout << "Stop Request Received.\n";
-	ShutdownEndpoint();
-	return( TRUE );
+		cout << "Stop Request Received.\n";
+		ShutdownEndpoint();
+		return( TRUE );
 
     default: 
-	return FALSE; 
+		return FALSE; 
     } 
 }
 #endif
@@ -160,44 +235,70 @@ main(int argc, char* argv[])
 {
     CombinedConfig config;
     int ch;
+	
+	if( (optarg = getenv("FASTORED_DATA")) != NULL ) 
+		config.startupConfig.dataPath = optarg;
 
     while ((ch = getopt(argc, argv, "d:p:")) != -1) {
-	switch (ch) {
-	case 'd': {
-	    struct stat sb;
-	    if( -1 == stat(optarg, &sb) ) {
-		ostringstream oops;
-		oops << optarg << " is not a valid path";
-		perror(oops.str().c_str());
-		exit(EXIT_FAILURE);
-	    }
-	    config.startupConfig.dataPath = optarg;
+		switch (ch) {
+		case 'd': {
+			struct stat sb;
+			if( -1 == stat(optarg, &sb) ) {
+				ostringstream oops;
+				oops << optarg << " is not a valid path";
+				perror(oops.str().c_str());
+				return EXIT_FAILURE;
+			}
+			config.startupConfig.dataPath = optarg;
+			if( -1 == chdir(dirname(optarg)) ) {
+				syslog( LOG_ERR, 
+						"could not change to '%s' (based on  %s), %d: %m", 
+						dirname(optarg), optarg, __LINE__ );
+				return EXIT_FAILURE;
+			}
+    
 	    } break;
-	case 'p': {
-	    istringstream is(optarg);
-	    is >> config.endpointConfig.port;
-	    if( is.tellg() == 0 || !is.good() ) {
-		cerr << "error: " << optarg << " is not a good port number\n";
-		exit(EXIT_FAILURE);
-	    }
+		case 'p': {
+			istringstream is(optarg);
+			is >> config.endpointConfig.port;
+			if( is.tellg() == 0 || !is.good() ) {
+				cerr << "error: " << optarg << " is not a good port number\n";
+				return EXIT_FAILURE;
+			}
 	    } break;
-	case '?':
-	default:
-	    cout << "syntax: fastored -p port -d datapath\n";
-	    break;
-	}
+		case '?':
+		default:
+			cout << "syntax: fastored -p port -d datapath\n";
+			break;
+		}
     }
 
     cout << "Configuration: port = " << config.endpointConfig.port 
-	 << "	data path = '"       << config.startupConfig.dataPath 
-	 << "'\n";
+		 << "	data path = '"       << config.startupConfig.dataPath 
+		 << "'\n";
 
     cout << "Service starting....\n";
 
+	/*
+	 * Close existing descriptor and reopen them on the null device.
+	 */  
+	for( int fd=0; fd < 3; fd++ ) {
+		static const char dev_null[] = "/dev/null";
+		if( -1 == close(fd) ) {
+			syslog( LOG_ERR, "%d: %m", __LINE__);
+			return EXIT_FAILURE;
+		}
+    
+		if( -1 == open(dev_null, 0, 0) ) {
+			syslog( LOG_ERR, "%d: %m", __LINE__);
+			return EXIT_FAILURE;
+		}
+	}
+
     RunService(&ConsoleStarted, 
-	       &ConsoleStopping, 
-	       config.endpointConfig, 
-	       config.startupConfig);
+			   &ConsoleStopping, 
+			   config.endpointConfig, 
+			   config.startupConfig);
 
     cout << "Service stopped.\n";
 
@@ -262,8 +363,8 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR* lpszArgv )
 //   None
 //
 VOID ReportSvcStatus( DWORD dwCurrentState,
-	DWORD dwWin32ExitCode,
-	DWORD dwWaitHint)
+					  DWORD dwWin32ExitCode,
+					  DWORD dwWaitHint)
 {
 	static DWORD dwCheckPoint = 1;
 
@@ -278,7 +379,7 @@ VOID ReportSvcStatus( DWORD dwCurrentState,
 	else gSvcStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
 
 	if ( (dwCurrentState == SERVICE_RUNNING) ||
-		(dwCurrentState == SERVICE_STOPPED) )
+		 (dwCurrentState == SERVICE_STOPPED) )
 		gSvcStatus.dwCheckPoint = 0;
 	else gSvcStatus.dwCheckPoint = dwCheckPoint++;
 
@@ -347,22 +448,22 @@ VOID SvcReportEvent(LPTSTR szFunction, LPTSTR szMessage)
     if( NULL != hEventSource )
 	{
 	    if (szMessage != NULL)
-		StringCchCopy(Buffer, 80, szMessage);
+			StringCchCopy(Buffer, 80, szMessage);
 	    else
-		StringCchPrintf(Buffer, 80, TEXT("%s failed with %d"), szFunction, GetLastError());
+			StringCchPrintf(Buffer, 80, TEXT("%s failed with %d"), szFunction, GetLastError());
 
 	    lpszStrings[0] = SVCNAME;
 	    lpszStrings[1] = Buffer;
 
 	    ReportEvent(hEventSource,        // event log handle
-			EVENTLOG_ERROR_TYPE, // event type
-			0,                   // event category
-			SVC_ERROR,           // event identifier
-			NULL,                // no security identifier
-			2,                   // size of lpszStrings array
-			0,                   // no binary data
-			lpszStrings,         // array of strings
-			NULL);               // no binary data
+					EVENTLOG_ERROR_TYPE, // event type
+					0,                   // event category
+					SVC_ERROR,           // event identifier
+					NULL,                // no security identifier
+					2,                   // size of lpszStrings array
+					0,                   // no binary data
+					lpszStrings,         // array of strings
+					NULL);               // no binary data
 
 	    DeregisterEventSource(hEventSource);
 	}
