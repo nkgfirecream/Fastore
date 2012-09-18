@@ -406,7 +406,7 @@
     <IncludePath>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost\boost_1_47_0\include;$(THIRD_PARTY)\boost\boost_1_47_0\;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost\boost_1_47_0\include;$(THIRD_PARTY)\boost\boost_1_47_0\;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY);$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-mt|x64'">
     <IncludePath>$(ProjectDir)\src\;$(ProjectDir)\src\thrift\windows\;$(THIRD_PARTY)\boost\boost_1_47_0\include;$(THIRD_PARTY)\boost\boost_1_47_0\;$(THIRD_PARTY)\openssl\OpenSSL-Win32\include\;$(IncludePath)</IncludePath>
@@ -461,6 +461,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>thrift\windows\force_inc.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>$(BOOST);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
