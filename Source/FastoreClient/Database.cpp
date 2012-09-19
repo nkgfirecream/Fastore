@@ -606,6 +606,7 @@ DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const ColumnID e
 	ReadResults resultsByColumn;
 	for (auto task = tasks.begin(); task != tasks.end(); ++task)
 	{
+		(*task)->wait();
 		auto taskresult = (*task)->get();
 		for (auto result = taskresult.begin(); result != taskresult.end(); ++result)
 		{
