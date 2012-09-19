@@ -29,14 +29,14 @@ Database::Database(std::vector<ServiceAddress> addresses)
 	_services
 	(
 		[](boost::shared_ptr<TProtocol> proto) { return ServiceClient(proto); }, 
-		[&](int i) { return this->GetServiceAddress(i); }, 
+		[&](HostID i) { return this->GetServiceAddress(i); }, 
 		[](ServiceClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
 		[](ServiceClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
 	),
 	_workers
 	(
 		[](boost::shared_ptr<TProtocol> proto) { return WorkerClient(proto); }, 
-		[&](int i) { return this->GetWorkerAddress(i); }, 
+		[&](PodID i) { return this->GetWorkerAddress(i); }, 
 		[](WorkerClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
 		[](WorkerClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
 	),
@@ -93,20 +93,20 @@ Database::Database(std::vector<ServiceAddress> addresses)
 	//Create a new topology instead.
 	auto newTopology = CreateTopology(serviceWorkers);
 
-	auto addressesByHost = std::map<int, NetworkAddress>();
+	auto addressesByHost = std::map<HostID, NetworkAddress>();
 	for (size_t hostID = 0; hostID  < networkAddresses.size(); hostID++)
 		addressesByHost.insert(std::make_pair(HostID(hostID), networkAddresses[hostID]));
 
 	HiveState newHive;
 	newHive.__set_topologyID(newTopology.topologyID);
-	newHive.__set_services(std::map<int, ServiceState>());
+	newHive.__set_services(std::map<HostID, ServiceState>());
 	for (size_t hostID = 0; hostID < networkAddresses.size(); hostID++)
 	{
 		auto service = _services.Connect(networkAddresses[hostID]);
 		try
 		{
 			ServiceState serviceState;
-			service.init(serviceState, newTopology, addressesByHost, SAFE_CAST(HostID, hostID));
+			service.init(serviceState, newTopology, addressesByHost, HostID(hostID));
 			newHive.services.insert(std::make_pair(HostID(hostID), serviceState));
 		}
 		catch(const std::exception&)
@@ -122,7 +122,7 @@ Database::Database(std::vector<ServiceAddress> addresses)
 
 void Database::UpdateTopologySchema(const Topology &newTopology)
 {
-	auto writes = std::map<int, boost::shared_ptr<ColumnWrites>>();
+	auto writes = std::map<ColumnID, boost::shared_ptr<ColumnWrites>>();
 
 	// Insert the topology
 	std::vector<fastore::communication::Include> tempVector;
@@ -183,10 +183,10 @@ Topology Database::CreateTopology(const std::vector<int>& serviceWorkers)
 	auto podID = 0;
 	for (size_t hostID = 0; hostID < serviceWorkers.size(); hostID++)
 	{
-		auto pods = std::map<int, std::vector<int>>();
+		auto pods = std::map<PodID, std::vector<ColumnID>>();
 		for (int i = 0; i < serviceWorkers[hostID]; i++)
 		{
-			pods.insert(std::make_pair(podID, std::vector<int>())); // No no columns initially
+			pods.insert(std::make_pair(podID, std::vector<ColumnID>())); // No no columns initially
 			podID++;
 		}
 		newTopology.hosts.insert(std::make_pair(HostID(hostID), pods));
@@ -209,7 +209,7 @@ Database::~Database()
 
 //TODO: consider rewriting these in terms of a scoped_lock so that it's always released when it goes out of scope.
 // This requires including more of the boost library. (Or just write some type of autolock).
-NetworkAddress& Database::GetServiceAddress(int hostID)
+NetworkAddress& Database::GetServiceAddress(HostID hostID)
 {
 	_lock->lock();
 	try
@@ -234,28 +234,25 @@ NetworkAddress& Database::GetServiceAddress(int hostID)
 
 HiveState Database::GetHiveState()
 {
-    std::pair<int, ServiceState> testing1;
-    std::future<int> testing2;
-    std::future<std::pair<int, ServiceState>> testing123;
 	//TODO: Need to actually try to get new worker information, update topologyID, etc.
 	//This just assumes that we won't add any workers once we are up and running
 	HiveState newHive;
 	newHive.__set_topologyID(0);
-	newHive.__set_services(std::map<int, ServiceState>());
+	newHive.__set_services(std::map<HostID, ServiceState>());
 
 	//Using shared_ptr because the copy constructor of future is private, preventing its direct use in a
 	//vector.
-	std::vector<boost::shared_ptr<std::future<std::pair<int, ServiceState>>>> tasks;
+	std::vector<boost::shared_ptr<std::future<std::pair<HostID, ServiceState>>>> tasks;
 	for (auto service : _hiveState.services)
 	{
-		auto task = boost::shared_ptr<std::future<std::pair<int, ServiceState>>>
+		auto task = boost::shared_ptr<std::future<std::pair<HostID, ServiceState>>>
 		(
-			new std::future<std::pair<int, ServiceState>>
+			new std::future<std::pair<HostID, ServiceState>>
 			(
 				std::async
 				(
 					std::launch::async,
-					[&]()-> std::pair<int, ServiceState>
+					[&]()-> std::pair<HostID, ServiceState>
 					{
 						ServiceClient serviceClient = _services[service.first];
 						OptionalServiceState state;
@@ -326,7 +323,7 @@ void Database::UpdateHiveState(const HiveState &newState)
 	_lock->unlock();
 }
 
-NetworkAddress Database::GetWorkerAddress(int podID)
+NetworkAddress Database::GetWorkerAddress(PodID podID)
 {
 	_lock->lock();		
 	auto iter = _workerStates.find(podID);
@@ -345,7 +342,7 @@ NetworkAddress Database::GetWorkerAddress(int podID)
 	}
 }
 
-std::pair<int, WorkerClient> Database::GetWorker(int columnID)
+std::pair<PodID, WorkerClient> Database::GetWorker(ColumnID columnID)
 {
 	if (columnID <= Dictionary::MaxSystemColumnID)
 		return GetWorkerForSystemColumn();
@@ -353,13 +350,13 @@ std::pair<int, WorkerClient> Database::GetWorker(int columnID)
 		return GetWorkerForColumn(columnID);
 }
 
-std::pair<int, WorkerClient> Database::GetWorkerForColumn(int columnID)
+std::pair<PodID, WorkerClient> Database::GetWorkerForColumn(ColumnID columnID)
 {
 	auto podId = GetWorkerIDForColumn(columnID);
-	return std::pair<int, WorkerClient>(podId, _workers[podId]);
+	return std::pair<PodID, WorkerClient>(podId, _workers[podId]);
 }
 
-int Database::GetWorkerIDForColumn(int columnID)
+PodID Database::GetWorkerIDForColumn(ColumnID columnID)
 {
 	_lock->lock();
 	
@@ -388,10 +385,10 @@ int Database::GetWorkerIDForColumn(int columnID)
 	}	
 }
 
-std::pair<int, WorkerClient> Database::GetWorkerForSystemColumn()
+std::pair<PodID, WorkerClient> Database::GetWorkerForSystemColumn()
 {
 	// For a system column, any worker will do, so just use an already connected worker
-	int podID;
+	PodID podID;
 	_lock->lock();
 	podID = std::next(_workerStates.begin(), _nextSystemWorker)->first;
 	_nextSystemWorker = (_nextSystemWorker + 1) % SAFE_CAST(int, _workerStates.size());
@@ -400,7 +397,7 @@ std::pair<int, WorkerClient> Database::GetWorkerForSystemColumn()
 	return std::make_pair(podID, _workers[podID]);
 }
 
-std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<int, boost::shared_ptr<ColumnWrites>> &writes)
+std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>> &writes)
 {
 	_lock->lock();
 	std::vector<WorkerInfo> results;
@@ -441,9 +438,9 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<int,
 	}
 }
 
-void Database::AttemptRead(int columnId, std::function<void(WorkerClient)> work)
+void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> work)
 {
-	std::map<int, std::exception> errors;
+	std::map<PodID, std::exception> errors;
 	clock_t begin;
 	clock_t end;
 	while (true)
@@ -496,7 +493,7 @@ void Database::AttemptRead(int columnId, std::function<void(WorkerClient)> work)
 	}
 }
 
-void Database::AttemptWrite(int podId, std::function<void(WorkerClient)> work)
+void Database::AttemptWrite(PodID podId, std::function<void(WorkerClient)> work)
 {
 	clock_t begin;
 	clock_t end;
@@ -520,12 +517,12 @@ void Database::AttemptWrite(int podId, std::function<void(WorkerClient)> work)
 	TrackTime(podId, end - begin);
 }
 
-void Database::TrackTime(int podId, long long p)
+void Database::TrackTime(PodID podId, long long p)
 {
 	// TODO: track the time taken by the worker for better routing
 }
 
-void Database::TrackErrors(std::map<int, std::exception> &errors)
+void Database::TrackErrors(std::map<PodID, std::exception> &errors)
 {
 	// TODO: stop trying to reach workers that keep giving errors, ask for a state update too
 }
@@ -566,7 +563,7 @@ RangeSet Database::GetRange(const ColumnIDs& columnIds, const Range& range, cons
 	return ResultsToRangeSet(result, range.ColumnID, std::find(columnIds.begin(), columnIds.end(), range.ColumnID) - columnIds.begin(), rangeResult);
 }
 
-DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const int exclusionColumnId, const Query& rowIdQuery)
+DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const ColumnID exclusionColumnId, const Query& rowIdQuery)
 {
 	std::vector<boost::shared_ptr<std::future<ReadResults>>> tasks;
 	for (size_t i = 0; i < columnIds.size(); ++i)
@@ -620,7 +617,7 @@ DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const int exclus
 	return ResultsToDataSet(columnIds, rowIdQuery.rowIDs, resultsByColumn);
 }
 
-DataSet Database::GetValues(const std::vector<int>& columnIds, const std::vector<std::string>& rowIds)
+DataSet Database::GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds)
 {
 	Query rowIdQuery;
 	rowIdQuery.__set_rowIDs(rowIds);
@@ -629,7 +626,7 @@ DataSet Database::GetValues(const std::vector<int>& columnIds, const std::vector
 	return InternalGetValues(columnIds, -1, rowIdQuery);
 }
 
-DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults)
+DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const ReadResults& rowResults)
 {
 	DataSet result (rowIDs.size(), columnIds.size());
 
@@ -725,7 +722,7 @@ Query Database::CreateQuery(const Range range, const int limit, const boost::opt
 	return rangeQuery;
 }
 
-void Database::Apply(const std::map<int, boost::shared_ptr<ColumnWrites>>& writes, const bool flush)
+void Database::Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& writes, const bool flush)
 {
 	if (writes.size() > 0)
 		while (true)
@@ -759,7 +756,7 @@ void Database::Apply(const std::map<int, boost::shared_ptr<ColumnWrites>>& write
 		}
 }
 
-std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorkerWrites(const std::map<int, boost::shared_ptr<ColumnWrites>> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
+std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorkerWrites(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
 {
 	std::vector<boost::shared_ptr<std::future<TransactionID>>> tasks;
 	// Apply the modification to every worker, even if no work
@@ -981,9 +978,9 @@ void Database::Include(const ColumnIDs& columnIds, const std::string& rowId, con
 	Apply(writes, false);
 }
 
-std::map<int, boost::shared_ptr<ColumnWrites>> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
+std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
 {
-	std::map<int, boost::shared_ptr<ColumnWrites>> writes;
+	std::map<ColumnID, boost::shared_ptr<ColumnWrites>> writes;
 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
@@ -1004,9 +1001,9 @@ void Database::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
 	Apply(CreateExcludes(columnIds, rowId), false);
 }
 
-std::map<int, boost::shared_ptr<ColumnWrites>> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId)
+std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId)
 {
-	std::map<int, boost::shared_ptr<ColumnWrites>> writes;
+	std::map<ColumnID, boost::shared_ptr<ColumnWrites>> writes;
 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
@@ -1021,7 +1018,7 @@ std::map<int, boost::shared_ptr<ColumnWrites>> Database::CreateExcludes(const Co
 	return writes;
 }
 
-std::vector<Statistic> Database::GetStatistics(const std::vector<int>& columnIds)
+std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 {
 	// Make the request against each column
 	std::vector<boost::shared_ptr<std::future<Statistic>>> tasks;
@@ -1110,12 +1107,15 @@ void Database::RefreshSchema()
 
 void Database::BootStrapSchema()
 {
+	//TODO: Consider making bootstrap information shared between server and client so that 
+	//we don't have to change it two places.
+
 	// Actually, we only need the ID and Type to bootstrap properly.
 	ColumnDef id;
 	id.ColumnID = Dictionary::ColumnID;
 	id.Name = "Column.ID";
-	id.Type = "Int";
-	id.IDType = "Int";
+	id.Type = "Long";
+	id.IDType = "Long";
 	id.BufferType = BufferType_t::Identity;
 	id.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnID, id));
@@ -1124,7 +1124,7 @@ void Database::BootStrapSchema()
 	name.ColumnID = Dictionary::ColumnName;
 	name.Name = "Column.Name";
 	name.Type = "String";
-	name.IDType = "Int";
+	name.IDType = "Long";
 	name.BufferType = BufferType_t::Unique;
 	name.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnName, name));
@@ -1133,7 +1133,7 @@ void Database::BootStrapSchema()
 	vt.ColumnID = Dictionary::ColumnValueType;
 	vt.Name = "Column.ValueType";
 	vt.Type = "String";
-	vt.IDType = "Int";
+	vt.IDType = "Long";
 	vt.BufferType = BufferType_t::Multi;
 	vt.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnValueType, vt));
@@ -1142,7 +1142,7 @@ void Database::BootStrapSchema()
 	idt.ColumnID = Dictionary::ColumnRowIDType;
 	idt.Name = "Column.RowIDType";
 	idt.Type = "String";
-	idt.IDType = "Int";
+	idt.IDType = "Long";
 	idt.BufferType = BufferType_t::Multi;
 	idt.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnRowIDType, idt));
@@ -1151,7 +1151,7 @@ void Database::BootStrapSchema()
 	unique.ColumnID = Dictionary::ColumnBufferType;
 	unique.Name = "Column.BufferType";
 	unique.Type = "Int";
-	unique.IDType = "Int";
+	unique.IDType = "Long";
 	unique.BufferType = BufferType_t::Multi;
 	unique.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnBufferType, unique));
@@ -1160,7 +1160,7 @@ void Database::BootStrapSchema()
 	required.ColumnID = Dictionary::ColumnRequired;
 	required.Name = "Column.Required";
 	required.Type = "Bool";
-	required.IDType = "Int";
+	required.IDType = "Long";
 	required.BufferType = BufferType_t::Multi;
 	required.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnRequired, required));	
@@ -1169,9 +1169,9 @@ void Database::BootStrapSchema()
 	RefreshSchema();
 }
 
-std::map<int, long long> Database::Ping()
+std::map<HostID, long long> Database::Ping()
 {
-	std::vector<int> hostIds;
+	HostIDs hostIds;
 
 	_lock->lock();
 	for (auto iter = _hiveState.services.begin(); iter != _hiveState.services.end(); ++iter)
@@ -1180,18 +1180,18 @@ std::map<int, long long> Database::Ping()
 	}
 	_lock->unlock();
 
-	std::vector<boost::shared_ptr<std::future<std::pair<int, long long>>>> tasks;
+	std::vector<boost::shared_ptr<std::future<std::pair<HostID, long long>>>> tasks;
 	for (size_t i = 0; i < hostIds.size(); ++i)
 	{		
-		int hostId = hostIds[i];
-		auto task = boost::shared_ptr<std::future<std::pair<int, long long>>>
+		HostID hostId = hostIds[i];
+		auto task = boost::shared_ptr<std::future<std::pair<HostID, long long>>>
 		(
-			new std::future<std::pair<int, long long>>
+			new std::future<std::pair<HostID, long long>>
 			(
 				std::async
 				(
 					std::launch::async,
-					[&]() -> std::pair<int, long long>
+					[&]() -> std::pair<HostID, long long>
 					{
 						auto service = _services[hostId];
 						bool released = false;
@@ -1203,12 +1203,12 @@ std::map<int, long long> Database::Ping()
 							service.ping();
 							stop = clock();
 							released = true;
-							_services.Release(std::pair<int, ServiceClient>(hostId, service));							
+							_services.Release(std::pair<HostID, ServiceClient>(hostId, service));							
 						}
 						catch(const std::exception&)
 						{
 							if (!released)
-								_services.Release(std::pair<int, ServiceClient>(hostId, service));
+								_services.Release(std::pair<HostID, ServiceClient>(hostId, service));
 						}				
 
 						return std::make_pair(hostId, stop - start);
@@ -1219,7 +1219,7 @@ std::map<int, long long> Database::Ping()
 	}
 
 	// Gather ping results
-	std::map<int, long long> result;
+	std::map<HostID, long long> result;
 	for (auto iter = tasks.begin(); iter != tasks.end(); ++iter)
 	{
 		(*iter)->wait();

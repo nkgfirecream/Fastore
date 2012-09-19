@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <string>
+#include <cstdint>
 
 namespace fastore 
 { 
@@ -15,7 +16,7 @@ namespace fastore
 		class ColumnDef
 		{
 		public:
-			int ColumnID;
+			int64_t ColumnID;
 			std::string Name;
 			std::string Type;
 			std::string IDType;

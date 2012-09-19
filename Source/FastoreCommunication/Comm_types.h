@@ -48,17 +48,21 @@ struct LockMode {
 
 extern const std::map<int, const char*> _LockMode_VALUES_TO_NAMES;
 
-typedef int32_t TopologyID;
+typedef int64_t TopologyID;
 
-typedef int32_t ColumnID;
+typedef int64_t ColumnID;
 
-typedef int32_t HostID;
+typedef int64_t HostID;
 
-typedef int32_t PodID;
+typedef int64_t PodID;
 
 typedef int64_t TimeStamp;
 
 typedef std::vector<ColumnID>  ColumnIDs;
+
+typedef std::vector<PodID>  PodIDs;
+
+typedef std::vector<HostID>  HostIDs;
 
 typedef std::map<PodID, ColumnIDs>  Pods;
 
@@ -141,8 +145,8 @@ void swap(NetworkAddress &a, NetworkAddress &b);
 class WorkerState {
  public:
 
-  static const char* ascii_fingerprint; // = "FD84F91A115D56581604124C0B6B3D24";
-  static const uint8_t binary_fingerprint[16]; // = {0xFD,0x84,0xF9,0x1A,0x11,0x5D,0x56,0x58,0x16,0x04,0x12,0x4C,0x0B,0x6B,0x3D,0x24};
+  static const char* ascii_fingerprint; // = "BC92EF937055861591DE6DB966FACBF3";
+  static const uint8_t binary_fingerprint[16]; // = {0xBC,0x92,0xEF,0x93,0x70,0x55,0x86,0x15,0x91,0xDE,0x6D,0xB9,0x66,0xFA,0xCB,0xF3};
 
   WorkerState() : podID(0), port(0) {
   }
@@ -192,8 +196,8 @@ void swap(WorkerState &a, WorkerState &b);
 class ServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "AE98C326F1D501E0750917B29756621D";
-  static const uint8_t binary_fingerprint[16]; // = {0xAE,0x98,0xC3,0x26,0xF1,0xD5,0x01,0xE0,0x75,0x09,0x17,0xB2,0x97,0x56,0x62,0x1D};
+  static const char* ascii_fingerprint; // = "C3001D381DBE710E4896DDBDD34DEE88";
+  static const uint8_t binary_fingerprint[16]; // = {0xC3,0x00,0x1D,0x38,0x1D,0xBE,0x71,0x0E,0x48,0x96,0xDD,0xBD,0xD3,0x4D,0xEE,0x88};
 
   ServiceState() : status((ServiceStatus::type)0), timeStamp(0) {
   }
@@ -250,8 +254,8 @@ void swap(ServiceState &a, ServiceState &b);
 class HiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "E5BEEF2EC9A3602FBD778958F04C31BA";
-  static const uint8_t binary_fingerprint[16]; // = {0xE5,0xBE,0xEF,0x2E,0xC9,0xA3,0x60,0x2F,0xBD,0x77,0x89,0x58,0xF0,0x4C,0x31,0xBA};
+  static const char* ascii_fingerprint; // = "FC067A374F6546E8EF644A00D99F812C";
+  static const uint8_t binary_fingerprint[16]; // = {0xFC,0x06,0x7A,0x37,0x4F,0x65,0x46,0xE8,0xEF,0x64,0x4A,0x00,0xD9,0x9F,0x81,0x2C};
 
   HiveState() : topologyID(0), reportingHostID(0) {
   }
@@ -301,8 +305,8 @@ void swap(HiveState &a, HiveState &b);
 class Topology {
  public:
 
-  static const char* ascii_fingerprint; // = "8FFF1DF7A12AE69FE78268BC347A1EAE";
-  static const uint8_t binary_fingerprint[16]; // = {0x8F,0xFF,0x1D,0xF7,0xA1,0x2A,0xE6,0x9F,0xE7,0x82,0x68,0xBC,0x34,0x7A,0x1E,0xAE};
+  static const char* ascii_fingerprint; // = "D99C034A9599DE1ADFF4DC218564E7B5";
+  static const uint8_t binary_fingerprint[16]; // = {0xD9,0x9C,0x03,0x4A,0x95,0x99,0xDE,0x1A,0xDF,0xF4,0xDC,0x21,0x85,0x64,0xE7,0xB5};
 
   Topology() : topologyID(0) {
   }
@@ -350,8 +354,8 @@ typedef struct _OptionalHiveState__isset {
 class OptionalHiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "63624E84E96F444A04F95217FD47D34B";
-  static const uint8_t binary_fingerprint[16]; // = {0x63,0x62,0x4E,0x84,0xE9,0x6F,0x44,0x4A,0x04,0xF9,0x52,0x17,0xFD,0x47,0xD3,0x4B};
+  static const char* ascii_fingerprint; // = "493EDE5CE4DE573E889C2A72DBBE1061";
+  static const uint8_t binary_fingerprint[16]; // = {0x49,0x3E,0xDE,0x5C,0xE4,0xDE,0x57,0x3E,0x88,0x9C,0x2A,0x72,0xDB,0xBE,0x10,0x61};
 
   OptionalHiveState() : potentialWorkers(0) {
   }
@@ -407,8 +411,8 @@ typedef struct _OptionalServiceState__isset {
 class OptionalServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "F1C97296E97AFFC0B889BA7859100316";
-  static const uint8_t binary_fingerprint[16]; // = {0xF1,0xC9,0x72,0x96,0xE9,0x7A,0xFF,0xC0,0xB8,0x89,0xBA,0x78,0x59,0x10,0x03,0x16};
+  static const char* ascii_fingerprint; // = "C421FAAF977EF1AF2047022A65FBA70B";
+  static const uint8_t binary_fingerprint[16]; // = {0xC4,0x21,0xFA,0xAF,0x97,0x7E,0xF1,0xAF,0x20,0x47,0x02,0x2A,0x65,0xFB,0xA7,0x0B};
 
   OptionalServiceState() : potentialWorkers(0) {
   }
@@ -536,8 +540,8 @@ typedef struct _AlreadyJoined__isset {
 class AlreadyJoined : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "E86CACEB22240450EDCBEFC3A83970E4";
-  static const uint8_t binary_fingerprint[16]; // = {0xE8,0x6C,0xAC,0xEB,0x22,0x24,0x04,0x50,0xED,0xCB,0xEF,0xC3,0xA8,0x39,0x70,0xE4};
+  static const char* ascii_fingerprint; // = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
+  static const uint8_t binary_fingerprint[16]; // = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 
   AlreadyJoined() : hostID(0) {
   }
@@ -1367,8 +1371,8 @@ typedef struct _Conflict__isset {
 class Conflict : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "920F6571EE6C0CF61556A788D6042213";
-  static const uint8_t binary_fingerprint[16]; // = {0x92,0x0F,0x65,0x71,0xEE,0x6C,0x0C,0xF6,0x15,0x56,0xA7,0x88,0xD6,0x04,0x22,0x13};
+  static const char* ascii_fingerprint; // = "C1CFA7E6A57E07BC349AA430D41D6D57";
+  static const uint8_t binary_fingerprint[16]; // = {0xC1,0xCF,0xA7,0xE6,0xA5,0x7E,0x07,0xBC,0x34,0x9A,0xA4,0x30,0xD4,0x1D,0x6D,0x57};
 
   Conflict() : details() {
   }

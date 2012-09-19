@@ -45,15 +45,15 @@ namespace fastore { namespace client
 		class PodMap
 		{
 		public:
-			std::vector<int> Pods;
+			std::vector<PodID> Pods;
 			int Next;
 		};
 
 		class WorkerInfo
 		{
 		public:
-			int PodID;
-			std::vector<int> Columns;
+			PodID PodID;
+			ColumnIDs Columns;
 		};
 
 
@@ -99,9 +99,9 @@ namespace fastore { namespace client
 		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);
 
 		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
-		std::map<int, long long> Ping();
+		std::map<HostID, long long> Ping();
 
-		void Apply(const std::map<int, boost::shared_ptr<ColumnWrites>>& writes, const bool flush);
+		void Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& writes, const bool flush);
 		Schema GetSchema();
 
 		void RefreshSchema();
@@ -112,7 +112,7 @@ namespace fastore { namespace client
 		void setWriteTimeout(const int &value);
 
 	private:
-		NetworkAddress& GetServiceAddress(int hostID);
+		NetworkAddress& GetServiceAddress(HostID hostID);
 
 		HiveState GetHiveState();
 
@@ -120,41 +120,41 @@ namespace fastore { namespace client
 
 		void UpdateHiveState(const HiveState &newState);
 
-		NetworkAddress GetWorkerAddress(int podID);
+		NetworkAddress GetWorkerAddress(PodID podID);
 
 		void UpdateTopologySchema(const Topology &newTopology);
 		/// <summary> Get the next worker to use for the given column ID. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		std::pair<int, WorkerClient> GetWorker(int columnID);
+		std::pair<PodID, WorkerClient> GetWorker(ColumnID columnID);
 
-		std::pair<int, WorkerClient> GetWorkerForColumn(int columnID);
+		std::pair<PodID, WorkerClient> GetWorkerForColumn(ColumnID columnID);
 
-		int GetWorkerIDForColumn(int columnID);
+		PodID GetWorkerIDForColumn(ColumnID columnID);
 
-		std::pair<int, WorkerClient> GetWorkerForSystemColumn();
+		std::pair<PodID, WorkerClient> GetWorkerForSystemColumn();
 
 		/// <summary> Determine the workers to write-to for the given column IDs. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		std::vector<WorkerInfo> DetermineWorkers(const std::map<int, boost::shared_ptr<ColumnWrites>> &writes);
+		std::vector<WorkerInfo> DetermineWorkers(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>> &writes);
 
 		/// <summary> Performs a read operation against a worker and manages errors and retries. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		void AttemptRead(int columnId, std::function<void(WorkerClient)> work);
+		void AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> work);
 
 		/// <summary> Performs a write operation against a specific worker; manages errors and retries. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		void AttemptWrite(int podId, std::function<void(WorkerClient)> work);
+		void AttemptWrite(PodID podId, std::function<void(WorkerClient)> work);
 
 		/// <summary> Tracks the time taken by the given worker. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		void TrackTime(int podId, long long p);
+		void TrackTime(PodID podId, long long p);
 
 		/// <summary> Tracks errors reported by workers. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		void TrackErrors(std::map<int, std::exception> &errors);
+		void TrackErrors(std::map<PodID, std::exception> &errors);
 
-		DataSet InternalGetValues(const ColumnIDs& columnIds, const int exclusionColumnId, const Query& rowIdQuery);	
-		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const std::map<int, ReadResult>& rowResults);
+		DataSet InternalGetValues(const ColumnIDs& columnIds, const ColumnID exclusionColumnId, const Query& rowIdQuery);	
+		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const ReadResults& rowResults);
 		RangeSet ResultsToRangeSet(DataSet& set, size_t rangeColumnId, size_t rangeColumnIndex, const RangeResult& rangeResult);	
 
 		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
@@ -170,10 +170,10 @@ namespace fastore { namespace client
 		void WorkerInvoke(size_t podID, std::function<void(WorkerClient)> work);
 
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
-		std::vector<boost::shared_ptr<std::future<TransactionID>>> StartWorkerWrites(const std::map<int, boost::shared_ptr<ColumnWrites>> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
+		std::vector<boost::shared_ptr<std::future<TransactionID>>> StartWorkerWrites(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
 
-		std::map<int, boost::shared_ptr<ColumnWrites>> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
-		std::map<int, boost::shared_ptr<ColumnWrites>> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId);
+		std::map<ColumnID, boost::shared_ptr<ColumnWrites>> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
+		std::map<ColumnID, boost::shared_ptr<ColumnWrites>> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId);
 
 		Schema LoadSchema();
 		void BootStrapSchema();

@@ -10,7 +10,7 @@
 
 using namespace boost::filesystem;
 
-Repository::Repository(int columnID, const string& path) : _columnID(columnID), _path(path)
+Repository::Repository(ColumnID columnID, const string& path) : _columnID(columnID), _path(path)
 {
 	//set status to offline.
 	_status = RepositoryStatus::Offline;

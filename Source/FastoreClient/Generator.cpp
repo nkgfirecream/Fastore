@@ -13,7 +13,7 @@ Generator::Generator(boost::shared_ptr<Database> database, std::vector<PodID> po
 	_lock = boost::shared_ptr<boost::mutex>(new boost::mutex());
 }
 
-int Generator::Generate(int generatorId, boost::optional<int> minId)
+int64_t Generator::Generate(int64_t generatorId, boost::optional<int64_t> minId)
 {
 	// Take lock
 	_lock->lock();
@@ -27,7 +27,7 @@ int Generator::Generate(int generatorId, boost::optional<int> minId)
 			
 			_generators.insert
 			(
-				std::pair<int, boost::shared_ptr<IDGenerator>>
+				std::pair<int64_t, boost::shared_ptr<IDGenerator>>
 				(
 					generatorId, 
 					boost::shared_ptr<IDGenerator>
@@ -59,7 +59,7 @@ int Generator::Generate(int generatorId, boost::optional<int> minId)
 	}
 }
 
-int Generator::InternalGenerate(int tableId, int size, boost::optional<int> minId)
+int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::optional<int64_t> minId)
 {
 	while (true)
 	{
@@ -68,21 +68,21 @@ int Generator::InternalGenerate(int tableId, int size, boost::optional<int> minI
 			auto transaction = _database->Begin(true, true);
 			try
 			{
-				std::string tableIdstring = Encoder<int>::Encode(tableId);
-				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(tableIdstring));
+				std::string generatorIdstring = Encoder<int64_t>::Encode(generatorId);
+				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(generatorIdstring));
 				
-				int result = minId ? *minId : 0;
+				int64_t result = minId ? *minId : 0;
 
 				//If we have an entry increment, otherwise leave at default.
 				if (values.size() > 0 && values[0].Values[0].__isset.value )
 				{	
-					transaction->Exclude(Dictionary::GeneratorColumns, tableIdstring);
-					int tempresult = Encoder<int>::Decode(values[0].Values[0].value);
+					transaction->Exclude(Dictionary::GeneratorColumns, generatorIdstring);
+					int64_t tempresult = Encoder<int64_t>::Decode(values[0].Values[0].value);
 					if (result < tempresult)
 						result = tempresult;
 				}
 
-				transaction->Include(Dictionary::GeneratorColumns, tableIdstring, list_of<std::string>(Encoder<int>::Encode(result + size)));
+				transaction->Include(Dictionary::GeneratorColumns, generatorIdstring, list_of<std::string>(Encoder<int64_t>::Encode(result + size)));
 
 				transaction->Commit();
 				return result;
@@ -138,8 +138,8 @@ void Generator::EnsureGeneratorTable()
 			list_of<std::string> 
 				(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
 				("Generator.Generator")
-				("Int")
-				("Int")
+				("Long")
+				("Long")
 				(Encoder<BufferType_t>::Encode(BufferType_t::Unique))
 				(Encoder<bool>::Encode(true))
 		);

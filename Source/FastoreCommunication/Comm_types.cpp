@@ -129,8 +129,8 @@ void swap(NetworkAddress &a, NetworkAddress &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* WorkerState::ascii_fingerprint = "FD84F91A115D56581604124C0B6B3D24";
-const uint8_t WorkerState::binary_fingerprint[16] = {0xFD,0x84,0xF9,0x1A,0x11,0x5D,0x56,0x58,0x16,0x04,0x12,0x4C,0x0B,0x6B,0x3D,0x24};
+const char* WorkerState::ascii_fingerprint = "BC92EF937055861591DE6DB966FACBF3";
+const uint8_t WorkerState::binary_fingerprint[16] = {0xBC,0x92,0xEF,0x93,0x70,0x55,0x86,0x15,0x91,0xDE,0x6D,0xB9,0x66,0xFA,0xCB,0xF3};
 
 uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -156,8 +156,8 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->podID);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->podID);
           isset_podID = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -175,7 +175,7 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
             for (_i4 = 0; _i4 < _size0; ++_i4)
             {
               ColumnID _key5;
-              xfer += iprot->readI32(_key5);
+              xfer += iprot->readI64(_key5);
               RepositoryStatus::type& _val6 = this->repositoryStatus[_key5];
               int32_t ecast7;
               xfer += iprot->readI32(ecast7);
@@ -218,17 +218,17 @@ uint32_t WorkerState::write(::apache::thrift::protocol::TProtocol* oprot) const 
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("WorkerState");
 
-  xfer += oprot->writeFieldBegin("podID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->podID);
+  xfer += oprot->writeFieldBegin("podID", ::apache::thrift::protocol::T_I64, 1);
+  xfer += oprot->writeI64(this->podID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldBegin("repositoryStatus", ::apache::thrift::protocol::T_MAP, 2);
   {
-    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->repositoryStatus.size()));
+    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->repositoryStatus.size()));
     std::map<ColumnID, RepositoryStatus::type> ::const_iterator _iter8;
     for (_iter8 = this->repositoryStatus.begin(); _iter8 != this->repositoryStatus.end(); ++_iter8)
     {
-      xfer += oprot->writeI32(_iter8->first);
+      xfer += oprot->writeI64(_iter8->first);
       xfer += oprot->writeI32((int32_t)_iter8->second);
     }
     xfer += oprot->writeMapEnd();
@@ -251,8 +251,8 @@ void swap(WorkerState &a, WorkerState &b) {
   swap(a.port, b.port);
 }
 
-const char* ServiceState::ascii_fingerprint = "AE98C326F1D501E0750917B29756621D";
-const uint8_t ServiceState::binary_fingerprint[16] = {0xAE,0x98,0xC3,0x26,0xF1,0xD5,0x01,0xE0,0x75,0x09,0x17,0xB2,0x97,0x56,0x62,0x1D};
+const char* ServiceState::ascii_fingerprint = "C3001D381DBE710E4896DDBDD34DEE88";
+const uint8_t ServiceState::binary_fingerprint[16] = {0xC3,0x00,0x1D,0x38,0x1D,0xBE,0x71,0x0E,0x48,0x96,0xDD,0xBD,0xD3,0x4D,0xEE,0x88};
 
 uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -385,8 +385,8 @@ void swap(ServiceState &a, ServiceState &b) {
   swap(a.workers, b.workers);
 }
 
-const char* HiveState::ascii_fingerprint = "E5BEEF2EC9A3602FBD778958F04C31BA";
-const uint8_t HiveState::binary_fingerprint[16] = {0xE5,0xBE,0xEF,0x2E,0xC9,0xA3,0x60,0x2F,0xBD,0x77,0x89,0x58,0xF0,0x4C,0x31,0xBA};
+const char* HiveState::ascii_fingerprint = "FC067A374F6546E8EF644A00D99F812C";
+const uint8_t HiveState::binary_fingerprint[16] = {0xFC,0x06,0x7A,0x37,0x4F,0x65,0x46,0xE8,0xEF,0x64,0x4A,0x00,0xD9,0x9F,0x81,0x2C};
 
 uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -412,8 +412,8 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->topologyID);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->topologyID);
           isset_topologyID = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -431,7 +431,7 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
             for (_i20 = 0; _i20 < _size16; ++_i20)
             {
               HostID _key21;
-              xfer += iprot->readI32(_key21);
+              xfer += iprot->readI64(_key21);
               ServiceState& _val22 = this->services[_key21];
               xfer += _val22.read(iprot);
             }
@@ -443,8 +443,8 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 3:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->reportingHostID);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->reportingHostID);
           isset_reportingHostID = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -472,25 +472,25 @@ uint32_t HiveState::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("HiveState");
 
-  xfer += oprot->writeFieldBegin("topologyID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->topologyID);
+  xfer += oprot->writeFieldBegin("topologyID", ::apache::thrift::protocol::T_I64, 1);
+  xfer += oprot->writeI64(this->topologyID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldBegin("services", ::apache::thrift::protocol::T_MAP, 2);
   {
-    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->services.size()));
+    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->services.size()));
     std::map<HostID, ServiceState> ::const_iterator _iter23;
     for (_iter23 = this->services.begin(); _iter23 != this->services.end(); ++_iter23)
     {
-      xfer += oprot->writeI32(_iter23->first);
+      xfer += oprot->writeI64(_iter23->first);
       xfer += _iter23->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("reportingHostID", ::apache::thrift::protocol::T_I32, 3);
-  xfer += oprot->writeI32(this->reportingHostID);
+  xfer += oprot->writeFieldBegin("reportingHostID", ::apache::thrift::protocol::T_I64, 3);
+  xfer += oprot->writeI64(this->reportingHostID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -505,8 +505,8 @@ void swap(HiveState &a, HiveState &b) {
   swap(a.reportingHostID, b.reportingHostID);
 }
 
-const char* Topology::ascii_fingerprint = "8FFF1DF7A12AE69FE78268BC347A1EAE";
-const uint8_t Topology::binary_fingerprint[16] = {0x8F,0xFF,0x1D,0xF7,0xA1,0x2A,0xE6,0x9F,0xE7,0x82,0x68,0xBC,0x34,0x7A,0x1E,0xAE};
+const char* Topology::ascii_fingerprint = "D99C034A9599DE1ADFF4DC218564E7B5";
+const uint8_t Topology::binary_fingerprint[16] = {0xD9,0x9C,0x03,0x4A,0x95,0x99,0xDE,0x1A,0xDF,0xF4,0xDC,0x21,0x85,0x64,0xE7,0xB5};
 
 uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -531,8 +531,8 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->topologyID);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->topologyID);
           isset_topologyID = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -550,7 +550,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
             for (_i28 = 0; _i28 < _size24; ++_i28)
             {
               HostID _key29;
-              xfer += iprot->readI32(_key29);
+              xfer += iprot->readI64(_key29);
               Pods& _val30 = this->hosts[_key29];
               {
                 _val30.clear();
@@ -562,7 +562,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
                 for (_i35 = 0; _i35 < _size31; ++_i35)
                 {
                   PodID _key36;
-                  xfer += iprot->readI32(_key36);
+                  xfer += iprot->readI64(_key36);
                   ColumnIDs& _val37 = _val30[_key36];
                   {
                     _val37.clear();
@@ -573,7 +573,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
                     uint32_t _i42;
                     for (_i42 = 0; _i42 < _size38; ++_i42)
                     {
-                      xfer += iprot->readI32(_val37[_i42]);
+                      xfer += iprot->readI64(_val37[_i42]);
                     }
                     iprot->readListEnd();
                   }
@@ -608,29 +608,29 @@ uint32_t Topology::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Topology");
 
-  xfer += oprot->writeFieldBegin("topologyID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->topologyID);
+  xfer += oprot->writeFieldBegin("topologyID", ::apache::thrift::protocol::T_I64, 1);
+  xfer += oprot->writeI64(this->topologyID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldBegin("hosts", ::apache::thrift::protocol::T_MAP, 2);
   {
-    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_MAP, static_cast<uint32_t>(this->hosts.size()));
+    xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_MAP, static_cast<uint32_t>(this->hosts.size()));
     std::map<HostID, Pods> ::const_iterator _iter43;
     for (_iter43 = this->hosts.begin(); _iter43 != this->hosts.end(); ++_iter43)
     {
-      xfer += oprot->writeI32(_iter43->first);
+      xfer += oprot->writeI64(_iter43->first);
       {
-        xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I32, ::apache::thrift::protocol::T_LIST, static_cast<uint32_t>(_iter43->second.size()));
+        xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_LIST, static_cast<uint32_t>(_iter43->second.size()));
         std::map<PodID, ColumnIDs> ::const_iterator _iter44;
         for (_iter44 = _iter43->second.begin(); _iter44 != _iter43->second.end(); ++_iter44)
         {
-          xfer += oprot->writeI32(_iter44->first);
+          xfer += oprot->writeI64(_iter44->first);
           {
-            xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I32, static_cast<uint32_t>(_iter44->second.size()));
+            xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>(_iter44->second.size()));
             std::vector<ColumnID> ::const_iterator _iter45;
             for (_iter45 = _iter44->second.begin(); _iter45 != _iter44->second.end(); ++_iter45)
             {
-              xfer += oprot->writeI32((*_iter45));
+              xfer += oprot->writeI64((*_iter45));
             }
             xfer += oprot->writeListEnd();
           }
@@ -653,8 +653,8 @@ void swap(Topology &a, Topology &b) {
   swap(a.hosts, b.hosts);
 }
 
-const char* OptionalHiveState::ascii_fingerprint = "63624E84E96F444A04F95217FD47D34B";
-const uint8_t OptionalHiveState::binary_fingerprint[16] = {0x63,0x62,0x4E,0x84,0xE9,0x6F,0x44,0x4A,0x04,0xF9,0x52,0x17,0xFD,0x47,0xD3,0x4B};
+const char* OptionalHiveState::ascii_fingerprint = "493EDE5CE4DE573E889C2A72DBBE1061";
+const uint8_t OptionalHiveState::binary_fingerprint[16] = {0x49,0x3E,0xDE,0x5C,0xE4,0xDE,0x57,0x3E,0x88,0x9C,0x2A,0x72,0xDB,0xBE,0x10,0x61};
 
 uint32_t OptionalHiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -730,8 +730,8 @@ void swap(OptionalHiveState &a, OptionalHiveState &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* OptionalServiceState::ascii_fingerprint = "F1C97296E97AFFC0B889BA7859100316";
-const uint8_t OptionalServiceState::binary_fingerprint[16] = {0xF1,0xC9,0x72,0x96,0xE9,0x7A,0xFF,0xC0,0xB8,0x89,0xBA,0x78,0x59,0x10,0x03,0x16};
+const char* OptionalServiceState::ascii_fingerprint = "C421FAAF977EF1AF2047022A65FBA70B";
+const uint8_t OptionalServiceState::binary_fingerprint[16] = {0xC4,0x21,0xFA,0xAF,0x97,0x7E,0xF1,0xAF,0x20,0x47,0x02,0x2A,0x65,0xFB,0xA7,0x0B};
 
 uint32_t OptionalServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -919,8 +919,8 @@ void swap(LockTimedOut &a, LockTimedOut &b) {
   (void) b;
 }
 
-const char* AlreadyJoined::ascii_fingerprint = "E86CACEB22240450EDCBEFC3A83970E4";
-const uint8_t AlreadyJoined::binary_fingerprint[16] = {0xE8,0x6C,0xAC,0xEB,0x22,0x24,0x04,0x50,0xED,0xCB,0xEF,0xC3,0xA8,0x39,0x70,0xE4};
+const char* AlreadyJoined::ascii_fingerprint = "56A59CE7FFAF82BCA8A19FAACDE4FB75";
+const uint8_t AlreadyJoined::binary_fingerprint[16] = {0x56,0xA5,0x9C,0xE7,0xFF,0xAF,0x82,0xBC,0xA8,0xA1,0x9F,0xAA,0xCD,0xE4,0xFB,0x75};
 
 uint32_t AlreadyJoined::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -943,8 +943,8 @@ uint32_t AlreadyJoined::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->hostID);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->hostID);
           this->__isset.hostID = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -966,8 +966,8 @@ uint32_t AlreadyJoined::write(::apache::thrift::protocol::TProtocol* oprot) cons
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("AlreadyJoined");
 
-  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I32, 1);
-  xfer += oprot->writeI32(this->hostID);
+  xfer += oprot->writeFieldBegin("hostID", ::apache::thrift::protocol::T_I64, 1);
+  xfer += oprot->writeI64(this->hostID);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -2400,8 +2400,8 @@ void swap(AlreadyPending &a, AlreadyPending &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* Conflict::ascii_fingerprint = "920F6571EE6C0CF61556A788D6042213";
-const uint8_t Conflict::binary_fingerprint[16] = {0x92,0x0F,0x65,0x71,0xEE,0x6C,0x0C,0xF6,0x15,0x56,0xA7,0x88,0xD6,0x04,0x22,0x13};
+const char* Conflict::ascii_fingerprint = "C1CFA7E6A57E07BC349AA430D41D6D57";
+const uint8_t Conflict::binary_fingerprint[16] = {0xC1,0xCF,0xA7,0xE6,0xA5,0x7E,0x07,0xBC,0x34,0x9A,0xA4,0x30,0xD4,0x1D,0x6D,0x57};
 
 uint32_t Conflict::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -2442,7 +2442,7 @@ uint32_t Conflict::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _i98;
             for (_i98 = 0; _i98 < _size94; ++_i98)
             {
-              xfer += iprot->readI32(this->columnIDs[_i98]);
+              xfer += iprot->readI64(this->columnIDs[_i98]);
             }
             iprot->readListEnd();
           }
@@ -2473,11 +2473,11 @@ uint32_t Conflict::write(::apache::thrift::protocol::TProtocol* oprot) const {
 
   xfer += oprot->writeFieldBegin("columnIDs", ::apache::thrift::protocol::T_LIST, 2);
   {
-    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I32, static_cast<uint32_t>(this->columnIDs.size()));
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->columnIDs.size()));
     std::vector<ColumnID> ::const_iterator _iter99;
     for (_iter99 = this->columnIDs.begin(); _iter99 != this->columnIDs.end(); ++_iter99)
     {
-      xfer += oprot->writeI32((*_iter99));
+      xfer += oprot->writeI64((*_iter99));
     }
     xfer += oprot->writeListEnd();
   }

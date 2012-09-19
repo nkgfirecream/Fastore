@@ -9,7 +9,7 @@ namespace fastore { namespace client
 	class Range
 	{
 	public:
-		int ColumnID;
+		int64_t ColumnID;
 		boost::optional<RangeBound> Start;
 		boost::optional<RangeBound> End;
 		bool Ascending;

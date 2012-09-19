@@ -43,7 +43,7 @@ namespace fastore { namespace client
 		bool privateWriteIsolation;
 		bool _completed;
 		TransactionID _transactionId;
-		std::map<int, boost::shared_ptr<ColumnWrites>> GatherWrites();
+		std::map<ColumnID, boost::shared_ptr<ColumnWrites>> GatherWrites();
 
 		// Log entries - by column ID then by row ID - null value means exclude
 		std::map<ColumnID, LogColumn> _log;
@@ -69,6 +69,6 @@ namespace fastore { namespace client
 		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);
 
 		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
-		std::map<int, long long> Ping();
+		std::map<HostID, long long> Ping();
 	};
 }}

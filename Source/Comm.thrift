@@ -3,10 +3,10 @@ namespace csharp Alphora.Fastore
 
 // State Reporting
 
-typedef i32 TopologyID
-typedef i32 ColumnID
-typedef i32 HostID
-typedef i32 PodID
+typedef i64 TopologyID
+typedef i64 ColumnID
+typedef i64 HostID
+typedef i64 PodID
 struct NetworkAddress
 {
 	1: required string name,
@@ -63,6 +63,8 @@ struct HiveState
 // Topology construction
 
 typedef list<ColumnID> ColumnIDs
+typedef list<PodID> PodIDs
+typedef list<HostID> HostIDs
 
 typedef map<PodID, ColumnIDs> Pods
 	

@@ -6,6 +6,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include "Schema\standardtypes.h"
 #include <hash_set>
 #include <algorithm>
+#include "Extensions.h"
 
 using namespace std;
 
@@ -28,9 +29,10 @@ public:
 		return result.str();
 	}
 
-	TEST_METHOD(IteratorBehavior)
+	template<typename T>
+	void IterateType(ScalarType type)
 	{
-		BTree etree(standardtypes::Int, standardtypes::Int);
+		BTree etree(type, type);
 
 		auto begin = etree.begin();
 		auto end = etree.end();
@@ -38,7 +40,7 @@ public:
 		//Empty tree should return end pointer
 		Assert::IsTrue(begin == end);
 
-		int i = 2;
+		T i = 2;
 		auto find = etree.find(&i);
 		Assert::IsTrue(find == end);
 
@@ -48,14 +50,14 @@ public:
 		Assert::IsFalse(match);
 
 		int countarray[] = {50 , 5000, 100000 };
-		for (int i = 0; i < 3; i++)
+		for (T i = 0; i < 3; i++)
 		{
 
-			BTree tree(standardtypes::Int, standardtypes::Int);
+			BTree tree(type, type);
 
 			//Put stuff in tree
 			int numrows =  countarray[i];
-			for (int k = 0; k <= numrows; k += 2)
+			for (T k = 0; k <= numrows; k += 2)
 			{
 				auto path = tree.GetPath(&k);
 				Assert::IsFalse(path.Match);
@@ -65,23 +67,23 @@ public:
 			//Iteration should cover the entire tree with no missing ends;
 			begin = tree.begin();
 			end = tree.end();
-			int j = 0;
+			T j = 0;
 			while (begin != end)
 			{
-				Assert::AreEqual<int>((*(int*)(*begin).key), j);
-				Assert::AreEqual<int>((*(int*)(*begin).value), j);
+				Assert::AreEqual<T>((*(T*)(*begin).key), j);
+				Assert::AreEqual<T>((*(T*)(*begin).value), j);
 				++begin;
 				j += 2;
 			}
 
-			Assert::AreEqual<int>(j, numrows + 2);
+			Assert::AreEqual<T>(j, numrows + 2);
 
 			//we should be able to iterate backwards as well with no problems.
 			for (int i = numrows; i >= 0; i -= 2)
 			{	
 				--end;
-				Assert::AreEqual<int>((*(int*)(*end).key), i);
-				Assert::AreEqual<int>((*(int*)(*end).value), i);
+				Assert::AreEqual<T>((*(T*)(*end).key), i);
+				Assert::AreEqual<T>((*(T*)(*end).value), i);
 			}	
 
 			//Incrementing at the end should throw an exception
@@ -129,7 +131,7 @@ public:
 
 
 			//find should return a path to an item if found, or the end path if not found
-			int test = 3;
+			T test = 3;
 			find = tree.find(&test);
 
 			Assert::IsTrue(find == tree.end());
@@ -137,16 +139,16 @@ public:
 			test = 4;
 			find = tree.find(&test);
 
-			Assert::AreEqual<int>((*(int*)(*find).key), 4);
+			Assert::AreEqual<T>((*(T*)(*find).key), 4);
 
 			//first nearest should return the item if found, or the next high item if not found, or the end if there is no higher value
 			find = tree.findNearest(&test, match);
-			Assert::AreEqual<int>((*(int*)(*find).key), 4);
+			Assert::AreEqual<T>((*(T*)(*find).key), 4);
 			Assert::IsTrue(match);
 
 			test = 3;
 			find = tree.findNearest(&test, match);
-			Assert::AreEqual<int>((*(int*)(*find).key), 4);
+			Assert::AreEqual<T>((*(T*)(*find).key), 4);
 			Assert::IsFalse(match);
 
 			test = numrows + 1;
@@ -154,7 +156,12 @@ public:
 			Assert::IsTrue(find == tree.end());
 			Assert::IsFalse(match);
 		}
+	}
 
+	TEST_METHOD(IteratorBehavior)
+	{
+		IterateType<int64_t>(standardtypes::Long);
+		IterateType<int>(standardtypes::Int);		
 	}
 
 	TEST_METHOD(Sequential)
@@ -268,7 +275,7 @@ public:
 				begin++;
 			}
 
-			Assert::AreEqual<int>(j, vec.size());
+			Assert::AreEqual<size_t>(j, vec.size());
 		}
 	}
 

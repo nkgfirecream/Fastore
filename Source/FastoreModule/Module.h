@@ -124,7 +124,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 			transaction->Include
 			(
 				Dictionary::PodColumnColumns,
-				client::Encoder<long long>::Encode(connection->_generator->Generate(Dictionary::PodColumnPodID)),
+				client::Encoder<communication::ColumnID>::Encode(connection->_generator->Generate(Dictionary::PodColumnPodID)),
 				boost::assign::list_of<std::string>
 				(podId)
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
@@ -145,10 +145,10 @@ void ensureTablesTable(module::Connection* connection)
 	ColumnDef tableId;
 	tableId.BufferType = BufferType_t::Identity;
 	tableId.ColumnID = module::Dictionary::TableID;
-	tableId.IDType = "Int";
+	tableId.IDType = "Long";
 	tableId.Name = "Table.ID";
 	tableId.Required = true;
-	tableId.Type = "Int";
+	tableId.Type = "Long";
 
 	defs.push_back(tableId);
 	
@@ -156,7 +156,7 @@ void ensureTablesTable(module::Connection* connection)
 	ColumnDef tableName;
 	tableName.BufferType = BufferType_t::Unique;
 	tableName.ColumnID = module::Dictionary::TableName;
-	tableName.IDType = "Int";
+	tableName.IDType = "Long";
 	tableName.Name = "Table.Name";
 	tableName.Required = true;
 	tableName.Type = "String";
@@ -167,7 +167,7 @@ void ensureTablesTable(module::Connection* connection)
 	ColumnDef tableDDL;
 	tableDDL.BufferType = BufferType_t::Unique;
 	tableDDL.ColumnID = module::Dictionary::TableDDL;
-	tableDDL.IDType = "Int";
+	tableDDL.IDType = "Long";
 	tableDDL.Name = "Table.DDL";
 	tableDDL.Required = true;
 	tableDDL.Type = "String";
@@ -179,10 +179,10 @@ void ensureTablesTable(module::Connection* connection)
 	ColumnDef tableColumnTableId;
 	tableColumnTableId.BufferType = BufferType_t::Multi;
 	tableColumnTableId.ColumnID = module::Dictionary::TableColumnTableID;
-	tableColumnTableId.IDType = "Int";
+	tableColumnTableId.IDType = "Long";
 	tableColumnTableId.Name = "TableColumn.TableID";
 	tableColumnTableId.Required = true;
-	tableColumnTableId.Type = "Int";
+	tableColumnTableId.Type = "Long";
 
 	defs.push_back(tableColumnTableId);
 
@@ -190,10 +190,10 @@ void ensureTablesTable(module::Connection* connection)
 	ColumnDef tableColumnColumnId;
 	tableColumnColumnId.BufferType = BufferType_t::Multi;
 	tableColumnColumnId.ColumnID = module::Dictionary::TableColumnColumnID;
-	tableColumnColumnId.IDType = "Int";
+	tableColumnColumnId.IDType = "Long";
 	tableColumnColumnId.Name = "TableColumn.ColumnID";
 	tableColumnColumnId.Required = true;
-	tableColumnColumnId.Type = "Int";
+	tableColumnColumnId.Type = "Long";
 
 	defs.push_back(tableColumnColumnId);
 

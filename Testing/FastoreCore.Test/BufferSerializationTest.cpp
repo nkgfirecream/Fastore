@@ -5,6 +5,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include "Schema\standardtypes.h"
 #include "Column\UniqueBuffer.h"
 #include "Serialization.h"
+#include "Extensions.h"
 
 #include <stdio.h>
 
@@ -46,8 +47,8 @@ public:
 		cw.__set_includes(includes);
 		buf.Apply(cw);
 
-		Assert::AreEqual<int>(buf.GetStatistic().total, 5000);
-		Assert::AreEqual<int>(buf.GetStatistic().unique, 5000);
+		Assert::AreEqual<int64_t>(buf.GetStatistic().total, 5000);
+		Assert::AreEqual<int64_t>(buf.GetStatistic().unique, 5000);
 
 		//Entire Set
 		//Range: Entire set ascending
@@ -82,7 +83,7 @@ public:
 		RangeResult result = buf.GetRows(range);
 		
 		//Right number of values...
-		Assert::AreEqual<int>(result.valueRowsList.size(), expectedValuesCount);
+		Assert::AreEqual<size_t>(result.valueRowsList.size(), expectedValuesCount);
 
 		int expectedNum = expectedStart;
 		for (int i = 0; i < result.valueRowsList.size(); i++)

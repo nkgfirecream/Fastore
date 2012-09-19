@@ -37,8 +37,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef id;
 	id.ColumnID = 0;
 	id.Name = "Column.ID";
-	id.ValueType = standardtypes::Int;
-	id.RowIDType = standardtypes::Int;
+	id.ValueType = standardtypes::Long;
+	id.RowIDType = standardtypes::Long;
 	id.BufferType = BufferType_t::Identity;
 	id.Required = true;
 	CreateRepo(id);	
@@ -47,7 +47,7 @@ void WorkerHandler::Bootstrap()
 	name.ColumnID = 1;
 	name.Name = "Column.Name";
 	name.ValueType = standardtypes::String;
-	name.RowIDType = standardtypes::Int;
+	name.RowIDType = standardtypes::Long;
 	name.BufferType = BufferType_t::Unique;
 	name.Required = true;
 	CreateRepo(name);
@@ -56,7 +56,7 @@ void WorkerHandler::Bootstrap()
 	vt.ColumnID = 2;
 	vt.Name = "Column.ValueType";
 	vt.ValueType = standardtypes::String;
-	vt.RowIDType = standardtypes::Int;
+	vt.RowIDType = standardtypes::Long;
 	vt.BufferType = BufferType_t::Multi;
 	vt.Required = true;
 	CreateRepo(vt);	
@@ -65,7 +65,7 @@ void WorkerHandler::Bootstrap()
 	idt.ColumnID = 3;
 	idt.Name = "Column.RowIDType";
 	idt.ValueType = standardtypes::String;
-	idt.RowIDType = standardtypes::Int;
+	idt.RowIDType = standardtypes::Long;
 	idt.BufferType = BufferType_t::Multi;
 	idt.Required = true;
 	CreateRepo(idt);	
@@ -74,7 +74,7 @@ void WorkerHandler::Bootstrap()
 	unique.ColumnID = 4;
 	unique.Name = "Column.BufferType";
 	unique.ValueType = standardtypes::Int;
-	unique.RowIDType = standardtypes::Int;
+	unique.RowIDType = standardtypes::Long;
 	unique.BufferType = BufferType_t::Multi;
 	unique.Required = true;
 	CreateRepo(unique);	
@@ -83,7 +83,7 @@ void WorkerHandler::Bootstrap()
 	required.ColumnID = 5;
 	required.Name = "Column.Required";
 	required.ValueType = standardtypes::Bool;
-	required.RowIDType = standardtypes::Int;
+	required.RowIDType = standardtypes::Long;
 	required.BufferType = BufferType_t::Multi;
 	required.Required = true;
 	CreateRepo(required);
@@ -91,8 +91,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef topo;
 	topo.ColumnID = 100;
 	topo.Name = "Topology.ID";
-	topo.ValueType = standardtypes::Int;
-	topo.RowIDType = standardtypes::Int;
+	topo.ValueType = standardtypes::Long;
+	topo.RowIDType = standardtypes::Long;
 	topo.BufferType = BufferType_t::Identity;
 	topo.Required = true;
 	CreateRepo(topo);
@@ -100,8 +100,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef hostId;
 	hostId.ColumnID = 200;
 	hostId.Name = "Host.ID";
-	hostId.ValueType = standardtypes::Int;
-	hostId.RowIDType = standardtypes::Int;
+	hostId.ValueType = standardtypes::Long;
+	hostId.RowIDType = standardtypes::Long;
 	hostId.BufferType = BufferType_t::Identity;
 	hostId.Required = true;
 	CreateRepo(hostId);	
@@ -109,8 +109,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef podId;
 	podId.ColumnID = 300;
 	podId.Name = "Pod.ID";
-	podId.ValueType = standardtypes::Int;
-	podId.RowIDType = standardtypes::Int;
+	podId.ValueType = standardtypes::Long;
+	podId.RowIDType = standardtypes::Long;
 	podId.BufferType = BufferType_t::Unique;
 	podId.Required = true;
 	CreateRepo(podId);	
@@ -118,8 +118,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef podHostId;
 	podHostId.ColumnID = 301;
 	podHostId.Name = "Pod.HostID";
-	podHostId.ValueType = standardtypes::Int;
-	podHostId.RowIDType = standardtypes::Int;
+	podHostId.ValueType = standardtypes::Long;
+	podHostId.RowIDType = standardtypes::Long;
 	podHostId.BufferType = BufferType_t::Multi;
 	podHostId.Required = true;
 	CreateRepo(podHostId);	
@@ -127,8 +127,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef podColPodId;
 	podColPodId.ColumnID = 400;
 	podColPodId.Name = "PodColumn.PodID";
-	podColPodId.ValueType = standardtypes::Int;
-	podColPodId.RowIDType = standardtypes::Int;
+	podColPodId.ValueType = standardtypes::Long;
+	podColPodId.RowIDType = standardtypes::Long;
 	podColPodId.BufferType = BufferType_t::Multi;
 	podColPodId.Required = true;
 	CreateRepo(podColPodId);	
@@ -136,8 +136,8 @@ void WorkerHandler::Bootstrap()
 	ColumnDef podColColId;
 	podColColId.ColumnID = 401;
 	podColColId.Name = "PodColumn.ColumnID";
-	podColColId.ValueType = standardtypes::Int;
-	podColColId.RowIDType = standardtypes::Int;
+	podColColId.ValueType = standardtypes::Long;
+	podColColId.RowIDType = standardtypes::Long;
 	podColColId.BufferType = BufferType_t::Multi;
 	podColColId.Required = true;
 	CreateRepo(podColColId);

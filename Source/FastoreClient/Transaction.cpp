@@ -41,9 +41,9 @@ void Transaction::Commit(bool flush)
 	_completed = true;
 }
 
-std::map<int, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
+std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
 {
-	std::map<int,  boost::shared_ptr<ColumnWrites>> writesPerColumn;
+	std::map<ColumnID,  boost::shared_ptr<ColumnWrites>> writesPerColumn;
 
 	// Gather changes for each column
 	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
@@ -77,7 +77,7 @@ std::map<int, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
 		}
 
 		if (writes->__isset.excludes || writes->__isset.includes)
-			writesPerColumn.insert(std::pair<int,  boost::shared_ptr<ColumnWrites>>(entry->first, writes));
+			writesPerColumn.insert(std::pair<ColumnID,  boost::shared_ptr<ColumnWrites>>(entry->first, writes));
 	}
 
 	return writesPerColumn;
@@ -221,7 +221,7 @@ Transaction::LogColumn& Transaction::EnsureColumnLog(const ColumnID& columnId)
 	return _log[columnId];	
 }
 
-std::map<int, long long> Transaction::Ping()
+std::map<HostID, long long> Transaction::Ping()
 {
 	return privateDatabase.Ping();
 }

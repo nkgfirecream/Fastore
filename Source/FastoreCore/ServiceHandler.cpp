@@ -232,7 +232,7 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 			state.__set_timeStamp(0);
 		}
 
-		_hiveState->services.insert(pair<int, ServiceState>(host->first, state));
+		_hiveState->services.insert(pair<HostID, ServiceState>(host->first, state));
 	}
 
 	// Update the configuration

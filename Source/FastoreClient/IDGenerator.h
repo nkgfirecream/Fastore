@@ -78,11 +78,11 @@ namespace fastore { namespace client
 		/// <param name="generateCallback">Call-back method which is invoked when a new ID block is needed.  Should return the beginning of a block of the given size.  This call back will happen on a thread-pool thread. </param>
 		/// <param name="blockSize">The number of IDs to allocate with each batch.  This is the most IDs that could potentially be "wasted" if not fully employed. </param>
 		/// <param name="allocationThreshold">The low-water-mark for starting allocation of next block.</param>
-		IDGenerator(std::function<int(int)> generateCallback, int blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold);
+		IDGenerator(std::function<int64_t(int)> generateCallback, int blockSize = DefaultBlockSize, int allocationThreshold = DefaultAllocationThreshold);
 		~IDGenerator();
 
 		/// <summary> Generates the next ID, either pulling from a preloaded block or by loading a new block.  </summary>
-		int Generate();
+		int64_t Generate();
 
 		/// <summary> Resets the ID generation cache so that the next request will hit the callback. </summary>
 		void ResetCache();		
@@ -96,14 +96,14 @@ namespace fastore { namespace client
 		// The low-water-mark to start next block allocation
 		int _allocationThreshold;
 		// ID generation callback (when another block is needed)		
-		std::function<int(int)> _generateCallback;
+		std::function<int64_t(int)> _generateCallback;
 
 		// True if we're in the process of loading another block of IDs					
 		bool _loadingBlock;
 		// The next ID that should be allocated
-		int _nextId;
+		int64_t _nextId;
 		// The end of the ID generation range (exclusive)			
-		int _endOfRange;
+		int64_t _endOfRange;
 		// The last error that was thrown from allocation (to be relayed to requesters)					
 		boost::optional<std::exception> _lastError;
 
@@ -115,7 +115,7 @@ namespace fastore { namespace client
 		//TODO: Nullable objects
 		/// <summary> Resets the loading state after attempting to load a new block.</summary>
 		/// <param name="newBlock"> If the new block value is null, an error occurred. </param>
-		void ResetLoading(boost::optional<int> newBlock, boost::optional<std::exception> e);
+		void ResetLoading(boost::optional<int64_t> newBlock, boost::optional<std::exception> e);
 
 		void InitializeInstanceFields();
 

@@ -13,7 +13,7 @@ using namespace std;
 class Repository
 {
 private:
-	int _columnID;
+	ColumnID _columnID;
 	string _path;
 	RepositoryStatus::type _status;
 	ColumnDef _def;
@@ -27,9 +27,9 @@ private:
 	void WriteToLog(const Revision& revision, const ColumnWrites& writes);
 
 public:
-	Repository(int columnID, const string& path);
+	Repository(ColumnID columnID, const string& path);
 
-	int getColumnID() { return _columnID; }
+	ColumnID getColumnID() { return _columnID; }
 	string getPath() { return _path; }
 	RepositoryStatus::type getStatus() { return _status; }
 	ColumnDef getDef() { return _def; }

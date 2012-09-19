@@ -143,10 +143,6 @@
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="StartupConfig.h" />
-    <ClInclude Include="Storage\Schema\column.h" />
-    <ClInclude Include="Storage\Schema\standardtypes.h" />
-    <ClInclude Include="Storage\Schema\tuple.h" />
-    <ClInclude Include="Storage\Schema\scalar.h" />
     <ClInclude Include="TFastoreFileTransport.h" />
     <ClInclude Include="TFastoreServer.h" />
     <ClInclude Include="TransactionID.h" />

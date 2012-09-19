@@ -11,7 +11,7 @@ enum BufferType_t
 
 struct ColumnDef
 {
-	int ColumnID;
+	int64_t ColumnID;
 	std::string Name;
 	ScalarType ValueType;
 	ScalarType RowIDType;

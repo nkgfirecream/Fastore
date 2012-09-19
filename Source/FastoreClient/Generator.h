@@ -14,12 +14,12 @@ namespace fastore { namespace client
 	private:
 		//TODO: Locking
 		boost::shared_ptr<boost::mutex> _lock;
-		std::map<int, boost::shared_ptr<IDGenerator>> _generators;
+		std::map<int64_t, boost::shared_ptr<IDGenerator>> _generators;
 		boost::shared_ptr<Database> _database;
 
 		std::vector<PodID>_podIDs;
 
-		int InternalGenerate(int tableId, int size, boost::optional<int> minId);
+		int64_t InternalGenerate(int64_t tableId, int size, boost::optional<int64_t> minId);
 
 		bool IsNoWorkerForColumnException(const ClientException &clientex);
 
@@ -35,6 +35,6 @@ namespace fastore { namespace client
 
 		/// <summary> Generates the next value for the given table. </summary>
 		/// <param name="columnId"> The column an ID is being generated for. </param>
-		int Generate(int columnId, boost::optional<int> minId = boost::optional<int>());		
+		int64_t Generate(int64_t columnId, boost::optional<int64_t> minId = boost::optional<int64_t>());		
 	};
 }}

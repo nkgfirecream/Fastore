@@ -3,6 +3,7 @@
 #include <boost\assign\list_of.hpp>
 #include "TestSetup.h"
 #include "CppUnitTest.h"
+#include "Extensions.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace fastore::client;
@@ -18,9 +19,9 @@ public:
 
 			std::vector<Statistic> statsVect = _database->GetStatistics(_columns);
 			//6 columns
-			Assert::AreEqual<int>(statsVect.size(), 6);
+			Assert::AreEqual<size_t>(statsVect.size(), 6);
 			//7 rows
-			Assert::AreEqual<int>(statsVect[0].total, 7);
+			Assert::AreEqual<int64_t>(statsVect[0].total, 7);
 		}
 
         TEST_METHOD(TestGetRangeCols)

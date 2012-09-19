@@ -12,7 +12,6 @@ namespace module = fastore::module;
 namespace client = fastore::client;
 namespace communication = fastore::communication;
 
-std::map<std::string, std::string> module::Table::fastoreTypesToSQLiteTypes;
 std::map<std::string, std::string>  module::Table::sqliteTypesToFastoreTypes;
 std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
 
@@ -504,21 +503,13 @@ client::ColumnDef module::Table::parseColumnDef(std::string text)
 
 void module::Table::EnsureFastoreTypeMaps()
 {
-	if (fastoreTypesToSQLiteTypes.size() == 0)
-	{
-		fastoreTypesToSQLiteTypes["WString"] = "nvarchar";
-		fastoreTypesToSQLiteTypes["String"] = "varchar";
-		fastoreTypesToSQLiteTypes["Int"] = "int";
-		fastoreTypesToSQLiteTypes["Long"] = "bigint";
-		fastoreTypesToSQLiteTypes["Bool"] = "int";
-	}
-
 	if (sqliteTypesToFastoreTypes.size() == 0)
 	{
-		sqliteTypesToFastoreTypes["nvarchar"] = "WString";
+		//sqliteTypesToFastoreTypes["nvarchar"] = "WString";
 		sqliteTypesToFastoreTypes["varchar"] = "String";
-		sqliteTypesToFastoreTypes["int"] = "Int";
-		sqliteTypesToFastoreTypes["bigint"] = "Long";
+		sqliteTypesToFastoreTypes["int"] = "Long";
+		sqliteTypesToFastoreTypes["float"] = "Double";
+		//sqliteTypesToFastoreTypes["bigint"] = "Long";
 		//TODO: Must add special handling for bool. Either don't use it in Fastore, or check column def.
 		//(actually, can we even define a bool column in sqlite?)
 		//sqliteTypesToFastoreTypes["int"] = "Bool";
@@ -528,20 +519,8 @@ void module::Table::EnsureFastoreTypeMaps()
 	{
 		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
 		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
+		sqliteTypeIDToFastoreTypes[SQLITE_FLOAT] = "Double";
 	}
-}
-
-std::string module::Table::FastoreTypeToSQLiteType(const std::string &fastoreType)
-{
-	EnsureFastoreTypeMaps();
-	auto result = fastoreTypesToSQLiteTypes.find(fastoreType);
-	if (result == fastoreTypesToSQLiteTypes.end())
-	{
-		std::ostringstream message;
-		message << "Unknown type '" << fastoreType << "'.";
-		std::runtime_error(message.str());
-	}
-	return result->second;
 }
 
 std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)

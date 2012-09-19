@@ -7,7 +7,7 @@ using namespace std;
 /*
 	BTree
 
-	Assumtion: nodes will never be empty, except for a leaf when root.
+	Assumption: nodes will never be empty, except for a leaf when root.
 */
 
 BTree::BTree(ScalarType keyType, ScalarType valueType) : 
@@ -281,7 +281,7 @@ NodeType::NodeType()
 NoOpNodeType::NoOpNodeType()
 {
 	CopyIn = CopyToArray<Node*>;
-	Name = "NodeType";
+	Name = "NoOpNodeType";
 	Size = sizeof(Node*);
 	Deallocate = NoOpDeallocate;
 }

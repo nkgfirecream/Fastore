@@ -21,6 +21,6 @@ namespace fastore { namespace client
 		virtual void Exclude(const ColumnIDs& columnIds, const std::string& rowId) = 0;
 
 		virtual std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds) = 0;
-		virtual std::map<int, long long> Ping() = 0;
+		virtual std::map<HostID, long long> Ping() = 0;
 	};
 }}

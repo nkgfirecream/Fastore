@@ -3,7 +3,7 @@
 
 using namespace fastore::client;
 
-IDGenerator::IDGenerator(std::function<int(int)> _generateCallback, int blockSize, int allocationThreshold)
+IDGenerator::IDGenerator(std::function<int64_t(int)> _generateCallback, int blockSize, int allocationThreshold)
 	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold), _loadingBlock(false), _endOfRange(0), _nextId(0)
 {
 	if (blockSize < 1)
@@ -30,7 +30,7 @@ void IDGenerator::AsyncGenerateBlock()
 {
 	try
 	{
-		int newBlock;
+		int64_t newBlock;
 		try
 		{
 			// Fetch the next ID block
@@ -39,7 +39,7 @@ void IDGenerator::AsyncGenerateBlock()
 		catch (std::exception &e)
 		{
 			// If an error happens here, any waiting requesters will block
-			ResetLoading(boost::optional<int>(), e);
+			ResetLoading(boost::optional<int64_t>(), e);
 			throw;
 		}
 
@@ -51,7 +51,7 @@ void IDGenerator::AsyncGenerateBlock()
 	}
 }
 
-void IDGenerator::ResetLoading(boost::optional<int> newBlock, boost::optional<std::exception> e)
+void IDGenerator::ResetLoading(boost::optional<int64_t> newBlock, boost::optional<std::exception> e)
 {
 	// Take the latch	
 	_spinlock.lock();
@@ -85,7 +85,7 @@ void IDGenerator::ResetLoading(boost::optional<int> newBlock, boost::optional<st
 	}
 }
 
-int IDGenerator::Generate()
+int64_t IDGenerator::Generate()
 {
 	bool lockTaken = false;
 	while (true)
@@ -99,7 +99,7 @@ int IDGenerator::Generate()
 		try
 		{
 			// Generate
-			int nextId = _nextId;
+			int64_t nextId = _nextId;
 			++_nextId;
 
 			// Deal with low number of IDs remaining

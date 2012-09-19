@@ -7,8 +7,13 @@ using namespace std;
 
 int LongCompare(const void* left, const void* right)
 {
-	return  SAFE_CAST( int,  (  *reinterpret_cast<const long long*>(left) 
-							  - *reinterpret_cast<const long long*>(right)) );
+	   long long result =  *(long long*)left - *(long long*)right;
+	   if (result > 0)
+		   return 1;
+	   else if (result == 0)
+		   return 0;
+	   else
+		   return -1;
 }
 
 std::wstring LongString(const void* item)
@@ -25,7 +30,7 @@ LongType::LongType()
 	Compare = LongCompare;
 	Size = sizeof(long long);
 	ToString = LongString;
-	IndexOf = TargetedIndexOf<long long>;
+	IndexOf =  CompareIndexOf<long long, LongCompare>;
 	CopyIn = CopyToArray<long long>;
 	CopyOut = CopyOutOfArray<long long>;
 	GetPointer = GetPointerFromString<long long>;
