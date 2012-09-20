@@ -7,6 +7,7 @@ WStringType standardtypes::WString;
 IntType standardtypes::Int;
 LongType standardtypes::Long;
 BoolType standardtypes::Bool;
+DoubleType standardtypes::Double;
 	
 // Internal Types
 HashSetType standardtypes::StandardHashSet;

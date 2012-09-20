@@ -104,3 +104,38 @@ BoolType::BoolType()
 	GetPointer = GetPointerFromString<bool>;
 	Deallocate = NoOpDeallocate;
 }
+
+
+int DoubleCompare(const void* left, const void* right)
+{
+	//TODO: Make this configurable
+	double e = .0005;
+	double result =  *(double*)left - *(double*)right;
+	if (result > e)
+		return 1;
+	else if (result < -e)
+		return -1;
+	else
+		return 0;
+}
+
+std::wstring DoubleString(const void* item)
+{
+	const double temp = *reinterpret_cast<const double*>(item) ;
+	wostringstream os;
+	os << temp;
+	return os.str();
+}
+
+DoubleType::DoubleType()
+{
+	Name = "Double";
+	Compare = DoubleCompare;
+	Size = sizeof(double);
+	ToString = DoubleString;
+	IndexOf =  CompareIndexOf<double, DoubleCompare>;
+	CopyIn = CopyToArray<double>;
+	CopyOut = CopyOutOfArray<double>;
+	GetPointer = GetPointerFromString<double>;
+	Deallocate = NoOpDeallocate;
+}

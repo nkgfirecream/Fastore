@@ -33,6 +33,8 @@ void module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 		sqlite3_result_int(pContext, Encoder<int>::Decode(value.value));
 	else if (type == "Long")
 		sqlite3_result_int64(pContext, Encoder<long long>::Decode(value.value));
+	else if (type == "Double")
+		sqlite3_result_double(pContext, Encoder<double>::Decode(value.value));
 	else if (type == "String")
 		sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
 	else if (type == "WString")

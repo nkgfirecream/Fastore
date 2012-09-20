@@ -17,3 +17,8 @@ struct BoolType : public ScalarType
 	BoolType();
 };
 
+struct DoubleType : public ScalarType
+{
+	DoubleType();
+};
+

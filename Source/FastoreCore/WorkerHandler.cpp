@@ -373,6 +373,10 @@ ScalarType WorkerHandler::GetTypeFromName(std::string typeName)
 	{
 		return standardtypes::Bool;
 	}
+	else if (typeName == "Double")
+	{
+		return standardtypes::Double;
+	}
 	else
 	{
 		throw "TypeName not recognized";
