@@ -14,10 +14,36 @@ namespace communication = fastore::communication;
 
 std::map<std::string, std::string>  module::Table::sqliteTypesToFastoreTypes;
 std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
+std::map<std::string, std::string> module::Table::fastoreTypeToSQLiteAffinity;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
-	: _connection(connection), _name(name),  _ddl(ddl) 
+	: _connection(connection), _name(name),  _ddl(ddl), _rowIDIndex(-1) 
 {}
+
+void module::Table::EnsureFastoreTypeMaps()
+{
+	if (sqliteTypesToFastoreTypes.size() == 0)
+	{
+		sqliteTypesToFastoreTypes["varchar"] = "String";
+		sqliteTypesToFastoreTypes["int"] = "Long";
+		sqliteTypesToFastoreTypes["float"] = "Double";
+		sqliteTypesToFastoreTypes["date"] = "Long";
+	}
+
+	if (sqliteTypeIDToFastoreTypes.size() == 0)
+	{
+		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
+		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
+		sqliteTypeIDToFastoreTypes[SQLITE_FLOAT] = "Double";
+	}
+
+	if (fastoreTypeToSQLiteAffinity.size() == 0)
+	{
+		fastoreTypeToSQLiteAffinity["String"] = "TEXT";
+		fastoreTypeToSQLiteAffinity["Long"] = "INTEGER";
+		fastoreTypeToSQLiteAffinity["Double"] = "REAL";
+	}
+}
 
 void module::Table::begin()
 {
@@ -242,8 +268,7 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 	transaction->Commit();		
 }
 
-char *
-sqlite3_safe_malloc( size_t n )
+char *sqlite3_safe_malloc( size_t n )
 {
 	return reinterpret_cast<char*>( sqlite3_malloc(SAFE_CAST(int,n)) );
 }
@@ -378,12 +403,13 @@ client::RangeSet module::Table::getRange(client::Range& range, const boost::opti
 void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
 	//Update statistics every MAXOPERATIONS
-	++_numoperations;
-	_numoperations = _numoperations % MAXTABLEOPERATIONS;
+	_numoperations = ++_numoperations % MAXTABLEOPERATIONS;
 
 	if(_numoperations == 0)
 		updateStats();
 
+
+	//An update for us is the same as a delete + insert, so treat the first operation the same, whether or not an insert is present
 	if (sqlite3_value_type(argv[0]) != SQLITE_NULL)
 	{
 		sqlite3_int64 oldRowIdInt = sqlite3_value_int64(argv[0]);
@@ -394,21 +420,31 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 			_connection->_database->Exclude(_columnIds, oldRowId);
 	}
 
-	//If it was a delete only, return.
-	if (SAFE_CAST(size_t, argc) != _columnIds.size() + 2)
+	//delete only, return
+	if (argc == 1)
 		return;
 
+
+	//Find our row Id
 	sqlite3_int64 rowIdInt;
 	if (sqlite3_value_type(argv[1]) != SQLITE_NULL)
 	{
+		//SQLite supplied one
 		rowIdInt = sqlite3_value_int64(argv[1]);
+	}
+	else if (_rowIDIndex != -1)
+	{
+		//We are using an identity column as a rowId.
+		rowIdInt = sqlite3_value_int64(argv[2 + _rowIDIndex]); //First two values are delete and insert rowIds, actually row values follow
 	}
 	else
 	{
-		//TODO: generate on table Id
-		rowIdInt = _connection->_generator->Generate(SAFE_CAST(int, _id));
-		*pRowid = rowIdInt;
+		//Generate a new id.
+		rowIdInt = _connection->_generator->Generate(_id);
 	}
+
+	//Set the pointer so SQLite knows what rowID we've picked
+	*pRowid = rowIdInt;
 
 	std::string rowid = Encoder<sqlite3_int64>::Encode(rowIdInt);
 
@@ -423,19 +459,14 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 			std::string type = _columns[i].Type;
 
 			std::string value;
-			if (type == "Bool")
-				value = Encoder<bool>::Encode(0 != sqlite3_value_int(pValue));
-			else if (type == "Int")
-				value = Encoder<int>::Encode(sqlite3_value_int(pValue));
-			else if (type == "Long")
-				value = Encoder<long long>::Encode(sqlite3_value_int64(pValue));
+			if (type == "Long")
+				value = Encoder<long long>::Encode(0 != sqlite3_value_int64(pValue));
+			else if (type == "Double")
+				value = Encoder<double>::Encode(sqlite3_value_double(pValue));
 			else if (type == "String")
 				value = std::string((const char *)sqlite3_value_text(pValue));
-			else if (type == "WString")
-			{
-				std::wstring toEncode((const wchar_t*)sqlite3_value_text16(pValue));
-				value = Encoder<std::wstring>::Encode(toEncode);
-			}
+			else
+				throw "Table::update() : value type unknown";
 
 			row.push_back(value);
 			includedColumns.push_back(_columns[i].ColumnID);
@@ -454,12 +485,10 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 
 void module::Table::updateStats()
 {
-	/*if (_transaction != NULL)
+	if (_transaction != NULL)
 		_stats = _transaction->GetStatistics(_columnIds);
 	else
-		_connection->_database->GetStatistics(_columnIds);*/
-
-	++_numoperations;
+		_connection->_database->GetStatistics(_columnIds);
 }
 
 void module::Table::parseDDL()
@@ -497,30 +526,8 @@ client::ColumnDef module::Table::parseColumnDef(std::string text)
 	result.Required = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
 	                  insensitiveStrPos(stringText, std::string("primary")) >= 0;
 
-	result.IDType = "Int";
+	result.IDType = "Long";
 	return result;
-}
-
-void module::Table::EnsureFastoreTypeMaps()
-{
-	if (sqliteTypesToFastoreTypes.size() == 0)
-	{
-		//sqliteTypesToFastoreTypes["nvarchar"] = "WString";
-		sqliteTypesToFastoreTypes["varchar"] = "String";
-		sqliteTypesToFastoreTypes["int"] = "Long";
-		sqliteTypesToFastoreTypes["float"] = "Double";
-		//sqliteTypesToFastoreTypes["bigint"] = "Long";
-		//TODO: Must add special handling for bool. Either don't use it in Fastore, or check column def.
-		//(actually, can we even define a bool column in sqlite?)
-		//sqliteTypesToFastoreTypes["int"] = "Bool";
-	}
-
-	if (sqliteTypesToFastoreTypes.size() == 0)
-	{
-		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
-		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
-		sqliteTypeIDToFastoreTypes[SQLITE_FLOAT] = "Double";
-	}
 }
 
 std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)
@@ -534,4 +541,20 @@ std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType
 		std::runtime_error(message.str());
 	}
 	return result->second;			
+}
+
+void module::Table::determineRowIDColumn()
+{
+	//Qualities of a rowId column -- Identity, Required, Integer -- we don't particularly care if it's marked as key or not.
+	//However... That suggests only one identity column per table.. so it is a key...
+	for (size_t i = 0; i < _columns.size(); i++)
+	{
+		client::ColumnDef col = _columns[i];
+
+		if (col.Required && col.BufferType == BufferType_t::Identity && col.Type == "Long")
+		{
+			_rowIDIndex = i;
+			break;
+		}
+	}
 }

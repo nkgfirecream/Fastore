@@ -323,62 +323,112 @@ int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sql
 	);
 }
 
+//TODO: all of these function need more detail about why they fail, and also real attempts to recover.
 int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->bestIndex(info);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->bestIndex(info);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleDisconnect(sqlite3_vtab *pVTab)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->disconnect();
-	delete v->table;
-	//free(v);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->disconnect();
+		delete v->table;
+		//free(v);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleDestroy(sqlite3_vtab *pVTab)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->drop();
-	delete v->table;
-	//free(v);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->drop();
+		delete v->table;
+		//free(v);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
 
-	fastore_vtab_cursor* c;
-	c = (fastore_vtab_cursor *) calloc(sizeof(fastore_vtab_cursor), 1);
-	*ppCursor = &c->base;
-	c->cursor = new module::Cursor(v->table);
-	return SQLITE_OK;
+		fastore_vtab_cursor* c;
+		c = (fastore_vtab_cursor *) calloc(sizeof(fastore_vtab_cursor), 1);
+		*ppCursor = &c->base;
+		c->cursor = new module::Cursor(v->table);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleClose(sqlite3_vtab_cursor* sqlSur)
 {
-	fastore_vtab_cursor* c = (fastore_vtab_cursor*)sqlSur;
-	delete c->cursor;
-	free(c);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab_cursor* c = (fastore_vtab_cursor*)sqlSur;
+		delete c->cursor;
+		free(c);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleFilter(sqlite3_vtab_cursor* pCursor, int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
 {
-	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	c->cursor->filter(idxNum, idxStr, argc, argv);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
+		c->cursor->filter(idxNum, idxStr, argc, argv);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleNext(sqlite3_vtab_cursor *pCursor)
 {
-	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	c->cursor->next();
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
+		c->cursor->next();
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleEof(sqlite3_vtab_cursor *pCursor)
@@ -389,59 +439,115 @@ int moduleEof(sqlite3_vtab_cursor *pCursor)
 
 int moduleColumn(sqlite3_vtab_cursor *pCursor, sqlite3_context *pContext, int index)
 {
-	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	c->cursor->setColumnResult(pContext, index);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
+		c->cursor->setColumnResult(pContext, index);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleRowid(sqlite3_vtab_cursor *pCursor, sqlite3_int64 *pRowid)
 {
-	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	c->cursor->setRowId(pRowid);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
+		c->cursor->setRowId(pRowid);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleUpdate(sqlite3_vtab *pVTab, int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {	
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->update(argc, argv, pRowid);
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->update(argc, argv, pRowid);
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleBegin(sqlite3_vtab *pVTab)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->begin();
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->begin();
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleSync(sqlite3_vtab *pVTab)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->sync();
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->sync();
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleCommit(sqlite3_vtab *pVTab)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->commit();
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->commit();
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleRollback(sqlite3_vtab *pVTab)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	v->table->rollback();
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		v->table->rollback();
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleFindFunction(sqlite3_vtab *pVTab, int nArg, const char *zName, void (**pxFunc)(sqlite3_context*,int,sqlite3_value**), void **ppArg)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: This is used to overload any functions.
-	//Probably don't want to overload anything on V1, but we will see.
-	return SQLITE_OK;
+	try
+	{
+		fastore_vtab* v = (fastore_vtab *)pVTab;
+		//TODO: This is used to overload any functions.
+		//Probably don't want to overload anything on V1, but we will see.
+		return SQLITE_OK;
+	}
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleRename(sqlite3_vtab *pVTab, const char *zNew)
@@ -457,21 +563,21 @@ int moduleSavepoint(sqlite3_vtab *pVTab, int savePoint)
 {
 	//current state should be saved with the ID savePoint
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	return SQLITE_OK;
+	return SQLITE_ERROR;
 }
 
 int moduleRelease(sqlite3_vtab *pVTab, int savePoint)
 {
 	//Invalidates all savepoints with N >= savePoint
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	return SQLITE_OK;
+	return SQLITE_ERROR;
 }
 
 int moduleRollbackTo(sqlite3_vtab *pVTab, int savePoint)
 {
 	//Rolls back to savePoint
 	fastore_vtab* v = (fastore_vtab *)pVTab;
-	return SQLITE_OK;
+	return SQLITE_ERROR;
 }
 
 sqlite3_module fastoreModule =

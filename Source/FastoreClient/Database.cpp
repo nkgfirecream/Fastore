@@ -503,14 +503,15 @@ void Database::AttemptWrite(PodID podId, std::function<void(WorkerClient)> work)
 		WorkerInvoke(podId, work);
 		end = clock();
 	}
-	catch (const std::exception&)
+	catch (const std::exception& e)
 	{
 		// If the exception is an entity (exception coming from the remote), rethrow
-		//TODO: Figure what this will be since TBase doesn't exist in c++ (only c#)
-		//if (!(dynamic_cast<Thrift::Protocol::TBase*>(e) != nullptr))
-			//TrackErrors(std::map<int, std::exception> {{podId, e}});
+		//TODO: Catch only thrift exceptions.
+		std::map<PodID, std::exception> errors;
+		errors.insert(make_pair(podId, e));
+		TrackErrors(errors);
 
-		throw;
+		throw e;
 	}
 
 	// Succeeded, track the elapsed time
@@ -736,7 +737,7 @@ void Database::Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& 
 
 			auto tasks = StartWorkerWrites(writes, transactionID, workers);
 
-			std::map<size_t, boost::shared_ptr<TProtocol>> failedWorkers;
+			std::map<PodID, boost::shared_ptr<TProtocol>> failedWorkers;
 			auto workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
 
 			if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
@@ -850,9 +851,9 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 std::map<TransactionID, std::vector<Database::WorkerInfo>> 
 Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers, 
 			      const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, 
-				std::map<size_t, boost::shared_ptr<TProtocol>>& failedWorkers)
+				std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers)
 {
-  ///	clock_t start = clock();
+	clock_t start = clock();
 
 	std::map<TransactionID, std::vector<WorkerInfo>> workersByTransaction;
 	for (size_t i = 0; i < tasks.size(); i++)
@@ -861,21 +862,21 @@ Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers,
 		TransactionID resultId;
 		try
 		{
-			tasks[i]->wait();
-			resultId = tasks[i]->get();
-			/*clock_t timeToWait = getWriteTimeout() - (clock() - start);
+			//tasks[i]->wait();
+			//resultId = tasks[i]->get();
+			clock_t timeToWait = getWriteTimeout() - (clock() - start);
 			auto result = tasks[i]->wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
 			if (result == std::future_status::ready)
 				resultId = tasks[i]->get();
 			else
 			{
-				failedWorkers.insert(std::pair<int, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(i, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
+				failedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(workers[i].PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 				continue;
-			}*/
+			}
 		}
 		catch (std::exception&)
 		{
-			failedWorkers.insert(std::make_pair(i, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
+			failedWorkers.insert(std::make_pair(workers[i].PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 			///			failedWorkers.insert(std::pair<int, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(i, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 			// else: Other errors were managed by AttemptWrite
 			continue;
@@ -897,7 +898,7 @@ Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers,
 
 bool Database::FinalizeTransaction(const std::vector<WorkerInfo>& workers, 
 								   const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, 
-								   std::map<size_t, boost::shared_ptr<TProtocol>>& failedWorkers)
+								   std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers)
 {
 	if (workersByTransaction.size() > 0)
 	{
@@ -954,21 +955,20 @@ bool Database::FinalizeTransaction(const std::vector<WorkerInfo>& workers,
 	return false;
 }
 
-void Database::WorkerInvoke(size_t podID, std::function<void(WorkerClient)> work)
+void Database::WorkerInvoke(PodID podID, std::function<void(WorkerClient)> work)
 {
-	PodID id(SAFE_CAST(PodID, podID));
-	auto client = _workers[id];
+	auto client = _workers[podID];
 	bool released = false;
 	try
 	{
 		work(client);
 		released = true;
-		_workers.Release(std::make_pair(id, client));
+		_workers.Release(std::make_pair(podID, client));
 	}
 	catch(const std::exception& e)
 	{
 		if (!released)
-			_workers.Release(std::make_pair(id, client));
+			_workers.Release(std::make_pair(podID, client));
 		throw e;
 	}
 }
@@ -1022,6 +1022,7 @@ std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Database::CreateExcludes(con
 std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 {
 	// Make the request against each column
+	//TODO: Instead of requesting each column individually, combine columns on a single worker.
 	std::vector<boost::shared_ptr<std::future<Statistic>>> tasks;
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
@@ -1039,7 +1040,7 @@ std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 						AttemptRead
 						(
 							columnId, 
-							[&](WorkerClient worker)
+							[&, columnId](WorkerClient worker)
 							{			
 								std::vector<ColumnID> ids;
 								std::vector<Statistic> stats;

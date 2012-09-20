@@ -21,6 +21,7 @@ namespace fastore
 			
 			static std::map<std::string, std::string> sqliteTypesToFastoreTypes;
 			static std::map<int, std::string> sqliteTypeIDToFastoreTypes;
+			static std::map<std::string, std::string> fastoreTypeToSQLiteAffinity;
 
 			static std::string SQLiteTypeToFastoreType(const std::string &SQLiteType);
 			static void EnsureFastoreTypeMaps();
@@ -36,6 +37,7 @@ namespace fastore
 			std::vector<client::ColumnDef> _columns;
 			std::vector<communication::ColumnID> _columnIds;
 			std::vector<communication::Statistic> _stats;
+			int64_t _rowIDIndex;
 
 		public:
 			Table(Connection* connection, const std::string& name, const std::string& ddl);
@@ -67,7 +69,9 @@ namespace fastore
 		private:
 			void ensureTable();
 			void ensureColumns();
-			void parseDDL();
+			void parseDDL(); 
+			void determineRowIDColumn();
+
 			client::ColumnDef parseColumnDef(std::string text);
 
 			void createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod);
