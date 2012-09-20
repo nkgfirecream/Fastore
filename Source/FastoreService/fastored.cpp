@@ -32,6 +32,7 @@ using namespace ::apache::thrift::protocol;
 using namespace ::apache::thrift::transport;
 using namespace ::apache::thrift::server;
 
+bool fdaemonize(true);
 boost::shared_ptr<Endpoint> endpoint;
 
 typedef void (*ServiceEventCallback)();
@@ -86,23 +87,25 @@ void RunService(ServiceEventCallback started,
 	 * Become session leader. 
 	 * Clear umask. 
 	 */
-	pid_t pid = fork();
+	pid_t pid = getpid();
+	if( fdaemonize ) {
+		pid = fork();
 
-	if( pid != 0 ) {
-		if( pid == -1 ) {
-			err(errno, "wald");
+		if( pid != 0 ) {
+			if( pid == -1 ) {
+				err(errno, "wald");
+			}
+			exit(EXIT_SUCCESS);
 		}
-		exit(EXIT_SUCCESS);
+		if( setsid() == -1 ) {
+			syslog( LOG_ERR, "%d: %m", __LINE__);
+			exit(EXIT_FAILURE);
+		}
+
+		umask(0);
+
+		syslog( LOG_INFO, "%d: %s: started", __LINE__, name);
 	}
-
-	syslog( LOG_INFO, "%d: %s: started", __LINE__, name);
-
-	if( (pid = setsid()) == -1 ) {
-		syslog( LOG_ERR, "%d: %m", __LINE__);
-		exit(EXIT_FAILURE);
-	}
-
-	umask(0);
 
 	/*
 	 * Create pid file if possible. 
@@ -239,8 +242,11 @@ main(int argc, char* argv[])
 	if( (optarg = getenv("FASTORED_DATA")) != NULL ) 
 		config.startupConfig.dataPath = optarg;
 
-    while ((ch = getopt(argc, argv, "d:p:")) != -1) {
+    while ((ch = getopt(argc, argv, "d:gp:")) != -1) {
 		switch (ch) {
+		case 'g':
+			fdaemonize = false;
+			break;
 		case 'd': {
 			struct stat sb;
 			if( -1 == stat(optarg, &sb) ) {
@@ -261,7 +267,7 @@ main(int argc, char* argv[])
 		case 'p': {
 			istringstream is(optarg);
 			is >> config.endpointConfig.port;
-			if( is.tellg() == 0 || !is.good() ) {
+			if( !is.eof() || is.fail() ) {
 				cerr << "error: " << optarg << " is not a good port number\n";
 				return EXIT_FAILURE;
 			}
@@ -282,13 +288,8 @@ main(int argc, char* argv[])
 	/*
 	 * Close existing descriptor and reopen them on the null device.
 	 */  
-	for( int fd=0; fd < 3; fd++ ) {
+	for( int fd=0; fdaemonize && close(fd) != -1; fd++ ) {
 		static const char dev_null[] = "/dev/null";
-		if( -1 == close(fd) ) {
-			syslog( LOG_ERR, "%d: %m", __LINE__);
-			return EXIT_FAILURE;
-		}
-    
 		if( -1 == open(dev_null, 0, 0) ) {
 			syslog( LOG_ERR, "%d: %m", __LINE__);
 			return EXIT_FAILURE;

@@ -4,7 +4,6 @@
 #include <thrift/transport/TServerSocket.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <utility>
-//include <hash_set>
 #include <unordered_set>
 #include "Schema/standardtypes.h"
 
@@ -18,10 +17,23 @@ using namespace std;
 
 const int MaxSystemColumnID = 9999;
 
-WorkerHandler::WorkerHandler(const PodID podId, const string path, const boost::shared_ptr<Scheduler> scheduler) : _podId(podId), _path(path), _scheduler(scheduler)
+static string id2str( PodID id ) 
+{	// just a little temporary hack to help instantiate the Wal object
+	ostringstream out;
+	out << id;
+	return out.str();
+}
+
+WorkerHandler::
+WorkerHandler(const PodID podId, 
+			  const string path, 
+			  const boost::shared_ptr<Scheduler> scheduler) 
+  : _podId(podId)
+  , _path(path)
+  , _scheduler(scheduler)
+  , _wal(path, id2str(podId)) 
 {
 	//* Attempt to open data file
-	//* Attempt to open log file
 	//* Check data directory for improper shut down - see Recovery
 
 	//* If (new instance), bootstrap

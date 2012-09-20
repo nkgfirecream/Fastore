@@ -1,24 +1,32 @@
 #pragma once
 #include "../FastoreCommunication/Worker.h"
 #include "../FastoreCommunication/Comm_types.h"
+#if USE_WAL
+# include "Wal/Wal.h"
+#endif
 #include <thrift/TProcessor.h>
-//include <hash_map>
 #include <unordered_map>
 #include "Repository.h"
 #include "Scheduler.h"
 #include "TFastoreServer.h"
 
-class WorkerHandler : virtual public fastore::communication::WorkerIf , virtual public apache::thrift::TProcessorEventHandler
+class WorkerHandler 
+	: virtual public fastore::communication::WorkerIf 
+	, virtual public apache::thrift::TProcessorEventHandler
 {
 private: 
 	fastore::communication::PodID _podId;
 	std::string _path;
-	std::unordered_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
+	std::unordered_map<fastore::communication::ColumnID, 
+					   boost::shared_ptr<Repository>> _repositories;
 	boost::shared_ptr<Scheduler> _scheduler;
 
 	//Not a shared pointer because we don't own the connection.
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;
 
+#if USE_WAL
+	Wal _wal;
+#endif
 	void CheckState();
 	void Bootstrap();
 	void SyncToSchema();
@@ -31,18 +39,44 @@ private:
 	ScalarType GetTypeFromName(std::string typeName);
 	
 public:
-	WorkerHandler(const PodID podId, const string path, const boost::shared_ptr<Scheduler>);
+	WorkerHandler(const PodID podId, 
+				  const string path, 
+				  const boost::shared_ptr<Scheduler>);
 
-	Revision prepare(const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes, const fastore::communication::Reads& reads);
-	void apply(fastore::communication::TransactionID& _return, const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes);
+	Revision prepare(const fastore::communication::TransactionID& transID, 
+					 const fastore::communication::Writes& writes, 
+					 const fastore::communication::Reads& reads);
+
+	void apply(      fastore::communication::TransactionID& _return, 
+			   const fastore::communication::TransactionID& transactionID, 
+			   const fastore::communication::Writes& writes);
+
 	void commit(const fastore::communication::TransactionID& transactionID);
+
 	void rollback(const fastore::communication::TransactionID& transactionID);
+
 	void flush(const fastore::communication::TransactionID& transactionID);
-	bool doesConflict(const fastore::communication::Reads& reads, const fastore::communication::Revision source, const fastore::communication::Revision target);
-	void update(fastore::communication::TransactionID& _return, const fastore::communication::TransactionID& transactionID, const fastore::communication::Writes& writes, const fastore::communication::Reads& reads);
-	void transgrade(fastore::communication::Reads& _return, const fastore::communication::Reads& reads, const fastore::communication::Revision source, const fastore::communication::Revision target);
-	void query(fastore::communication::ReadResults& _return, const fastore::communication::Queries& queries);
-	void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
+
+	bool doesConflict(const fastore::communication::Reads& reads, 
+					  const fastore::communication::Revision source, 
+					  const fastore::communication::Revision target);
+
+	void update(      fastore::communication::TransactionID& _return, 
+				const fastore::communication::TransactionID& transactionID, 
+				const fastore::communication::Writes& writes, 
+				const fastore::communication::Reads& reads);
+
+	void transgrade(      fastore::communication::Reads& _return, 
+					const fastore::communication::Reads& reads, 
+					const fastore::communication::Revision source, 
+					const fastore::communication::Revision target);
+
+	void query(      fastore::communication::ReadResults& _return, 
+			   const fastore::communication::Queries& queries);
+
+	void getStatistics(      std::vector<Statistic> & _return, 
+					   const std::vector<ColumnID> & columnIDs);
+
 	void getState(WorkerState& _return);	
 
 	//Admin

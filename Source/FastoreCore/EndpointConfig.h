@@ -2,10 +2,11 @@
 
 struct EndpointConfig
 {
-	static const int DefaultPort = 8765;
+	enum { DefaultPort = 8765 };
 
 	int port;
 
-	EndpointConfig() : port(DefaultPort)
-	{ }
+	EndpointConfig( int port = DefaultPort) 
+  : port(port)
+	{}
 };

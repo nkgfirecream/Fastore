@@ -63,9 +63,8 @@ main( int argc, char *argv[] )
 
 	extern char *optarg;
 	extern int optind;
-	int bflag, ch, fd;
+	int ch;
 
-	bflag = 0;
 	while ((ch = getopt(argc, argv, "d:")) != -1) {
 		switch (ch) {
 		case 'd':

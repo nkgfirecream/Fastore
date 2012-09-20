@@ -43,8 +43,8 @@ COMM.FILES = $(COMM.BASE:S,^,FastoreCommunication/,g)
 COMM.SRC = $(COMM.FILES:M*.cpp:N*.skeleton.*)
 COMM.OBJ = $(COMM.SRC:S/.cpp/.o/)
 
-CORE.SRC != find FastoreCore -name '*.cpp' |  grep -v /Wal/
-CORE.OBJ = $(CORE.SRC:.cpp=.o)
+CORE.SRC != find FastoreCore -name '*.cpp' |  grep -Ev '/t/'
+CORE.OBJ = $(CORE.SRC:N*/wald.cpp:.cpp=.o)
 
 MODULE.BASE != ls FastoreModule
 MODULE.SRC = $(MODULE.BASE:M*.cpp:S,^,FastoreModule/,g)
@@ -61,6 +61,9 @@ SERVICE.OBJ = $(SERVICE.SRC:.cpp=.o)
 SHELL.BASE != ls FastoreShell/*.h FastoreShell/*.c
 SHELL.SRC = $(SHELL.BASE:M*.c)
 SHELL.OBJ = $(SHELL.SRC:.c=.o)
+
+WALD.SRC = FastoreCore/Wal/wald.cpp
+WALD.OBJ = $(WALD.SRC:.cpp=.o)
 
 SRC = 	$(CLIENT.SRC) \
 	$(COMM.SRC) \
@@ -87,7 +90,9 @@ LIBS =  FastoreClient/libfastore-client.so \
 	FastoreModule/libfastore-module.so \
 	FastoreProvider/libfastore-provider.so 
 BINS = 	FastoreService/fastored \
-	FastoreShell/shell
+	FastoreShell/shell \
+	FastoreCore/Wal/wald
+ELFS = $(LIBS) $(BINS)
 INSTALLED = 	$(LIBS:T:S,^,$(PREFIX)/lib/,g) \
 		$(BINS:T:S,^,$(PREFIX)/bin/,g)
 
@@ -95,7 +100,7 @@ all: $(COMM.THRIFT) $(LIBS) $(BINS)
 
 install: $(INSTALLED)
 $(INSTALLED): 
-	install */$(@:T) $@ 
+	install $(ELFS:M*/$(@:T)) $@ 
 
 $(PREFIX)/lib/libfastore-client.so: FastoreClient/libfastore-client.so
 $(PREFIX)/lib/libfastore-communication.so: FastoreCommunication/libfastore-communication.so
@@ -132,13 +137,24 @@ comm-clean thrift-clean:
 
 core FastoreCore: FastoreCore/libfastore-core.so
 FastoreCore/libfastore-core.so: $(CORE.OBJ)
-	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC) \
+		-Wl,-LFastoreCommunication,-L$(PREFIX)/lib \
+		-Wl,-rpath,$(PREFIX)/lib \
+		-lfastore-communication -lfastore-core \
+		-lthrift -lboost_thread -lboost_filesystem
 core-clean:
 	rm -f $(CORE.OBJ) FastoreCore/libfastore-core.so
 
 # FastoreModule depends on some client files.
-MODULE.CLIENT.BASE = Client ClientException Database DataSet Dictionary Generator  \
-			IDGenerator ServiceAddress Transaction
+MODULE.CLIENT.BASE = 	Client \
+			ClientException \
+			Database \
+			DataSet \
+			Dictionary \
+			Generator \
+			IDGenerator \
+			ServiceAddress \
+			Transaction
 MODULE.CLIENT.OBJ = $(MODULE.CLIENT.BASE:S,^,FastoreClient/,g:S/$/.o/g)
 
 MODULE.COMMUNICATION.BASE = Service Worker
@@ -149,8 +165,7 @@ FastoreModule/libfastore-module.so: 	$(MODULE.OBJ) \
 					$(MODULE.CLIENT.OBJ) \
 				$(PREFIX)/lib/libfastore-communication.so
 	$(CXX) $(CXXFLAGS) -shared $(MODULE.OBJ) $(MODULE.CLIENT.OBJ) \
-		-Wl,-L$(PREFIX)/lib \
-		-Wl,-rpath -Wl,$(PREFIX)/lib \
+		-Wl,-L$(PREFIX)/lib,-rpath,$(PREFIX)/lib \
 		-lfastore-communication
 module-clean:
 	rm -f $(MODULE.OBJ) FastoreModule/libfastore-module.so
@@ -163,9 +178,10 @@ provider-clean:
 
 BOOST_LIBS = filesystem system thread 
 
-service FastoreService: FastoreService/fastored
-FastoreService/fastored: $(SERVICE.OBJ) $(LIBS)
-	$(CXX) $(CXXFLAGS) $(SERVICE.OBJ) \
+PIDFILE.C = FastoreCore/Wal/pidfile.c
+fastored service FastoreService: FastoreService/fastored
+FastoreService/fastored: $(SERVICE.OBJ) $(LIBS) $(PIDFILE.C)
+	$(CXX) $(CXXFLAGS) $(SERVICE.OBJ) $(PIDFILE.C) \
 		-L $(PREFIX)/lib \
 		-Wl,-rpath -Wl,$(PREFIX)/lib \
 		$(LIBS:H:S,^,-L./,g) \
@@ -184,6 +200,14 @@ FastoreShell/shell: $(SHELL.SRC)
 		-lthrift $(BOOST_LIBS:S/^/-lboost_/g) -lsqlite3
 shell-clean:
 	rm -f $(SHELL.OBJ) FastoreShell/shell
+
+wald: FastoreCore/Wal/Wald
+FastoreCore/Wal/wald: $(WALD.SRC) $(@:H)/pidfile.c
+	$(CXX) $(CXXFLAGS:N-Wno-reorder:N-std=c++0x) $(.ALLSRC) \
+		-Wl,-L$(@:H:H),-L$(PREFIX)/lib,-rpath,$(PREFIX)/lib \
+		-lfastore-communication -lfastore-core
+wald-clean:
+	rm -f $(WALD.OBJ) FastoreCore/Wal/wald
 
 clean: 
 	rm -f 	$(CLIENT.OBJ) \

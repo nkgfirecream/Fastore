@@ -2,7 +2,7 @@
 // $Id$
 
 #include <sys/types.h>
-#include <md4.h>
+#include <openssl/md4.h>
 
 #include <string>
 #include <iostream>
@@ -53,13 +53,16 @@ randomness(int n, void *buf)
 int Wal::random_fd( open(random_dev, O_RDONLY) );
 
 Wal::
-Wal( const std::string& dirName, const string& name, 
+Wal( const std::string& dirName, 
+	 const string& name, 
      const NetworkAddress& addr )
-  : dirName(dirName), name(name), addr(addr)
-  , wal(NULL), current(NULL), os_error(0)
- {
+	: dirName(dirName)
+	, name(name)
+	, addr(addr)
+	, wal(NULL), current(NULL), os_error(0)
+{
    if( random_fd  == -1 ) {
-    THROW("could not open random-number generator", random_dev );
+	   THROW("could not open random-number generator", random_dev );
    }
 
   // directory name must exist

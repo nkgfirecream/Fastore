@@ -1,8 +1,7 @@
 // $Id$
 #pragma once
 
-#include <TransactionID.h>
-#include <Comm_types.h>
+#include "../../FastoreCommunication/Comm_types.h"
 
 #include <string>
 #include <sstream>

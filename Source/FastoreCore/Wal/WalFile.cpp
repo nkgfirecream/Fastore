@@ -2,7 +2,7 @@
 // $Id$
 
 #include <libgen.h>
-#include <md4.h>
+#include <openssl/md4.h>
 #include <signal.h>
 
 #include <sys/types.h>
@@ -16,6 +16,8 @@
 #include <iomanip>
 #include <stdexcept>
 #include <iterator>
+
+#include "../safe_cast.h"
 
 using namespace std;
 
@@ -76,13 +78,13 @@ WalFile::Header::Header()
   randomness( sizeof(salt), &salt );
 
   if( blankPage == NULL )
-    blankPage = new unsigned char(osPageSize);
+	  blankPage = new unsigned char[osPageSize];
 }
 
-const int32_t WalFile::Header::osPageSize( sysconf(_SC_PAGESIZE) );
+const int32_t WalFile::Header::osPageSize( SAFE_CAST(int32_t, sysconf(_SC_PAGESIZE)) );
 
 const unsigned char * WalFile::
-	blankPage( new unsigned char(WalFile::Header::osPageSize) );
+	blankPage( new unsigned char[WalFile::Header::osPageSize] );
 
 unsigned char*
 operator<<( unsigned char* buf, const Md4& md4 )
@@ -165,11 +167,11 @@ WalFile( const string& dirname, const wal_desc_t& desc )
   memset( page, 0, sizeof(page) );
   page << header;
 
-  if( sizeof(page) != write(fd, page, sizeof(page)) ) {
+  if( ssize_t(sizeof(page)) != write(fd, page, sizeof(page)) ) {
     THROW( "write to WAL file", filename );
   }
 
-  for( size_t i=1; i < header.sizeInPages(); i++ ) {
+  for( int32_t i=1; i < header.sizeInPages(); i++ ) {
     if( header.osPageSize != write(fd, blankPage, header.osPageSize) ) {
       THROW( "write to WAL file", filename );
     }

@@ -111,6 +111,7 @@ public:
 	class TConnection;
 
 private:
+	std::string boundAddr;
 
 	/// Listen backlog
 	static const int LISTEN_BACKLOG = 1024;
