@@ -31,7 +31,6 @@ WorkerHandler(const PodID podId,
   : _podId(podId)
   , _path(path)
   , _scheduler(scheduler)
-  , _wal(path, id2str(podId)) 
 {
 	//* Attempt to open data file
 	//* Check data directory for improper shut down - see Recovery
@@ -364,7 +363,27 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 
 ScalarType WorkerHandler::GetTypeFromName(std::string typeName)
 {
-	//TODO: Consider putting this into a hash to avoid branches.
+#if 0
+	// This compiles with GNU and is valid C++11, but not with VS 2012. 
+	const static map< std::string, ScalarType > output = 
+		{ { "Bool", BoolType() }
+		, { "WString", WStringType() }
+		, { "String", StringType() }
+		, { "Int", IntType() }
+		, { "Long", LongType() }
+		};
+
+	map< std::string, ScalarType >::const_iterator p = 
+		output.find(argv[1]);
+
+	if( p == output.end() ) {
+		ostringstream oops;
+		oops << "invalid TypeName: " << argv[1];
+ 		throw runtime_error( oops.str() );
+	}
+
+	return p->second.Name;
+#else
 	if (typeName == "WString")
 	{
 		return standardtypes::WString;
@@ -393,6 +412,7 @@ ScalarType WorkerHandler::GetTypeFromName(std::string typeName)
 	{
 		throw "TypeName not recognized";
 	}
+#endif
 }
 
 void WorkerHandler::CheckState()

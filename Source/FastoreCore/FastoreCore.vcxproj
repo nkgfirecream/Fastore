@@ -120,6 +120,7 @@
     <ClCompile Include="TFastoreServer.cpp" />
     <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
+    <ClCompile Include="Worker.cpp" />
     <ClCompile Include="WorkerHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +153,9 @@
     <ClInclude Include="Storage\fastfile.h" />
     <ClInclude Include="Util\utilities.h" />
     <ClInclude Include="WorkerHandler.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -9,14 +9,14 @@ Worker::Worker( const PodID podId,
 	, pprocessor( new WorkerProcessor(phandler) )
 	, config(port)
 	, endpoint( config, pprocessor )
+//	, thread( &Endpoint::Run )
 {
 	WorkerProcessor& processor(*pprocessor);
 
 	processor.setEventHandler(phandler);
 }
 
-#include <algorithm>
-
+#if 0
 void foo() {
 	std::list<Worker> workers;
 	std::vector<WorkerState> worker_states(3);
@@ -26,3 +26,4 @@ void foo() {
 
 	std::transform( worker_states.begin(), worker_states.end(), workerPaths.begin(), std::back_inserter(workers), Worker::InitWith(p) );
 }
+#endif

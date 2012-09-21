@@ -10,6 +10,7 @@ class Worker
 	boost::shared_ptr<WorkerProcessor> pprocessor;
 	const EndpointConfig config;
 	Endpoint endpoint;
+//	boost::thread thread;
 
 public:
 	Worker( const PodID podId, 
@@ -17,7 +18,9 @@ public:
 			int port,
 			const boost::shared_ptr<Scheduler> pscheduler );
 
-	void run() { endpoint.Run(); }
+	void run() { 
+		endpoint.Run(); 
+	}
 
 	class InitWith
 	{

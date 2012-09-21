@@ -1,14 +1,18 @@
 #include "ServiceHandler.h"
-#include <iostream>
 #include <thrift/transport/TSimpleFileTransport.h>
 #include <thrift/protocol/TJSONProtocol.h>
 #include <thrift/transport/TSocket.h>
 #include "WorkerHandler.h"
+
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+
+#include <algorithm>
 #include <functional>
-#include <ctime>
+#include <iostream>
 #include <stdexcept>
+
+#include <ctime>
 
 using namespace boost::filesystem;
 using boost::shared_ptr;
@@ -67,11 +71,14 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		_config->__set_path(startup.path);
 		configChanged = true;
 	}
-	if (startup.__isset.workerPaths && startup.workerPaths.size() > 0)
+	if (startup.__isset.workerPaths)
 	{
-		_config->workerPaths.clear();
-		for (auto wp = startup.workerPaths.begin(); wp != startup.workerPaths.end(); ++wp)
-			_config->workerPaths.push_back(*wp);
+		// Should it be possible to set the list to be empty as an override? If so, remove false from next line. 
+		if (false && startup.workerPaths.empty()) {
+			throw logic_error("startup.workerPaths is empty but isset is true");
+		}
+		_config->workerPaths.resize(startup.workerPaths.size());
+		copy( startup.workerPaths.begin(), startup.workerPaths.end(), _config->workerPaths.begin() );
 		configChanged = true;
 	}
 
@@ -85,7 +92,8 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		auto numPods = thisService->second.workers.size();
 
 		// Report the number of configured pods
-		cout << "Number of Pods: " << numPods << "	Recommended workers: " << GetRecommendedWorkerCount() << " (these should be the same)\r\n";
+		cout << "Number of Pods: " << numPods 
+			 << "	Recommended workers: " << GetRecommendedWorkerCount() << " (these should be the same)\r\n";
 	
 		// Initialize the workers, if joined
 		InitializeWorkers(thisService->second.workers);
@@ -93,7 +101,8 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 	else
 	{
 		// Display worker recommendations
-		cout << "Hardware cores/threads: " << (int)boost::thread::hardware_concurrency() << "	Recommended workers: " << GetRecommendedWorkerCount() << "\r\n";
+		cout << "Hardware cores/threads: " << (int)boost::thread::hardware_concurrency() 
+			 << "	Recommended workers: " << GetRecommendedWorkerCount() << "\r\n";
 	}
 }
 
@@ -122,14 +131,22 @@ void ServiceHandler::SaveConfiguration()
 	_config->write(&writer);
 }
 
-void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
+void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 {
 	// Ensure that there enough configured paths for each worker
-	EnsureWorkerPaths((int)workers.size());
+	EnsureWorkerPaths((int)states.size());
+	
+	if( false ) { // code not ready
+		std::transform( states.begin(), states.end(), _config->workerPaths.begin(), 
+						std::back_inserter(_workers), Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
+		// Work out how to create the threads here ...
+		return;
+	}
 
-	for (size_t i = 0; i < workers.size(); ++i)
+
+	for (size_t i = 0; i < states.size(); ++i)
 	{
-		auto podID = workers[i].podID;
+		auto podID = states[i].podID;
 
 		// Create a handler for the worker
 		auto handler = boost::shared_ptr<WorkerHandler>(new WorkerHandler(podID, _config->workerPaths[i], _scheduler));
@@ -140,11 +157,11 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& workers)
 		
 		// Create an endpoint for the worker
 		EndpointConfig endPointConfig;
-		endPointConfig.port = workers[i].port;
+		endPointConfig.port = states[i].port;
 		auto endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endPointConfig, processor));
 		
 		// Track the endpoint by worker number
-		_workers.push_front(endpoint);
+		_endpoints.push_front(endpoint);
 
 		// Start the endpoint's thread
 		_workerThreads.push_back(

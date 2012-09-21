@@ -54,7 +54,8 @@ public:
 	}
 };
 
-Endpoint::Endpoint(const EndpointConfig& config, const boost::shared_ptr<TProcessor>& processor) : _pimpl(new impl(config, processor))
+Endpoint::Endpoint(const EndpointConfig& config, const boost::shared_ptr<TProcessor>& processor) 
+		: _pimpl(new impl(config, processor))
 { }
 
 void Endpoint::Run()

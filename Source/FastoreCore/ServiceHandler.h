@@ -5,11 +5,11 @@
 #include <thrift/server/TServer.h>
 #include <thrift/transport/TSimpleFileTransport.h>
 #include <boost/thread.hpp>
-//include <hash_map>
 #include <unordered_map>
 #include <string>
 #include "Scheduler.h"
 #include "TFastoreServer.h"
+#include "Worker.h"
 
 class ServiceHandler : virtual public fastore::communication::ServiceIf, virtual public apache::thrift::TProcessorEventHandler
 {
@@ -18,8 +18,9 @@ private:
 
 	boost::shared_ptr<apache::thrift::transport::TSimpleFileTransport> _configFile;
 	boost::shared_ptr<fastore::server::ServiceConfig> _config;
-	std::list<boost::shared_ptr<Endpoint>> _workers;
+	std::list<boost::shared_ptr<Endpoint>> _endpoints;
 	std::list<boost::thread> _workerThreads;
+	std::list<Worker> _workers;
 	boost::shared_ptr<fastore::communication::HiveState> _hiveState;	
 	boost::shared_ptr<Scheduler> _scheduler;
 
