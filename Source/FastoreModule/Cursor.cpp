@@ -94,7 +94,7 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 		if (idxStr[0] == SQLITE_INDEX_CONSTRAINT_EQ)
 		{
 			client::RangeBound bound;
-			bound.Bound = convertSqliteValueToString(colIndex, argv[1]);
+			bound.Bound = convertSqliteValueToString(colIndex, argv[0]);
 			bound.Inclusive = true;
 		
 			_range.End = bound;
@@ -102,12 +102,11 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 		}
 		else
 		{
-			_range.Start = getBound(colIndex, idxStr[0], argv[1]);
+			_range.Start = getBound(colIndex, idxStr[0], argv[0]);
 			if (argc > 1)
-				_range.End = getBound(colIndex, idxStr[1], argv[2]);
+				_range.End = getBound(colIndex, idxStr[1], argv[1]);
 		}
 	}
-
 
 	getNextSet();
 }
@@ -115,7 +114,7 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg)
 {
 	client::RangeBound bound;
-	if (op == SQLITE_INDEX_CONSTRAINT_GE || SQLITE_INDEX_CONSTRAINT_LE)
+	if (op == SQLITE_INDEX_CONSTRAINT_GE || op == SQLITE_INDEX_CONSTRAINT_LE)
 		bound.Inclusive = true;
 	else
 		bound.Inclusive = false;

@@ -1054,6 +1054,8 @@ std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 				)
 			)
 		);
+
+		tasks.push_back(task);
 	}
 
 	std::vector<Statistic> stats;

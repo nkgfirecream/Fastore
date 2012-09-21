@@ -488,7 +488,7 @@ void module::Table::updateStats()
 	if (_transaction != NULL)
 		_stats = _transaction->GetStatistics(_columnIds);
 	else
-		_connection->_database->GetStatistics(_columnIds);
+		_stats = _connection->_database->GetStatistics(_columnIds);
 }
 
 void module::Table::parseDDL()
