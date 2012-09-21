@@ -414,7 +414,7 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 		for (auto ws = _workerStates.begin(); ws != _workerStates.end(); ++ws)
 		{
 			WorkerInfo info;
-			info.PodID = ws->first;
+			info.podID = ws->first;
 			for (auto repo = ws->second.second.repositoryStatus.begin(); repo != ws->second.second.repositoryStatus.end(); ++repo)
 			{
 				if (repo->second == RepositoryStatus::Online || repo->second == RepositoryStatus::Checkpointing)
@@ -787,7 +787,7 @@ std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorker
 						TransactionID result;
 						AttemptWrite
 						(
-							worker->PodID,
+							worker->podID,
 							[&](WorkerClient client)
 							{
 								client.apply(result, transactionID, work);
@@ -820,19 +820,19 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 					std::launch::async,
 					[&]()
 					{
-						auto worker = _workers[w->PodID];
+						auto worker = _workers[w->podID];
 						bool flushed = false;
 						try
 						{
 							worker.flush(transactionID);
 							flushed = true;
-							_workers.Release(std::make_pair(w->PodID, worker));
+							_workers.Release(std::make_pair(w->podID, worker));
 						}
 						catch(const std::exception&)
 						{
 							//TODO: track exception errors;
 							if(!flushed)
-								_workers.Release(std::make_pair(w->PodID, worker));
+								_workers.Release(std::make_pair(w->podID, worker));
 						}
 					}
 				)
@@ -870,13 +870,13 @@ Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers,
 				resultId = tasks[i]->get();
 			else
 			{
-				failedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(workers[i].PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
+				failedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 				continue;
 			}
 		}
 		catch (std::exception&)
 		{
-			failedWorkers.insert(std::make_pair(workers[i].PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
+			failedWorkers.insert(std::make_pair(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 			///			failedWorkers.insert(std::pair<int, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(i, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 			// else: Other errors were managed by AttemptWrite
 			continue;
@@ -914,7 +914,7 @@ bool Database::FinalizeTransaction(const std::vector<WorkerInfo>& workers,
 			{
 				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
 				{
-					WorkerInvoke(worker->PodID, [&](WorkerClient client)
+					WorkerInvoke(worker->podID, [&](WorkerClient client)
 					{
 						client.commit(max);
 					}
@@ -943,7 +943,7 @@ bool Database::FinalizeTransaction(const std::vector<WorkerInfo>& workers,
 			{
 				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
 				{
-					WorkerInvoke(worker->PodID, [&](WorkerClient client)
+					WorkerInvoke(worker->podID, [&](WorkerClient client)
 					{
 						client.rollback(group->first);
 					}

@@ -52,7 +52,7 @@ namespace fastore { namespace client
 		class WorkerInfo
 		{
 		public:
-			PodID PodID;
+			PodID podID;
 			ColumnIDs Columns;
 		};
 
