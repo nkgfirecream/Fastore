@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <memory>
 #include <boost/optional.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -119,8 +120,11 @@ namespace fastore { namespace client
 
 		void InitializeInstanceFields();
 
-		boost::asio::io_service _io_service;
-		boost::thread_group _threads;
+		static boost::asio::io_service _io_service;
+		static boost::thread_group _threads;
+		static boost::mutex _io_mutex;
+		static std::unique_ptr<boost::asio::io_service::work> _work;
+
 		manual_reset_event _loadEvent;
 		boost::detail::spinlock _spinlock;
 

@@ -17,7 +17,7 @@ std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
 std::map<std::string, std::string> module::Table::fastoreTypeToSQLiteAffinity;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
-	: _connection(connection), _name(name),  _ddl(ddl), _rowIDIndex(-1) 
+	: _connection(connection), _name(name),  _ddl(ddl), _rowIDIndex(-1), _numoperations(0)
 {}
 
 void module::Table::EnsureFastoreTypeMaps()
@@ -98,14 +98,14 @@ void module::Table::ensureTable()
 	}
 	else
 	{
-		_id = _connection->_generator->Generate(module::Dictionary::TableID);
+		_id = _connection->_generator->Generate(module::Dictionary::TableID, module::Dictionary::MaxModuleColumnID + 1);
 		auto transaction =  _connection->_database->Begin(true, true);
 		transaction->Include
 		(
 			module::Dictionary::TableColumns,
-			client::Encoder<communication::ColumnID>::Crunch(_id),
+			client::Encoder<communication::ColumnID>::Encode(_id),
 			boost::assign::list_of<std::string>
-			(client::Encoder<communication::ColumnID>::Crunch(_id))
+			(client::Encoder<communication::ColumnID>::Encode(_id))
 			(_name)
 			(_ddl)
 		);
@@ -236,7 +236,7 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		module::Dictionary::TableColumnColumns,
 		client::Encoder<communication::ColumnID>::Encode(_connection->_generator->Generate(module::Dictionary::TableColumnTableID)),
 		boost::assign::list_of<std::string>
-		(Encoder<communication::ColumnID>::Crunch(_id))
+		(Encoder<communication::ColumnID>::Encode(_id))
 		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
 	transaction->Commit();
@@ -460,7 +460,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 
 			std::string value;
 			if (type == "Long")
-				value = Encoder<long long>::Encode(0 != sqlite3_value_int64(pValue));
+				value = Encoder<long long>::Encode(sqlite3_value_int64(pValue));
 			else if (type == "Double")
 				value = Encoder<double>::Encode(sqlite3_value_double(pValue));
 			else if (type == "String")

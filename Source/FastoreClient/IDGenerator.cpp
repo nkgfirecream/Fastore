@@ -3,6 +3,11 @@
 
 using namespace fastore::client;
 
+boost::asio::io_service IDGenerator::_io_service;
+boost::thread_group IDGenerator::_threads;
+boost::mutex IDGenerator::_io_mutex;
+std::unique_ptr<boost::asio::io_service::work> IDGenerator::_work;
+
 IDGenerator::IDGenerator(std::function<int64_t(int)> _generateCallback, int blockSize, int allocationThreshold)
 	: _generateCallback(_generateCallback), _blockSize(blockSize), _allocationThreshold(allocationThreshold), _loadingBlock(false), _endOfRange(0), _nextId(0)
 {
@@ -13,15 +18,23 @@ IDGenerator::IDGenerator(std::function<int64_t(int)> _generateCallback, int bloc
 	if (allocationThreshold > blockSize)
 		throw std::runtime_error("Allocation threshold must be no more than the block size.");
 
-	//Signals the io service to not shut down, since we will be continually
-	//posting work.
-	boost::asio::io_service::work work(_io_service);
-
-	for (int i = 0; i < ThreadPoolSize; ++i)
+	//Initialize thread pool
 	{
-		//Set up a pool of threads so that the io service can process multiple "works"
-		_threads.create_thread(boost::bind(&boost::asio::io_service::run, &_io_service));
-	}
+		boost::unique_lock<boost::mutex> lock(_io_mutex);
+
+		if (_threads.size() == 0)
+		{
+			//Signals the io service to not shut down, since we will be continually
+			//posting work.
+			_work = std::unique_ptr<boost::asio::io_service::work>(new boost::asio::io_service::work(_io_service));
+
+			for (size_t i = _threads.size(); i < ThreadPoolSize; ++i)
+			{
+				//Set up a pool of threads so that the io service can process multiple "works"
+				_threads.create_thread(boost::bind(&boost::asio::io_service::run, &_io_service));
+			}
+		}
+	}	
 
 	_spinlock.unlock();
 }
@@ -122,8 +135,16 @@ int64_t IDGenerator::Generate()
 					lockTaken = false;
 					_spinlock.unlock();						
 				
-					// Wait for load to complete
 					_loadEvent.wait();
+					// Wait for load to complete
+					//if(!_loadEvent.wait_for(500))
+					//{
+					//		// Take the lock back
+					//	_spinlock.lock();
+					//	lockTaken = true;
+					//	_loadingBlock = false;
+					//	continue;
+					//}
 
 
 					// Take the lock back
