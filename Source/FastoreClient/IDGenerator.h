@@ -90,7 +90,7 @@ namespace fastore { namespace client
 
 	private:
 		//number of threads in the thread pool.
-		static const int ThreadPoolSize = 4;
+		enum { ThreadPoolSize = 4 };
 
 		// The size of block to allocate
 		int _blockSize;

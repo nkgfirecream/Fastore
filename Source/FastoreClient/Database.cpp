@@ -866,7 +866,12 @@ Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers,
 			//resultId = tasks[i]->get();
 			clock_t timeToWait = getWriteTimeout() - (clock() - start);
 			auto result = tasks[i]->wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
+#if __GNUC_MINOR__ == 6
+			// ignore what wait_for returns until GNU and Microsoft agree
+			if (result)
+#else
 			if (result == std::future_status::ready)
+#endif
 				resultId = tasks[i]->get();
 			else
 			{

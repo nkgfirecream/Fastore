@@ -403,7 +403,8 @@ client::RangeSet module::Table::getRange(client::Range& range, const boost::opti
 void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
 	//Update statistics every MAXOPERATIONS
-	_numoperations = ++_numoperations % MAXTABLEOPERATIONS;
+	++_numoperations;
+	_numoperations %= MAXTABLEOPERATIONS;
 
 	if(_numoperations == 0)
 		updateStats();
