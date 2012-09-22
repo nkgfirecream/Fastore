@@ -10,7 +10,9 @@ class Worker
 	boost::shared_ptr<WorkerProcessor> pprocessor;
 	const EndpointConfig config;
 	Endpoint endpoint;
-//	boost::thread thread;
+#if USE_WAL
+	Wal _wal;
+#endif
 
 public:
 	Worker( const PodID podId, 

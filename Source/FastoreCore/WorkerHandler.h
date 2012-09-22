@@ -24,9 +24,6 @@ private:
 	//Not a shared pointer because we don't own the connection.
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;
 
-#if USE_WAL
-	Wal _wal;
-#endif
 	void CheckState();
 	void Bootstrap();
 	void SyncToSchema();

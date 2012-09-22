@@ -1,6 +1,14 @@
 // $Id$
 #include "Worker.h"
 
+static string id2str( PodID id ) 
+{	// just a little temporary hack to help instantiate the Wal object
+	ostringstream out;
+	out << id;
+	return out.str();
+}
+
+
 Worker::Worker( const PodID podId, 
 				const string& path, 
 				int port,
@@ -9,6 +17,9 @@ Worker::Worker( const PodID podId,
 	, pprocessor( new WorkerProcessor(phandler) )
 	, config(port)
 	, endpoint( config, pprocessor )
+#if USE_WAL
+	, _wal(path, id2str(podId), NetworkAddress() ) 
+#endif
 //	, thread( &Endpoint::Run )
 {
 	WorkerProcessor& processor(*pprocessor);

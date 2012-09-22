@@ -17,13 +17,6 @@ using namespace std;
 
 const int MaxSystemColumnID = 9999;
 
-static string id2str( PodID id ) 
-{	// just a little temporary hack to help instantiate the Wal object
-	ostringstream out;
-	out << id;
-	return out.str();
-}
-
 WorkerHandler::
 WorkerHandler(const PodID podId, 
 			  const string path, 

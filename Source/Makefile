@@ -7,7 +7,7 @@ HAVE.LIST = poll.h netdb.h fcntl.h
 HAVE.FILES != find /usr/include -maxdepth 1 \
 		\( $(HAVE.LIST:S/^/-or -name /g:S/^-or//1) \) \
 		&& test -f /usr/include/netinet/in.h && echo netinet_in.h
-HAVE.SYMS = $(HAVE.FILES:T:tu:S/./_/g:S/^/HAVE_/g)
+HAVE.SYMS = $(HAVE.FILES:T:tu:S/./_/g:S/^/HAVE_/g) USE_WAL
 HAVES = $(HAVE.SYMS:S/^/-D/g)
 
 DBG = -O0
