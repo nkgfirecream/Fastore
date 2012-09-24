@@ -136,10 +136,21 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 	// Ensure that there enough configured paths for each worker
 	EnsureWorkerPaths((int)states.size());
 	
-	if( false ) { // code not ready
+	if( true ) { // returns because replaces old for loop that follows it. 
 		std::transform( states.begin(), states.end(), _config->workerPaths.begin(), 
 						std::back_inserter(_workers), Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
-		// Work out how to create the threads here ...
+		// Start each worker
+		for( auto worker : _workers ) {
+			try { 
+				worker.run();
+			}
+			catch( std::exception& oops ) {
+				clog << oops.what() << '\n';
+			}
+			catch(...) {
+				perror("indeterminate error");
+			}
+		}
 		return;
 	}
 

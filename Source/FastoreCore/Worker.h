@@ -1,4 +1,6 @@
 // $Id$
+#include <functional>
+#include <boost/thread.hpp>
 #include "Endpoint.h"
 #include "WorkerHandler.h"
 #include "../FastoreCommunication/Server_types.h"
@@ -13,6 +15,7 @@ class Worker
 #if USE_WAL
 	Wal _wal;
 #endif
+	boost::shared_ptr<boost::thread>  pthread;
 
 public:
 	Worker( const PodID podId, 
@@ -21,7 +24,7 @@ public:
 			const boost::shared_ptr<Scheduler> pscheduler );
 
 	void run() { 
-		endpoint.Run(); 
+		pthread = boost::shared_ptr<boost::thread>( new boost::thread(std::mem_fun(&Endpoint::Run), &endpoint) );
 	}
 
 	class InitWith
