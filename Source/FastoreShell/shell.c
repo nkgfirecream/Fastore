@@ -1560,6 +1560,7 @@ static char fAddress[] = "localhost;8765";
 ** the database fails to open, print an error message and exit.
 */
 static void open_db(struct callback_data *p){
+  const char *msg;
   if( p->db==0 ){
     sqlite3_open(p->zDbFilename, &p->db);
     db = p->db;
@@ -1575,6 +1576,9 @@ static void open_db(struct callback_data *p){
 
 	intializeFastoreModule(p->db, 1, fAddress);
 
+	if( (msg = fastore_vfs_message()) != NULL ) {
+		fprintf(stderr, "internal error: %s\n", msg);
+	}
 
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
     sqlite3_enable_load_extension(p->db, 1);
