@@ -236,13 +236,14 @@ sqlite: SQLite/build/libsqlite3.so
 SQLite/build/libsqlite3.so: SQLite/build/Makefile
 	cd $(@:H) && make && make install
 
-depend: .depend 
+depend depends: .depend 
 .depend: $(DEPENDS)
 	cat $(DEPENDS) > $@~ 
 	@mv $@~ $@
 	rm $(DEPENDS)
 
 $(DEPENDS):
-	$(CXX) -M -MF$@ $(CXXFLAGS) \
-		$$(echo $(@:R).cpp |sed s/shell.cpp/shell.c/)
+	$(CXX) -MM -MT$(@:R).o -MF$@ $(CXXFLAGS) \
+		$(@:S/.dep/.cpp/g:S/shell.cpp/shell.c/)
+
 
