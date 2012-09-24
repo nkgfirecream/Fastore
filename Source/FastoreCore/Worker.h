@@ -7,11 +7,15 @@
 
 class Worker
 {
+public:
+	enum status_t { idle, running, stopped } ; 
+private:
 	boost::shared_ptr<WorkerHandler>  phandler;
 	WorkerState state;
 	boost::shared_ptr<WorkerProcessor> pprocessor;
 	const EndpointConfig config;
 	Endpoint endpoint;
+	status_t _status;
 #if USE_WAL
 	Wal _wal;
 #endif
@@ -23,9 +27,8 @@ public:
 			int port,
 			const boost::shared_ptr<Scheduler> pscheduler );
 
-	void run() { 
-		pthread = boost::shared_ptr<boost::thread>( new boost::thread(std::mem_fun(&Endpoint::Run), &endpoint) );
-	}
+	bool run();
+	status_t status() const { return _status; }
 
 	class InitWith
 	{

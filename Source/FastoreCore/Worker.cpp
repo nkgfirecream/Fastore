@@ -17,6 +17,7 @@ Worker::Worker( const PodID podId,
 	, pprocessor( new WorkerProcessor(phandler) )
 	, config(port)
 	, endpoint( config, pprocessor )
+	, _status(idle)
 #if USE_WAL
 	, _wal(path, id2str(podId), NetworkAddress() ) 
 #endif
@@ -26,6 +27,25 @@ Worker::Worker( const PodID podId,
 
 	processor.setEventHandler(phandler);
 }
+
+bool 
+Worker::run() { 
+	try { 
+		pthread = boost::shared_ptr<boost::thread>(
+			new boost::thread(std::mem_fun(&Endpoint::Run), &endpoint) );
+		_status = running;
+	}
+	catch( std::exception& oops ) {
+		_status = stopped;
+		clog << oops.what() << '\n';
+	}
+	catch(...) {
+		_status = stopped;
+		perror("indeterminate error");
+	}
+	return _status == running;
+}
+
 
 #if 0
 void foo() {

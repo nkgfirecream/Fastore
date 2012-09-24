@@ -137,20 +137,10 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 	EnsureWorkerPaths((int)states.size());
 	
 	if( true ) { // returns because replaces old for loop that follows it. 
+		// Constructor starts each Worker running.  If Worker::endpoint::run throws
+		// an exception, it's caught and logged by Worker::run().  
 		std::transform( states.begin(), states.end(), _config->workerPaths.begin(), 
 						std::back_inserter(_workers), Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
-		// Start each worker
-		for( auto worker : _workers ) {
-			try { 
-				worker.run();
-			}
-			catch( std::exception& oops ) {
-				clog << oops.what() << '\n';
-			}
-			catch(...) {
-				perror("indeterminate error");
-			}
-		}
 		return;
 	}
 
