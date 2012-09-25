@@ -46,7 +46,7 @@ void module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 
 void module::Cursor::setRowId(sqlite3_int64 *pRowid)
 {
-	*pRowid = (sqlite3_int64)client::Encoder<int>::Decode(_set.Data[_index].ID);
+	*pRowid = (sqlite3_int64)client::Encoder<long long>::Decode(_set.Data[_index].ID);
 }
 
 void module::Cursor::getNextSet()
@@ -110,9 +110,18 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 			// Assumption: if we have two arguments, one is > and the other is < (best index should have enforced this...)
 			// start = >
 			// end = <
-			_range.Start = getBound(colIndex, idxStr[0], argv[0]);
-			if (argc > 1)
-				_range.End = getBound(colIndex, idxStr[1], argv[1]);
+			if (idxStr[0] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[0] == SQLITE_INDEX_CONSTRAINT_GE)
+			{
+				_range.Start = getBound(colIndex, idxStr[0], argv[0]);
+				if (argc > 1)
+					_range.End = getBound(colIndex, idxStr[1], argv[1]);
+			}
+			else
+			{
+				_range.End = getBound(colIndex, idxStr[0], argv[0]);
+				if (argc > 1)
+					_range.Start = getBound(colIndex, idxStr[1], argv[1]);					
+			}
 		}
 	}
 

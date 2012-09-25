@@ -543,6 +543,7 @@ int moduleRowid(sqlite3_vtab_cursor *pCursor, sqlite3_int64 *pRowid)
 	try
 	{
 		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
+		c->cursor->setRowId(pRowid);
 		return SQLITE_OK;
 	}
 	catch( const std::exception& oops ) {
