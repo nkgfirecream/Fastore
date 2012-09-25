@@ -318,7 +318,7 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 		double cost = _columns[col].Type == "String" || _columns[col].Type == "WString" ? 1.1 : 1;
 
 		//Average ids per value
-		int64_t avg = _stats[col].unique > 0 ? _stats[col].total / _stats[col].unique : 0;
+		int64_t avg = _stats[col].unique > 0 ? _stats[col].total / _stats[col].unique : 1;
 		
 		int64_t size = 100; // = 100% percent of the column for our purposes. Every constraint divides this by approx 2.
 		if (iter->second.size() > 2)
@@ -387,7 +387,7 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 
 	//Step 6. Set remaining outputs.
 	info->estimatedCost = cost;
-	info->idxNum = useOrder ? (info->aOrderBy[0].desc ?  ~(info->aOrderBy[0].iColumn + 1) : (info->aOrderBy[0].iColumn + 1)) : 0; //TODO: Else should pick a required column.
+	info->idxNum = useOrder ? (info->aOrderBy[0].desc ?  ~(info->aOrderBy[0].iColumn + 1) : (info->aOrderBy[0].iColumn + 1)) : useConstraint ? whichColumn + 1 : 0; //TODO: Else should pick a required column.
 	info->idxStr = idxstr;
 	info->needToFreeIdxStr = true;
 }
