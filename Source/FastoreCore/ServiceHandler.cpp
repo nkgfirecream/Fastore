@@ -135,8 +135,8 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 {
 	// Ensure that there enough configured paths for each worker
 	EnsureWorkerPaths((int)states.size());
-	
-	if( true ) { // returns because replaces old for loop that follows it. 
+	const char *s = getenv("FASTORE_WORKER");
+	if( s && *s == 'T' ) { // returns because replaces old for loop that follows it. 
 		// Constructor starts each Worker running.  If Worker::endpoint::run throws
 		// an exception, it's caught and logged by Worker::run().  
 		std::transform( states.begin(), states.end(), _config->workerPaths.begin(), 

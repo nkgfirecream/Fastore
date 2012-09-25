@@ -136,7 +136,10 @@ void module::Table::ensureColumns()
 	//For now, just assume a "hidden" key.
 
     // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
-    int nextPod = rand() % SAFE_CAST(int, (podIds.Data.size() - 1));
+	size_t npods = podIds.Data.size();
+	if( npods > 1 ) 
+		npods--;
+    int nextPod = rand() % SAFE_CAST(int, npods);
 
     //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
     //TableVar Columns and pull the id each time.

@@ -13,6 +13,7 @@
 #include "Connection.h"
 #include "Dictionary.h"
 #include <sqlite3.h>
+#include <assert.h>
 
 namespace client = fastore::client;
 namespace module = fastore::module;
@@ -74,10 +75,14 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 
 	//TODO: Gather pods - we may have more than 2000 
     auto podIds = connection->_database->GetRange(podidv, podQuery, 2000);
-    if (podIds.Data.size() == 0)
-        throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
+    if (podIds.Data.size() == 0) {
+        throw std::logic_error( "FastoreModule can't create a new table. "
+								"The hive has no pods. "
+								"The hive must be initialized first." );
+	}
 
-    int nextPod = rand() % SAFE_CAST(int,(podIds.Data.size() - 1));
+	// TODO: move computation for nextPod into DataSet class. 
+    int nextPod = rand() % SAFE_CAST(int,(podIds.Data.size() - (podIds.Data.size() == 1? 0 : 1)));
 
     //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
     //TableVar Columns and pull the id each time.
@@ -100,7 +105,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 		if (result.Data.size() == 0)
 		{
 			//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
-			auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0].value;
+			auto podId = podIds.Data.at(nextPod++ % podIds.Data.size()).Values[0].value;
 
 
 			//TODO: Make workers smart enough to create/instantiate a column within one transaction.
@@ -262,6 +267,32 @@ struct fastore_vtab_cursor
 	module::Cursor* cursor;
 };
 
+/**
+ * http://www.sqlite.org/vtab.html
+ * The virtual table implementation may pass error message text to the core 
+ * by putting an error message string in zErrMsg. Space to hold this error 
+ * message string must be obtained from an SQLite memory allocation function 
+ * such as sqlite3_mprintf() or sqlite3_malloc(). Prior to assigning a new 
+ * value to zErrMsg, the virtual table implementation must free any 
+ * preexisting content of zErrMsg using sqlite3_free(). 
+ */
+sqlite3_vtab& operator<<( sqlite3_vtab& vtab, const char * message ) 
+{
+	assert(message != NULL);
+	if( message == NULL ) return vtab;
+
+	sqlite3_free(vtab.zErrMsg);
+	char *s =  sqlite3_mprintf("%s", message);
+	vtab.zErrMsg = s? s : NULL;
+	return vtab;
+}
+	
+sqlite3_vtab& operator<<( sqlite3_vtab& vtab, const std::exception& oops ) 
+{
+	return vtab << oops.what();
+}
+
+
 fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab)
 {
 	auto connection = (module::Connection*)pAux;
@@ -292,46 +323,64 @@ fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *co
 // This method is called to create a new instance of a virtual table in response to a CREATE VIRTUAL TABLE statement
 int moduleCreate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char**pzErr)
 {
-	return ExceptionsToError
-	(
-		[&]() -> int
-		{
-			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);	
+	try {
+		return ExceptionsToError
+		(
+			[&]() -> int
+			{
+				auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);	
 
-			//Try to create the table in Fastore
-			vtab->table->create();
-			return SQLITE_OK;
-		},
-		pzErr
-	);
+				//Try to create the table in Fastore
+				vtab->table->create();
+				return SQLITE_OK;
+			},
+			pzErr
+		);
+	} catch( const std::exception&  ) {
+		// TODO find a place to stash the error
+		return SQLITE_ABORT;
+	} catch (...) {
+		return SQLITE_ABORT;
+	}
 }
 
 // This method is called to create a new instance of a virtual table that connects to an existing backing store.
 int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab, char **pzErr)
 {
-	return ExceptionsToError
-	(
-		[&]() -> int
-		{
-			auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);
+	try {
+		return ExceptionsToError
+		(
+			[&]() -> int
+			{
+				auto vtab = tableInstantiate(db, pAux, argc, argv, ppVTab);
 
-			//Try to connect to the table in Fastore -- test to see if the columns exist and update our local columnIds
-			vtab->table->connect();	
-			return SQLITE_OK;
-		},
-		pzErr
-	);
+				//Try to connect to the table in Fastore -- test to see if the columns exist and update our local columnIds
+				vtab->table->connect();	
+				return SQLITE_OK;
+			},
+			pzErr
+		); 
+	} catch( const std::exception&  ) {
+		// TODO find a place to stash the error
+		return SQLITE_ABORT;
+	} catch (...) {
+		return SQLITE_ABORT;
+	}
 }
 
 //TODO: all of these function need more detail about why they fail, and also real attempts to recover.
 int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->bestIndex(info);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops;
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -340,14 +389,18 @@ int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info)
 
 int moduleDisconnect(sqlite3_vtab *pVTab)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->disconnect();
 		delete v->table;
 		//free(v);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -356,47 +409,58 @@ int moduleDisconnect(sqlite3_vtab *pVTab)
 
 int moduleDestroy(sqlite3_vtab *pVTab)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->drop();
 		delete v->table;
-		//free(v);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
 	}
 }
 
+#pragma message ("Why calloc(3)?  Use new or check for NULL return")
 int moduleOpen(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
-
 		fastore_vtab_cursor* c;
 		c = (fastore_vtab_cursor *) calloc(sizeof(fastore_vtab_cursor), 1);
 		*ppCursor = &c->base;
 		c->cursor = new module::Cursor(v->table);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base  << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
 	}
 }
 
-int moduleClose(sqlite3_vtab_cursor* sqlSur)
+int moduleClose(sqlite3_vtab_cursor* pCursor)
 {
+	fastore_vtab_cursor *c = reinterpret_cast<fastore_vtab_cursor*>(pCursor);
 	try
 	{
-		fastore_vtab_cursor* c = (fastore_vtab_cursor*)sqlSur;
 		delete c->cursor;
 		free(c);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		*c->base.pVtab << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -405,12 +469,16 @@ int moduleClose(sqlite3_vtab_cursor* sqlSur)
 
 int moduleFilter(sqlite3_vtab_cursor* pCursor, int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
 {
+	fastore_vtab_cursor *c = reinterpret_cast<fastore_vtab_cursor*>(pCursor);
 	try
 	{
-		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
 		c->cursor->filter(idxNum, idxStr, argc, argv);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		*c->base.pVtab << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -419,12 +487,16 @@ int moduleFilter(sqlite3_vtab_cursor* pCursor, int idxNum, const char *idxStr, i
 
 int moduleNext(sqlite3_vtab_cursor *pCursor)
 {
+	fastore_vtab_cursor *c = reinterpret_cast<fastore_vtab_cursor*>(pCursor);
 	try
 	{
-		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
 		c->cursor->next();
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		*c->base.pVtab << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -433,18 +505,32 @@ int moduleNext(sqlite3_vtab_cursor *pCursor)
 
 int moduleEof(sqlite3_vtab_cursor *pCursor)
 {
-	fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-	return c->cursor->eof();
+	fastore_vtab_cursor *c = reinterpret_cast<fastore_vtab_cursor*>(pCursor);
+	try {
+		return c->cursor->eof();
+	}
+	catch( const std::exception& oops ) {
+		*c->base.pVtab << oops.what();
+		return SQLITE_ABORT;
+	} 
+	catch(...)
+	{
+		return SQLITE_ERROR;
+	}
 }
 
 int moduleColumn(sqlite3_vtab_cursor *pCursor, sqlite3_context *pContext, int index)
 {
+	fastore_vtab_cursor *c = reinterpret_cast<fastore_vtab_cursor*>(pCursor);
 	try
 	{
-		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
 		c->cursor->setColumnResult(pContext, index);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		*c->base.pVtab << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -453,12 +539,16 @@ int moduleColumn(sqlite3_vtab_cursor *pCursor, sqlite3_context *pContext, int in
 
 int moduleRowid(sqlite3_vtab_cursor *pCursor, sqlite3_int64 *pRowid)
 {
+	fastore_vtab_cursor *c = reinterpret_cast<fastore_vtab_cursor*>(pCursor);
 	try
 	{
 		fastore_vtab_cursor* c = (fastore_vtab_cursor*)pCursor;
-		c->cursor->setRowId(pRowid);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		*c->base.pVtab << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -467,12 +557,16 @@ int moduleRowid(sqlite3_vtab_cursor *pCursor, sqlite3_int64 *pRowid)
 
 int moduleUpdate(sqlite3_vtab *pVTab, int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {	
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->update(argc, argv, pRowid);
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -481,12 +575,16 @@ int moduleUpdate(sqlite3_vtab *pVTab, int argc, sqlite3_value **argv, sqlite3_in
 
 int moduleBegin(sqlite3_vtab *pVTab)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->begin();
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -495,12 +593,16 @@ int moduleBegin(sqlite3_vtab *pVTab)
 
 int moduleSync(sqlite3_vtab *pVTab)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->sync();
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -509,12 +611,16 @@ int moduleSync(sqlite3_vtab *pVTab)
 
 int moduleCommit(sqlite3_vtab *pVTab)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->commit();
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -523,12 +629,16 @@ int moduleCommit(sqlite3_vtab *pVTab)
 
 int moduleRollback(sqlite3_vtab *pVTab)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		v->table->rollback();
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -537,13 +647,17 @@ int moduleRollback(sqlite3_vtab *pVTab)
 
 int moduleFindFunction(sqlite3_vtab *pVTab, int nArg, const char *zName, void (**pxFunc)(sqlite3_context*,int,sqlite3_value**), void **ppArg)
 {
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	try
 	{
-		fastore_vtab* v = (fastore_vtab *)pVTab;
 		//TODO: This is used to overload any functions.
 		//Probably don't want to overload anything on V1, but we will see.
 		return SQLITE_OK;
 	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 	catch(...)
 	{
 		return SQLITE_ERROR;
@@ -552,32 +666,59 @@ int moduleFindFunction(sqlite3_vtab *pVTab, int nArg, const char *zName, void (*
 
 int moduleRename(sqlite3_vtab *pVTab, const char *zNew)
 {
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	//TODO: Change the name of the vtable. Return error to prevent renaming. Return success to indicate renaming was
-	//successful. (disable renaming for now)
-	return SQLITE_ERROR;
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
+	try {
+		//TODO: Change the name of the vtable. Return error to prevent renaming. Return success to indicate renaming was
+		//successful. (disable renaming for now)
+		return SQLITE_ERROR;
+	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
 }
 
 //Next three are for nested transactions.. Should probably be disabled for the time being.
 int moduleSavepoint(sqlite3_vtab *pVTab, int savePoint)
 {
-	//current state should be saved with the ID savePoint
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	return SQLITE_ERROR;
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
+	try {
+		//current state should be saved with the ID savePoint
+		return SQLITE_ERROR;
+	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
+
 }
 
 int moduleRelease(sqlite3_vtab *pVTab, int savePoint)
 {
-	//Invalidates all savepoints with N >= savePoint
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	return SQLITE_ERROR;
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
+	try {
+		//Invalidates all savepoints with N >= savePoint
+		return SQLITE_ERROR;
+	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
+
 }
 
 int moduleRollbackTo(sqlite3_vtab *pVTab, int savePoint)
 {
-	//Rolls back to savePoint
-	fastore_vtab* v = (fastore_vtab *)pVTab;
-	return SQLITE_ERROR;
+	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
+	try {
+		//Rolls back to savePoint
+		return SQLITE_ERROR;
+	}
+	catch( const std::exception& oops ) {
+		v->base << oops.what();
+		return SQLITE_ABORT;
+	} 
+
 }
 
 sqlite3_module fastoreModule =
