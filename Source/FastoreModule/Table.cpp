@@ -216,6 +216,26 @@ void module::Table::drop()
             _connection->_database->Exclude(client::Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
         }
 	}
+
+	//Drop TableColumns entry
+	Range tableColumnQuery;
+	tableColumnQuery.ColumnID = module::Dictionary::TableColumnTableID;
+	tableColumnQuery.Ascending = true;
+	client::RangeBound bound;
+	bound.Inclusive = true;
+	bound.Bound = client::Encoder<communication::ColumnID>::Encode(_id);
+	tableColumnQuery.Start = bound;
+	tableColumnQuery.End = bound;
+
+	auto tableColumnsResult = _connection->_database->GetRange(module::Dictionary::TableColumnColumns, tableColumnQuery, 2000);
+
+	for (size_t i = 0; i < tableColumnsResult.Data.size(); i++)
+	{
+		 _connection->_database->Exclude(module::Dictionary::TableColumnColumns, tableColumnsResult.Data[i].ID);
+	}
+
+	//Drop Table Table entry
+	_connection->_database->Exclude(module::Dictionary::TableColumns, client::Encoder<communication::ColumnID>::Encode(_id));
 }
 
 void module::Table::disconnect()
@@ -275,6 +295,9 @@ char *sqlite3_safe_malloc( size_t n )
 
 void module::Table::bestIndex(sqlite3_index_info* info)
 {
+	//TODO: Do some real testing with real data and see what happens.
+	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't.
+
 	//Step 1. Group constraints by columns:
 	//Key is column, Value is list of array indicies pointing to constraints.
 	std::map<int,std::vector<int>> constraintMap;
