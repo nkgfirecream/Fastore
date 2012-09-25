@@ -102,6 +102,14 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 		}
 		else
 		{
+			//TODO: Base start and end of natural order. They should be switched based on constraint (for example, a < constraint implies sticking it at the end).
+			//Case: 1 argument -
+			// if (> or >=) set start
+			// else set end
+			//Case: 2 arguments -
+			// Assumption: if we have two arguments, one is > and the other is < (best index should have enforced this...)
+			// start = >
+			// end = <
 			_range.Start = getBound(colIndex, idxStr[0], argv[0]);
 			if (argc > 1)
 				_range.End = getBound(colIndex, idxStr[1], argv[1]);

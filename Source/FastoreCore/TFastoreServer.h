@@ -144,7 +144,7 @@ private:
 	static const int POLL_TIMEOUT = 1000;
 
 	/// Default number of milliseconds a connections is idle before it timesout
-	static const int CONNECTION_EXPIRE_TIMEOUT = 10000;
+	static const int CONNECTION_EXPIRE_TIMEOUT = 0; //10000;
 
 	/// Default number of milliseconds to wait for connections to finish before force-closing them
 	static const int SHUTDOWN_TIMEOUT = 5000;

@@ -174,9 +174,9 @@ namespace fastore { namespace client
 	{
 		auto transport = boost::shared_ptr<TSocket>(new TSocket(address.name, address.port));
 		//TODO: Make this all configurable.
-		transport->setConnTimeout(1000);
-		transport->setRecvTimeout(1000);
-		transport->setSendTimeout(1000);
+		transport->setConnTimeout(2000);
+		transport->setRecvTimeout(2000);
+		transport->setSendTimeout(2000);
 		transport->setMaxRecvRetries(MaxConnectionRetries);
 
 		// Establish connection, retrying if necessary

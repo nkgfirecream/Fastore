@@ -117,6 +117,7 @@ void module::Table::ensureColumns()
 {
 	//Gives us a valid set of column defs -- except for ids, which we need to determine.
 	parseDDL();
+	determineRowIDColumn();
 
 	 // Pull a list of candidate pods
 	 Range podQuery;
@@ -141,9 +142,6 @@ void module::Table::ensureColumns()
 		npods--;
     int nextPod = rand() % SAFE_CAST(int, npods);
 
-    //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
-    //TableVar Columns and pull the id each time.
-    //List<int> columnIds = new List<int>();
     for (size_t i = 0; i < _columns.size(); i++)
 	{
 		auto combinedName = _name + "." + _columns[i].Name;
@@ -158,7 +156,6 @@ void module::Table::ensureColumns()
 		bound.Inclusive = true;
 		query.Start = bound;
 		query.End = bound;
-		//Just pull one row. If any exist we have a problem.
 		auto result = _connection->_database->GetRange(client::Dictionary::ColumnColumns, query, 1);
 
 		if (result.Data.size() > 0)
@@ -501,26 +498,58 @@ void module::Table::parseDDL()
 	//For now, assume all definitions are column defs.
 	std::string col;
 	std::istringstream reader(_ddl, std::istringstream::in);
+	bool hasIdentity = false;
 	while (std::getline(reader, col, ','))
 	{
-		auto def = parseColumnDef(col);
-		_columns.push_back(def);
+		bool isDef = false;
+		auto def = parseColumnDef(col, isDef);
+		//Crappy bespoke parser for the time being... constraints will be here just like column definitions
+		if (isDef)
+		{
+			//Ensure there is only one Identity Column per table
+			if (def.BufferType == BufferType_t::Identity && hasIdentity)
+				def.BufferType = BufferType_t::Unique;
+			else if (def.BufferType == BufferType_t::Identity)
+				hasIdentity = true;
+
+			_columns.push_back(def);
+		}
+		else
+			break; //Assume all column definitions are at the beginning of the table definition
 	}
 }
 
-client::ColumnDef module::Table::parseColumnDef(std::string text)
+client::ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 {
 	client::ColumnDef result;
 	std::istringstream reader(text, std::istringstream::in);
 	if (!std::getline(reader, result.Name, ' ')) 
 		std::runtime_error("Missing column name");
 
+	if (result.Name == "")
+	{
+		isDef = false;
+		return result;
+	}
+
 	std::string type;
 	if (!std::getline(reader, type, ' '))
-		result.Type = "String";
+	{
+		isDef = false;
+		return result;
+	}
 	else
+	{
+		//More crappy parser-ness. If we don't recongize a type.. say it's not a column defintion.
 		result.Type = SQLiteTypeToFastoreType(type);
+		if (result.Type == "")
+		{
+			isDef = false;
+			return result;
+		}
+	}
 
+	isDef = true;
 	auto stringText = std::string(text);
 	//TODO: When should we use an identity buffer? Primary key?
 	result.BufferType =	insensitiveStrPos(stringText, std::string("primary")) >= 0 ? 
@@ -528,7 +557,7 @@ client::ColumnDef module::Table::parseColumnDef(std::string text)
 	    	insensitiveStrPos(stringText, std::string("unique")) >= 0 ? 
 	    		client::BufferType_t::Unique : client::BufferType_t::Multi;
 	result.Required = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
-	                  insensitiveStrPos(stringText, std::string("primary")) >= 0;
+	                  insensitiveStrPos(stringText, std::string("primary key")) >= 0;
 
 	result.IDType = "Long";
 	return result;
@@ -540,9 +569,12 @@ std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType
 	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
 	if (result == sqliteTypesToFastoreTypes.end())
 	{
-		std::ostringstream message;
-		message << "Unknown type '" << SQLiteType << "'.";
-		std::runtime_error(message.str());
+		//std::ostringstream message;
+		//message << "Unknown type '" << SQLiteType << "'.";
+		//std::runtime_error(message.str());
+		
+		//Return "Null" for now... This will all need to be reworked.
+		return "";
 	}
 	return result->second;			
 }

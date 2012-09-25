@@ -943,7 +943,6 @@ bool Database::FinalizeTransaction(const std::vector<WorkerInfo>& workers,
 		else
 		{
 			// Failure, roll-back successful prepares
-			// Transaction successful, commit all reached workers
 			for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
 			{
 				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)

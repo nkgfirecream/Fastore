@@ -72,7 +72,7 @@ namespace fastore
 			void parseDDL(); 
 			void determineRowIDColumn();
 
-			client::ColumnDef parseColumnDef(std::string text);
+			client::ColumnDef parseColumnDef(std::string text, bool& isDef);
 
 			void createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod);
 
