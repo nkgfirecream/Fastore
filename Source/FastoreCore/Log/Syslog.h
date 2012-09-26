@@ -17,7 +17,7 @@ class Syslog
 {
 	int errnum;
 	std::ostringstream msg;
-	int priority;
+	int priority, env_priority;
 public:
 	Syslog( const char *ident = "Fastore", 
 			int option = LOG_CONS|LOG_PID, 

@@ -16,37 +16,38 @@ namespace fastore {
 	{
 		if( ident )
 			::fastore::ident = ident;
-
-		const char *s = getenv("SYSLOG");
-		if( s  ) {
-			std::istringstream is( s );
-			is >> priority;
-		}
 	}
+
 	static void closelog(void) {}
 
 	static void syslog(int priority, const char *, const char *msg)
 	{
-		if( priority & ::fastore::priority ) {
-			const CODE& code = *std::find_if(prioritynames, 
-											 prioritynames + sizeof(prioritynames)/sizeof(*prioritynames), 
-											[&] ( const CODE& c) {
-												return c.c_val == priority || c.c_val == -1;
-											} ); 
+		const CODE& code = *std::find_if(prioritynames, 
+											prioritynames + sizeof(prioritynames)/sizeof(*prioritynames), 
+										[&] ( const CODE& c) {
+											return c.c_val == priority || c.c_val == -1;
+										} ); 
 
-			ostringstream os;
-			os << "[" <<  (code.c_name? code.c_name : "") << "] " << ident << ": " << msg;
+		ostringstream os;
+		os << "[" <<  (code.c_name? code.c_name : "") << "] " << ident << ": " << msg;
 
-			OutputDebugStringA( os.str().c_str() );
-		}
+		OutputDebugStringA( os.str().c_str() );
 	}
 #endif
 
 	Syslog::Syslog( const char *ident, int option, int facility )
 		: errnum(-1)
 		, priority(facility)
+		, env_priority(0)
 	{
 		openlog( ident, option, facility );
+
+		const char *s = getenv("FASTORE_SYSLOG");
+		if( s  ) {
+			std::istringstream is( s );
+			is >> env_priority;
+		}
+
 	}
 
 	Syslog::~Syslog()
@@ -57,6 +58,9 @@ namespace fastore {
 	Syslog&
 	Syslog::endl( Syslog& )
 	{
+		if( (env_priority & priority) == 0 ) 
+			return *this;
+
 		std::string msg( this->msg.str() );
 		size_t pos = msg.find("%m");
 
@@ -68,7 +72,9 @@ namespace fastore {
 		}
 
 		msg += "\n";
+		
 		syslog( priority, "%s", msg.c_str() );
+		
 		this->msg.str( std::string() );
 
 		return *this;
