@@ -22,8 +22,10 @@ namespace fastore
 			static std::map<std::string, std::string> sqliteTypesToFastoreTypes;
 			static std::map<int, std::string> sqliteTypeIDToFastoreTypes;
 			static std::map<std::string, std::string> fastoreTypeToSQLiteAffinity;
+			static std::map<std::string, int> fastoreTypeToSQLiteTypeID;
 
 			static std::string SQLiteTypeToFastoreType(const std::string &SQLiteType);
+			static int FastoreTypeToSQLiteTypeID(const std::string &fastoreType);
 			static void EnsureFastoreTypeMaps();
 
 			const static int MAXTABLEOPERATIONS = 10000;

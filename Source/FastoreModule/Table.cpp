@@ -15,10 +15,13 @@ namespace communication = fastore::communication;
 std::map<std::string, std::string>  module::Table::sqliteTypesToFastoreTypes;
 std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
 std::map<std::string, std::string> module::Table::fastoreTypeToSQLiteAffinity;
+std::map<std::string, int> module::Table::fastoreTypeToSQLiteTypeID;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
 	: _connection(connection), _name(name),  _ddl(ddl), _rowIDIndex(-1), _numoperations(0)
-{}
+{
+		EnsureFastoreTypeMaps();
+}
 
 void module::Table::EnsureFastoreTypeMaps()
 {
@@ -42,6 +45,13 @@ void module::Table::EnsureFastoreTypeMaps()
 		fastoreTypeToSQLiteAffinity["String"] = "TEXT";
 		fastoreTypeToSQLiteAffinity["Long"] = "INTEGER";
 		fastoreTypeToSQLiteAffinity["Double"] = "REAL";
+	}
+
+	if (fastoreTypeToSQLiteTypeID.size() == 0)
+	{
+		fastoreTypeToSQLiteTypeID["String"] = SQLITE_TEXT;
+		fastoreTypeToSQLiteTypeID["Long"] = SQLITE_INTEGER;
+		fastoreTypeToSQLiteTypeID["Double"] = SQLITE_FLOAT;
 	}
 }
 
@@ -481,16 +491,27 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 		if (sqlite3_value_type(pValue) != SQLITE_NULL)
 		{
 			std::string type = _columns[i].Type;
+			int datatype = sqlite3_value_type(pValue);
+
+			if (datatype != FastoreTypeToSQLiteTypeID(type))
+				throw "Datatype Mismatch!";
 
 			std::string value;
-			if (type == "Long")
-				value = Encoder<long long>::Encode(sqlite3_value_int64(pValue));
-			else if (type == "Double")
-				value = Encoder<double>::Encode(sqlite3_value_double(pValue));
-			else if (type == "String")
-				value = std::string((const char *)sqlite3_value_text(pValue));
-			else
-				throw "Table::update() : value type unknown";
+
+			switch(datatype)
+			{
+				case SQLITE_TEXT:
+					value = std::string((const char *)sqlite3_value_text(pValue));
+					break;
+				case SQLITE_INTEGER:
+					value = Encoder<long long>::Encode(sqlite3_value_int64(pValue));
+					break;
+				case SQLITE_FLOAT:
+					value = Encoder<double>::Encode(sqlite3_value_double(pValue));
+					break;
+				default:
+					throw "Table::update() : value type unknown. Datatype was not enforced!";
+			}
 
 			row.push_back(value);
 			includedColumns.push_back(_columns[i].ColumnID);
@@ -588,7 +609,6 @@ client::ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 
 std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)
 {
-	EnsureFastoreTypeMaps();
 	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
 	if (result == sqliteTypesToFastoreTypes.end())
 	{
@@ -601,6 +621,21 @@ std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType
 	}
 	return result->second;			
 }
+
+int module::Table::FastoreTypeToSQLiteTypeID(const std::string &fastoreType)
+{
+	auto result = fastoreTypeToSQLiteTypeID.find(fastoreType);
+	if (result == fastoreTypeToSQLiteTypeID.end())
+	{
+		std::ostringstream message;
+		message << "Unknown type '" << fastoreType << "'.";
+		std::runtime_error(message.str());
+	}
+
+	return result->second;			
+}
+
+
 
 void module::Table::determineRowIDColumn()
 {
