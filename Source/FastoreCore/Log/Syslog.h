@@ -25,26 +25,13 @@ public:
 	~Syslog();
 
 	Syslog& endl( Syslog& );
+	Syslog& operator<<( int input );
 
 	template<typename T>
 	Syslog& operator<<( const T& input ) 
 	{
 		msg << input;
 		return *this;
-	}
-
-	Syslog& operator<<( int input )
-	{
-		const int errnum(errno);  // capture errno before it changes
-
-		if( msg.tellp() > 0 ) {
-			msg << input; 
-		} else {
-			this->errnum = errnum;
-			this->priority = input;
-		}
-		return *this;
-		
 	}
 
 };
