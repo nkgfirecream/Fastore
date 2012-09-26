@@ -237,6 +237,10 @@ int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
 	{
 		*pzErr = sqlite3_mprintf(e.what());
 	}
+	catch (char *e)
+	{
+		*pzErr = sqlite3_mprintf(e);
+	}
 	catch (...)
 	{
 		// Generic error messages like this are terrible, but we don't know anything more at this time.
