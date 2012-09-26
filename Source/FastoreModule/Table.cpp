@@ -255,7 +255,7 @@ int module::Table::drop()
 	//Drop Table Table entry
 	_connection->_database->Exclude(module::Dictionary::TableColumns, client::Encoder<communication::ColumnID>::Encode(_id));
 
-	return SQLITE_ERROR;
+	return SQLITE_OK;
 }
 
 int module::Table::disconnect()
