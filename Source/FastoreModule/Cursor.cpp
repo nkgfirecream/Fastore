@@ -7,11 +7,13 @@ namespace module = fastore::module;
 
 module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1) { }
 
-void module::Cursor::next()
+int module::Cursor::next()
 {
 	++_index;
 	if (SAFE_CAST(size_t, _index) == _set.Data.size())
 		getNextSet();
+
+	return SQLITE_OK;
 }
 
 int module::Cursor::eof()
@@ -19,34 +21,41 @@ int module::Cursor::eof()
 	return (_set.Data.size() == 0 || _index == -1)? 1 : 0;
 }
 
-void module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
-{
-	auto type = _table->_columns[index].Type;
+int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
+{	
 	auto value = _set.Data[_index].Values[index];
 
-	//NULL Marker required...
 	if (!value.__isset.value)
 		sqlite3_result_null(pContext);
-	else if (type == "Bool")
-		sqlite3_result_int(pContext, (int)Encoder<bool>::Decode(value.value));
-	else if (type == "Int")
-		sqlite3_result_int(pContext, Encoder<int>::Decode(value.value));
-	else if (type == "Long")
-		sqlite3_result_int64(pContext, Encoder<long long>::Decode(value.value));
-	else if (type == "Double")
-		sqlite3_result_double(pContext, Encoder<double>::Decode(value.value));
-	else if (type == "String")
-		sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
-	else if (type == "WString")
+
+	auto type = _table->_columns[index].Type;
+	//This function is static, and must be intialized. However,
+	//this cursor can't exist without table, so the table static functions
+	//must be initialized at this point. Consider refactoring.
+	int datatype = module::Table::FastoreTypeToSQLiteTypeID(type);
+	switch(datatype)
 	{
-		std::wstring decoded = Encoder<std::wstring>::Decode(value.value);
-		sqlite3_result_text16(pContext, decoded.data(), -1, SQLITE_TRANSIENT);
+		case SQLITE_TEXT:
+			sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
+			break;
+		case SQLITE_INTEGER:
+			sqlite3_result_int64(pContext, Encoder<long long>::Decode(value.value));
+			break;
+		case SQLITE_FLOAT:
+			sqlite3_result_double(pContext, Encoder<double>::Decode(value.value));
+			break;
+		default:
+			return SQLITE_MISMATCH;
 	}
+
+	return SQLITE_OK;
 }
 
-void module::Cursor::setRowId(sqlite3_int64 *pRowid)
+int module::Cursor::setRowId(sqlite3_int64 *pRowid)
 {
 	*pRowid = (sqlite3_int64)client::Encoder<long long>::Decode(_set.Data[_index].ID);
+
+	return SQLITE_OK;
 }
 
 void module::Cursor::getNextSet()
@@ -72,7 +81,7 @@ void module::Cursor::getNextSet()
 	}
 }
 
-void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
+int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
 {
 	//Clear variables...
 	_index = -1;
@@ -126,6 +135,8 @@ void module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_va
 	}
 
 	getNextSet();
+
+	return SQLITE_OK;
 }
 
 client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg)
@@ -145,27 +156,24 @@ std::string module::Cursor::convertSqliteValueToString(int col, sqlite3_value* a
 {
 	std::string type = _table->_columns[col].Type;
 	std::string result;
+	int datatype = module::Table::FastoreTypeToSQLiteTypeID(type);
 
-	if (type == "String")
-		result = std::string((char *)sqlite3_value_text(arg));
-	else if (type == "Int")
-		result = Encoder<int>::Encode(sqlite3_value_int(arg));
-	else if (type == "Long")
-		result = Encoder<int64_t>::Encode(sqlite3_value_int64(arg));
-	else if (type == "Double")
-		result = Encoder<double>::Encode(sqlite3_value_double(arg));
-	else if (type == "Bool")
-		result = Encoder<bool>::Encode(sqlite3_value_int(arg) != 0);
-	else if (type == "WString")
+	switch(datatype)
 	{
-		std::wstring toEncode((wchar_t*)sqlite3_value_text16(arg));
-		result = Encoder<std::wstring>::Encode(toEncode);
+		case SQLITE_TEXT:
+			result = std::string((char *)sqlite3_value_text(arg));
+			break;
+		case SQLITE_INTEGER:
+			result = Encoder<int64_t>::Encode(sqlite3_value_int64(arg));
+			break;
+		case SQLITE_FLOAT:
+			result = Encoder<double>::Encode(sqlite3_value_double(arg));
+			break;
+		default:
+			throw "ModuleCursor can't find correct type for RangeBound encoding!";
 	}
-	else
-		throw "ModuleCursor can't find correct type for RangeBound encoding!";
 
 	return result;
-
 }
 
 

@@ -55,35 +55,41 @@ void module::Table::EnsureFastoreTypeMaps()
 	}
 }
 
-void module::Table::begin()
+int module::Table::begin()
 {
 	_transaction = _connection->_database->Begin(true, true);
+	return SQLITE_OK;
 }
 
-void module::Table::sync()
+int module::Table::sync()
 {
 	//Do nothing for now.. we may need to expose two stage transactions on the client.
+	return SQLITE_ERROR;
 }
 
-void module::Table::commit()
+int module::Table::commit()
 {
 	_transaction->Commit();
 	_transaction.reset();
+	return SQLITE_OK;
 }
 
-void module::Table::rollback()
+int module::Table::rollback()
 {
 	_transaction->Rollback();
 	_transaction.reset();
+	return SQLITE_OK;
 }
 
 //This code makes the assumption that the module has
 //Already bootstrapped the Table of Tables.
-void module::Table::create()
+int module::Table::create()
 {
 	ensureTable();
 	ensureColumns();
 	updateStats();
+
+	return SQLITE_OK;
 }
 
 void module::Table::ensureTable()
@@ -184,14 +190,16 @@ void module::Table::ensureColumns()
 	}
 }
 
-void module::Table::connect()
+int module::Table::connect()
 {
 	//Try to locate all the columns (range over the columns table with "tablename.") and gather their ids
 	//so that we can use them.
 	//Try to locate rowId column if the column exists. 
+
+	return SQLITE_ERROR;
 }
 
-void module::Table::drop()
+int module::Table::drop()
 {
 	//TODO: drop module tables as well
 
@@ -246,11 +254,14 @@ void module::Table::drop()
 
 	//Drop Table Table entry
 	_connection->_database->Exclude(module::Dictionary::TableColumns, client::Encoder<communication::ColumnID>::Encode(_id));
+
+	return SQLITE_ERROR;
 }
 
-void module::Table::disconnect()
+int module::Table::disconnect()
 {
 	//Do nothing for now...
+	return SQLITE_ERROR;
 }
 
 void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod)
@@ -303,7 +314,7 @@ char *sqlite3_safe_malloc( size_t n )
 	return reinterpret_cast<char*>( sqlite3_malloc(SAFE_CAST(int,n)) );
 }
 
-void module::Table::bestIndex(sqlite3_index_info* info)
+int module::Table::bestIndex(sqlite3_index_info* info)
 {
 	//TODO: Do some real testing with real data and see what happens.
 	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't.
@@ -423,6 +434,8 @@ void module::Table::bestIndex(sqlite3_index_info* info)
 	info->idxNum = useOrder ? (info->aOrderBy[0].desc ?  ~(info->aOrderBy[0].iColumn + 1) : (info->aOrderBy[0].iColumn + 1)) : useConstraint ? whichColumn + 1 : 0; //TODO: Else should pick a required column.
 	info->idxStr = idxstr;
 	info->needToFreeIdxStr = true;
+
+	return SQLITE_OK;
 }
 
 client::RangeSet module::Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
@@ -433,7 +446,7 @@ client::RangeSet module::Table::getRange(client::Range& range, const boost::opti
 		return _connection->_database->GetRange(_columnIds, range, 500, startId);
 }
 
-void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
+int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 {
 	//Update statistics every MAXOPERATIONS
 	++_numoperations;
@@ -456,7 +469,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 
 	//delete only, return
 	if (argc == 1)
-		return;
+		return SQLITE_OK;
 
 
 	//Find our row Id
@@ -494,7 +507,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 			int datatype = sqlite3_value_type(pValue);
 
 			if (datatype != FastoreTypeToSQLiteTypeID(type))
-				throw "Datatype Mismatch!";
+				return SQLITE_MISMATCH;
 
 			std::string value;
 
@@ -510,7 +523,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 					value = Encoder<double>::Encode(sqlite3_value_double(pValue));
 					break;
 				default:
-					throw "Table::update() : value type unknown. Datatype was not enforced!";
+					return SQLITE_MISMATCH;
 			}
 
 			row.push_back(value);
@@ -518,7 +531,7 @@ void module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid
 		}
 		else if (_columns[i].Required)
 		{
-			throw "Got a NULL value on a required row!";
+			return SQLITE_CONSTRAINT;
 		}
 	}	
 

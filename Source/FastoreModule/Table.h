@@ -45,28 +45,28 @@ namespace fastore
 			Table(Connection* connection, const std::string& name, const std::string& ddl);
 
 			//Transaction processing...
-			void begin();
-			void sync();
-			void commit();
-			void rollback();
+			int begin();
+			int sync();
+			int commit();
+			int rollback();
 
 			//Destroy backing store
-			void drop();
+			int drop();
 
 			//Probably a no-op for now
-			void disconnect();
+			int disconnect();
 
 			//Create columns
-			void create();
+			int create();
 
 			//Ensure tables exists in backing store. If not, error. Also, update our columns definitions for the ids we pull.
-			void connect();
+			int connect();
 
 			//Delete/Update/Inserts a row. Sets pRowid to the id generated (if any)
-			void update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid);
+			int update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid);
 
 			//Determines best index for table
-			void bestIndex(sqlite3_index_info* info);
+			int bestIndex(sqlite3_index_info* info);
 
 		private:
 			void ensureTable();
