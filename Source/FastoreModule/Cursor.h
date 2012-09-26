@@ -24,6 +24,7 @@ namespace fastore
 
 				int _index;
 				void getNextSet();
+				client::Range createRange(int idxNum, const char *idxStr, int argc, sqlite3_value **argv);
 				client::RangeBound getBound(int col, char op, sqlite3_value* arg);
 				std::string convertSqliteValueToString(int col, sqlite3_value* arg);
 		};

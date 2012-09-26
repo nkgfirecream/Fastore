@@ -220,15 +220,18 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
 	void* startId = range.__isset.rowID ? _rowType.GetPointer(range.rowID) : NULL;
 
+	RangeResult result;	
+	ValueRowsList vrl;
+
 	if (range.__isset.first && range.__isset.last)
 	{		
-		if (range.ascending && _valueType.Compare(firstp, lastp) > 0)
+		if ((range.ascending && _valueType.Compare(firstp, lastp) > 0) || (!range.ascending && _valueType.Compare(firstp, lastp) < 0))
 		{
-			throw "Invalid range. Start is after end and the range is ascending";
-		}
-		else if (!range.ascending && _valueType.Compare(firstp, lastp) < 0)
-		{
-			throw "Invalid range. Start is after end and the range is descending";
+			//Disjoint constraints - (e.g. < 2 && > 5). Return empty set.
+			result.__set_valueRowsList(vrl);
+			result.__set_bof(true);
+			result.__set_eof(true);
+			result.__set_limited(false);
 		}
 	}
 
@@ -250,9 +253,6 @@ inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	BTree::iterator end = 
 	range.__isset.last ? _values->findNearest(lastp, endMatch) :
 	lastMarker;
-
-	RangeResult result;	
-	ValueRowsList vrl;
 
 	result.__set_bof(begin == firstMarker);
 	result.__set_eof(end == lastMarker);

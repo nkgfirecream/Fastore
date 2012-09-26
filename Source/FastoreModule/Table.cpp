@@ -318,6 +318,10 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 {
 	//TODO: Do some real testing with real data and see what happens.
 	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't.
+	//WRT disjoint constraints, this is now fixed in the cursor. It checks the constraints,
+	//and if it recognizes it will pull an empty set, simply pull nothing. The reason for this
+	//is that SQLite apparently does not make that optimization, so will revert to pulling every
+	//row and checking the constraint against the row.
 
 	//Step 1. Group constraints by columns:
 	//Key is column, Value is list of array indicies pointing to constraints.
@@ -539,6 +543,8 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		_transaction->Include(includedColumns, rowid, row);
 	else
 		_connection->_database->Include(includedColumns, rowid, row);
+
+	return SQLITE_OK;
 }
 
 void module::Table::updateStats()

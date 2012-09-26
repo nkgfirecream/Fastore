@@ -63,8 +63,8 @@ void module::Cursor::getNextSet()
 	//First pull...
 	if (_set.Data.size() == 0)
 	{
-	    const boost::optional<std::string> s;
-	    _set = _table->getRange(_range, s);
+		const boost::optional<std::string> s;
+		_set = _table->getRange(_range, s);
 		if (_set.Data.size() > 0)
 			_index = 0;
 	}
@@ -86,17 +86,30 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 	//Clear variables...
 	_index = -1;
 	_set = RangeSet();
-	//The goal here is to set up our private _range and then load data.
-	//_range = something...
 
-	_range = Range();
-	//TODO: Make ascending dependent on index information that comes in.
+	//Set up new range
+	_range = createRange(idxNum, idxStr, argc, argv); 
+
+	//Pull first set.
+	getNextSet();
+
+	return SQLITE_OK;
+}
+
+
+client::Range module::Cursor::createRange(int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
+{
+	client::Range range;
 	//Idxnum > 0 = ascending, < 0 = desc, 0 = no index column (full table pull)
-	_range.Ascending = idxNum >= 0;
+	range.Ascending = idxNum >= 0;
 	
-	//idxNum is either colIdx + 1, ~(colIdx + 1) or 0
-	int colIndex = idxNum > 0 ? idxNum - 1 : (idxNum < 0 ? (~idxNum) - 1 : 0);
-	_range.ColumnID = _table->_columns[colIndex].ColumnID;
+	//idxNum is either colIdx + 1, ~(colIdx + 1) or 0 (0 = full table pull)
+	//TODO: Figure out how to grab all the rowIds when there isn't a key column. 
+	//Should this be masked from SQLite? 
+	//Should the client support a "get all keys" operation and we iterate over them?
+	//Should we force at least one required column?
+	int colIndex = idxNum > 0 ? idxNum - 1 : (idxNum < 0 ? (~idxNum) - 1 : 0); 
+	range.ColumnID = _table->_columns[colIndex].ColumnID;
 
 	if (idxStr != NULL)
 	{
@@ -106,38 +119,25 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 			bound.Bound = convertSqliteValueToString(colIndex, argv[0]);
 			bound.Inclusive = true;
 		
-			_range.End = bound;
-			_range.Start = bound;
+			range.End = bound;
+			range.Start = bound;
 		}
 		else
 		{
-			//TODO: Base start and end of natural order. They should be switched based on constraint (for example, a < constraint implies sticking it at the end).
-			//Case: 1 argument -
-			// if (> or >=) set start
-			// else set end
-			//Case: 2 arguments -
-			// Assumption: if we have two arguments, one is > and the other is < (best index should have enforced this...)
-			// start = >
-			// end = <
-			if (idxStr[0] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[0] == SQLITE_INDEX_CONSTRAINT_GE)
+			for (int i = 0; i < argc; i++)
 			{
-				_range.Start = getBound(colIndex, idxStr[0], argv[0]);
-				if (argc > 1)
-					_range.End = getBound(colIndex, idxStr[1], argv[1]);
-			}
-			else
-			{
-				_range.End = getBound(colIndex, idxStr[0], argv[0]);
-				if (argc > 1)
-					_range.Start = getBound(colIndex, idxStr[1], argv[1]);					
+				client::RangeBound bound = getBound(colIndex, idxStr[i], argv[i]);
+				if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[0] == SQLITE_INDEX_CONSTRAINT_GE)
+					range.Start = bound;
+				else
+					range.End = bound;
 			}
 		}
 	}
 
-	getNextSet();
-
-	return SQLITE_OK;
+	return range;
 }
+
 
 client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg)
 {
