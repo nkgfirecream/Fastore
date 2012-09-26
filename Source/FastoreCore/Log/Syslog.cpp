@@ -36,9 +36,9 @@ namespace fastore {
 #endif
 
 	Syslog::Syslog( const char *ident, int option, int facility )
-		: errnum(-1)
-		, priority(facility)
+		: priority(facility)
 		, env_priority(0)
+		, errnum(0)
 	{
 		openlog( ident, option, facility );
 
@@ -47,7 +47,6 @@ namespace fastore {
 			std::istringstream is( s );
 			is >> env_priority;
 		}
-
 	}
 
 	Syslog::~Syslog()
@@ -66,9 +65,7 @@ namespace fastore {
 
 		// robustness would look for every %m, not just one
 		if( pos != std::string::npos && pos > 0 && msg[pos-1] != '%' ) {
-			std::ostringstream e;
-			e << errnum;
-			msg.replace( pos, 2, e.str() );
+			msg.replace( pos, 2, errstr );
 		}
 
 		msg += "\n";
@@ -76,22 +73,9 @@ namespace fastore {
 		syslog( priority, "%s", msg.c_str() );
 		
 		this->msg.str( std::string() );
+		errstr.clear();
 
 		return *this;
 	}
-
-	Syslog& Syslog::operator<<( int input )
-	{
-		const int errnum(errno);  // capture errno before it changes
-
-		if( msg.tellp() > 0 ) {
-			msg << input; 
-		} else {
-			this->errnum = errnum;
-			this->priority = input;
-		}
-		return *this;
-	}
-
 
 } // end namespace 

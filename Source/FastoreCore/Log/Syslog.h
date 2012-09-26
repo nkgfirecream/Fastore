@@ -15,9 +15,9 @@ namespace fastore {
 
 class Syslog 
 {
-	int errnum;
+	std::string errstr;
 	std::ostringstream msg;
-	int priority, env_priority;
+	int errnum, priority, env_priority;
 public:
 	Syslog( const char *ident = "Fastore", 
 			int option = LOG_CONS|LOG_PID, 
@@ -30,7 +30,14 @@ public:
 	template<typename T>
 	Syslog& operator<<( const T& input ) 
 	{
+		// capture errno if we're starting a new log message. 
+		if( msg.tellp() == 0 && errstr.empty() && errno != 0 ) {
+			errnum = errno;
+			errstr = strerror(errno);
+		} 
+	
 		msg << input;
+
 		return *this;
 	}
 
