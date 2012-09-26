@@ -17,7 +17,7 @@ namespace fastore {
 
 		const char *s = getenv("SYSLOG");
 		if( s  ) {
-			std::istringstream is( std::string(s) );
+			std::istringstream is( s );
 			is >> priority;
 		}
 	}
@@ -29,9 +29,9 @@ namespace fastore {
 			if( ! ident.empty() ) {
 				std::string tmp( ident ); 
 				tmp += ": ";
-				OutputDebugString( tmp.c_str() );
+				OutputDebugStringA( tmp.c_str() );
 			}
-			OutputDebugString( msg );
+			OutputDebugStringA( msg );
 	}
 #endif
 
