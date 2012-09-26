@@ -127,7 +127,11 @@ client-clean:
 
 comm FastoreCommunication: FastoreCommunication/libfastore-communication.so
 FastoreCommunication/libfastore-communication.so: $(COMM.OBJ)
-	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC)
+	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC) \
+		-Wl,-L$(PREFIX)/lib \
+		-Wl,-rpath,$(PREFIX)/lib \
+		-lthrift -lboost_thread -lboost_filesystem
+
 thrift-src: $(COMM.THRIFT)
 comm-clean thrift-clean: 
 	rm -f $(COMM.THRIFT) $(COMM.OBJ) \
@@ -166,7 +170,7 @@ FastoreModule/libfastore-module.so: 	$(MODULE.OBJ) \
 				$(PREFIX)/lib/libfastore-communication.so
 	$(CXX) $(CXXFLAGS) -shared $(MODULE.OBJ) $(MODULE.CLIENT.OBJ) \
 		-Wl,-L$(PREFIX)/lib,-rpath,$(PREFIX)/lib \
-		-lfastore-communication
+		-lfastore-communication -lboost_thread
 module-clean:
 	rm -f $(MODULE.OBJ) FastoreModule/libfastore-module.so
 
@@ -190,14 +194,15 @@ FastoreService/fastored: $(SERVICE.OBJ) $(LIBS) $(PIDFILE.C)
 service-clean:
 	rm -f $(SERVICE.OBJ) FastoreService/libfastore-service.so
 
+SHELL.CXXFLAGS = $(CXXFLAGS:N-Wno-reorder:N-std=c++0x) -DHAVE_READLINE
 shell FastoreShell: FastoreShell/shell
 FastoreShell/shell: $(SHELL.SRC)
-	$(CC) $(CXXFLAGS:N-Wno-reorder:N-std=c++0x) $(.ALLSRC) \
+	$(CC) $(SHELL.CXXFLAGS) $(.ALLSRC) \
 		-L $(PREFIX)/lib \
 		-Wl,-rpath -Wl,$(PREFIX)/lib \
 		$(LIBS:H:S,^,-L./,g) \
 		$(LIBS:T:R:S/^lib/-l/g) \
-		-lthrift $(BOOST_LIBS:S/^/-lboost_/g) -lsqlite3
+		-lthrift $(BOOST_LIBS:S/^/-lboost_/g) -lsqlite3 -lreadline
 shell-clean:
 	rm -f $(SHELL.OBJ) FastoreShell/shell
 

@@ -293,7 +293,7 @@ uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size100;
             ::apache::thrift::protocol::TType _ktype101;
             ::apache::thrift::protocol::TType _vtype102;
-            iprot->readMapBegin(_ktype101, _vtype102, _size100);
+            xfer += iprot->readMapBegin(_ktype101, _vtype102, _size100);
             uint32_t _i104;
             for (_i104 = 0; _i104 < _size100; ++_i104)
             {
@@ -302,7 +302,7 @@ uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
               NetworkAddress& _val106 = this->addresses[_key105];
               xfer += _val106.read(iprot);
             }
-            iprot->readMapEnd();
+            xfer += iprot->readMapEnd();
           }
           this->__isset.addresses = true;
         } else {

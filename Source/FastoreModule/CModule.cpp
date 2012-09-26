@@ -8,7 +8,15 @@ static string errorMessage;
 
 const char * fastore_vfs_message(void)
 {
-	return errorMessage.empty()? NULL : errorMessage.c_str();
+	static char * msg(NULL);
+	
+	if( !errorMessage.empty() ) {
+		delete[] msg;
+		msg = new char[ 1 + errorMessage.size() ];
+		strcpy( msg, errorMessage.c_str() );
+		errorMessage.clear();
+	}
+	return msg;
 }
 
 void intializeFastoreModule(sqlite3* db, int argc, void* argv)
