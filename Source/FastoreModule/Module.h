@@ -227,6 +227,27 @@ void checkSQLiteResult(int sqliteResult, sqlite3 *sqliteConnection)
 	}
 }
 
+/**
+ * http://www.sqlite.org/vtab.html
+ * The virtual table implementation may pass error message text to the core 
+ * by putting an error message string in zErrMsg. Space to hold this error 
+ * message string must be obtained from an SQLite memory allocation function 
+ * such as sqlite3_mprintf() or sqlite3_malloc(). Prior to assigning a new 
+ * value to zErrMsg, the virtual table implementation must free any 
+ * preexisting content of zErrMsg using sqlite3_free(). 
+ */
+static char * 
+mprintf( char **pzErr, const char message[] ) 
+{
+	assert(message != NULL);
+	assert(pzErr != NULL);
+
+	sqlite3_free(*pzErr);
+	*pzErr =  sqlite3_mprintf("%s", message? message : "NULL message!");
+
+	return *pzErr;
+}
+
 int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
 {
 	try
@@ -235,16 +256,16 @@ int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
 	}
 	catch (exception &e)
 	{
-		*pzErr = sqlite3_mprintf(e.what());
+		*pzErr = mprintf(pzErr, e.what());
 	}
 	catch (char *e)
 	{
-		*pzErr = sqlite3_mprintf(e);
+		*pzErr = mprintf(pzErr, e);
 	}
 	catch (...)
 	{
 		// Generic error messages like this are terrible, but we don't know anything more at this time.
-		*pzErr = sqlite3_mprintf("Unknown exception.");
+		*pzErr = mprintf(pzErr, "Unknown exception.");
 	}
 	return SQLITE_ERROR;
 }
@@ -271,32 +292,6 @@ struct fastore_vtab_cursor
 	sqlite3_vtab_cursor base;
 	module::Cursor* cursor;
 };
-
-/**
- * http://www.sqlite.org/vtab.html
- * The virtual table implementation may pass error message text to the core 
- * by putting an error message string in zErrMsg. Space to hold this error 
- * message string must be obtained from an SQLite memory allocation function 
- * such as sqlite3_mprintf() or sqlite3_malloc(). Prior to assigning a new 
- * value to zErrMsg, the virtual table implementation must free any 
- * preexisting content of zErrMsg using sqlite3_free(). 
- */
-sqlite3_vtab& operator<<( sqlite3_vtab& vtab, const char * message ) 
-{
-	assert(message != NULL);
-	if( message == NULL ) return vtab;
-
-	sqlite3_free(vtab.zErrMsg);
-	char *s =  sqlite3_mprintf("%s", message);
-	vtab.zErrMsg = s? s : NULL;
-	return vtab;
-}
-	
-sqlite3_vtab& operator<<( sqlite3_vtab& vtab, const std::exception& oops ) 
-{
-	return vtab << oops.what();
-}
-
 
 fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *const*argv, sqlite3_vtab **ppVTab)
 {
