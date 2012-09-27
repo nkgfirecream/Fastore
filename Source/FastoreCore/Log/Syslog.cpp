@@ -23,10 +23,10 @@ namespace fastore {
 	static void syslog(int priority, const char *, const char *msg)
 	{
 		const CODE& code = *std::find_if(prioritynames, 
-											prioritynames + sizeof(prioritynames)/sizeof(*prioritynames), 
-										[&] ( const CODE& c) {
+										 prioritynames + sizeof(prioritynames)/sizeof(*prioritynames), 
+										 [&] ( const CODE& c) {
 											return c.c_val == priority || c.c_val == -1;
-										} ); 
+										 } ); 
 
 		ostringstream os;
 		os << "[" <<  (code.c_name? code.c_name : "") << "] " << ident << ": " << msg;
@@ -78,4 +78,6 @@ namespace fastore {
 		return *this;
 	}
 
+
+	Syslog Log;
 } // end namespace 

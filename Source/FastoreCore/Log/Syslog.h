@@ -43,6 +43,6 @@ public:
 
 };
 
-		
+extern Syslog Log;	
 
 } // end namespace 
