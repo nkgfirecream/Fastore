@@ -46,7 +46,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	{
 		/* Tell the user that we could not find a usable */
 		/* Winsock DLL.                                  */
-		cout << "WSAStartup failed with error: " << err << "\n";
+		cerr << "WSAStartup failed with error: " << err << "\n";
 		return;
 	}
 
@@ -61,7 +61,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 		/* Tell the user that we could not find a usable */
 		/* WinSock DLL.                                  */
 		WSACleanup();
-		cout << "Could not find a usable version (2.2) of Winsock.dll\n";
+		cerr << "Could not find a usable version (2.2) of Winsock.dll\n";
 		return;
 	}
 
@@ -80,7 +80,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	}
 	catch (const exception& e)
 	{
-		cout << "Error starting service: " << e.what();
+		cerr << "Error starting service: " << e.what() << endl;
 		return;
 	}
 
@@ -94,7 +94,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	}
 	catch (const exception& e)
 	{
-		cout << "Error during service execution: " << e.what();
+		cerr << "Error during service execution: " << e.what() << endl;
 	}
 
 	if (stopping != NULL)
@@ -107,7 +107,7 @@ void RunService(ServiceEventCallback started, ServiceEventCallback stopping, con
 	}
 	catch (const exception& e)
 	{
-		cout << "Error shutting down service: " << e.what();
+		cerr << "Error shutting down service: " << e.what() << endl;
 		return;
 	}
 
@@ -149,7 +149,7 @@ BOOL CtrlCHandler(DWORD fdwCtrlType)
 	{ 
 		// Handle the CTRL-C signal. 
 	case CTRL_C_EVENT: 
-		cout << "Stop Request Received.\n";
+		cout << "Stop Request Received." << endl;
 		ShutdownEndpoint();
 		return( TRUE );
 
@@ -161,22 +161,22 @@ BOOL CtrlCHandler(DWORD fdwCtrlType)
 void ConsoleStarted()
 {
 	// Report running status when initialization is complete.
-	cout << "Service started.\nPress Ctrl-C to stop...\n";
+	cout << "Service started, press Ctrl-C to stop." << endl;
 
 	// Ctrl-C handling
 	if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE) ) 
-		cout << "ERROR: Could not set control handler.\n";
+		cerr << "ERROR: Could not set control handler." << endl;
 }
 
 void ConsoleStopping()
 {
 	// Report running status when initialization is complete.
-	cout << "Stopping Service...\n";
+	cout << "Stopping Service ... " << flush;
 }
 
 void ConsoleError(string message)
 {
-	cout << message;
+	cerr << message;
 }
 
 vector<string> argsToVector(int argc, wchar_t* argv[])
@@ -223,9 +223,8 @@ void __cdecl _tmain(int argc, wchar_t* argv[])
 
 		cout << "Configuration: port = " << config.endpointConfig.port << "	data path = '" << config.startupConfig.dataPath << "'\n";
 
-		cout << "Service starting....\n";
 		RunService(&ConsoleStarted, &ConsoleStopping, config.endpointConfig, config.startupConfig);
-		cout << "Service stopped.\n";
+		cout << "Service stopped." << endl;
 		return;
 	}
 	else if (lstrcmpi( argv[1], TEXT("-install")) == 0 || lstrcmpi( argv[1], TEXT("-i")) == 0)
@@ -265,7 +264,7 @@ VOID SvcInstall()
 
 	if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
 	{
-		cout << "Cannot install service (" << GetLastError() << ")\n";
+		cerr << "Cannot install service (" << GetLastError() << ")\n";
 		return;
 	}
 
@@ -301,7 +300,7 @@ VOID SvcInstall()
 
 	if (schService == NULL) 
 	{
-		cout << "CreateService failed (" << GetLastError() << ")\n";
+		cerr << "CreateService failed (" << GetLastError() << ")\n";
 		CloseServiceHandle(schSCManager);
 		return;
 	}
