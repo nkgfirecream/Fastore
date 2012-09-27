@@ -53,7 +53,7 @@ void IDGenerator::AsyncGenerateBlock()
 		}
 		catch (std::exception &e)
 		{
-			Log << __LINE__ << e << log_endl;
+			Log << __func__ << e << log_endl;
 			// If an error happens here, any waiting requesters will block
 			ResetLoading(boost::optional<int64_t>(), e);
 			throw;
@@ -94,6 +94,7 @@ void IDGenerator::ResetLoading(boost::optional<int64_t> newBlock, boost::optiona
 	}
 	catch(const std::exception&)
 	{
+		Log << __func__ << e << log_endl;
 		if (taken)
 		{
 			taken = false;
@@ -172,8 +173,9 @@ int64_t IDGenerator::Generate()
 
 			return nextId;
 		}
-		catch(const std::exception&)
+		catch(const std::exception& e)
 		{
+			Log << __func__ << e << log_endl;
 			// Release latch
 			if (lockTaken)
 			{
@@ -212,8 +214,9 @@ void IDGenerator::ResetCache()
 
 			break;
 		}
-		catch(const std::exception&)
+		catch(const std::exception& e)
 		{
+			Log << __func__ << e << log_endl;
 			if(taken)
 				_spinlock.unlock();
 		}
