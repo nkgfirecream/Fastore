@@ -2,13 +2,14 @@
 #pragma once 
 #if _WIN32
 # include <windows.h>
+# define SYSLOG_NAMES
 # include "sys/syslog.h"
 #else
 # include <syslog.h>
 #endif
 
+#include <cstring>
 #include <string>
-
 #include <sstream>
 
 namespace fastore {

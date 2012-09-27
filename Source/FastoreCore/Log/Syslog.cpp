@@ -1,5 +1,4 @@
 // $Id$
-#define SYSLOG_NAMES
 #include "Syslog.h"
 #include <cstdlib>
 #include <algorithm>
