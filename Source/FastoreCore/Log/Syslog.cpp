@@ -1,4 +1,7 @@
 // $Id$
+#if _WIN32
+# define SYSLOG_NAMES
+#endif
 #include "Syslog.h"
 #include <cstdlib>
 #include <algorithm>
@@ -28,7 +31,7 @@ namespace fastore {
 										 } ); 
 
 		ostringstream os;
-		os << "[" <<  (code.c_name? code.c_name : "") << "] " << ident << ": " << msg;
+		os << ident << ": " <<  (code.c_name? code.c_name : "") << ": " << msg;
 
 		OutputDebugStringA( os.str().c_str() );
 	}
@@ -134,5 +137,3 @@ operator<<( fastore::Syslog& log,
 {
 	return log << fastore::log_err << ": " << err.what();
 }
-
-

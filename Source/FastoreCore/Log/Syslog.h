@@ -2,7 +2,6 @@
 #pragma once 
 #if _WIN32
 # include <windows.h>
-# define SYSLOG_NAMES
 # include "sys/syslog.h"
 #else
 # include <syslog.h>
@@ -39,7 +38,7 @@ public:
 	Syslog& insert( const T& input ) 
 	{
 		// capture errno if we're starting a new log message. 
-		if( msg.tellp() == 0 && errstr.empty() && errno != 0 ) {
+		if( msg.tellp() == std::streamoff(0) && errstr.empty() && errno != 0 ) {
 			errnum = errno;
 			errstr = strerror(errno);
 		} 
@@ -78,3 +77,7 @@ operator<<( fastore::Syslog& log,
 fastore::Syslog& 
 operator<<( fastore::Syslog& log, 
 			const std::exception& err );
+
+#if _WIN32
+# define __func__ __FUNCTION__
+#endif

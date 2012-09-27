@@ -53,7 +53,7 @@ void IDGenerator::AsyncGenerateBlock()
 		}
 		catch (std::exception &e)
 		{
-			Log << __func__ << e << log_endl;
+			Log << __LINE__ << e << log_endl;
 			// If an error happens here, any waiting requesters will block
 			ResetLoading(boost::optional<int64_t>(), e);
 			throw;
