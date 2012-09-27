@@ -170,7 +170,7 @@ FastoreModule/libfastore-module.so: 	$(MODULE.OBJ) \
 				$(PREFIX)/lib/libfastore-communication.so
 	$(CXX) $(CXXFLAGS) -shared $(MODULE.OBJ) $(MODULE.CLIENT.OBJ) \
 		-Wl,-L$(PREFIX)/lib,-rpath,$(PREFIX)/lib \
-		-lfastore-communication -lboost_thread
+		-lfastore-core -lfastore-communication -lboost_thread
 module-clean:
 	rm -f $(MODULE.OBJ) FastoreModule/libfastore-module.so
 
@@ -248,7 +248,7 @@ depend depends: .depend
 	rm $(DEPENDS)
 
 $(DEPENDS):
-	$(CXX) -MM -MT$(@:R).o -MF$@ $(CXXFLAGS) \
+	@$(CXX) -MM -MT$(@:R).o -MF$@ $(CXXFLAGS) \
 		$(@:S/.dep/.cpp/g:S/shell.cpp/shell.c/)
 
 

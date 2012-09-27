@@ -1,7 +1,9 @@
 ﻿#include "IDGenerator.h"
-
+#include "../FastoreCore/Log/Syslog.h"
 
 using namespace fastore::client;
+using namespace std;
+using fastore::Log;
 
 boost::asio::io_service IDGenerator::_io_service;
 boost::thread_group IDGenerator::_threads;
@@ -51,6 +53,7 @@ void IDGenerator::AsyncGenerateBlock()
 		}
 		catch (std::exception &e)
 		{
+			Log << __func__ << e << log_endl;
 			// If an error happens here, any waiting requesters will block
 			ResetLoading(boost::optional<int64_t>(), e);
 			throw;
@@ -61,6 +64,7 @@ void IDGenerator::AsyncGenerateBlock()
 	catch (...)
 	{
 		// Don't ever let an exception leave a thread (kills process)
+		Log << log_err << __func__ << ": unknown exception" << log_endl;
 	}
 }
 

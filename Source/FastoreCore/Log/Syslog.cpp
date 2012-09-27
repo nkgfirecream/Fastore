@@ -54,29 +54,85 @@ namespace fastore {
 	}
 	
 	Syslog&
-	Syslog::endl( Syslog& )
+	log_endl( Syslog& log)
 	{
-		if( (env_priority & priority) == 0 ) 
-			return *this;
+		if( (log.env_priority & log.priority) == 0 ) 
+			return log;
 
-		std::string msg( this->msg.str() );
+		std::string msg( log.msg.str() );
 		size_t pos = msg.find("%m");
 
 		// robustness would look for every %m, not just one
 		if( pos != std::string::npos && pos > 0 && msg[pos-1] != '%' ) {
-			msg.replace( pos, 2, errstr );
+			msg.replace( pos, 2, log.errstr );
 		}
 
 		msg += "\n";
 		
-		syslog( priority, "%s", msg.c_str() );
+		syslog( log.priority, "%s", msg.c_str() );
 		
-		this->msg.str( std::string() );
-		errstr.clear();
+		log.msg.str( std::string() );
+		log.errstr.clear();
 
-		return *this;
+		return log;
 	}
 
+	Syslog& log_emerg( Syslog& log )   
+	{ 
+		log.priority = LOG_EMERG;
+		return log; 
+	}
+	Syslog& log_alert( Syslog& log )   
+	{ 
+		log.priority = LOG_ALERT;
+		return log; 
+	}
+	Syslog& log_crit ( Syslog& log )   
+	{ 
+		log.priority = LOG_CRIT;
+		return log; 
+	}
+	Syslog& log_err( Syslog& log )     
+	{ 
+		log.priority = LOG_ERR;
+		return log; 
+	}
+	Syslog& log_warning( Syslog& log ) 
+	{ 
+		log.priority = LOG_WARNING; 
+		return log; 
+	}
+	Syslog& log_notice( Syslog& log )  
+	{ 
+		log.priority = LOG_NOTICE;  
+		return log; 
+	}
+	Syslog& log_info ( Syslog& log )   
+	{ 
+		log.priority = LOG_INFO;    
+		return log; 
+	}
+	Syslog& log_debug( Syslog& log )   
+	{ 
+		log.priority = LOG_DEBUG;   
+		return log; 
+	}
 
 	Syslog Log;
 } // end namespace 
+
+fastore::Syslog& 
+operator<<( fastore::Syslog& log, 
+			fastore::Syslog& (*func)(fastore::Syslog& ) )
+{
+	return func(log);
+}
+
+fastore::Syslog& 
+operator<<( fastore::Syslog& log, 
+			const std::exception& err )
+{
+	return log << fastore::log_err << ": " << err.what();
+}
+
+
