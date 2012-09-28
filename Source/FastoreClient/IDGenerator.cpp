@@ -134,7 +134,7 @@ int64_t IDGenerator::Generate()
 					<< ", _endOfRange " << _endOfRange
 					<< ", _nextId " << _nextId
 					<< ", remaining " << remaining 
-					<< ", _loadingBlock " << _loadingBlock
+					// ", _loadingBlock " << _loadingBlock
 					<< log_endl;
 				// If haven't begun loading the next block, commence
 				if (!_loadingBlock)
@@ -171,10 +171,10 @@ int64_t IDGenerator::Generate()
 					lockTaken = true;
 
 					// Throw if there was an error attempting to load a new block
-					if (_lastError)
+					if (_lastError) {
 						Log << log_err << __func__ << _lastError << log_endl;
 						throw std::runtime_error(_lastError->what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
-
+					}
 					// Retry with new block
 					continue;
 				}
