@@ -37,7 +37,7 @@ const char * fastore_vfs_message(void)
 	return msg;
 }
 
-void intializeFastoreModule(sqlite3* db, int argc, void* argv)
+void initializeFastoreModule(sqlite3* db, int argc, void* argv)
 {
 	if( argc < 1 || argv == NULL ) {
 		assert(argc > 0);
