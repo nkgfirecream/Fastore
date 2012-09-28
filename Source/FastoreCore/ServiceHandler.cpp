@@ -14,6 +14,8 @@
 
 #include <ctime>
 
+#include "Log/Syslog.h"
+
 using namespace boost::filesystem;
 using boost::shared_ptr;
 using namespace std;
@@ -23,6 +25,11 @@ using namespace ::apache::thrift::transport;
 using namespace ::apache::thrift::server;
 using namespace ::fastore::communication;
 using namespace ::fastore::server;
+
+using fastore::Log;
+using fastore::log_endl;
+using fastore::log_info;
+using fastore::log_err;
 
 const char* const ServiceHandler::ConfigFileName = "config.json";
 
@@ -135,13 +142,17 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 {
 	// Ensure that there enough configured paths for each worker
 	EnsureWorkerPaths((int)states.size());
+	const static char *func = __func__;
 	const char *s = getenv("FASTORE_WORKER");
-	if( s && *s == 'T' ) { // returns because replaces old for loop that follows it. 
-		// Constructor starts each Worker running.  If Worker::endpoint::run throws
-		// an exception, it's caught and logged by Worker::run().  
-		std::transform( states.begin(), states.end(), _config->workerPaths.begin(), 
-						std::back_inserter(_workers), Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
-		return;
+	if( s && *s == 'T' ) { 
+		// Constructor starts each Worker running.  
+		// If Worker::endpoint::run throws an exception, 
+		// it's caught and logged by Worker::run().  
+		std::transform( states.begin(), states.end(), 
+						_config->workerPaths.begin(), 
+						std::back_inserter(_workers), 
+						Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
+		return;	// returns because replaces old for loop that follows it. 
 	}
 
 
@@ -172,15 +183,23 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 				{ 
 					try
 					{
+						Log << log_info << func 
+							<< ": start pod " << podID << log_endl;
 						endpoint->Run();
+						Log << log_info << func 
+							<< ": Endpoint::run returned  " << podID << log_endl;
 					}
 					catch (const exception& e)
 					{
-						cout << "ERROR: unhandled exception running the endpoint for worker " << i << " for pod " << podID << ": " << e.what();
+						Log << log_err  << func 
+							<< ": exception running the endpoint for worker " << i 
+							<< ", pod " << podID << e << log_endl;
 					}
 					catch (...)
 					{
-						cout << "ERROR: unhandled exception running the endpoint for worker " << i << " for pod " << podID << ".";
+						Log << log_err << func 
+							<< ": unhandled exception running the endpoint for worker " << i 
+							<< " for pod " << podID << "." << log_endl;
 					} 
 				}
 			)
@@ -293,7 +312,15 @@ void ServiceHandler::CheckInHive()
 	if (!_hiveState)
 	{
 		NotJoined notJoined;
-		notJoined.__set_potentialWorkers(GetRecommendedWorkerCount());
+		try 
+		{
+			notJoined.__set_potentialWorkers(GetRecommendedWorkerCount());
+		}
+		catch( const TTransportException& err ) {
+			Log << log_err << __func__ << ": " << err.what() << log_endl;
+			throw;
+		}
+		Log << log_err << __func__ << ": not joined"  << log_endl;
 		throw notJoined;
 	}
 }

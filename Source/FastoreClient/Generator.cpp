@@ -4,8 +4,14 @@
 #include "boost/assign/std/vector.hpp"
 #include "boost/assign/list_of.hpp"
 
+#include "../FastoreCore/Log/Syslog.h"
+
 using namespace fastore::client;
 using namespace boost::assign;
+
+using fastore::Syslog;
+using fastore::log_err;
+using fastore::log_endl;
 
 Generator::Generator(boost::shared_ptr<Database> database, std::vector<PodID> podIDs = std::vector<PodID>())
 	: _database(database), _podIDs(podIDs)
@@ -89,6 +95,7 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 			}		
 			catch (ClientException& e)
 			{
+				Log << log_err << __func__ << e.what() << log_endl;
 				if (IsNoWorkerForColumnException(e))
 					continue;
 				else

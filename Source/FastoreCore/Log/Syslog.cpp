@@ -22,7 +22,7 @@ namespace fastore {
 
 	static void closelog(void) {}
 
-	static void syslog(int priority, const char *, const char *msg)
+	void syslog(int priority, const char *, const char *msg)
 	{
 		const CODE& code = *std::find_if(prioritynames, 
 										 prioritynames + sizeof(prioritynames)/sizeof(*prioritynames), 
@@ -49,6 +49,8 @@ namespace fastore {
 			std::istringstream is( s );
 			is >> env_priority;
 		}
+
+		msg << boolalpha;
 	}
 
 	Syslog::~Syslog()
@@ -122,6 +124,13 @@ namespace fastore {
 	}
 
 	Syslog Log;
+
+void
+write_log( const char *message ) 
+{
+	Log << message << log_endl;
+}
+
 } // end namespace 
 
 fastore::Syslog& 
@@ -137,3 +146,4 @@ operator<<( fastore::Syslog& log,
 {
 	return log << fastore::log_err << ": " << err.what();
 }
+

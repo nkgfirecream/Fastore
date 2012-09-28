@@ -79,9 +79,15 @@ void IDGenerator::ResetLoading(boost::optional<int64_t> newBlock, boost::optiona
 		// Update the generation block data
 		if (newBlock)
 		{
+			Log << __func__ << " newBlock " << log_endl; 
 			auto blockValue = *newBlock;
 			_nextId = blockValue;
 			_endOfRange = blockValue + _blockSize;
+		}
+		if( _endOfRange < 1 ) {
+			Log << __func__ << " strange, _endOfRange is " 
+				<< _endOfRange 
+				<< " = " << _nextId << "+" <<  _blockSize << log_endl;
 		}
 
 		// Release the loading status
@@ -92,7 +98,7 @@ void IDGenerator::ResetLoading(boost::optional<int64_t> newBlock, boost::optiona
 		_loadEvent.set();
 
 	}
-	catch(const std::exception&)
+	catch(const std::exception& e)
 	{
 		Log << __func__ << e << log_endl;
 		if (taken)
@@ -124,6 +130,12 @@ int64_t IDGenerator::Generate()
 			auto remaining = _endOfRange - _nextId;
 			if (remaining < _allocationThreshold)
 			{
+				Log << log_info << __func__ 
+					<< ", _endOfRange " << _endOfRange
+					<< ", _nextId " << _nextId
+					<< ", remaining " << remaining 
+					<< ", _loadingBlock " << _loadingBlock
+					<< log_endl;
 				// If haven't begun loading the next block, commence
 				if (!_loadingBlock)
 				{
@@ -136,6 +148,8 @@ int64_t IDGenerator::Generate()
 				// Out of IDs?
 				if (remaining < 0)
 				{
+					Log << log_info << __func__ 
+						<< " IDs remaining: " << remaining << log_endl;
 					// Release latch
 					lockTaken = false;
 					_spinlock.unlock();						
@@ -158,6 +172,7 @@ int64_t IDGenerator::Generate()
 
 					// Throw if there was an error attempting to load a new block
 					if (_lastError)
+						Log << log_err << __func__ << _lastError << log_endl;
 						throw std::runtime_error(_lastError->what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
 
 					// Retry with new block

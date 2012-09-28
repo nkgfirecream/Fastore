@@ -22,6 +22,7 @@
 #include "../FastoreCore/ServiceHandler.h"
 #include "../FastoreCore/EndpointConfig.h"
 #include "../FastoreCore/StartupConfig.h"
+#include "../FastoreCore/Log/Syslog.h"
 
 
 using namespace std;
@@ -54,6 +55,8 @@ void RunService(ServiceEventCallback started,
 				const StartupConfig& startupConfig)
 {
 	const char *name = getprogname();
+
+	apache::thrift::GlobalOutput.setOutputFunction( fastore::write_log );
 
     try	{
 		ServiceStartup startup;

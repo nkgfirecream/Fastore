@@ -61,6 +61,9 @@ Syslog& log_debug( Syslog& log );
 
 extern Syslog Log;	
 
+// created for thrift
+void write_log( const char *message );
+
 } // end namespace 
 
 template <typename T>
