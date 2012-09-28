@@ -5,7 +5,7 @@
 extern "C" { 
 #endif 
 
-char * getprogname();
+const char * getprogname();
 
 const char * fastore_vfs_message(void);
 void intializeFastoreModule(sqlite3* db, int argc, void* argv);

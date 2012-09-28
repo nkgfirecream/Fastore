@@ -12,10 +12,10 @@ using fastore::log_info;
 static string errorMessage;
 
 
-char * getprogname() 
+const char * getprogname() 
 #if _WIN32
 { 
-	char name[MAX_PATH] = "GetModuleFileName";
+	static char name[MAX_PATH] = "GetModuleFileName";
 	GetModuleFileName( NULL, name, sizeof(name) );
 	return name;
 }

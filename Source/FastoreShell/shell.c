@@ -70,7 +70,8 @@
  * SUCH DAMAGE.
  */
 
-char * getprogname();
+#include "sqlite3.h"
+#include "../FastoreModule/CModule.h"
 
 void
 vwarn(const char *fmt, va_list ap)
@@ -97,9 +98,6 @@ void
 }
 
 #endif
-
-#include "sqlite3.h"
-#include "../FastoreModule/CModule.h"
 
 #if !defined(_WIN32) && !defined(WIN32) && !defined(__OS2__)
 # include <signal.h>
