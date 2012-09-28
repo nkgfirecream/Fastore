@@ -36,6 +36,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "sqlite3.h"
+#include "../FastoreModule/CModule.h"
+
 #ifndef _WIN32
 # include <err.h>
 #else
@@ -69,9 +72,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
-#include "sqlite3.h"
-#include "../FastoreModule/CModule.h"
 
 void
 vwarn(const char *fmt, va_list ap)
