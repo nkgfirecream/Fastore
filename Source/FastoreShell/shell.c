@@ -69,7 +69,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-const char * getprogname() { return "shell.c"; }
+
+char * getprogname();
 
 void
 vwarn(const char *fmt, va_list ap)

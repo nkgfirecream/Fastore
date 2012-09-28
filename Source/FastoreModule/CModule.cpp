@@ -1,6 +1,7 @@
 #include "Module.h"
 #include "CModule.h"
 #include <cassert>
+#include <cstdlib>
 #include "../FastoreCore/Log/Syslog.h"
 
 using namespace std;
@@ -9,6 +10,19 @@ using fastore::log_endl;
 using fastore::log_info;
 
 static string errorMessage;
+
+
+char * getprogname() 
+#if _WIN32
+{ 
+	char name[MAX_PATH] = "GetModuleFileName";
+	GetModuleFileName( NULL, name, sizeof(name) );
+	return name;
+}
+#else
+{ return program_invocation_short_name; }
+#endif
+
 
 const char * fastore_vfs_message(void)
 {
@@ -30,8 +44,12 @@ void intializeFastoreModule(sqlite3* db, int argc, void* argv)
 		errorMessage = "argc == 0";
 		return;
 	}
+
+	apache::thrift::GlobalOutput.setOutputFunction( fastore::write_log );
+
 	// just a way to show the log is working
 	Log << log_info << __func__ << " started" << log_endl;
+
 	try {
 		//Convert from c to cpp...
 		std::vector<module::Address> mas(1);
@@ -53,8 +71,12 @@ void intializeFastoreModule(sqlite3* db, int argc, void* argv)
 	}
 	catch( const std::exception& oops ) {
 		errorMessage = oops.what();
+		cerr << getprogname() << ": error: " << errorMessage << endl;
+		exit(EXIT_FAILURE);
 	}
 	catch( ... ) {
 		errorMessage = "exceptional exception";
+		cerr << getprogname() << ": error: " << errorMessage << endl;
+		exit(EXIT_FAILURE);
 	}
 }
