@@ -2,6 +2,7 @@
 #include "CModule.h"
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include "../FastoreCore/Log/Syslog.h"
 
 using namespace std;
@@ -16,7 +17,12 @@ const char * getprogname()
 #if _WIN32
 { 
 	static char name[MAX_PATH] = "GetModuleFileName";
-	GetModuleFileName( NULL, name, sizeof(name) );
+	DWORD len =  GetModuleFileName( NULL, name, sizeof(name) );
+	if( len ) {
+		char *s = strrchr(name, '\\');
+		if( s ) 
+			return ++s;
+	}
 	return name;
 }
 #else
