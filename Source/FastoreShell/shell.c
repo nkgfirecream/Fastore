@@ -1573,7 +1573,7 @@ static void open_db(struct callback_data *p){
       exit(1);
     }
 
-	intializeFastoreModule(p->db, 1, fAddress);
+	initializeFastoreModule(p->db, 1, fAddress);
 
 	if( (msg = fastore_vfs_message()) != NULL ) {
 		fprintf(stderr, "internal error: %s\n", msg);
