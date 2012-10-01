@@ -69,9 +69,9 @@ namespace fastore
 			int bestIndex(sqlite3_index_info* info);
 
 		private:
-			void ensureTable();
-			void ensureColumns();
-			void parseDDL(); 
+			int ensureTable();
+			int ensureColumns();
+			int parseDDL(); 
 			void determineRowIDColumn();
 
 			client::ColumnDef parseColumnDef(std::string text, bool& isDef);

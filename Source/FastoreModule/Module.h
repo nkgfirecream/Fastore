@@ -49,7 +49,7 @@ void createVirtualTables(module::Connection* connection, sqlite3* sqliteConnecti
 
 			std::string ddl = result.Data[i].Values[2].value;
 
-			std::string statement = "create virtual table " + result.Data[i].Values[1].value + " using fastore(" + ddl + ");";
+			std::string statement = "create table " + result.Data[i].Values[1].value + "(" + ddl + ");";
 
 			sqlite3_exec(sqliteConnection, statement.c_str(), NULL, NULL, NULL);
 		}
@@ -274,7 +274,7 @@ int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
 int moduleInit(sqlite3 *db, const char *tblName, const char* ddl)
 {
 	ostringstream tableDef;
-	tableDef << "create table " << tblName <<"(" << ddl << ")";
+	tableDef << "create virtual table " << tblName <<"(" << ddl << ")";
 	sqlite3_declare_vtab(db, tableDef.str().c_str());
 
 	return SQLITE_OK;

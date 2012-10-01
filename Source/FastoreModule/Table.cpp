@@ -85,14 +85,16 @@ int module::Table::rollback()
 //Already bootstrapped the Table of Tables.
 int module::Table::create()
 {
-	ensureTable();
-	ensureColumns();
-	updateStats();
+	int result = ensureTable();
+	if (result == SQLITE_OK)
+		result = ensureColumns();
+	if (result == SQLITE_OK)
+		updateStats();
 
-	return SQLITE_OK;
+	return result;
 }
 
-void module::Table::ensureTable()
+int module::Table::ensureTable()
 {
 	//See if the table already exists.
 	client::RangeBound bound;
@@ -127,12 +129,25 @@ void module::Table::ensureTable()
 		);
 		transaction->Commit();
 	}	
+
+	return SQLITE_OK;
 }
 
-void module::Table::ensureColumns()
+int module::Table::ensureColumns()
 {
 	//Gives us a valid set of column defs -- except for ids, which we need to determine.
-	parseDDL();
+	int result = parseDDL();
+	if (result != SQLITE_OK)
+		return result;
+
+	//if we didn't get any columns from the dll, abort the operation. (Rollback the transaction.. hopefully).
+	//Since this is all happening outside the context of a SQLite transaction, we'll need a way to undo what we've
+	//already done. One option that comes to mind is to start our own transaction internally. How does that affect
+	//key generation, for example, key generation? That already occurred in its own transaction.
+	if (_columns.size() == 0)
+		return SQLITE_ERROR;
+
+	//Pick a column to use as rowIds if available. -1 = no column available.
 	determineRowIDColumn();
 
 	 // Pull a list of candidate pods
@@ -146,7 +161,7 @@ void module::Table::ensureColumns()
 	////TODO: Gather pods - we may have more than 2000
     auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
     if (podIds.Data.size() == 0)
-        throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first.";
+        throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first."; //TODO: Map this to an error code?
 
 
 	//TODO: Determine key -- if it's more than one column, we need to create a surrogate.
@@ -188,6 +203,8 @@ void module::Table::ensureColumns()
 			createColumn(_columns[i], combinedName, podIds, nextPod);
 		}
 	}
+
+	return SQLITE_OK;
 }
 
 int module::Table::connect()
@@ -555,7 +572,7 @@ void module::Table::updateStats()
 		_stats = _connection->_database->GetStatistics(_columnIds);
 }
 
-void module::Table::parseDDL()
+int module::Table::parseDDL()
 {
 	//Split on commas. Find columns definitions. Create defs based on definitions.
 	//For now, assume all definitions are column defs.
@@ -580,6 +597,8 @@ void module::Table::parseDDL()
 		else
 			break; //Assume all column definitions are at the beginning of the table definition
 	}
+
+	return SQLITE_OK; //TODO: Once we have a parser, return SQL_ERROR to indicate malformed SQL.
 }
 
 client::ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
