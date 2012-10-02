@@ -15,7 +15,7 @@
       <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(BOOST)\lib64;$(SolutionDir)bin\$(Configuration)\;$(THRIFT)\..\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SQLITE);$(BOOST)\lib64;$(SolutionDir)bin\$(Configuration)\;$(THRIFT)\..\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
