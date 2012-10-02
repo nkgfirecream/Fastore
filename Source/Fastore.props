@@ -4,6 +4,7 @@
   <PropertyGroup Label="UserMacros">
     <BOOST>$(SolutionDir)..\External\boost_1_51_0</BOOST>
     <THRIFT>$(SolutionDir)..\External\Thrift\lib\cpp\src</THRIFT>
+    <SQLITE>$(SolutionDir)..\External\SQLite</SQLITE>
   </PropertyGroup>
   <PropertyGroup>
     <IncludePath>$(WindowsSdkDir)include\shared;$(WindowsSdkDir)include\um;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
@@ -11,7 +12,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(BOOST)\lib64;$(SolutionDir)bin\$(Configuration)\;$(THRIFT)\..\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
@@ -24,6 +25,10 @@
     </BuildMacro>
     <BuildMacro Include="THRIFT">
       <Value>$(THRIFT)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="SQLITE">
+      <Value>$(SQLITE)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
   </ItemGroup>
