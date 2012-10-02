@@ -1407,13 +1407,13 @@ static char *createTableStmt(sqlite3 *db, Table *p){
     zSep2 = ",\n  ";
     zEnd = "\n)";
   }
-  n += 35 + 6*p->nCol;
+  n += 35 + 8 + 6*p->nCol;
   zStmt = sqlite3DbMallocRaw(0, n);
   if( zStmt==0 ){
     db->mallocFailed = 1;
     return 0;
   }
-  sqlite3_snprintf(n, zStmt, "CREATE TABLE ");
+  sqlite3_snprintf(n, zStmt, "CREATE VIRTUAL TABLE ");
   k = sqlite3Strlen30(zStmt);
   identPut(zStmt, &k, p->zName);
   zStmt[k++] = '(';
@@ -1469,7 +1469,7 @@ static char *createTableStmt(sqlite3 *db, Table *p){
 **
 ** If the pSelect argument is not NULL, it means that this routine
 ** was called to create a table generated from a 
-** "CREATE TABLE ... AS SELECT ..." statement.  The column names of
+** "CREATE VIRTUAL TABLE ... AS SELECT ..." statement.  The column names of
 ** the new table will match the result set of the SELECT.
 */
 void sqlite3EndTable(
@@ -1552,8 +1552,8 @@ void sqlite3EndTable(
     */
     if( p->pSelect==0 ){
       /* A regular table */
-      zType = "table";
-      zType2 = "TABLE";
+      zType = "virtual table";
+      zType2 = "VIRTUAL TABLE";
 #ifndef SQLITE_OMIT_VIEW
     }else{
       /* A view */
@@ -1636,7 +1636,7 @@ void sqlite3EndTable(
       assert( sqlite3SchemaMutexHeld(db, iDb, 0) );
       if( pDb->pSchema->pSeqTab==0 ){
         sqlite3NestedParse(pParse,
-          "CREATE TABLE %Q.sqlite_sequence(name,seq)",
+          "CREATE VIRTUAL TABLE %Q.sqlite_sequence(name,seq)",
           pDb->zName
         );
       }

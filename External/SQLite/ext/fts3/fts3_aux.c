@@ -45,7 +45,7 @@ struct Fts3auxCursor {
 /*
 ** Schema of the terms table.
 */
-#define FTS3_TERMS_SCHEMA "CREATE TABLE x(term, col, documents, occurrences)"
+#define FTS3_TERMS_SCHEMA "CREATE VIRTUAL TABLE x(term, col, documents, occurrences)"
 
 /*
 ** This function does all the work for both the xConnect and xCreate methods.

@@ -148,7 +148,7 @@ static int sqlite3InitOne(sqlite3 *db, int iDb, char **pzErrMsg){
   ** The master database table has a structure like this
   */
   static const char master_schema[] = 
-     "CREATE TABLE sqlite_master(\n"
+     "CREATE VIRTUAL TABLE sqlite_master(\n"
      "  type text,\n"
      "  name text,\n"
      "  tbl_name text,\n"
@@ -158,7 +158,7 @@ static int sqlite3InitOne(sqlite3 *db, int iDb, char **pzErrMsg){
   ;
 #ifndef SQLITE_OMIT_TEMPDB
   static const char temp_master_schema[] = 
-     "CREATE TEMP TABLE sqlite_temp_master(\n"
+     "CREATE TEMP VIRTUAL TABLE sqlite_temp_master(\n"
      "  type text,\n"
      "  name text,\n"
      "  tbl_name text,\n"

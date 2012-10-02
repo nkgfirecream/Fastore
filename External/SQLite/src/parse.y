@@ -148,7 +148,7 @@ cmd ::= ROLLBACK trans_opt TO savepoint_opt nm(X). {
 ///////////////////// The CREATE TABLE statement ////////////////////////////
 //
 cmd ::= create_table create_table_args.
-create_table ::= createkw temp(T) TABLE ifnotexists(E) nm(Y) dbnm(Z). {
+create_table ::= createkw temp(T) VIRTUAL TABLE ifnotexists(E) nm(Y) dbnm(Z). {
    sqlite3StartTable(pParse,&Y,&Z,T,0,0,E);
 }
 createkw(A) ::= CREATE(X).  {
@@ -1389,9 +1389,9 @@ kwcolumn_opt ::= COLUMNKW.
 %ifndef SQLITE_OMIT_VIRTUALTABLE
 cmd ::= create_vtab.                       {sqlite3VtabFinishParse(pParse,0);}
 cmd ::= create_vtab LP vtabarglist RP(X).  {sqlite3VtabFinishParse(pParse,&X);}
-create_vtab ::= createkw VIRTUAL TABLE ifnotexists(E)
-                nm(X) dbnm(Y) USING nm(Z). {
-    sqlite3VtabBeginParse(pParse, &X, &Y, &Z, E);
+create_vtab ::= createkw TABLE ifnotexists(E)
+                nm(X) dbnm(Y). {
+    sqlite3VtabBeginParse(pParse, &X, &Y, E);
 }
 vtabarglist ::= vtabarg.
 vtabarglist ::= vtabarglist COMMA vtabarg.

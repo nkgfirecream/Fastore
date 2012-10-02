@@ -553,9 +553,9 @@ static void fts3DeclareVtab(int *pRc, Fts3Table *p){
       zCols = sqlite3_mprintf("%z%Q, ", zCols, p->azColumn[i]);
     }
 
-    /* Create the whole "CREATE TABLE" statement to pass to SQLite */
+    /* Create the whole "CREATE VIRTUAL TABLE" statement to pass to SQLite */
     zSql = sqlite3_mprintf(
-        "CREATE TABLE x(%s %Q HIDDEN, docid HIDDEN, %Q HIDDEN)", 
+        "CREATE VIRTUAL TABLE x(%s %Q HIDDEN, docid HIDDEN, %Q HIDDEN)", 
         zCols, p->zName, zLanguageid
     );
     if( !zCols || !zSql ){
@@ -575,7 +575,7 @@ static void fts3DeclareVtab(int *pRc, Fts3Table *p){
 */
 void sqlite3Fts3CreateStatTable(int *pRc, Fts3Table *p){
   fts3DbExec(pRc, p->db, 
-      "CREATE TABLE IF NOT EXISTS %Q.'%q_stat'"
+      "CREATE VIRTUAL TABLE IF NOT EXISTS %Q.'%q_stat'"
           "(id INTEGER PRIMARY KEY, value BLOB);",
       p->zDb, p->zName
   );
@@ -613,7 +613,7 @@ static int fts3CreateTables(Fts3Table *p){
   
     /* Create the content table */
     fts3DbExec(&rc, db, 
-       "CREATE TABLE %Q.'%q_content'(%s)",
+       "CREATE VIRTUAL TABLE %Q.'%q_content'(%s)",
        p->zDb, p->zName, zContentCols
     );
     sqlite3_free(zContentCols);
@@ -621,11 +621,11 @@ static int fts3CreateTables(Fts3Table *p){
 
   /* Create other tables */
   fts3DbExec(&rc, db, 
-      "CREATE TABLE %Q.'%q_segments'(blockid INTEGER PRIMARY KEY, block BLOB);",
+      "CREATE VIRTUAL TABLE %Q.'%q_segments'(blockid INTEGER PRIMARY KEY, block BLOB);",
       p->zDb, p->zName
   );
   fts3DbExec(&rc, db, 
-      "CREATE TABLE %Q.'%q_segdir'("
+      "CREATE VIRTUAL TABLE %Q.'%q_segdir'("
         "level INTEGER,"
         "idx INTEGER,"
         "start_block INTEGER,"
@@ -638,7 +638,7 @@ static int fts3CreateTables(Fts3Table *p){
   );
   if( p->bHasDocsize ){
     fts3DbExec(&rc, db, 
-        "CREATE TABLE %Q.'%q_docsize'(docid INTEGER PRIMARY KEY, size BLOB);",
+        "CREATE VIRTUAL TABLE %Q.'%q_docsize'(docid INTEGER PRIMARY KEY, size BLOB);",
         p->zDb, p->zName
     );
   }

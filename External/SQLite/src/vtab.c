@@ -305,7 +305,6 @@ void sqlite3VtabBeginParse(
   Parse *pParse,        /* Parsing context */
   Token *pName1,        /* Name of new table, or database name */
   Token *pName2,        /* Name of new table or NULL */
-  Token *pModuleName,   /* Name of the module for the virtual table */
   int ifNotExists       /* No error if the table already exists */
 ){
   int iDb;              /* The database the table is being created in */
@@ -323,10 +322,10 @@ void sqlite3VtabBeginParse(
 
   pTable->tabFlags |= TF_Virtual;
   pTable->nModuleArg = 0;
-  addModuleArgument(db, pTable, sqlite3NameFromToken(db, pModuleName));
+  addModuleArgument(db, pTable, sqlite3_mprintf("Fastore"));
   addModuleArgument(db, pTable, sqlite3DbStrDup(db, db->aDb[iDb].zName));
   addModuleArgument(db, pTable, sqlite3DbStrDup(db, pTable->zName));
-  pParse->sNameToken.n = (int)(&pModuleName->z[pModuleName->n] - pName1->z);
+  pParse->sNameToken.n = 7;
 
 #ifndef SQLITE_OMIT_AUTHORIZATION
   /* Creating a virtual table invokes the authorization callback twice.
@@ -384,7 +383,7 @@ void sqlite3VtabFinishParse(Parse *pParse, Token *pEnd){
     if( pEnd ){
       pParse->sNameToken.n = (int)(pEnd->z - pParse->sNameToken.z) + pEnd->n;
     }
-    zStmt = sqlite3MPrintf(db, "CREATE VIRTUAL TABLE %T", &pParse->sNameToken);
+    zStmt = sqlite3MPrintf(db, "CREATE TABLE %T", &pParse->sNameToken);
 
     /* A slot for the record has already been allocated in the 
     ** SQLITE_MASTER table.  We just need to update that slot with all

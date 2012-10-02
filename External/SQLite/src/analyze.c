@@ -173,7 +173,7 @@ static void openStatTable(
       ** of the new table in register pParse->regRoot. This is important 
       ** because the OpenWrite opcode below will be needing it. */
       sqlite3NestedParse(pParse,
-          "CREATE TABLE %Q.%s(%s)", pDb->zName, zTab, aTable[i].zCols
+          "CREATE VIRTUAL TABLE %Q.%s(%s)", pDb->zName, zTab, aTable[i].zCols
       );
       aRoot[i] = pParse->regRoot;
       aCreateTbl[i] = OPFLAG_P2ISREG;

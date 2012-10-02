@@ -2970,9 +2970,9 @@ static int rtreeSqlInit(
 
   if( isCreate ){
     char *zCreate = sqlite3_mprintf(
-"CREATE TABLE \"%w\".\"%w_node\"(nodeno INTEGER PRIMARY KEY, data BLOB);"
-"CREATE TABLE \"%w\".\"%w_rowid\"(rowid INTEGER PRIMARY KEY, nodeno INTEGER);"
-"CREATE TABLE \"%w\".\"%w_parent\"(nodeno INTEGER PRIMARY KEY, parentnode INTEGER);"
+"CREATE VIRTUAL TABLE \"%w\".\"%w_node\"(nodeno INTEGER PRIMARY KEY, data BLOB);"
+"CREATE VIRTUAL TABLE \"%w\".\"%w_rowid\"(rowid INTEGER PRIMARY KEY, nodeno INTEGER);"
+"CREATE VIRTUAL TABLE \"%w\".\"%w_parent\"(nodeno INTEGER PRIMARY KEY, parentnode INTEGER);"
 "INSERT INTO '%q'.'%q_node' VALUES(1, zeroblob(%d))",
       zDb, zPrefix, zDb, zPrefix, zDb, zPrefix, zDb, zPrefix, pRtree->iNodeSize
     );
@@ -3142,7 +3142,7 @@ static int rtreeInit(
     if( (rc = rtreeSqlInit(pRtree, db, argv[1], argv[2], isCreate)) ){
       *pzErr = sqlite3_mprintf("%s", sqlite3_errmsg(db));
     }else{
-      char *zSql = sqlite3_mprintf("CREATE TABLE x(%s", argv[3]);
+      char *zSql = sqlite3_mprintf("CREATE VIRTUAL TABLE x(%s", argv[3]);
       char *zTmp;
       int ii;
       for(ii=4; zSql && ii<argc; ii++){
