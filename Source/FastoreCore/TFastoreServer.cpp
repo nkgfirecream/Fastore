@@ -50,6 +50,8 @@
 #define PRIu32 "I32u"
 #endif
 
+#include "Log/Syslog.h"
+
 namespace apache { namespace thrift { namespace server {
 
 using namespace apache::thrift::protocol;
@@ -60,6 +62,10 @@ using apache::thrift::transport::TSocket;
 using apache::thrift::transport::TTransportException;
 using boost::shared_ptr;
 
+using fastore::Log;
+using fastore::log_info;
+using fastore::log_err;
+using fastore::log_endl;
 
 void TFastoreServer::TConnection::init(SOCKET socket, TFastoreServer * server,	const sockaddr* addr, socklen_t addrLen)
 {
@@ -537,6 +543,12 @@ void TFastoreServer::returnConnection(int socket)
 {
 
 	auto it = activeConnections_.find(socket);
+	if( it == activeConnections_.end() ) {
+		ostringstream msg;
+		msg << __func__ << ": no connection for socket " << socket;
+		Log << log_err << msg.str() << log_endl;
+		throw logic_error(msg.str());
+	}
 	TConnection* connection = it->second;
 	activeConnections_.erase(it);
 
@@ -759,6 +771,7 @@ void TFastoreServer::run()
 	_fds[0].events = POLLIN;
 	_fds[0].fd = serverSocket_;	
 
+	Log << log_info << "TFastoreServer running" << log_endl;
 	while(!_stop)
 	{
 		_fds[0].revents = 0;
@@ -802,7 +815,8 @@ void TFastoreServer::run()
 		int numready = poll(_fds, fdindex, pollTimeout_);
 		if (numready == -1)
 		{
-			GlobalOutput.printf("TFastoreServer: poll error");
+			GlobalOutput.printf("TFastoreServer: poll error: %s", 
+								strerror(errno));
 		}
 		else if(numready > 0 )
 		{
@@ -836,6 +850,8 @@ void TFastoreServer::run()
 		//if (_shutdown)
 		//	stop();
 	}
+	Log << log_info << "TFastoreServer stopped" << log_endl;
+
 }
 
 void TFastoreServer::acceptConnections()

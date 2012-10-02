@@ -95,7 +95,7 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 			}		
 			catch (ClientException& e)
 			{
-				Log << log_err << __func__ << e.what() << log_endl;
+				Log << log_err << __func__ << ": " << e.what() << log_endl;
 				if (IsNoWorkerForColumnException(e))
 					continue;
 				else
@@ -109,10 +109,11 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 					throw;
 			}*/
 		}
-		catch(std::exception& e)
+		// no point catching just to rethrow
+		catch(std::exception&) 
 		{
 			//Something happened while starting the transaction...
-			throw e;
+			throw;
 		}
 	}
 }
@@ -181,9 +182,10 @@ void Generator::EnsureGeneratorTable()
 
 		transaction->Commit();
 	}
-	catch(std::exception e)
+	// no point in catching only to rethrow
+	catch(std::exception)
 	{
-		throw e;
+		throw;
 	}
 }
 

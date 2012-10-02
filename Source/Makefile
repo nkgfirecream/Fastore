@@ -16,6 +16,7 @@ DBG = -O0
 PERMISSIVE = -Wall -Werror -Wno-reorder -Wconversion
 CXXDIRS = -I /usr/local/include
 PREFIX = /usr/local
+THRIFT.LIB = $(PREFIX)/lib/libthrift.so
 
 CXXFLAGS += -g -o $@ -fPIC $(PERMISSIVE) -std=c++0x $(HAVES) $(CXXDIRS)
 
@@ -126,8 +127,8 @@ client-clean:
 	rm -f $(CLIENT.OBJ) FastoreClient/libfastore-client.so
 
 comm FastoreCommunication: FastoreCommunication/libfastore-communication.so
-FastoreCommunication/libfastore-communication.so: $(COMM.OBJ)
-	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC) \
+FastoreCommunication/libfastore-communication.so: $(COMM.OBJ) $(THRIFT.LIB)
+	$(CXX) $(CXXFLAGS) -shared $(COMM.OBJ) \
 		-Wl,-L$(PREFIX)/lib \
 		-Wl,-rpath,$(PREFIX)/lib \
 		-lthrift -lboost_thread -lboost_filesystem
@@ -140,8 +141,8 @@ comm-clean thrift-clean:
 		FastoreCommunication/libfastore-communication.so
 
 core FastoreCore: FastoreCore/libfastore-core.so
-FastoreCore/libfastore-core.so: $(CORE.OBJ)
-	$(CXX) $(CXXFLAGS) -shared $(.ALLSRC) \
+FastoreCore/libfastore-core.so: $(CORE.OBJ) $(THRIFT.LIB)
+	$(CXX) $(CXXFLAGS) -shared $(CORE.OBJ) \
 		-Wl,-LFastoreCommunication,-L$(PREFIX)/lib \
 		-Wl,-rpath,$(PREFIX)/lib \
 		-lfastore-communication -lfastore-core \
@@ -184,7 +185,7 @@ BOOST_LIBS = filesystem system thread
 
 PIDFILE.C = FastoreCore/Wal/pidfile.c
 fastored service FastoreService: FastoreService/fastored
-FastoreService/fastored: $(SERVICE.OBJ) $(LIBS) $(PIDFILE.C)
+FastoreService/fastored: $(SERVICE.OBJ) $(LIBS) $(PIDFILE.C) $(THRIFT.LIB)
 	$(CXX) $(CXXFLAGS) $(SERVICE.OBJ) $(PIDFILE.C) \
 		-L $(PREFIX)/lib \
 		-Wl,-rpath -Wl,$(PREFIX)/lib \
@@ -196,8 +197,8 @@ service-clean:
 
 SHELL.CXXFLAGS = $(CXXFLAGS:N-Wno-reorder:N-std=c++0x) -DHAVE_READLINE
 shell FastoreShell: FastoreShell/shell
-FastoreShell/shell: $(SHELL.SRC)
-	$(CC) $(SHELL.CXXFLAGS) $(.ALLSRC) \
+FastoreShell/shell: $(SHELL.SRC) $(THRIFT.LIB)
+	$(CC) $(SHELL.CXXFLAGS) $(SHELL.SRC) \
 		-L $(PREFIX)/lib \
 		-Wl,-rpath -Wl,$(PREFIX)/lib \
 		$(LIBS:H:S,^,-L./,g) \

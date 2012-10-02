@@ -6,9 +6,14 @@
 #include <future>
 
 #include "../FastoreCore/safe_cast.h"
+#include "../FastoreCore/Log/Syslog.h"
 
+using namespace std;
 using namespace fastore::client;
-///using fastore::communication::ServiceState;
+using fastore::Log;
+using fastore::log_endl;
+using fastore::log_info;
+using fastore::log_err;
 
 const int &Database::getWriteTimeout() const
 {
@@ -438,7 +443,63 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 	}
 }
 
-void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> work)
+void Database::AttemptRead( ColumnID columnId, 
+						    std::function<void(WorkerClient)> work )
+#if 1
+{
+	std::map<PodID, std::exception> errors;
+	clock_t begin, end;
+
+	// Iterate over pods that can work on a column. 
+	for( auto worker = GetWorker(columnId);
+		 errors.find(worker.first) == errors.end();	// max one error per worker
+		 worker = GetWorker(columnId) )
+	{
+		try
+		{
+			begin = clock();
+			work(worker.second);
+			end = clock();
+
+			// Succeeded: record errors and elapsed time. 
+			TrackErrors(errors);
+			TrackTime(worker.first, end - begin);
+
+			_workers.Release(worker);
+			return;
+		}
+		// work() throws an exception if unavailable. 
+		// Log it and try the next pod. 
+		catch (std::exception &e)
+		{
+			Log << log_err << __func__ << ": error: " << e << log_endl;
+			if( errors.find(worker.first) != errors.end() ) {
+				// should never have more than one 
+				ostringstream oops;
+				oops << __FILE__ << ":" << __LINE__ 
+					 << " (" << __func__ << ") " 
+					 << "two exceptions for PodID" << worker.first;
+				throw logic_error(oops.str());
+			}
+			// If the exception is an entity 
+			// (exception coming from the remote), rethrow
+			// TODO: Figure what this will be since TBase doesn't exist in c++
+
+			errors[worker.first] = e;
+			_workers.Release(worker);	// catch & release ... 
+		}
+	}
+		
+	ostringstream oops;
+	oops << __FILE__ << ":" << __LINE__ 
+		 << " (" << __func__ << ") " 
+		 << "All " << errors.size() << " workers "
+		 << "failed for columnID " << columnId;
+		
+	Log << log_err << oops.str() << log_endl;
+	throw runtime_error( oops.str() );
+}
+#else
 {
 	std::map<PodID, std::exception> errors;
 	clock_t begin;
@@ -470,6 +531,7 @@ void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> 
 				//if (dynamic_cast<apache::thrift::protocol::t*>(e) != nullptr)
 				//	throw;
 
+				Log << log_err << __func__ << ": error: " << e << log_endl;
 				errors.insert(std::make_pair(worker.first, e));
 				continue;
 			}
@@ -492,6 +554,7 @@ void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> 
 		_workers.Release(worker);
 	}
 }
+#endif
 
 void Database::AttemptWrite(PodID podId, std::function<void(WorkerClient)> work)
 {
@@ -526,6 +589,16 @@ void Database::TrackTime(PodID podId, long long p)
 void Database::TrackErrors(std::map<PodID, std::exception> &errors)
 {
 	// TODO: stop trying to reach workers that keep giving errors, ask for a state update too
+	if( errors.size() ) {
+		Log << log_info << "Database::" << __func__  << ": "
+			<< errors.size() << " errors ... " << log_endl;
+		for_each( errors.begin(), errors.end(), 
+				  [&]( const std::map<PodID, std::exception>::value_type& e ) {
+					  Log << log_info << "    {pod " 
+						  << e.first << ", " << e.second.what() 
+						  << "}" << log_endl;
+				  } );
+	}
 }
 
 boost::shared_ptr<Transaction> Database::Begin(bool readIsolation, bool writeIsolation)

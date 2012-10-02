@@ -2,8 +2,15 @@
 #include <functional>
 #include <vector>
 
+#include "../FastoreCore/Log/Syslog.h"
+
 using namespace fastore::client;
 using namespace std;
+
+using fastore::Log;
+using fastore::log_endl;
+using fastore::log_info;
+using fastore::log_err;
 
 ClientException::ClientException() 
     : std::runtime_error(std::string()), Code(Codes::General)
@@ -29,8 +36,10 @@ void ClientException::ThrowErrors(std::vector<std::exception> &errors)
 {
 	if (errors.size() > 0)
 	{
-		throw errors[0];
 		// TODO: implement aggregate exceptions
+		Log << log_info << "ClientException::" << __func__ 
+			<< ": throwing 1 of " << errors.size() << " errors" << log_endl;
+		throw errors[0];
 	}
 }
 

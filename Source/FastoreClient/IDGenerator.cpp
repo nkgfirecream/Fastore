@@ -59,7 +59,8 @@ void IDGenerator::AsyncGenerateBlock()
 			throw;
 		}
 
-		ResetLoading(newBlock, boost::optional<std::exception>());
+		runtime_error err("calling ResetLoading");
+		ResetLoading(newBlock, boost::optional<std::exception>(err));
 	}
 	catch (...)
 	{
@@ -139,9 +140,12 @@ int64_t IDGenerator::Generate()
 				// If haven't begun loading the next block, commence
 				if (!_loadingBlock)
 				{
+					ostringstream msg;
+					msg << __FILE__ << ":" << __LINE__ 
+						<< ", IDGenerator::" << __func__;
 					_loadEvent.unset();
 					_loadingBlock = true;
-					_lastError = boost::optional<std::exception>();
+					_lastError = boost::optional<std::runtime_error>( msg.str() );
 					_io_service.post(boost::bind(&IDGenerator::AsyncGenerateBlock, this));
 				}
 
@@ -172,7 +176,8 @@ int64_t IDGenerator::Generate()
 
 					// Throw if there was an error attempting to load a new block
 					if (_lastError) {
-						Log << log_err << __func__ << _lastError << log_endl;
+						Log << log_err << __func__ 
+							<< " throwing " << _lastError->what() << log_endl;
 						throw std::runtime_error(_lastError->what()); // Don't rethrow the exception instance, this would mutate exception state such as the stack information and this exception is shared across threads
 					}
 					// Retry with new block

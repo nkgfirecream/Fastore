@@ -214,8 +214,17 @@ void ServiceHandler::ping()
 	// Do nothing
 }
 
+ostream& operator<<( ostream& os, const NetworkAddress& addr ) 
+{
+	return os << "{" << addr.name << ":" << addr.port << "}";
+}
+
 void ServiceHandler::init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) 
 {
+	Log << log_info << "ServiceHandler::init for host " << hostID << ", "
+		<< topology.hosts.size() << " hosts " 
+		<< " with " << addresses.size() << " addresses" << log_endl;
+	
 	CheckNotInHive();
 
 	// Setup the hive state 
@@ -238,6 +247,9 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 		ServiceState state;
 		state.__set_address(hostAddress->second);
 
+		Log << log_info << __func__ << ": host " << host->first 
+			<< " has address " << hostAddress->second << log_endl;
+
 		// If the host is this one, fill in details
 		if (host->first == hostID)
 		{
@@ -246,6 +258,8 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 
 			// Set the state for each of our workers
 			int workerIndex = 0;
+			Log << log_info << __func__ << ": " << host->second.size() 
+				<< " pods " << log_endl;
 			for (auto pod = host->second.cbegin(); pod != host->second.cend(); ++pod)
 			{
 				WorkerState workerState;
@@ -353,19 +367,25 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 
 		for (auto iter = workers.begin(); iter != workers.end(); ++iter)
 		{
-			boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
+			const string& name( _return.serviceState.address.name );
+			Log << log_info << __func__ 
+				<< ": creating worker on pod" << iter->podID 
+				<< " at '" << name << ":" << iter->port << "'" << log_endl;
+			boost::shared_ptr<TSocket> socket(new TSocket(name, iter->port));
 			boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 			boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 
 			WorkerClient client(protocol);
 			try
 			{
+				Log << log_info << __func__ << ": opening transport" << log_endl;
 				transport->open();
 				WorkerState state;
 				client.getState(state);
 				state.__set_port(iter->port);
 				transport->close();
 				workerStates.push_back(state);
+				Log << log_info << __func__ << ": opened  transport" << log_endl;
 			}
 			catch (...)
 			{
@@ -373,6 +393,7 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 				state.__set_podID(iter->podID);
 				state.__set_port(iter->port);
 				workerStates.push_back(state);			
+				Log << log_info << __func__ << ": failed" << log_endl;
 			}		
 		}
 

@@ -49,6 +49,13 @@ static void term_handler(int, siginfo *, void *)
 	return;
 }
 
+extern "C" {
+	void ciao(void) 
+	{
+		syslog( LOG_ERR, " %d: server stopped", __LINE__ );
+	}
+}
+
 void RunService(ServiceEventCallback started, 
 				ServiceEventCallback stopping, 
 				const EndpointConfig& endpointConfig, 
@@ -107,14 +114,14 @@ void RunService(ServiceEventCallback started,
 
 		umask(0);
 
-		syslog( LOG_INFO, "%d: %s: started", __LINE__, name);
+		syslog( LOG_INFO, "%d: server started", __LINE__);
 	}
 
 	/*
 	 * Create pid file if possible. 
 	 */
 	if( -1 == pidfile(name) ) {
-		syslog( LOG_ERR, "%d: pidfile '%s': %m", __LINE__, name );
+		syslog( LOG_ERR, "%d: pidfile: %m", __LINE__ );
 		char *user = getenv("USER");
 		if( user && string("jklowden") == user )
 			syslog( LOG_INFO, "%d: continuing without pidfile", __LINE__ );
@@ -137,6 +144,10 @@ void RunService(ServiceEventCallback started,
 		exit(EXIT_FAILURE);
 	}		
 
+	if( 0 != atexit(ciao) ) {
+		syslog( LOG_ERR, "could not install exit handler" );
+	}
+	
     // Start main execution
     try {
 		endpoint->Run();

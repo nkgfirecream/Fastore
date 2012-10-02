@@ -53,7 +53,6 @@ void initializeFastoreModule(sqlite3* db, int argc, void* argv)
 
 	apache::thrift::GlobalOutput.setOutputFunction( fastore::write_log );
 
-	// just a way to show the log is working
 	Log << log_info << __func__ << " started" << log_endl;
 
 	try {
@@ -74,6 +73,7 @@ void initializeFastoreModule(sqlite3* db, int argc, void* argv)
 		}
 
 		intializeFastoreModule(db, mas);
+		Log << log_info << __func__ << " Module initialized" << log_endl;
 	}
 	catch( const std::exception& oops ) {
 		errorMessage = oops.what();
