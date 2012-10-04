@@ -203,8 +203,6 @@ int module::Table::connect()
 
 int module::Table::drop()
 {
-	//TODO: drop module tables as well
-
 	for (auto col : _columnIds)
 	{
         // Pull a list of the current repos so we can drop them all.
@@ -282,9 +280,6 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		(Encoder<communication::ColumnID>::Encode(_id))
 		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
-	transaction->Commit();
-
-	transaction =  _connection->_database->Begin(true, true);
 	transaction->Include
 	(
 		client::Dictionary::ColumnColumns,
@@ -297,9 +292,6 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		(client::Encoder<client::BufferType_t>::Encode(column.BufferType))
 		(client::Encoder<bool>::Encode(column.Required))
 	);
-	transaction->Commit();
-
-	transaction = _connection->_database->Begin(true, true);
 	transaction->Include
 	(
 		client::Dictionary::PodColumnColumns,

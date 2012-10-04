@@ -2263,10 +2263,6 @@ struct Parse {
   int nVar;                 /* Number of '?' variables seen in the SQL so far */
   int nzVar;                /* Number of available slots in azVar[] */
   u8 explain;               /* True if the EXPLAIN flag is found on the query */
-#ifndef SQLITE_OMIT_VIRTUALTABLE
-  u8 declareVtab;           /* True if inside sqlite3_declare_vtab() */
-  int nVtabLock;            /* Number of virtual tables to lock */
-#endif
   int nAlias;               /* Number of aliased result set columns */
   int nHeight;              /* Expression tree height of current sub-select */
 #ifndef SQLITE_OMIT_EXPLAIN
@@ -2285,6 +2281,8 @@ struct Parse {
 #ifndef SQLITE_OMIT_VIRTUALTABLE
   Token sArg;               /* Complete text of a module argument */
   Table **apVtabLock;       /* Pointer to virtual tables needing locking */
+  u8 declareVtab;           /* True if inside sqlite3_declare_vtab() */
+  int nVtabLock;            /* Number of virtual tables to lock */
 #endif
   Table *pZombieTab;        /* List of Table objects to delete after code gen */
   TriggerPrg *pTriggerPrg;  /* Linked list of coded triggers */

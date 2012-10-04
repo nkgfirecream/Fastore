@@ -124,9 +124,6 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 				(client::Encoder<client::BufferType_t>::Encode(defs[i].BufferType))
 				(client::Encoder<bool>::Encode(defs[i].Required))
 			);
-			transaction->Commit();
-
-			transaction = connection->_database->Begin(true, true);
 			transaction->Include
 			(
 				Dictionary::PodColumnColumns,

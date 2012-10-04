@@ -1,4 +1,4 @@
-
+@ECHO OFF
 
 ::
 :: build-all-msvc.bat --
