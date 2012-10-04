@@ -1,4 +1,4 @@
-@ECHO OFF
+
 
 ::
 :: build-all-msvc.bat --
@@ -87,8 +87,10 @@ REM
 REM NOTE: If the list of platforms is not already set, use the default list.
 REM
 IF NOT DEFINED PLATFORMS (
-  SET PLATFORMS=x86 x86_amd64 x86_arm
+  SET PLATFORMS=x86 x86_amd64 
 )
+
+REM x86_ARM
 
 %_VECHO% Platforms = '%PLATFORMS%'
 
@@ -126,11 +128,9 @@ REM
 REM NOTE: Check for MSVC 2012 because the Windows SDK directory handling is
 REM       slightly different for that version.
 REM
-IF "%VisualStudioVersion%" == "11.0" (
-  SET SET_NSDKLIBPATH=1
-) ELSE (
-  CALL :fn_UnsetVariable SET_NSDKLIBPATH
-)
+SET SET_NSDKLIBPATH=1
+
+
 
 REM
 REM NOTE: This is the outer loop.  There should be exactly one iteration per
@@ -230,9 +230,23 @@ FOR %%P IN (%PLATFORMS%) DO (
       REM       file used to setup the MSVC environment.
       REM
       IF DEFINED SET_NSDKLIBPATH (
+        ECHO Setting toolpath
         CALL :fn_SetVariable WindowsSdkDir NSDKLIBPATH
-        CALL :fn_AppendVariable NSDKLIBPATH \lib\win8\um\x86
-      )
+		CALL :fn_AppendVariable NSDKLIBPATH \lib\win8\um\x86
+		)
+	REM IF %%P == x86 (
+	REM  
+	REM   ECHO x86 Set
+	REM )
+	REM IF %%P == x86_amd64 (
+	REM   CALL :fn_AppendVariable NSDKLIBPATH \lib\win8\um\x64
+	REM   ECHO x64 Set
+	REM )
+	REM IF %%P == x86_arm (
+	REM   CALL :fn_AppendVariable NSDKLIBPATH \lib\win8\um\arm
+    REM       ECHO ARM Set
+	REM )   
+    REM   )
 
       REM
       REM NOTE: Unless prevented from doing so, invoke NMAKE with the MSVC
