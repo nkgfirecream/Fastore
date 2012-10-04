@@ -14,7 +14,6 @@ namespace communication = fastore::communication;
 
 std::map<std::string, std::string>  module::Table::sqliteTypesToFastoreTypes;
 std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
-std::map<std::string, std::string> module::Table::fastoreTypeToSQLiteAffinity;
 std::map<std::string, int> module::Table::fastoreTypeToSQLiteTypeID;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
@@ -30,7 +29,8 @@ void module::Table::EnsureFastoreTypeMaps()
 		sqliteTypesToFastoreTypes["varchar"] = "String";
 		sqliteTypesToFastoreTypes["int"] = "Long";
 		sqliteTypesToFastoreTypes["float"] = "Double";
-		sqliteTypesToFastoreTypes["date"] = "Long";
+		sqliteTypesToFastoreTypes["date"] = "String";
+		sqliteTypesToFastoreTypes["datetime"] = "String";
 	}
 
 	if (sqliteTypeIDToFastoreTypes.size() == 0)
@@ -38,13 +38,6 @@ void module::Table::EnsureFastoreTypeMaps()
 		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
 		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
 		sqliteTypeIDToFastoreTypes[SQLITE_FLOAT] = "Double";
-	}
-
-	if (fastoreTypeToSQLiteAffinity.size() == 0)
-	{
-		fastoreTypeToSQLiteAffinity["String"] = "TEXT";
-		fastoreTypeToSQLiteAffinity["Long"] = "INTEGER";
-		fastoreTypeToSQLiteAffinity["Double"] = "REAL";
 	}
 
 	if (fastoreTypeToSQLiteTypeID.size() == 0)
@@ -85,16 +78,14 @@ int module::Table::rollback()
 //Already bootstrapped the Table of Tables.
 int module::Table::create()
 {
-	int result = ensureTable();
-	if (result == SQLITE_OK)
-		result = ensureColumns();
-	if (result == SQLITE_OK)
-		updateStats();
+	ensureTable();
+	ensureColumns();
+	updateStats();
 
-	return result;
+	return SQLITE_OK;
 }
 
-int module::Table::ensureTable()
+void module::Table::ensureTable()
 {
 	//See if the table already exists.
 	client::RangeBound bound;
@@ -129,23 +120,19 @@ int module::Table::ensureTable()
 		);
 		transaction->Commit();
 	}	
-
-	return SQLITE_OK;
 }
 
-int module::Table::ensureColumns()
+void module::Table::ensureColumns()
 {
 	//Gives us a valid set of column defs -- except for ids, which we need to determine.
-	int result = parseDDL();
-	if (result != SQLITE_OK)
-		return result;
+	parseDDL();
 
 	//if we didn't get any columns from the dll, abort the operation. (Rollback the transaction.. hopefully).
 	//Since this is all happening outside the context of a SQLite transaction, we'll need a way to undo what we've
 	//already done. One option that comes to mind is to start our own transaction internally. How does that affect
 	//key generation, for example, key generation? That already occurred in its own transaction.
 	if (_columns.size() == 0)
-		return SQLITE_ERROR;
+		throw "No columns found in table defintion";
 
 	//Pick a column to use as rowIds if available. -1 = no column available.
 	determineRowIDColumn();
@@ -203,8 +190,6 @@ int module::Table::ensureColumns()
 			createColumn(_columns[i], combinedName, podIds, nextPod);
 		}
 	}
-
-	return SQLITE_OK;
 }
 
 int module::Table::connect()
@@ -525,10 +510,15 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		if (sqlite3_value_type(pValue) != SQLITE_NULL)
 		{
 			std::string type = _columns[i].Type;
-			int datatype = sqlite3_value_type(pValue);
+			int datatype = FastoreTypeToSQLiteTypeID(type);
 
 			if (datatype != FastoreTypeToSQLiteTypeID(type))
-				return SQLITE_MISMATCH;
+			{
+				//Attempt a conversion to the correct type
+				datatype = sqlite3_value_numeric_type(pValue);
+				if (datatype != FastoreTypeToSQLiteTypeID(type))
+					return SQLITE_MISMATCH;
+			}
 
 			std::string value;
 
@@ -538,7 +528,7 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 					value = std::string((const char *)sqlite3_value_text(pValue));
 					break;
 				case SQLITE_INTEGER:
-					value = Encoder<long long>::Encode(sqlite3_value_int64(pValue));
+					value = Encoder<int64_t>::Encode(sqlite3_value_int64(pValue));
 					break;
 				case SQLITE_FLOAT:
 					value = Encoder<double>::Encode(sqlite3_value_double(pValue));
@@ -572,7 +562,7 @@ void module::Table::updateStats()
 		_stats = _connection->_database->GetStatistics(_columnIds);
 }
 
-int module::Table::parseDDL()
+void module::Table::parseDDL()
 {
 	//Split on commas. Find columns definitions. Create defs based on definitions.
 	//For now, assume all definitions are column defs.
@@ -597,8 +587,6 @@ int module::Table::parseDDL()
 		else
 			break; //Assume all column definitions are at the beginning of the table definition
 	}
-
-	return SQLITE_OK; //TODO: Once we have a parser, return SQL_ERROR to indicate malformed SQL.
 }
 
 client::ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)

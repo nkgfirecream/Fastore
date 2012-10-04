@@ -250,24 +250,33 @@ mprintf( char **pzErr, const char message[] )
 
 int ExceptionsToError(const function<int(void)> &callback, char **pzErr)
 {
+	int result;
 	try
 	{
-		return callback();
+		result = callback();
 	}
-	catch (exception &e)
+	catch (int e)
 	{
-		*pzErr = mprintf(pzErr, e.what());
+		result = e;
 	}
 	catch (char *e)
 	{
 		*pzErr = mprintf(pzErr, e);
+		result = SQLITE_ERROR;
 	}
+	catch (exception &e)
+	{
+		*pzErr = mprintf(pzErr, e.what());
+		result = SQLITE_ERROR;
+	}	
 	catch (...)
 	{
 		// Generic error messages like this are terrible, but we don't know anything more at this time.
 		*pzErr = mprintf(pzErr, "Unknown exception.");
+		result = SQLITE_ERROR;
 	}
-	return SQLITE_ERROR;
+
+	return result;
 }
 
 // This method is invoked by both Create and Connect

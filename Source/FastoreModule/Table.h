@@ -21,7 +21,6 @@ namespace fastore
 			
 			static std::map<std::string, std::string> sqliteTypesToFastoreTypes;
 			static std::map<int, std::string> sqliteTypeIDToFastoreTypes;
-			static std::map<std::string, std::string> fastoreTypeToSQLiteAffinity;
 			static std::map<std::string, int> fastoreTypeToSQLiteTypeID;
 
 			static std::string SQLiteTypeToFastoreType(const std::string &SQLiteType);
@@ -69,9 +68,9 @@ namespace fastore
 			int bestIndex(sqlite3_index_info* info);
 
 		private:
-			int ensureTable();
-			int ensureColumns();
-			int parseDDL(); 
+			void ensureTable();
+			void ensureColumns();
+			void parseDDL(); 
 			void determineRowIDColumn();
 
 			client::ColumnDef parseColumnDef(std::string text, bool& isDef);
