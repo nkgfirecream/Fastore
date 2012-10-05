@@ -146,7 +146,7 @@ GeneralResult fastoreClose(StatementHandle cursor)
 // Short-hand for Prepare followed by Next (and a close if eof)
 inline ExecuteResult fastoreExecute(ConnectionHandle database, const char *sql)
 {
-	ExecuteResult result = { { FASTORE_OK } };
+	ExecuteResult result = { FASTORE_OK };
 
 	PrepareResult prepareResult = fastorePrepare(database, sql);
 	if (prepareResult.result != FASTORE_OK)
