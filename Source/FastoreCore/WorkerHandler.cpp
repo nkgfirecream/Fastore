@@ -164,7 +164,7 @@ void WorkerHandler::CreateRepo(ColumnDef def)
 {
 	boost::shared_ptr<Repository> repo(new Repository(def.ColumnID, _path));
 	repo->create(def);
-	_repositories.insert(std::pair<ColumnID, boost::shared_ptr<Repository>>(def.ColumnID, repo));
+	_repositories[def.ColumnID] = repo;
 }
 
 void WorkerHandler::SyncToSchema()
@@ -210,7 +210,8 @@ void WorkerHandler::SyncToSchema()
 
 		for (size_t i = 0; i < answer.rowIDValues.size(); i++)
 		{
-			schemaIds.insert(*(ColumnID*)(answer.rowIDValues[i].value.data()));
+			fastore::communication::ColumnID id = *(ColumnID*)(answer.rowIDValues[i].value.data());
+			schemaIds.insert(id);
 		}
 
 		// drop repos that we should no longer have
@@ -437,6 +438,16 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 		if (id == 400 || id == 401)
 			syncSchema = true;
 
+		//If we've worked through all the system tables, we may have encountered includes
+		//That would cause our current pod to instantiate a new repo. This creates the repo
+		//before continuing on with the apply, since both the creation of a repo and the first
+		//data may be in the same transaction. If we try to insert without creating it... bad things happen.
+		if (syncSchema && id > 401)
+		{
+			syncSchema = false;
+			SyncToSchema();
+		}
+
 		boost::shared_ptr<Repository> repo = _repositories[id];
 		ColumnWrites writes = start->second;
 
@@ -506,11 +517,21 @@ void WorkerHandler::query(ReadResults& _return, const Queries& queries)
 
 void WorkerHandler::getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs)
 {	
-  for (size_t i = 0; i < columnIDs.size(); i++)
+	for (size_t i = 0; i < columnIDs.size(); i++)
 	{		
-		boost::shared_ptr<Repository> repo = _repositories[columnIDs[i]];
-		Statistic stat = repo->getStatistic();
-		_return.push_back(stat);
+		auto iter = _repositories.find(columnIDs[i]);
+
+		if (iter != _repositories.end())
+		{
+			boost::shared_ptr<Repository> repo = _repositories[columnIDs[i]];
+			Statistic stat = repo->getStatistic();
+			_return.push_back(stat);
+		}
+		else
+		{
+			Statistic stat;
+			_return.push_back(stat);
+		}
 	}
 }
 

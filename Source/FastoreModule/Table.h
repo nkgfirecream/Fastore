@@ -75,7 +75,7 @@ namespace fastore
 
 			client::ColumnDef parseColumnDef(std::string text, bool& isDef);
 
-			void createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod);
+			void createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId);
 
 			//For use by the cursor. Depending on how SQLite is implemented this may either need to go through the transaction or around it.
 			client::RangeSet getRange(client::Range& range, const boost::optional<std::string>& startId);

@@ -155,10 +155,7 @@ void module::Table::ensureColumns()
 	//For now, just assume a "hidden" key.
 
     // Start distributing columns on a random pod. Otherwise, we will always start on the first pod
-	size_t npods = podIds.Data.size();
-	if( npods > 1 ) 
-		npods--;
-    int nextPod = rand() % SAFE_CAST(int, npods);
+    int nextPod = 0; //rand() % SAFE_CAST(int,(podIds.Data.size() - (podIds.Data.size() == 1? 0 : 1)));
 
     for (size_t i = 0; i < _columns.size(); i++)
 	{
@@ -184,10 +181,13 @@ void module::Table::ensureColumns()
 		}
 		else
 		{
+			//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
+			auto podId = podIds.Data.at(nextPod++ % podIds.Data.size()).Values[0].value;
+
 			int columnId = (int)_connection->_generator->Generate(client::Dictionary::ColumnID, module::Dictionary::MaxModuleColumnID + 1);			
 			_columnIds.push_back(columnId);
 			_columns[i].ColumnID = columnId;
-			createColumn(_columns[i], combinedName, podIds, nextPod);
+			createColumn(_columns[i], combinedName, podIds, podId);
 		}
 	}
 }
@@ -264,22 +264,12 @@ int module::Table::disconnect()
 	return SQLITE_ERROR;
 }
 
-void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, int nextPod)
+void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId)
 {
-	//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
-	auto podId = podIds.Data[nextPod++ % podIds.Data.size()].Values[0].value;
 
 	//TODO: Make workers smart enough to create/instantiate a column within one transaction.
 	//(They currently don't check for actions to perform until the end of the transaction, which means they may miss part of it currently)
 	auto transaction =  _connection->_database->Begin(true, true);
-	transaction->Include
-	(
-		module::Dictionary::TableColumnColumns,
-		client::Encoder<communication::ColumnID>::Encode(_connection->_generator->Generate(module::Dictionary::TableColumnTableID)),
-		boost::assign::list_of<std::string>
-		(Encoder<communication::ColumnID>::Encode(_id))
-		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
-	);
 	transaction->Include
 	(
 		client::Dictionary::ColumnColumns,
@@ -299,6 +289,14 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		boost::assign::list_of<std::string>
 		(podId)
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
+	);
+	transaction->Include
+	(
+		module::Dictionary::TableColumnColumns,
+		client::Encoder<communication::ColumnID>::Encode(_connection->_generator->Generate(module::Dictionary::TableColumnTableID)),
+		boost::assign::list_of<std::string>
+		(Encoder<communication::ColumnID>::Encode(_id))
+		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
 	transaction->Commit();		
 }

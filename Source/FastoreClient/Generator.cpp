@@ -148,12 +148,9 @@ void Generator::EnsureGeneratorTable()
 				("Generator.Generator")
 				("Long")
 				("Long")
-				(Encoder<BufferType_t>::Encode(BufferType_t::Unique))
+				(Encoder<BufferType_t>::Encode(BufferType_t::Multi))
 				(Encoder<bool>::Encode(true))
 		);
-
-		transaction->Commit();
-		transaction = _database->Begin(true, true);
 
 		// Add the association with each pod
 		for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
@@ -167,9 +164,6 @@ void Generator::EnsureGeneratorTable()
 					(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
 			);
 		}
-
-		transaction->Commit();
-		transaction = _database->Begin(true, true);
 
 		// Seed the column table to the first user ID
 		transaction->Include

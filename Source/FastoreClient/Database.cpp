@@ -420,16 +420,33 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 		{
 			WorkerInfo info;
 			info.podID = ws->first;
-			for (auto repo = ws->second.second.repositoryStatus.begin(); repo != ws->second.second.repositoryStatus.end(); ++repo)
-			{
-				if (repo->second == RepositoryStatus::Online || repo->second == RepositoryStatus::Checkpointing)
-					info.Columns.push_back(repo->first);
-			}
 
 			//Union with system columns.
-			info.Columns.insert(info.Columns.end(), systemColumns.begin(), systemColumns.end());			
+			info.Columns.insert(info.Columns.begin(), systemColumns.begin(), systemColumns.end());	
 
-			results.push_back(info);
+			for (auto repo = ws->second.second.repositoryStatus.begin(); repo != ws->second.second.repositoryStatus.end(); ++repo)
+			{
+				if ((repo->second == RepositoryStatus::Online || repo->second == RepositoryStatus::Checkpointing) && repo->first > Dictionary::MaxSystemColumnID)
+					info.Columns.push_back(repo->first);
+			}		
+
+			//TODO: fix this nasty double for loop. Sort columns ids and do a search
+			for (auto iter = writes.begin(); iter != writes.end(); ++iter)
+			{
+				bool broke = false;
+				for (size_t i = 0; i < info.Columns.size(); ++i)
+				{
+					if (info.Columns[i] == iter->first)
+					{
+						broke = true;
+						results.push_back(info);
+						break;
+					}
+				}
+
+				if (broke)
+					break;
+			}			
 		}
 
 		// Release lock during ensures
@@ -445,7 +462,7 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 
 void Database::AttemptRead( ColumnID columnId, 
 						    std::function<void(WorkerClient)> work )
-#if 1
+#if 0
 {
 	std::map<PodID, std::exception> errors;
 	clock_t begin, end;
@@ -510,12 +527,12 @@ void Database::AttemptRead( ColumnID columnId,
 		auto worker = GetWorker(columnId);
 		try
 		{
-			// If we've already failed with this worker, give up
+			// If we've already failed with this worker, aggregate the exception.
 			if (errors.size() > 0 && errors.find(worker.first) != errors.end())
 			{
 				TrackErrors(errors);
 				//TODO: aggregate exception for c++
-				throw errors.begin()->second;
+				//throw errors.begin()->second;
 			}
 
 			try
@@ -533,6 +550,8 @@ void Database::AttemptRead( ColumnID columnId,
 
 				Log << log_err << __func__ << ": error: " << e << log_endl;
 				errors.insert(std::make_pair(worker.first, e));
+
+				//TODO: Decide criteria for quiting.
 				continue;
 			}
 
@@ -872,7 +891,6 @@ std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorker
 				)
 			)
 		);
-
 
 		tasks.push_back(task);
 	}

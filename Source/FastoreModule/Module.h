@@ -83,7 +83,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 	}
 
 	// TODO: move computation for nextPod into DataSet class. 
-    int nextPod = rand() % SAFE_CAST(int,(podIds.Data.size() - (podIds.Data.size() == 1? 0 : 1)));
+    int nextPod = 0; // rand() % SAFE_CAST(int,(podIds.Data.size() - (podIds.Data.size() == 1? 0 : 1)));
 
     //This is so we have quick access to all the ids (for queries). Otherwise, we have to iterate the 
     //TableVar Columns and pull the id each time.
@@ -103,7 +103,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 		//Just pull one row. If any exist we should verify it's the correct one.
 		auto result = connection->_database->GetRange(client::Dictionary::ColumnColumns, query, 1);
 
-		if (result.Data.size() == 0)
+ 		if (result.Data.size() == 0)
 		{
 			//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
 			auto podId = podIds.Data.at(nextPod++ % podIds.Data.size()).Values[0].value;
@@ -124,10 +124,12 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 				(client::Encoder<client::BufferType_t>::Encode(defs[i].BufferType))
 				(client::Encoder<bool>::Encode(defs[i].Required))
 			);
+
+			long long surrogateId = connection->_generator->Generate(Dictionary::PodColumnPodID);
 			transaction->Include
 			(
 				Dictionary::PodColumnColumns,
-				client::Encoder<communication::ColumnID>::Encode(connection->_generator->Generate(Dictionary::PodColumnPodID)),
+				client::Encoder<long long>::Encode(surrogateId),
 				boost::assign::list_of<std::string>
 				(podId)
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
@@ -135,7 +137,7 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 			transaction->Commit();		
 		}
 		
-		//TODO: if column does exist, compare values to 
+		//TODO: if column does exist, compare values to see if it's the same definition
 	}
 }
 
