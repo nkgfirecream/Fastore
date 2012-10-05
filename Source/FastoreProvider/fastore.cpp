@@ -78,7 +78,7 @@ bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength
 		return false;
 }
 
-ConnectResult fastoreConnect(int addressCount, const struct FastoreAddress addresses[])
+ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress addresses[])
 {
 	return WrapCall<ConnectResult>
 	(
@@ -117,7 +117,7 @@ PrepareResult fastorePrepare(ConnectionHandle database, const char *sql)
 	return result;
 }
 
-GeneralResult fastoreBind(StatementHandle cursor, int argumentCount, void *arguments, const struct ArgumentTypes argumentTypes[])
+GeneralResult fastoreBind(StatementHandle cursor, size_t argumentCount, void *arguments, const ArgumentType argumentTypes[])
 {
 	return GeneralResult();
 }

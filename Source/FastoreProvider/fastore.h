@@ -1,7 +1,6 @@
 #pragma once
 
 #include "stdafx.h"
-#include "ArgumentType.h"
 #include <stdint.h>
 
 #if defined(_WIN32)
@@ -28,6 +27,17 @@ enum TransactionEndAction
 	FASTORE_TRANSACTION_COMMIT, 
 	FASTORE_TRANSACTION_ROLLBACK,
 	FASTORE_TRANSACTION_COMMIT_FLUSH 
+};
+
+enum ArgumentType
+{
+	FASTORE_ARGUMENT_NULL,
+	FASTORE_ARGUMENT_DOUBLE,
+	FASTORE_ARGUMENT_INT32,
+	FASTORE_ARGUMENT_INT64,
+	FASTORE_ARGUMENT_STRING8,
+	FASTORE_ARGUMENT_STRING16,
+	FASTORE_ARGUMENT_BOOL
 };
 
 struct FastoreAddress
@@ -91,7 +101,7 @@ FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 // Prepares a given query or statement statement and returns a cursor
 FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *sql);
 // Provides values for any parameters included in the prepared statement and resets the cursor
-FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, int argumentCount, void *arguments, const fastore::provider::ArgumentType ArgumentType[]);
+FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
 // Executes the statement, or navigates to the first or next row
 FASTOREAPI NextResult fastoreNext(StatementHandle statement);
 // Gets the column name for the given column index

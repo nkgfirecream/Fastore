@@ -24,9 +24,6 @@
     <ClInclude Include="fastore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ArgumentType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include=".\Statement.h">
       <Filter>Header Files</Filter>
     </ClInclude>

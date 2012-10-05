@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 #include <map>
-#include "ArgumentType.h"
+#include "fastore.h"
 
 namespace fastore 
 {

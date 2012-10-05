@@ -93,7 +93,6 @@
   <ItemGroup>
     <ClInclude Include=".\Connection.h" />
     <ClInclude Include="Address.h" />
-    <ClInclude Include="ArgumentType.h" />
     <ClInclude Include=".\Statement.h" />
     <ClInclude Include="fastore.h" />
     <ClInclude Include="stdafx.h" />
