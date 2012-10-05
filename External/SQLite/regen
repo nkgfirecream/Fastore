@@ -1,0 +1,21 @@
+#! /bin/sh
+# $Id$
+set -e
+OPTIONS=$(grep ^-- .build-options)
+echo configuring with:
+echo $OPTIONS | tr \  \\n
+
+if [ "CSCOPE_EDITOR" -a ! -f cscope.files ]
+then
+    find src -name '*.[ch]' > cscope.files
+fi
+
+test -d build || mkdir build
+
+cd build
+../configure ${OPTIONS}
+
+if [ "$1" ]
+then
+    $*
+fi

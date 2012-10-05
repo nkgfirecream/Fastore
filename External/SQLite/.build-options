@@ -1,0 +1,7 @@
+--enable-threadsafe
+##enable-cross-thread-connections
+##enable-releasemode
+##enable-tempstore
+--enable-debug
+--enable-load-extension
+--enable-gcov
