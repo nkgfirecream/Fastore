@@ -2997,7 +2997,7 @@ int main(int argc, char **argv){
   ** the size of the alternative malloc heap,
   ** and the first command to execute.
   */
-  for(i=1; i<argc-1; i++){
+  for(i=1; i<argc && argv[i][0]=='-'; i++){
     char *z;
     if( argv[i][0]!='-' ) break;
     z = argv[i];

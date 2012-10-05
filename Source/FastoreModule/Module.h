@@ -45,7 +45,7 @@ void createVirtualTables(module::Connection* connection, sqlite3* sqliteConnecti
 		{
 			//NULL
 			if (!result.Data[i].Values[2].__isset.value)
-				throw "Null value found for table definition!";
+				throw std::runtime_error("Null value found for table definition");
 
 			std::string ddl = result.Data[i].Values[2].value;
 
