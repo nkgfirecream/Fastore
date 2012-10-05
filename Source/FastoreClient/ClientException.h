@@ -13,15 +13,20 @@ namespace fastore { namespace client
 	public:
 		enum class Codes
 		{
-			General = 0,
-			/// <summary> There is no worker for the present column. </summary>
+			OK = 0,
+
+			// General error
+			General = 1,
+
+			// There is no worker for the present column. 
 			NoWorkerForColumn = 10000,
+			// There are no workers configured for the given column.
 			NoWorkersInHive = 10001
 
 			// TODO: fill out rest of codes and update throw sites
 		};
 
-		Codes Code;
+		Codes code;
 		std::exception Inner;
 
 		ClientException();

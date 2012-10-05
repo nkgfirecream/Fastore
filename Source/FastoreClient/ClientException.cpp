@@ -13,22 +13,22 @@ using fastore::log_info;
 using fastore::log_err;
 
 ClientException::ClientException() 
-    : std::runtime_error(std::string()), Code(Codes::General)
+    : std::runtime_error(std::string()), code(Codes::General)
 {
 }
 
 ClientException::ClientException(const std::string &message) 
-  : std::runtime_error(message), Code(Codes::General)
+  : std::runtime_error(message), code(Codes::General)
 {
 }
 
 ClientException::ClientException(const std::string &message, Codes code) 
-  : std::runtime_error(message), Code(code)
+  : std::runtime_error(message), code(code)
 {
 }
 
 ClientException::ClientException(const std::string &message, std::exception &inner) 
-  : std::runtime_error(message), Code(Codes::General), Inner(inner)
+  : std::runtime_error(message), code(Codes::General), Inner(inner)
 {
 }
 

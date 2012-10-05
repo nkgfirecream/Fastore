@@ -2,13 +2,14 @@
 
 #include "stdafx.h"
 #include "ArgumentType.h"
+#include <stdint.h>
 
 #if defined(_WIN32)
 // Import or export appropriately
 # if defined(FASTORE_EXPORT) 
-#   define FASTOREAPI __declspec(dllexport)
+#   define FASTOREAPI extern "C" __declspec(dllexport)
 # else
-#   define FASTOREAPI __declspec(dllimport)
+#   define FASTOREAPI extern "C" __declspec(dllimport)
 # endif  
 #else
 #   define FASTOREAPI
@@ -35,99 +36,70 @@ struct FastoreAddress
 	int port;
 };
 
-struct FastoreError
-{
-	char message[MAX_ERROR_MESSAGE];
-	int code;
-};
+typedef int32_t FastoreResultCode;
+typedef int32_t FastoreErrorCode;
 
-// All result types can be cast to this type for generic error handling
-struct FastoreResult
+const FastoreResultCode FASTORE_OK = {0};
+
+struct GeneralResult
 {
-	bool success;
-	FastoreError error;
+	FastoreResultCode result;
 };
 
 struct ConnectResult
 {
-	bool success;
-	union
-	{
-		FastoreError error;
-		ConnectionHandle connection;
-	};
+	FastoreResultCode result;
+	ConnectionHandle connection;
 };
 
 struct ExecuteResult
 {
-	bool success;
-	union
-	{
-		FastoreError error;
-		struct
-		{
-			StatementHandle statement;
-			int columnCount;
-			bool eof;
-		};
-	};
+	FastoreResultCode result;
+	StatementHandle statement;
+	int columnCount;
+	bool eof;
 };
 
 struct PrepareResult
 {
-	bool success;
-	union
-	{
-		FastoreError error;
-		struct
-		{
-			StatementHandle statement;
-			int columnCount;
-		};
-	};
+	FastoreResultCode result;
+	StatementHandle statement;
+	int columnCount;
 };
 
 struct NextResult
 {
-	bool success;
-	union
-	{
-		FastoreError error;
-		bool eof;
-	};
+	FastoreResultCode result;
+	bool eof;
 };
 
 struct ColumnInfoResult
 {
-	bool success;
-	union
-	{
-		FastoreError error;
-		struct
-		{
-			char name[MAX_NAME];
-			char type[MAX_NAME];
-		};
-	};
+	FastoreResultCode result;
+	char name[MAX_NAME];
+	char type[MAX_NAME];
 };
 
+// Retrieves the message and code of the last error
+FASTOREAPI bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength, char* message, FastoreErrorCode *code);
+
 // Creates a new database connection
-FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct FastoreAddress addresses[]);
+FASTOREAPI ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress addresses[]);
 // Dereferences the given database connection; the connection may remain open if any transactions are still open on it
-FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(ConnectionHandle connection);
+FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 
 // Prepares a given query or statement statement and returns a cursor
-FASTOREAPI PrepareResult APIENTRY fastorePrepare(ConnectionHandle database, const char *sql);
+FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *sql);
 // Provides values for any parameters included in the prepared statement and resets the cursor
-FASTOREAPI FastoreResult APIENTRY fastoreBind(StatementHandle statement, int argumentCount, void *arguments, const fastore::provider::ArgumentType ArgumentType[]);
+FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, int argumentCount, void *arguments, const fastore::provider::ArgumentType ArgumentType[]);
 // Executes the statement, or navigates to the first or next row
-FASTOREAPI NextResult APIENTRY fastoreNext(StatementHandle statement);
+FASTOREAPI NextResult fastoreNext(StatementHandle statement);
 // Gets the column name for the given column index
-FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(StatementHandle statement, int columnIndex);
+FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex);
 // Gets the column value of the current row given an index
-FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
+FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
 // Closes the given cursor
-FASTOREAPI FastoreResult APIENTRY fastoreClose(StatementHandle statement);
+FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 
 // Short-hand for Prepare followed by Next... then close if eof.
-FASTOREAPI ExecuteResult APIENTRY fastoreExecute(ConnectionHandle connection, const char *sql);
+FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *sql);

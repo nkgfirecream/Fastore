@@ -7,17 +7,36 @@
 #include <functional>
 #include <vector>
 #include <cstring>
+#include "../FastoreClient/ClientException.h"
 
 using namespace std;
+using namespace fastore::client;
 namespace prov = fastore::provider;
 
-void ExceptionToFastoreResult(exception e, int code, FastoreResult &result)
+struct FastoreError
 {
-	result.success = false;
-	result.error.code = code;
-	const size_t len = min(sizeof(result.error.message) - 1, std::strlen(e.what()) );
-	strncpy(result.error.message, e.what(), MAX_ERROR_MESSAGE);
-	result.error.message[len] = '\0';
+	char message[MAX_ERROR_MESSAGE];
+	FastoreErrorCode code;
+};
+
+#if (_MSC_VER)
+__declspec( thread ) FastoreError _lastError;
+__declspec( thread ) FastoreResultCode _lastErrorRevision = 1;
+#else
+thread_local FastoreError _lastError;
+thread_local FastoreResultCode _lastErrorRevision = 1;
+#endif
+
+FastoreResultCode ErrorToFastoreResult(const char *message, FastoreErrorCode code)
+{
+	_lastError.code = code;
+	strncpy_s(_lastError.message, message, _TRUNCATE);
+	return ++_lastErrorRevision;
+}
+
+FastoreResultCode ExceptionToFastoreResult(exception e, FastoreErrorCode code)
+{
+	return ErrorToFastoreResult(e.what(), code);
 }
 
 template <typename TResult>
@@ -28,23 +47,38 @@ TResult WrapCall(const function<void(TResult)> &callback)
 	{
 		callback(result);
 	}
-	catch (const exception &)
+	catch (ClientException &e)
 	{
-		//result.error = ExceptionToFastoreResult(e, 0, &(FastoreResult)result);
+		result.result= ExceptionToFastoreResult(e, (FastoreErrorCode)e.code);
 	}
-	// TODO: Uncomment this once we have the client compiling
-	//catch (ClientException &e)
-	//{
-	//	result.error = ExceptionToFastoreError(e, (int)e.Code);
-	//}
+	catch (const exception &e)
+	{
+		result.result = ExceptionToFastoreResult(e, 0);
+	}
+	catch (char *e)
+	{
+		result.result= ErrorToFastoreResult(e, (FastoreErrorCode)ClientException::Codes::General);
+	}
 	catch (...)
 	{
-		result.error = FastoreError();
+		result.result= ErrorToFastoreResult("General error.", (FastoreErrorCode)ClientException::Codes::General);
 	}
 	return result;
 }
 
-FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct FastoreAddress addresses[])
+bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength, char* message, FastoreErrorCode *code)
+{
+	if (result == _lastErrorRevision)
+	{
+		strncpy_s(message, messageMaxLength, _lastError.message, _TRUNCATE);
+		*code = _lastError.code;
+		return true;
+	}	
+	else
+		return false;
+}
+
+ConnectResult fastoreConnect(int addressCount, const struct FastoreAddress addresses[])
 {
 	return WrapCall<ConnectResult>
 	(
@@ -65,11 +99,11 @@ FASTOREAPI ConnectResult APIENTRY fastoreConnect(int addressCount, const struct 
 	);
 }
 
-FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(ConnectionHandle database)
+GeneralResult fastoreDisconnect(ConnectionHandle database)
 {
-	return WrapCall<FastoreResult>
+	return WrapCall<GeneralResult>
 	(
-		[&](FastoreResult result) 
+		[&](GeneralResult result) 
 		{ 
 			// Free the shared pointer, database provider will be freed when all shared pointers are freed
 			delete static_cast<prov::PConnectionObject>(database); 
@@ -77,63 +111,60 @@ FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(ConnectionHandle database)
 	);
 }
 
-FASTOREAPI PrepareResult APIENTRY fastorePrepare(ConnectionHandle database, const char *sql)
+PrepareResult fastorePrepare(ConnectionHandle database, const char *sql)
 {
 	PrepareResult result;
 	return result;
 }
 
-FASTOREAPI FastoreResult APIENTRY fastoreBind(StatementHandle cursor, int argumentCount, void *arguments, const struct ArgumentTypes argumentTypes[])
+GeneralResult fastoreBind(StatementHandle cursor, int argumentCount, void *arguments, const struct ArgumentTypes argumentTypes[])
 {
-	return FastoreResult();
+	return GeneralResult();
 }
 
-FASTOREAPI NextResult APIENTRY fastoreNext(StatementHandle cursor)
+NextResult fastoreNext(StatementHandle cursor)
 {
 	NextResult result;
 	return result;
 }
 
-FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(StatementHandle cursor, int columnIndex)
+ColumnInfoResult fastoreColumnInfo(StatementHandle cursor, int columnIndex)
 {
 	return ColumnInfoResult();
 }
 
-FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(StatementHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget)
+GeneralResult fastoreColumnValue(StatementHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget)
 {
-	return FastoreResult();
+	return GeneralResult();
 }
 
-FASTOREAPI FastoreResult APIENTRY fastoreClose(StatementHandle cursor)
+GeneralResult fastoreClose(StatementHandle cursor)
 {
-	return FastoreResult();
+	return GeneralResult();
 }
 
 // Short-hand for Prepare followed by Next (and a close if eof)
-FASTOREAPI inline ExecuteResult APIENTRY fastoreExecute(ConnectionHandle database, const char *sql)
+inline ExecuteResult fastoreExecute(ConnectionHandle database, const char *sql)
 {
-	ExecuteResult result = { true };
+	ExecuteResult result = { { FASTORE_OK } };
 
 	PrepareResult prepareResult = fastorePrepare(database, sql);
-	if (!prepareResult.success)
+	if (prepareResult.result != FASTORE_OK)
 	{
-		result.success = false;
-		result.error = prepareResult.error;
+		result.result = prepareResult.result;
 		return result;
 	}
 
 	NextResult nextResult = fastoreNext(prepareResult.statement);
-	if (!nextResult.success || nextResult.eof)
+	if (nextResult.result != FASTORE_OK || nextResult.eof)
 		fastoreClose(prepareResult.statement);	// Ignore any close error so as not to lose original error
 
-	if (!nextResult.success)
+	if (nextResult.result != FASTORE_OK)
 	{
-		result.success = false;
-		result.error = nextResult.error;
+		result.result = nextResult.result;
 		return result;
 	}
 
-	result.success = true;
 	result.columnCount = prepareResult.columnCount;
 	result.eof = nextResult.eof;
 	return result;

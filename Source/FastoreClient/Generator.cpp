@@ -120,7 +120,7 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 
 bool Generator::IsNoWorkerForColumnException(const ClientException &clientex)
 {
-	if (clientex.Code == ClientException::Codes::NoWorkerForColumn)
+	if (clientex.code == ClientException::Codes::NoWorkerForColumn)
 	{
 		EnsureGeneratorTable();
 		return true;
