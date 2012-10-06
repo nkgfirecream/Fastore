@@ -7,7 +7,7 @@ HAVE.LIST = poll.h netdb.h fcntl.h
 HAVE.FILES != find /usr/include -maxdepth 1 \
 		\( $(HAVE.LIST:S/^/-or -name /g:S/^-or//1) \) \
 		&& test -f /usr/include/netinet/in.h && echo netinet_in.h
-HAVE.SYMS = $(HAVE.FILES:T:tu:S/./_/g:S/^/HAVE_/g) USE_WAL
+HAVE.SYMS = $(HAVE.FILES:T:tu:S/./_/g:S/^/HAVE_/g) USE_WAL DEBUG_WAL_FUNC
 HAVES = $(HAVE.SYMS:S/^/-D/g)
 
 DBG = -O0
@@ -44,7 +44,7 @@ COMM.FILES = $(COMM.BASE:S,^,FastoreCommunication/,g)
 COMM.SRC = $(COMM.FILES:M*.cpp:N*.skeleton.*)
 COMM.OBJ = $(COMM.SRC:S/.cpp/.o/)
 
-CORE.SRC != find FastoreCore -name '*.cpp' |  grep -Ev '/t/'
+CORE.SRC != find FastoreCore -name '*.cpp' |  grep -Ev '/t/|/OK/'
 CORE.OBJ = $(CORE.SRC:N*/wald.cpp:.cpp=.o)
 
 MODULE.BASE != ls FastoreModule
@@ -145,7 +145,7 @@ FastoreCore/libfastore-core.so: $(CORE.OBJ) $(THRIFT.LIB)
 	$(CXX) $(CXXFLAGS) -shared $(CORE.OBJ) \
 		-Wl,-LFastoreCommunication,-L$(PREFIX)/lib \
 		-Wl,-rpath,$(PREFIX)/lib \
-		-lfastore-communication -lfastore-core \
+		-lfastore-communication  \
 		-lthrift -lboost_thread -lboost_filesystem
 core-clean:
 	rm -f $(CORE.OBJ) FastoreCore/libfastore-core.so
@@ -229,10 +229,10 @@ clean:
 	$(CXX) -E $(CXXFLAGS) -c $(.ALLSRC)
 
 cscope.files: $(SRC)
-	echo $(CXXDIRS) | sed 's/-I  */-I/g' | tr \  \\n | grep '\-I' > .i
-	find . \( -name \*.c -or -name \*.cpp -or -name \*.h \) > .cscope.files
-	cat .i .cscope.files > cscope.files
-	rm -f .i .cscope.files
+	echo $(CXXDIRS) | sed 's/-I  */-I/g' | tr \  \\n | grep '\-I' > $@~
+	find . \( -name \*.c -or -name \*.cpp -or -name \*.h \) \
+		| grep -v '\.skeleton\.' >> $@~
+	mv $@~ $@
 
 SQLite/build/Makefile:
 	test -d $(@:H) || mkdir $(@:H)
@@ -241,6 +241,14 @@ SQLite/build/Makefile:
 sqlite: SQLite/build/libsqlite3.so
 SQLite/build/libsqlite3.so: SQLite/build/Makefile
 	cd $(@:H) && make && make install
+
+cscope.compare: cscope.files
+	sed -ne '/^-I/p' cscope.files > $@~
+	sed  '/^-I/d; s/[:\\]//g' .depend \
+	| tr \  \\n  \
+	| sed  '/\.o/d; /^[[:space:]]*$$/d' \
+	| sort | uniq >> $@~
+	mv $@~ $@
 
 depend depends: .depend 
 .depend: $(DEPENDS)
