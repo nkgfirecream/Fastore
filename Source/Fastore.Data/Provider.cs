@@ -10,26 +10,33 @@ namespace Fastore.Data
     public static class Provider
     {
 		public const int MAX_HOST_NAME = 255;
+		public const int FASTORE_OK = 0;
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
 		public struct FastoreAddress
 		{
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_HOST_NAME)]
-			string message;
-			int code;
-		};
+			public string HostName;
+			public ulong Port;
+		}
 
 		[StructLayout(LayoutKind.Sequential)]
 		public struct ConnectResult
 		{
-			int result;
-			int connection;
-		};
+			public int Result;
+			public IntPtr Connection;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct GeneralResult
+		{
+			public int Result;
+		}
 
 		// Retrieves the message and code of the last error
-		[DllImport("FastoreProvider.dll", CharSet = CharSet.Ansi)]
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreGetLastError", CharSet = CharSet.Ansi)]
 		[return: MarshalAs(UnmanagedType.Bool)]
-		public extern static bool fastoreGetLastError
+		public extern static bool GetLastError
 		(
 			int result, 
 			[param: MarshalAs(UnmanagedType.U4)]
@@ -41,26 +48,33 @@ namespace Fastore.Data
 
 		// Creates a new database connection
 		//FASTOREAPI ConnectResult APIENTRY fastoreConnect(size_t addressCount, const struct FastoreAddress addresses[]);
-		[DllImport("FastoreProvider.dll")]
-		public extern static ConnectResult fastoreConnect(int addressCount, [MarshalAs(UnmanagedType.LPArray)]FastoreAddress[] addresses);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreConnect")]
+		public extern static ConnectResult Connect
+		(
+			int addressCount, 
+			[MarshalAs(UnmanagedType.LPArray)]
+			FastoreAddress[] addresses
+		);
 
 		//// Dereferences the given database connection; the connection may remain open if any transactions are still open on it
-		//FASTOREAPI FastoreResult APIENTRY fastoreDisconnect(ConnectionHandle connection);
+		//FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreDisconnect")]
+		public extern static GeneralResult Disconnect(IntPtr connection);
 
 		//// Prepares a given query or statement statement and returns a cursor
-		//FASTOREAPI PrepareResult APIENTRY fastorePrepare(ConnectionHandle database, const char *sql);
+		//FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *sql);
 		//// Provides values for any parameters included in the prepared statement and resets the cursor
-		//FASTOREAPI FastoreResult APIENTRY fastoreBind(StatementHandle statement, int argumentCount, void *arguments, const fastore::provider::ArgumentType ArgumentType[]);
+		//FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
 		//// Executes the statement, or navigates to the first or next row
-		//FASTOREAPI NextResult APIENTRY fastoreNext(StatementHandle statement);
+		//FASTOREAPI NextResult fastoreNext(StatementHandle statement);
 		//// Gets the column name for the given column index
-		//FASTOREAPI ColumnInfoResult APIENTRY fastoreColumnInfo(StatementHandle statement, int columnIndex);
+		//FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex);
 		//// Gets the column value of the current row given an index
-		//FASTOREAPI FastoreResult APIENTRY fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
+		//FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
 		//// Closes the given cursor
-		//FASTOREAPI FastoreResult APIENTRY fastoreClose(StatementHandle statement);
+		//FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 
 		//// Short-hand for Prepare followed by Next... then close if eof.
-		//FASTOREAPI ExecuteResult APIENTRY fastoreExecute(ConnectionHandle connection, const char *sql);
+		//FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *sql);
     }
 }

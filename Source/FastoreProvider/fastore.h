@@ -44,7 +44,7 @@ enum ArgumentType
 struct FastoreAddress
 {
 	char hostName[MAX_HOST_NAME];
-	int port;
+	uint64_t port;
 };
 
 typedef int32_t FastoreResultCode;
