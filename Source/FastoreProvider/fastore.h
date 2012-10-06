@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include <stdint.h>
+#include <cstdlib>
 
 #if defined(_WIN32)
 // Import or export appropriately

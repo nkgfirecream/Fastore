@@ -20,17 +20,21 @@ struct FastoreError
 };
 
 #if (_MSC_VER)
-__declspec( thread ) FastoreError _lastError;
-__declspec( thread ) FastoreResultCode _lastErrorRevision = 1;
+  __declspec( thread ) FastoreError _lastError;
+  __declspec( thread ) FastoreResultCode _lastErrorRevision = 1;
 #else
-thread_local FastoreError _lastError;
-thread_local FastoreResultCode _lastErrorRevision = 1;
+# define thread_local __thread
+  thread_local FastoreError _lastError;
+  thread_local FastoreResultCode _lastErrorRevision = 1;
 #endif
 
 FastoreResultCode ErrorToFastoreResult(const char *message, FastoreErrorCode code)
 {
+	enum { len = sizeof(_lastError.message) - 1 };
+
 	_lastError.code = code;
-	strncpy_s(_lastError.message, message, _TRUNCATE);
+	strncpy(_lastError.message, message, len);
+	_lastError.message[len] = '\0';
 	return ++_lastErrorRevision;
 }
 
@@ -70,7 +74,8 @@ bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength
 {
 	if (result == _lastErrorRevision)
 	{
-		strncpy_s(message, messageMaxLength, _lastError.message, _TRUNCATE);
+		strncpy(message,  _lastError.message, messageMaxLength - 1);
+		message[messageMaxLength] = '\0';
 		*code = _lastError.code;
 		return true;
 	}	
@@ -87,7 +92,7 @@ ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress ad
 			// Convert addresses
 			vector<prov::Address> serverAddresses = vector<prov::Address>();
 			serverAddresses.resize(addressCount);
-			for (auto i = 0; i < addressCount; i++)
+			for (size_t i = 0; i < addressCount; i++)
 			{
 				serverAddresses[i].Name = string(addresses[i].hostName);
 				serverAddresses[i].Port = addresses[i].port;
