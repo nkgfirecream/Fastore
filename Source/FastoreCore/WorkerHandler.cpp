@@ -36,6 +36,11 @@ WorkerHandler(const PodID podId,
 	//* Read rest of topology columns into memory; play log files for the same
 }
 
+WorkerHandler::~WorkerHandler()
+{
+	_repositories.clear();
+}
+
 void WorkerHandler::Bootstrap()
 {
 	ColumnDef id;

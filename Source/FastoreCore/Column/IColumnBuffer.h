@@ -13,4 +13,5 @@ class IColumnBuffer
 		virtual RangeResult GetRows(const RangeRequest& range) = 0;
 		virtual std::vector<OptionalValue> GetValues(const std::vector<std::string>& rowIds) = 0;
 		virtual Statistic GetStatistic() = 0;
+		virtual ~IColumnBuffer() { };
 };

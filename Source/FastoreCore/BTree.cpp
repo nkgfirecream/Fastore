@@ -260,7 +260,6 @@ TreeEntry BTree::iterator::operator*()
 
 void DeallocateNode(void* items, int count)
 {
-	// TODO: How to call a hash_set destructor?
 	for (int i = 0; i < count; i++)
 		((Node*)items)[i].~Node();
 }

@@ -18,18 +18,18 @@ class IdentityBuffer : public IColumnBuffer
 		bool Exclude(void* rowId);
 
 		ScalarType _type;
-		BTree* _rows;
+		std::unique_ptr<BTree> _rows;
 		long long _count;
 };
 
-inline IdentityBuffer::IdentityBuffer(const ScalarType& type)
+IdentityBuffer::IdentityBuffer(const ScalarType& type)
 {
 	_type = type;
-	_rows = new BTree(_type);
+	_rows = std::unique_ptr<BTree>(new BTree(_type));
 	_count = 0;
 }
 
-inline Statistic IdentityBuffer::GetStatistic()
+Statistic IdentityBuffer::GetStatistic()
 {
 	Statistic stat;
 	stat.total = _count;
@@ -37,7 +37,7 @@ inline Statistic IdentityBuffer::GetStatistic()
 	return stat;
 }
 
-inline vector<OptionalValue> IdentityBuffer::GetValues(const vector<std::string>& rowIds)
+vector<OptionalValue> IdentityBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
@@ -52,7 +52,7 @@ inline vector<OptionalValue> IdentityBuffer::GetValues(const vector<std::string>
 	return values;
 }
 
-inline void IdentityBuffer::Apply(const ColumnWrites& writes)
+void IdentityBuffer::Apply(const ColumnWrites& writes)
 {
 	auto exstart = writes.excludes.begin();
 	while (exstart != writes.excludes.end())
@@ -76,7 +76,7 @@ inline void IdentityBuffer::Apply(const ColumnWrites& writes)
 	}
 }
 
-inline bool IdentityBuffer::Include(void* rowId)
+bool IdentityBuffer::Include(void* rowId)
 {
 	//TODO: Return Undo Information
 	auto rowpath = _rows->GetPath(rowId);
@@ -90,7 +90,7 @@ inline bool IdentityBuffer::Include(void* rowId)
 	}
 }
 
-inline bool IdentityBuffer::Exclude(void* rowId)
+bool IdentityBuffer::Exclude(void* rowId)
 {
 	auto rowpath = _rows->GetPath(rowId);
 	if (!rowpath.Match)
@@ -104,7 +104,7 @@ inline bool IdentityBuffer::Exclude(void* rowId)
 }
 
 
-inline RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
+RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 {
 	void* firstp = range.__isset.first ? _type.GetPointer(range.first.value) : NULL;
 	void* lastp = range.__isset.last ? _type.GetPointer(range.last.value) : NULL;

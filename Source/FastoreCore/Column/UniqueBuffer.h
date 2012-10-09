@@ -27,18 +27,18 @@ class UniqueBuffer : public IColumnBuffer
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
-		BTree* _rows;
-		BTree* _values;
+		std::unique_ptr<BTree> _rows;
+		std::unique_ptr<BTree> _values;
 		long long _count;
 };
 
-inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType)
+UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType)
 {
 	_rowType = rowType;
 	_valueType = valueType;
 	_nodeType = NoOpNodeType();
-	_rows = new BTree(_rowType, _nodeType);
-	_values = new BTree(_valueType, standardtypes::StandardHashSet);
+	_rows = std::unique_ptr<BTree>(new BTree(_rowType, _nodeType));
+	_values =  std::unique_ptr<BTree>(new BTree(_valueType, standardtypes::StandardHashSet));
 	_count = 0;
 	_values->setValuesMovedCallback
 	(
@@ -49,7 +49,7 @@ inline UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& v
 	);
 }
 
-inline Statistic UniqueBuffer::GetStatistic()
+Statistic UniqueBuffer::GetStatistic()
 {
 	Statistic stat;
 	stat.total = _count;
@@ -57,7 +57,7 @@ inline Statistic UniqueBuffer::GetStatistic()
 	return stat;
 }
 
-inline vector<OptionalValue> UniqueBuffer::GetValues(const vector<std::string>& rowIds)
+vector<OptionalValue> UniqueBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
@@ -74,7 +74,7 @@ inline vector<OptionalValue> UniqueBuffer::GetValues(const vector<std::string>& 
 	return values;
 }
 
-inline void* UniqueBuffer::GetValue(void* rowId)
+void* UniqueBuffer::GetValue(void* rowId)
 {
 	bool match;
 	auto iterator = _rows->findNearest(rowId, match);
@@ -98,7 +98,7 @@ inline void* UniqueBuffer::GetValue(void* rowId)
 	}
 }
 
-inline void UniqueBuffer::Apply(const ColumnWrites& writes)
+void UniqueBuffer::Apply(const ColumnWrites& writes)
 {
 	auto exstart = writes.excludes.begin();
 	while (exstart != writes.excludes.end())
@@ -118,7 +118,7 @@ inline void UniqueBuffer::Apply(const ColumnWrites& writes)
 	}
 }
 
-inline bool UniqueBuffer::Include(void* rowId, void* value)
+bool UniqueBuffer::Include(void* rowId, void* value)
 {
 	//TODO: Return Undo Information
 	auto rowpath = _rows->GetPath(rowId);
@@ -141,7 +141,7 @@ inline bool UniqueBuffer::Include(void* rowId, void* value)
 	}
 }
 
-inline bool UniqueBuffer::Exclude(void* rowId, void* value)
+bool UniqueBuffer::Exclude(void* rowId, void* value)
 {
 	auto rowpath = _rows->GetPath(rowId);
 	if (!rowpath.Match)
@@ -163,13 +163,13 @@ inline bool UniqueBuffer::Exclude(void* rowId, void* value)
 	return false;
 }
 
-inline bool UniqueBuffer::Exclude(void* rowId)
+bool UniqueBuffer::Exclude(void* rowId)
 {
 	void* val = GetValue(rowId);
 	return Exclude(rowId, val);
 }
 
-inline void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
+void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
 {
 	auto result = _rows->GetPath(value);
 	if (result.Match)
@@ -178,7 +178,7 @@ inline void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
 	}
 }
 
-inline RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
+RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 {
 	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
 	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;

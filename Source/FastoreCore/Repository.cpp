@@ -58,15 +58,15 @@ void Repository::create(ColumnDef def)
 		if (_def.RowIDType.Name != _def.ValueType.Name)
 			throw "Identity Buffers require rowType and ValueType to be the same";
 
-		_buffer = new IdentityBuffer(_def.RowIDType);
+		_buffer = std::unique_ptr<IColumnBuffer>(new IdentityBuffer(_def.RowIDType));
 	}
 	else if(_def.BufferType == BufferType_t::Unique)
 	{
-		_buffer = new UniqueBuffer(_def.RowIDType, _def.ValueType);
+		_buffer = std::unique_ptr<IColumnBuffer>(new UniqueBuffer(_def.RowIDType, _def.ValueType));
 	}
 	else
 	{
-		_buffer = new TreeBuffer(_def.RowIDType, _def.ValueType);
+		_buffer = std::unique_ptr<IColumnBuffer>(new TreeBuffer(_def.RowIDType, _def.ValueType));
 	}
 
 

@@ -18,7 +18,7 @@ private:
 	RepositoryStatus::type _status;
 	ColumnDef _def;
 	//boost::shared_ptr<Log> _log;
-	IColumnBuffer* _buffer;
+	std::unique_ptr<IColumnBuffer> _buffer;
 	Revision _revision;
 
 	string GetLogFileName();
@@ -28,6 +28,7 @@ private:
 
 public:
 	Repository(ColumnID columnID, const string& path);
+	
 
 	ColumnID getColumnID() { return _columnID; }
 	string getPath() { return _path; }

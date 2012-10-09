@@ -190,9 +190,24 @@ class Node
 
 		~Node() 
 		{
-			delete[] _keys;
-			if (_values != NULL)
-				delete[] _values;
+			//When destroying Nodes, we must consider whether we are a leaf or a branch.
+			//A leaf must destroy all the keys and values, while a branch must destroy only the values.
+			//The reason is that the keys in the branch are actually copied up from the branches.	
+			if (_branch)
+			{
+				_tree->_nodeType.Deallocate(_values, _count + 1);
+			}
+			else
+			{
+				if (_values != NULL)
+				{
+					_valueType.Deallocate(_values, _count);
+					delete[] _values;
+				}
+
+				_tree->_keyType.Deallocate(_keys, _count);
+				delete[] _keys;
+			}			
 		}
 
 		short IndexOf(void* key, bool& match)

@@ -39,6 +39,7 @@ public:
 	WorkerHandler(const PodID podId, 
 				  const string path, 
 				  const boost::shared_ptr<Scheduler>);
+	~WorkerHandler();
 
 	Revision prepare(const fastore::communication::TransactionID& transID, 
 					 const fastore::communication::Writes& writes, 

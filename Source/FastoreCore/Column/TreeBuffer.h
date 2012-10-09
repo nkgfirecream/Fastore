@@ -7,7 +7,7 @@
 class TreeBuffer : public IColumnBuffer
 {
 	public:
-		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType);		
+		TreeBuffer(const ScalarType& rowType, const ScalarType &valueType);	
 
 		vector<OptionalValue> GetValues(const vector<std::string>& rowIds);		
 		void Apply(const ColumnWrites& writes);
@@ -24,20 +24,20 @@ class TreeBuffer : public IColumnBuffer
 		ScalarType _rowType;
 		ScalarType _valueType;
 		ScalarType _nodeType;
-		BTree* _rows;
-		BTree* _values;	
+		std::unique_ptr<BTree> _rows;
+		std::unique_ptr<BTree> _values;	
 		long long _unique;
 		long long _total;
 
 };
 
-inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &valueType)
+TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &valueType)
 {
 	_rowType = rowType;
 	_valueType = valueType;
 	_nodeType = NoOpNodeType();
-	_rows = new BTree(_rowType, _nodeType);
-	_values = new BTree(_valueType, standardtypes::StandardBTreeType);
+	_rows = std::unique_ptr<BTree>(new BTree(_rowType, _nodeType));
+	_values = std::unique_ptr<BTree>(new BTree(_valueType, standardtypes::StandardBTreeType));
 	_unique = 0;
 	_total = 0;
 	_values->setValuesMovedCallback
@@ -49,7 +49,7 @@ inline TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &value
 	);
 }
 
-inline Statistic TreeBuffer::GetStatistic()
+Statistic TreeBuffer::GetStatistic()
 {
 	Statistic stat;
 	stat.total = _total;
@@ -57,7 +57,7 @@ inline Statistic TreeBuffer::GetStatistic()
 	return stat;
 }
 
-inline vector<OptionalValue> TreeBuffer::GetValues(const vector<std::string>& rowIds)
+vector<OptionalValue> TreeBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
@@ -74,7 +74,7 @@ inline vector<OptionalValue> TreeBuffer::GetValues(const vector<std::string>& ro
 	return values;
 }
 
-inline void* TreeBuffer::GetValue(void* rowId)
+void* TreeBuffer::GetValue(void* rowId)
 {
 	bool match;
 	auto iterator = _rows->findNearest(rowId, match);
@@ -96,7 +96,7 @@ inline void* TreeBuffer::GetValue(void* rowId)
 	}
 }
 
-inline void TreeBuffer::Apply(const ColumnWrites& writes)
+void TreeBuffer::Apply(const ColumnWrites& writes)
 {
 	auto exstart = writes.excludes.begin();
 	while (exstart != writes.excludes.end())
@@ -116,7 +116,7 @@ inline void TreeBuffer::Apply(const ColumnWrites& writes)
 	}
 }
 
-inline bool TreeBuffer::Include(void* rowId, void* value)
+bool TreeBuffer::Include(void* rowId, void* value)
 {
 	//TODO: Return Undo Information
 	auto rowpath = _rows->GetPath(rowId);
@@ -155,7 +155,7 @@ inline bool TreeBuffer::Include(void* rowId, void* value)
 	}
 }
 
-inline bool TreeBuffer::Exclude(void* value, void* rowId)
+bool TreeBuffer::Exclude(void* value, void* rowId)
 {
 	auto rowpath = _rows->GetPath(rowId);
 	if (!rowpath.Match)
@@ -183,13 +183,13 @@ inline bool TreeBuffer::Exclude(void* value, void* rowId)
 	return false;
 }
 
-inline bool TreeBuffer::Exclude(void* rowId)
+bool TreeBuffer::Exclude(void* rowId)
 {
 	void* val = GetValue(rowId);
 	return Exclude(val, rowId);
 }
 
-inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
+void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 {
 	BTree* existingValues = *(BTree**)(value);
 
@@ -214,7 +214,7 @@ inline void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	}	
 }
 
-inline RangeResult TreeBuffer::GetRows(const RangeRequest& range)
+RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 {
 	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
 	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
