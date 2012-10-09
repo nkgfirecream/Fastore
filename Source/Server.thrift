@@ -14,7 +14,7 @@ struct ServiceStartup
 	2: optional string address,
 
 	/** Override of network port. */
-	3: optional i32 port,
+	3: optional i64 port,
 
 	/** Override of worker paths */
 	4: optional list<string> workerPaths

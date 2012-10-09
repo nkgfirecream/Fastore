@@ -96,8 +96,8 @@ typedef struct _NetworkAddress__isset {
 class NetworkAddress {
  public:
 
-  static const char* ascii_fingerprint; // = "18B162B1D15D8D46509D3911A9F1C2AA";
-  static const uint8_t binary_fingerprint[16]; // = {0x18,0xB1,0x62,0xB1,0xD1,0x5D,0x8D,0x46,0x50,0x9D,0x39,0x11,0xA9,0xF1,0xC2,0xAA};
+  static const char* ascii_fingerprint; // = "E17E126D15049701494262EE3246F603";
+  static const uint8_t binary_fingerprint[16]; // = {0xE1,0x7E,0x12,0x6D,0x15,0x04,0x97,0x01,0x49,0x42,0x62,0xEE,0x32,0x46,0xF6,0x03};
 
   NetworkAddress() : name(), port(0) {
   }
@@ -105,7 +105,7 @@ class NetworkAddress {
   virtual ~NetworkAddress() throw() {}
 
   std::string name;
-  int32_t port;
+  int64_t port;
 
   _NetworkAddress__isset __isset;
 
@@ -113,7 +113,7 @@ class NetworkAddress {
     name = val;
   }
 
-  void __set_port(const int32_t val) {
+  void __set_port(const int64_t val) {
     port = val;
     __isset.port = true;
   }
@@ -145,8 +145,8 @@ void swap(NetworkAddress &a, NetworkAddress &b);
 class WorkerState {
  public:
 
-  static const char* ascii_fingerprint; // = "BC92EF937055861591DE6DB966FACBF3";
-  static const uint8_t binary_fingerprint[16]; // = {0xBC,0x92,0xEF,0x93,0x70,0x55,0x86,0x15,0x91,0xDE,0x6D,0xB9,0x66,0xFA,0xCB,0xF3};
+  static const char* ascii_fingerprint; // = "671173BA4A0889C63295D13F187AC67E";
+  static const uint8_t binary_fingerprint[16]; // = {0x67,0x11,0x73,0xBA,0x4A,0x08,0x89,0xC6,0x32,0x95,0xD1,0x3F,0x18,0x7A,0xC6,0x7E};
 
   WorkerState() : podID(0), port(0) {
   }
@@ -155,7 +155,7 @@ class WorkerState {
 
   PodID podID;
   std::map<ColumnID, RepositoryStatus::type>  repositoryStatus;
-  int32_t port;
+  int64_t port;
 
   void __set_podID(const PodID val) {
     podID = val;
@@ -165,7 +165,7 @@ class WorkerState {
     repositoryStatus = val;
   }
 
-  void __set_port(const int32_t val) {
+  void __set_port(const int64_t val) {
     port = val;
   }
 
@@ -196,8 +196,8 @@ void swap(WorkerState &a, WorkerState &b);
 class ServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "C3001D381DBE710E4896DDBDD34DEE88";
-  static const uint8_t binary_fingerprint[16]; // = {0xC3,0x00,0x1D,0x38,0x1D,0xBE,0x71,0x0E,0x48,0x96,0xDD,0xBD,0xD3,0x4D,0xEE,0x88};
+  static const char* ascii_fingerprint; // = "A1199E740B9B4CA22D6FBE74944130AF";
+  static const uint8_t binary_fingerprint[16]; // = {0xA1,0x19,0x9E,0x74,0x0B,0x9B,0x4C,0xA2,0x2D,0x6F,0xBE,0x74,0x94,0x41,0x30,0xAF};
 
   ServiceState() : status((ServiceStatus::type)0), timeStamp(0) {
   }
@@ -254,8 +254,8 @@ void swap(ServiceState &a, ServiceState &b);
 class HiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "FC067A374F6546E8EF644A00D99F812C";
-  static const uint8_t binary_fingerprint[16]; // = {0xFC,0x06,0x7A,0x37,0x4F,0x65,0x46,0xE8,0xEF,0x64,0x4A,0x00,0xD9,0x9F,0x81,0x2C};
+  static const char* ascii_fingerprint; // = "A1CC6D56385C7C1FE3F049C8D742F1FF";
+  static const uint8_t binary_fingerprint[16]; // = {0xA1,0xCC,0x6D,0x56,0x38,0x5C,0x7C,0x1F,0xE3,0xF0,0x49,0xC8,0xD7,0x42,0xF1,0xFF};
 
   HiveState() : topologyID(0), reportingHostID(0) {
   }
@@ -354,8 +354,8 @@ typedef struct _OptionalHiveState__isset {
 class OptionalHiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "493EDE5CE4DE573E889C2A72DBBE1061";
-  static const uint8_t binary_fingerprint[16]; // = {0x49,0x3E,0xDE,0x5C,0xE4,0xDE,0x57,0x3E,0x88,0x9C,0x2A,0x72,0xDB,0xBE,0x10,0x61};
+  static const char* ascii_fingerprint; // = "4D5C48147F5DC789C640DAB00E9C8BC3";
+  static const uint8_t binary_fingerprint[16]; // = {0x4D,0x5C,0x48,0x14,0x7F,0x5D,0xC7,0x89,0xC6,0x40,0xDA,0xB0,0x0E,0x9C,0x8B,0xC3};
 
   OptionalHiveState() : potentialWorkers(0) {
   }
@@ -411,8 +411,8 @@ typedef struct _OptionalServiceState__isset {
 class OptionalServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "C421FAAF977EF1AF2047022A65FBA70B";
-  static const uint8_t binary_fingerprint[16]; // = {0xC4,0x21,0xFA,0xAF,0x97,0x7E,0xF1,0xAF,0x20,0x47,0x02,0x2A,0x65,0xFB,0xA7,0x0B};
+  static const char* ascii_fingerprint; // = "9207B221A88F594F4277871EFF583B03";
+  static const uint8_t binary_fingerprint[16]; // = {0x92,0x07,0xB2,0x21,0xA8,0x8F,0x59,0x4F,0x42,0x77,0x87,0x1E,0xFF,0x58,0x3B,0x03};
 
   OptionalServiceState() : potentialWorkers(0) {
   }

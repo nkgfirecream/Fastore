@@ -29,8 +29,8 @@ typedef struct _ServiceStartup__isset {
 class ServiceStartup {
  public:
 
-  static const char* ascii_fingerprint; // = "832E8A20B071B2E4044DD24CD4C9F209";
-  static const uint8_t binary_fingerprint[16]; // = {0x83,0x2E,0x8A,0x20,0xB0,0x71,0xB2,0xE4,0x04,0x4D,0xD2,0x4C,0xD4,0xC9,0xF2,0x09};
+  static const char* ascii_fingerprint; // = "51B15F6CDA6A57A532EE47E861B4AB30";
+  static const uint8_t binary_fingerprint[16]; // = {0x51,0xB1,0x5F,0x6C,0xDA,0x6A,0x57,0xA5,0x32,0xEE,0x47,0xE8,0x61,0xB4,0xAB,0x30};
 
   ServiceStartup() : path(), address(), port(0) {
   }
@@ -39,7 +39,7 @@ class ServiceStartup {
 
   Path path;
   std::string address;
-  int32_t port;
+  int64_t port;
   std::vector<std::string>  workerPaths;
 
   _ServiceStartup__isset __isset;
@@ -53,7 +53,7 @@ class ServiceStartup {
     __isset.address = true;
   }
 
-  void __set_port(const int32_t val) {
+  void __set_port(const int64_t val) {
     port = val;
     __isset.port = true;
   }
@@ -103,8 +103,8 @@ typedef struct _ServiceConfig__isset {
 class ServiceConfig {
  public:
 
-  static const char* ascii_fingerprint; // = "511973477B234AC4C6ADA3FC70081BD1";
-  static const uint8_t binary_fingerprint[16]; // = {0x51,0x19,0x73,0x47,0x7B,0x23,0x4A,0xC4,0xC6,0xAD,0xA3,0xFC,0x70,0x08,0x1B,0xD1};
+  static const char* ascii_fingerprint; // = "E1071F2FF4A36825C7AAB4E06C973AED";
+  static const uint8_t binary_fingerprint[16]; // = {0xE1,0x07,0x1F,0x2F,0xF4,0xA3,0x68,0x25,0xC7,0xAA,0xB4,0xE0,0x6C,0x97,0x3A,0xED};
 
   ServiceConfig() : path() {
   }

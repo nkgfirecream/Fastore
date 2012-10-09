@@ -12,11 +12,11 @@ namespace fastore { namespace client
 	public:
 		ServiceAddress();
 
-		static const int DefaultPort = 8765;		
+		static const uint64_t DefaultPort = 8765;		
 		static ServiceAddress ParseOne(const std::string &address);
 		static std::vector<ServiceAddress> ParseList(const std::string &composite);
 
-		int Port;
+		uint64_t Port;
 		std::string Name;	
 
 	private:

@@ -50,8 +50,8 @@ const char* _kLockModeNames[] = {
 };
 const std::map<int, const char*> _LockMode_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(2, _kLockModeValues, _kLockModeNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
 
-const char* NetworkAddress::ascii_fingerprint = "18B162B1D15D8D46509D3911A9F1C2AA";
-const uint8_t NetworkAddress::binary_fingerprint[16] = {0x18,0xB1,0x62,0xB1,0xD1,0x5D,0x8D,0x46,0x50,0x9D,0x39,0x11,0xA9,0xF1,0xC2,0xAA};
+const char* NetworkAddress::ascii_fingerprint = "E17E126D15049701494262EE3246F603";
+const uint8_t NetworkAddress::binary_fingerprint[16] = {0xE1,0x7E,0x12,0x6D,0x15,0x04,0x97,0x01,0x49,0x42,0x62,0xEE,0x32,0x46,0xF6,0x03};
 
 uint32_t NetworkAddress::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -83,8 +83,8 @@ uint32_t NetworkAddress::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 2:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->port);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->port);
           this->__isset.port = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -113,8 +113,8 @@ uint32_t NetworkAddress::write(::apache::thrift::protocol::TProtocol* oprot) con
   xfer += oprot->writeFieldEnd();
 
   if (this->__isset.port) {
-    xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 2);
-    xfer += oprot->writeI32(this->port);
+    xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I64, 2);
+    xfer += oprot->writeI64(this->port);
     xfer += oprot->writeFieldEnd();
   }
   xfer += oprot->writeFieldStop();
@@ -129,8 +129,8 @@ void swap(NetworkAddress &a, NetworkAddress &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* WorkerState::ascii_fingerprint = "BC92EF937055861591DE6DB966FACBF3";
-const uint8_t WorkerState::binary_fingerprint[16] = {0xBC,0x92,0xEF,0x93,0x70,0x55,0x86,0x15,0x91,0xDE,0x6D,0xB9,0x66,0xFA,0xCB,0xF3};
+const char* WorkerState::ascii_fingerprint = "671173BA4A0889C63295D13F187AC67E";
+const uint8_t WorkerState::binary_fingerprint[16] = {0x67,0x11,0x73,0xBA,0x4A,0x08,0x89,0xC6,0x32,0x95,0xD1,0x3F,0x18,0x7A,0xC6,0x7E};
 
 uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -170,7 +170,7 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size0;
             ::apache::thrift::protocol::TType _ktype1;
             ::apache::thrift::protocol::TType _vtype2;
-            xfer += iprot->readMapBegin(_ktype1, _vtype2, _size0);
+            iprot->readMapBegin(_ktype1, _vtype2, _size0);
             uint32_t _i4;
             for (_i4 = 0; _i4 < _size0; ++_i4)
             {
@@ -181,7 +181,7 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
               xfer += iprot->readI32(ecast7);
               _val6 = (RepositoryStatus::type)ecast7;
             }
-            xfer += iprot->readMapEnd();
+            iprot->readMapEnd();
           }
           isset_repositoryStatus = true;
         } else {
@@ -189,8 +189,8 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 3:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->port);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->port);
           isset_port = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -235,8 +235,8 @@ uint32_t WorkerState::write(::apache::thrift::protocol::TProtocol* oprot) const 
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 3);
-  xfer += oprot->writeI32(this->port);
+  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I64, 3);
+  xfer += oprot->writeI64(this->port);
   xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
@@ -251,8 +251,8 @@ void swap(WorkerState &a, WorkerState &b) {
   swap(a.port, b.port);
 }
 
-const char* ServiceState::ascii_fingerprint = "C3001D381DBE710E4896DDBDD34DEE88";
-const uint8_t ServiceState::binary_fingerprint[16] = {0xC3,0x00,0x1D,0x38,0x1D,0xBE,0x71,0x0E,0x48,0x96,0xDD,0xBD,0xD3,0x4D,0xEE,0x88};
+const char* ServiceState::ascii_fingerprint = "A1199E740B9B4CA22D6FBE74944130AF";
+const uint8_t ServiceState::binary_fingerprint[16] = {0xA1,0x19,0x9E,0x74,0x0B,0x9B,0x4C,0xA2,0x2D,0x6F,0xBE,0x74,0x94,0x41,0x30,0xAF};
 
 uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -310,14 +310,14 @@ uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->workers.clear();
             uint32_t _size10;
             ::apache::thrift::protocol::TType _etype13;
-            xfer += iprot->readListBegin(_etype13, _size10);
+            iprot->readListBegin(_etype13, _size10);
             this->workers.resize(_size10);
             uint32_t _i14;
             for (_i14 = 0; _i14 < _size10; ++_i14)
             {
               xfer += this->workers[_i14].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_workers = true;
         } else {
@@ -385,8 +385,8 @@ void swap(ServiceState &a, ServiceState &b) {
   swap(a.workers, b.workers);
 }
 
-const char* HiveState::ascii_fingerprint = "FC067A374F6546E8EF644A00D99F812C";
-const uint8_t HiveState::binary_fingerprint[16] = {0xFC,0x06,0x7A,0x37,0x4F,0x65,0x46,0xE8,0xEF,0x64,0x4A,0x00,0xD9,0x9F,0x81,0x2C};
+const char* HiveState::ascii_fingerprint = "A1CC6D56385C7C1FE3F049C8D742F1FF";
+const uint8_t HiveState::binary_fingerprint[16] = {0xA1,0xCC,0x6D,0x56,0x38,0x5C,0x7C,0x1F,0xE3,0xF0,0x49,0xC8,0xD7,0x42,0xF1,0xFF};
 
 uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -426,7 +426,7 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size16;
             ::apache::thrift::protocol::TType _ktype17;
             ::apache::thrift::protocol::TType _vtype18;
-            xfer += iprot->readMapBegin(_ktype17, _vtype18, _size16);
+            iprot->readMapBegin(_ktype17, _vtype18, _size16);
             uint32_t _i20;
             for (_i20 = 0; _i20 < _size16; ++_i20)
             {
@@ -435,7 +435,7 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
               ServiceState& _val22 = this->services[_key21];
               xfer += _val22.read(iprot);
             }
-            xfer += iprot->readMapEnd();
+            iprot->readMapEnd();
           }
           isset_services = true;
         } else {
@@ -545,7 +545,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size24;
             ::apache::thrift::protocol::TType _ktype25;
             ::apache::thrift::protocol::TType _vtype26;
-            xfer += iprot->readMapBegin(_ktype25, _vtype26, _size24);
+            iprot->readMapBegin(_ktype25, _vtype26, _size24);
             uint32_t _i28;
             for (_i28 = 0; _i28 < _size24; ++_i28)
             {
@@ -557,7 +557,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
                 uint32_t _size31;
                 ::apache::thrift::protocol::TType _ktype32;
                 ::apache::thrift::protocol::TType _vtype33;
-                xfer += iprot->readMapBegin(_ktype32, _vtype33, _size31);
+                iprot->readMapBegin(_ktype32, _vtype33, _size31);
                 uint32_t _i35;
                 for (_i35 = 0; _i35 < _size31; ++_i35)
                 {
@@ -568,20 +568,20 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
                     _val37.clear();
                     uint32_t _size38;
                     ::apache::thrift::protocol::TType _etype41;
-                    xfer += iprot->readListBegin(_etype41, _size38);
+                    iprot->readListBegin(_etype41, _size38);
                     _val37.resize(_size38);
                     uint32_t _i42;
                     for (_i42 = 0; _i42 < _size38; ++_i42)
                     {
                       xfer += iprot->readI64(_val37[_i42]);
                     }
-                    xfer += iprot->readListEnd();
+                    iprot->readListEnd();
                   }
                 }
-                xfer += iprot->readMapEnd();
+                iprot->readMapEnd();
               }
             }
-            xfer += iprot->readMapEnd();
+            iprot->readMapEnd();
           }
           isset_hosts = true;
         } else {
@@ -653,8 +653,8 @@ void swap(Topology &a, Topology &b) {
   swap(a.hosts, b.hosts);
 }
 
-const char* OptionalHiveState::ascii_fingerprint = "493EDE5CE4DE573E889C2A72DBBE1061";
-const uint8_t OptionalHiveState::binary_fingerprint[16] = {0x49,0x3E,0xDE,0x5C,0xE4,0xDE,0x57,0x3E,0x88,0x9C,0x2A,0x72,0xDB,0xBE,0x10,0x61};
+const char* OptionalHiveState::ascii_fingerprint = "4D5C48147F5DC789C640DAB00E9C8BC3";
+const uint8_t OptionalHiveState::binary_fingerprint[16] = {0x4D,0x5C,0x48,0x14,0x7F,0x5D,0xC7,0x89,0xC6,0x40,0xDA,0xB0,0x0E,0x9C,0x8B,0xC3};
 
 uint32_t OptionalHiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -730,8 +730,8 @@ void swap(OptionalHiveState &a, OptionalHiveState &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* OptionalServiceState::ascii_fingerprint = "C421FAAF977EF1AF2047022A65FBA70B";
-const uint8_t OptionalServiceState::binary_fingerprint[16] = {0xC4,0x21,0xFA,0xAF,0x97,0x7E,0xF1,0xAF,0x20,0x47,0x02,0x2A,0x65,0xFB,0xA7,0x0B};
+const char* OptionalServiceState::ascii_fingerprint = "9207B221A88F594F4277871EFF583B03";
+const uint8_t OptionalServiceState::binary_fingerprint[16] = {0x92,0x07,0xB2,0x21,0xA8,0x8F,0x59,0x4F,0x42,0x77,0x87,0x1E,0xFF,0x58,0x3B,0x03};
 
 uint32_t OptionalServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -1296,14 +1296,14 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->includes.clear();
             uint32_t _size46;
             ::apache::thrift::protocol::TType _etype49;
-            xfer += iprot->readListBegin(_etype49, _size46);
+            iprot->readListBegin(_etype49, _size46);
             this->includes.resize(_size46);
             uint32_t _i50;
             for (_i50 = 0; _i50 < _size46; ++_i50)
             {
               xfer += this->includes[_i50].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.includes = true;
         } else {
@@ -1316,14 +1316,14 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->excludes.clear();
             uint32_t _size51;
             ::apache::thrift::protocol::TType _etype54;
-            xfer += iprot->readListBegin(_etype54, _size51);
+            iprot->readListBegin(_etype54, _size51);
             this->excludes.resize(_size51);
             uint32_t _i55;
             for (_i55 = 0; _i55 < _size51; ++_i55)
             {
               xfer += this->excludes[_i55].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.excludes = true;
         } else {
@@ -1706,14 +1706,14 @@ uint32_t ValueRows::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rowIDs.clear();
             uint32_t _size58;
             ::apache::thrift::protocol::TType _etype61;
-            xfer += iprot->readListBegin(_etype61, _size58);
+            iprot->readListBegin(_etype61, _size58);
             this->rowIDs.resize(_size58);
             uint32_t _i62;
             for (_i62 = 0; _i62 < _size58; ++_i62)
             {
               xfer += iprot->readBinary(this->rowIDs[_i62]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_rowIDs = true;
         } else {
@@ -1800,14 +1800,14 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->valueRowsList.clear();
             uint32_t _size64;
             ::apache::thrift::protocol::TType _etype67;
-            xfer += iprot->readListBegin(_etype67, _size64);
+            iprot->readListBegin(_etype67, _size64);
             this->valueRowsList.resize(_size64);
             uint32_t _i68;
             for (_i68 = 0; _i68 < _size64; ++_i68)
             {
               xfer += this->valueRowsList[_i68].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_valueRowsList = true;
         } else {
@@ -1928,14 +1928,14 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rowIDs.clear();
             uint32_t _size70;
             ::apache::thrift::protocol::TType _etype73;
-            xfer += iprot->readListBegin(_etype73, _size70);
+            iprot->readListBegin(_etype73, _size70);
             this->rowIDs.resize(_size70);
             uint32_t _i74;
             for (_i74 = 0; _i74 < _size70; ++_i74)
             {
               xfer += iprot->readBinary(this->rowIDs[_i74]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.rowIDs = true;
         } else {
@@ -1948,14 +1948,14 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->ranges.clear();
             uint32_t _size75;
             ::apache::thrift::protocol::TType _etype78;
-            xfer += iprot->readListBegin(_etype78, _size75);
+            iprot->readListBegin(_etype78, _size75);
             this->ranges.resize(_size75);
             uint32_t _i79;
             for (_i79 = 0; _i79 < _size75; ++_i79)
             {
               xfer += this->ranges[_i79].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.ranges = true;
         } else {
@@ -2108,14 +2108,14 @@ uint32_t Answer::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rowIDValues.clear();
             uint32_t _size82;
             ::apache::thrift::protocol::TType _etype85;
-            xfer += iprot->readListBegin(_etype85, _size82);
+            iprot->readListBegin(_etype85, _size82);
             this->rowIDValues.resize(_size82);
             uint32_t _i86;
             for (_i86 = 0; _i86 < _size82; ++_i86)
             {
               xfer += this->rowIDValues[_i86].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.rowIDValues = true;
         } else {
@@ -2128,14 +2128,14 @@ uint32_t Answer::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rangeValues.clear();
             uint32_t _size87;
             ::apache::thrift::protocol::TType _etype90;
-            xfer += iprot->readListBegin(_etype90, _size87);
+            iprot->readListBegin(_etype90, _size87);
             this->rangeValues.resize(_size87);
             uint32_t _i91;
             for (_i91 = 0; _i91 < _size87; ++_i91)
             {
               xfer += this->rangeValues[_i91].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.rangeValues = true;
         } else {
@@ -2437,14 +2437,14 @@ uint32_t Conflict::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->columnIDs.clear();
             uint32_t _size94;
             ::apache::thrift::protocol::TType _etype97;
-            xfer += iprot->readListBegin(_etype97, _size94);
+            iprot->readListBegin(_etype97, _size94);
             this->columnIDs.resize(_size94);
             uint32_t _i98;
             for (_i98 = 0; _i98 < _size94; ++_i98)
             {
               xfer += iprot->readI64(this->columnIDs[_i98]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.columnIDs = true;
         } else {

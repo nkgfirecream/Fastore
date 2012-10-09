@@ -10,7 +10,7 @@ typedef i64 PodID
 struct NetworkAddress
 {
 	1: required string name,
-	2: optional i32 port
+	2: optional i64 port
 }
 
 enum RepositoryStatus
@@ -41,7 +41,7 @@ struct WorkerState
 {
 	1: required PodID podID,
 	2: required map<ColumnID, RepositoryStatus> repositoryStatus,
-	3: required i32 port
+	3: required i64 port
 }
 
 struct ServiceState

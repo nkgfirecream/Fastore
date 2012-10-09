@@ -7,7 +7,7 @@
 #if defined(_WIN32)
 // Import or export appropriately
 # if defined(FASTORE_EXPORT) 
-#   define FASTOREAPI extern "C" __declspec(dllexport)
+#   define FASTOREAPI extern "C" // __declspec(dllexport)
 # else
 #   define FASTOREAPI extern "C" __declspec(dllimport)
 # endif  
@@ -100,7 +100,7 @@ FASTOREAPI ConnectResult fastoreConnect(size_t addressCount, const struct Fastor
 FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 
 // Prepares a given query or statement statement and returns a cursor
-FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *sql);
+FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *batch);
 // Provides values for any parameters included in the prepared statement and resets the cursor
 FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
 // Executes the statement, or navigates to the first or next row

@@ -34,7 +34,7 @@ namespace Fastore.Data
 		}
 
 		// Retrieves the message and code of the last error
-		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreGetLastError", CharSet = CharSet.Ansi)]
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreGetLastError", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		public extern static bool GetLastError
 		(
@@ -48,7 +48,7 @@ namespace Fastore.Data
 
 		// Creates a new database connection
 		//FASTOREAPI ConnectResult APIENTRY fastoreConnect(size_t addressCount, const struct FastoreAddress addresses[]);
-		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreConnect")]
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreConnect", CallingConvention = CallingConvention.Cdecl)]
 		public extern static ConnectResult Connect
 		(
 			int addressCount, 
@@ -58,7 +58,7 @@ namespace Fastore.Data
 
 		//// Dereferences the given database connection; the connection may remain open if any transactions are still open on it
 		//FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
-		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreDisconnect")]
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreDisconnect", CallingConvention = CallingConvention.Cdecl)]
 		public extern static GeneralResult Disconnect(IntPtr connection);
 
 		//// Prepares a given query or statement statement and returns a cursor

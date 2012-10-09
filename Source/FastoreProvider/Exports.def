@@ -1,0 +1,14 @@
+LIBRARY	FastoreProvider
+EXPORTS
+	fastoreGetLastError		@1
+	fastoreConnect	@2
+	fastoreDisconnect	@3
+	fastorePrepare	@4
+	fastoreBind	@5
+	fastoreNext	@6
+	fastoreColumnInfo	@7
+	fastoreColumnValue	@8
+	fastoreClose	@9
+	fastoreExecute	@10
+
+

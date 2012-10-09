@@ -8,7 +8,7 @@ namespace fastore
 		struct Address
 		{
 			std::string Name;
-			int Port;
+			uint64_t Port;
 		};
 	}
 }

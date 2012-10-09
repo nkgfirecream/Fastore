@@ -25,11 +25,6 @@ namespace Fastore.Data.Test
 			CheckResult(disResult.Result);
 		}
 
-		[TestMethod]
-		public void TestTest()
-		{
-		}
-
 		private static void CheckResult(int result)
 		{
 			if (result != Provider.FASTORE_OK)

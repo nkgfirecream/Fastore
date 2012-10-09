@@ -10,8 +10,8 @@
 
 namespace fastore { namespace server {
 
-const char* ServiceStartup::ascii_fingerprint = "832E8A20B071B2E4044DD24CD4C9F209";
-const uint8_t ServiceStartup::binary_fingerprint[16] = {0x83,0x2E,0x8A,0x20,0xB0,0x71,0xB2,0xE4,0x04,0x4D,0xD2,0x4C,0xD4,0xC9,0xF2,0x09};
+const char* ServiceStartup::ascii_fingerprint = "51B15F6CDA6A57A532EE47E861B4AB30";
+const uint8_t ServiceStartup::binary_fingerprint[16] = {0x51,0xB1,0x5F,0x6C,0xDA,0x6A,0x57,0xA5,0x32,0xEE,0x47,0xE8,0x61,0xB4,0xAB,0x30};
 
 uint32_t ServiceStartup::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -51,8 +51,8 @@ uint32_t ServiceStartup::read(::apache::thrift::protocol::TProtocol* iprot) {
         }
         break;
       case 3:
-        if (ftype == ::apache::thrift::protocol::T_I32) {
-          xfer += iprot->readI32(this->port);
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->port);
           this->__isset.port = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -64,14 +64,14 @@ uint32_t ServiceStartup::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->workerPaths.clear();
             uint32_t _size0;
             ::apache::thrift::protocol::TType _etype3;
-            xfer += iprot->readListBegin(_etype3, _size0);
+            iprot->readListBegin(_etype3, _size0);
             this->workerPaths.resize(_size0);
             uint32_t _i4;
             for (_i4 = 0; _i4 < _size0; ++_i4)
             {
               xfer += iprot->readString(this->workerPaths[_i4]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.workerPaths = true;
         } else {
@@ -106,8 +106,8 @@ uint32_t ServiceStartup::write(::apache::thrift::protocol::TProtocol* oprot) con
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.port) {
-    xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I32, 3);
-    xfer += oprot->writeI32(this->port);
+    xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I64, 3);
+    xfer += oprot->writeI64(this->port);
     xfer += oprot->writeFieldEnd();
   }
   if (this->__isset.workerPaths) {
@@ -137,8 +137,8 @@ void swap(ServiceStartup &a, ServiceStartup &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* ServiceConfig::ascii_fingerprint = "511973477B234AC4C6ADA3FC70081BD1";
-const uint8_t ServiceConfig::binary_fingerprint[16] = {0x51,0x19,0x73,0x47,0x7B,0x23,0x4A,0xC4,0xC6,0xAD,0xA3,0xFC,0x70,0x08,0x1B,0xD1};
+const char* ServiceConfig::ascii_fingerprint = "E1071F2FF4A36825C7AAB4E06C973AED";
+const uint8_t ServiceConfig::binary_fingerprint[16] = {0xE1,0x07,0x1F,0x2F,0xF4,0xA3,0x68,0x25,0xC7,0xAA,0xB4,0xE0,0x6C,0x97,0x3A,0xED};
 
 uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -176,14 +176,14 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->workerPaths.clear();
             uint32_t _size6;
             ::apache::thrift::protocol::TType _etype9;
-            xfer += iprot->readListBegin(_etype9, _size6);
+            iprot->readListBegin(_etype9, _size6);
             this->workerPaths.resize(_size6);
             uint32_t _i10;
             for (_i10 = 0; _i10 < _size6; ++_i10)
             {
               xfer += iprot->readString(this->workerPaths[_i10]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_workerPaths = true;
         } else {

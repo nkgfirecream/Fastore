@@ -44,9 +44,9 @@ FastoreResultCode ExceptionToFastoreResult(exception e, FastoreErrorCode code)
 }
 
 template <typename TResult>
-TResult WrapCall(const function<void(TResult)> &callback)
+TResult WrapCall(const function<void(TResult&)> &callback)
 {
-	TResult result;
+	TResult result = TResult();
 	try
 	{
 		callback(result);
@@ -87,7 +87,7 @@ ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress ad
 {
 	return WrapCall<ConnectResult>
 	(
-		[&](ConnectResult result)
+		[&](ConnectResult &result)
 		{
 			// Convert addresses
 			vector<prov::Address> serverAddresses = vector<prov::Address>();
@@ -108,7 +108,7 @@ GeneralResult fastoreDisconnect(ConnectionHandle database)
 {
 	return WrapCall<GeneralResult>
 	(
-		[&](GeneralResult result) 
+		[&](GeneralResult &result) 
 		{ 
 			// Free the shared pointer, database provider will be freed when all shared pointers are freed
 			delete static_cast<prov::PConnectionObject>(database); 
@@ -116,7 +116,7 @@ GeneralResult fastoreDisconnect(ConnectionHandle database)
 	);
 }
 
-PrepareResult fastorePrepare(ConnectionHandle database, const char *sql)
+PrepareResult fastorePrepare(ConnectionHandle database, const char *batch)
 {
 	PrepareResult result;
 	return result;
