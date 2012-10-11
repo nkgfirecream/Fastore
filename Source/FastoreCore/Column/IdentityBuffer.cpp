@@ -20,7 +20,8 @@ vector<OptionalValue> IdentityBuffer::GetValues(const vector<std::string>& rowId
 	vector<OptionalValue> values(rowIds.size());
 	for (unsigned int i = 0; i < rowIds.size(); i++)
 	{
-		auto path = _rows->GetPath(_type.GetPointer(rowIds[i]));
+		BTree::Path path;
+		_rows->GetPath(_type.GetPointer(rowIds[i]), path);
 		if (path.Match)
 		{
 			values[i].__set_value(rowIds[i]);
@@ -57,7 +58,8 @@ void IdentityBuffer::Apply(const ColumnWrites& writes)
 bool IdentityBuffer::Include(void* rowId)
 {
 	//TODO: Return Undo Information
-	auto rowpath = _rows->GetPath(rowId);
+	BTree::Path rowpath;
+	_rows->GetPath(rowId, rowpath);
 	if (rowpath.Match)
 		return false;
 	else
@@ -70,7 +72,8 @@ bool IdentityBuffer::Include(void* rowId)
 
 bool IdentityBuffer::Exclude(void* rowId)
 {
-	auto rowpath = _rows->GetPath(rowId);
+	BTree::Path rowpath;
+	_rows->GetPath(rowId, rowpath);
 	if (!rowpath.Match)
 		return false;
 	else

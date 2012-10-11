@@ -55,7 +55,9 @@ void* TreeBuffer::GetValue(void* rowId)
 		(
 			[rowId](void* kt) -> bool
 			{
-				return (*(BTree**)kt)->GetPath(rowId).Match;
+				BTree::Path p;
+				(*(BTree**)kt)->GetPath(rowId,p);
+				return p.Match; 
 			}
 		);
 	}
@@ -88,16 +90,19 @@ void TreeBuffer::Apply(const ColumnWrites& writes)
 bool TreeBuffer::Include(void* rowId, void* value)
 {
 	//TODO: Return Undo Information
-	auto rowpath = _rows->GetPath(rowId);
+	BTree::Path rowpath;
+	_rows->GetPath(rowId, rowpath);
 	if (rowpath.Match)
 		return false;
 
-	BTree::Path  path = _values->GetPath(value);
+	BTree::Path  path;
+	_values->GetPath(value, path);
 	if (path.Match)
 	{
 		BTree* existing = *(BTree**)(*path.Leaf)[path.LeafIndex].value;
 		
-		auto keypath = existing->GetPath(rowId);
+		BTree::Path  keypath;
+		existing->GetPath(rowId, keypath);
 		existing->Insert(keypath, rowId, rowId);			
 
 		_rows->Insert(rowpath, rowId, &path.Leaf);
@@ -109,7 +114,8 @@ bool TreeBuffer::Include(void* rowId, void* value)
 	{
 		BTree* newRows = new BTree(_rowType);
 
-		auto keypath = newRows->GetPath(rowId);
+		BTree::Path  keypath;
+		newRows->GetPath(rowId, keypath);
 
 		newRows->Insert(keypath, rowId, rowId);
 		_rows->Insert(rowpath, rowId, &path.Leaf);		
@@ -126,16 +132,19 @@ bool TreeBuffer::Include(void* rowId, void* value)
 
 bool TreeBuffer::Exclude(void* value, void* rowId)
 {
-	auto rowpath = _rows->GetPath(rowId);
+	BTree::Path rowpath;
+	_rows->GetPath(rowId, rowpath);
 	if (!rowpath.Match)
 		return false;
 
-	BTree::Path  path = _values->GetPath(value);
+	BTree::Path  path;
+	_values->GetPath(value, path);
 	//If existing is NULL, that row id did not exist under that value
 	if (path.Match)
 	{
 		BTree* existing = *(BTree**)(*path.Leaf)[path.LeafIndex].value;
-		auto keypath = existing->GetPath(rowId);
+		BTree::Path keypath;
+		existing->GetPath(rowId, keypath);
 		existing->Delete(keypath);
 		if (existing->Count() == 0)
 		{
@@ -168,7 +177,8 @@ void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 	while (start != end)
 	{
 		//TODO: Make Btree or iterator writeable
-		auto result = _rows->GetPath((*start).key);
+		BTree::Path result;
+		_rows->GetPath((*start).key, result);
 		
 		if (result.Match)
 		{

@@ -75,7 +75,7 @@ class BTree
 			bool Match;
 		};
 
-		Path GetPath(void* key);
+		void GetPath(void* key, Path& result);
 		void Delete(Path& path);
 		void Insert(Path& path, void* key, void* value);
 		int Count();
@@ -122,7 +122,8 @@ class BTree
 		//or points to the end.
 		iterator find(void* key)
 		{
-			Path p = GetPath(key);
+			Path p;
+			GetPath(key, p);
 			
 			if (p.Match)
 				return iterator(p, false);
@@ -134,7 +135,8 @@ class BTree
 		//BTrees sort order.
 		iterator findNearest(void* key, bool& match)
 		{
-			Path p = GetPath(key);
+			Path p;
+			GetPath(key, p);
 			match = p.Match;
 
 			return iterator(p, true);
@@ -210,14 +212,14 @@ class Node
 
 		short IndexOf(void* key, bool& match)
 		{
-		  const int n = _tree->_keyType.IndexOf(_keys, _count, key);
+		  short n = short(_tree->_keyType.IndexOf(_keys, _count, key));
 
 		  assert(     -std::numeric_limits<short>::max() <= n );
 		  assert( n <= std::numeric_limits<short>::max() );
 
 		  match = n >= 0;
 
-		  return SHORT_CAST(match ? n : ~n);
+		  return match ? n : ~n;
 		}
 
 		void* GetKey(function<bool(void*)> predicate)

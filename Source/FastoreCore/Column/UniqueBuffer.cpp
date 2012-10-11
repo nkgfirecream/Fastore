@@ -89,11 +89,13 @@ void UniqueBuffer::Apply(const ColumnWrites& writes)
 bool UniqueBuffer::Include(void* rowId, void* value)
 {
 	//TODO: Return Undo Information
-	auto rowpath = _rows->GetPath(rowId);
+	BTree::Path rowpath;
+	_rows->GetPath(rowId, rowpath);
 	if (rowpath.Match)
 		return false;
 
-	BTree::Path path = _values->GetPath(value);
+	BTree::Path path;
+	_values->GetPath(value, path);
 	if (path.Match)
 		return false;
 	else
@@ -111,11 +113,13 @@ bool UniqueBuffer::Include(void* rowId, void* value)
 
 bool UniqueBuffer::Exclude(void* rowId, void* value)
 {
-	auto rowpath = _rows->GetPath(rowId);
+	BTree::Path rowpath;
+	_rows->GetPath(rowId, rowpath);
 	if (!rowpath.Match)
 		return false;
 
-	BTree::Path  path = _values->GetPath(value);
+	BTree::Path  path;
+	_values->GetPath(value, path);
 	if (path.Match)
 	{
 		void* existing = (void*)(*path.Leaf)[path.LeafIndex].value;
@@ -139,7 +143,8 @@ bool UniqueBuffer::Exclude(void* rowId)
 
 void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
 {
-	auto result = _rows->GetPath(value);
+	BTree::Path result;
+	_rows->GetPath(value, result);
 	if (result.Match)
 	{
 		_nodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);

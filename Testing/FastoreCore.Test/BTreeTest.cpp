@@ -57,7 +57,8 @@ public:
 			int numrows =  countarray[i];
 			for (T k = 0; k <= numrows; k += 2)
 			{
-				auto path = tree.GetPath(&k);
+				BTree::Path path;
+				tree.GetPath(&k, path);
 				Assert::IsFalse(path.Match);
 				tree.Insert(path, &k, &k);
 			}
@@ -180,7 +181,8 @@ public:
 
 			for (int i = 0; i <= numrows; i++)
 			{
-				auto path = tree.GetPath(&i);
+				BTree::Path path;
+				tree.GetPath(&i, path);
 				Assert::IsFalse(path.Match);
 				tree.Insert(path, &i, &i);
 			}
@@ -195,7 +197,8 @@ public:
 
 			for (int i = 0; i <= numrows; i++)
 			{
-				auto path = tree.GetPath(&i);
+				BTree::Path path;
+				tree.GetPath(&i, path);
 				Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
 				Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 			}
@@ -215,7 +218,8 @@ public:
 
 			for (int i = numrows; i >= 0; i--)
 			{
-				auto path = tree.GetPath(&i);
+				BTree::Path path;
+				tree.GetPath(&i, path);
 				Assert::IsFalse(path.Match);
 				tree.Insert(path, &i, &i);
 			}
@@ -252,7 +256,8 @@ public:
 			while (hb != hash.end())
 			{
 				int i = (*hb);
-				auto path = tree.GetPath(&i);
+				BTree::Path path;
+				tree.GetPath(&i, path);
 				Assert::IsFalse(path.Match);
 				tree.Insert(path, &i, &i);
 
@@ -285,45 +290,55 @@ public:
 		int numrows = 4096;
 		for (int i = 0; i < numrows; i++)
 		{
-			auto path = tree.GetPath(&i);
+			BTree::Path path;
+			tree.GetPath(&i, path);
 			tree.Insert(path, &i, &i);
-			path = tree.GetPath(&i);
+
+			path = BTree::Path();
+			tree.GetPath(&i, path);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 		}
 
 		for (int i = 0; i < numrows; i++)
 		{
-			auto path = tree.GetPath(&i);
+			BTree::Path path;
+			tree.GetPath(&i, path);
 			Assert::IsTrue(path.Match);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 
 			tree.Delete(path);
 
-			path = tree.GetPath(&i);
+			path = BTree::Path();
+			tree.GetPath(&i, path);
 			Assert::IsFalse(path.Match);
 		}
 
 		for (int i = 0; i < numrows; i++)
 		{
-			auto path = tree.GetPath(&i);
+			BTree::Path path;
+			tree.GetPath(&i, path);
 			tree.Insert(path, &i, &i);
-			path = tree.GetPath(&i);
+			
+			path = BTree::Path();
+			tree.GetPath(&i, path);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 		}
 
 		for (int i = numrows - 1; i >= 0; i--)
 		{
-			auto path = tree.GetPath(&i);
+			BTree::Path path;
+			tree.GetPath(&i, path);
 			Assert::IsTrue(path.Match);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].value), i);
 			Assert::AreEqual<int>((*(int*)(*path.Leaf)[path.LeafIndex].key), i);
 
 			tree.Delete(path);
-
-			path = tree.GetPath(&i);
+			
+			path = BTree::Path();
+			tree.GetPath(&i, path);
 			Assert::IsFalse(path.Match);
 		}
 	}

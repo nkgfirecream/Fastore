@@ -490,6 +490,8 @@ TFastoreServer::~TFastoreServer()
 
 	if (_fds != NULL)
 		delete _fds;
+
+	
 }
 
 /**
@@ -843,7 +845,7 @@ void TFastoreServer::run()
 		closeMarkedConnections();
 
 		//If we are passed our timeout, or have successfully closed all connections, then stop serving.
-		if (_shutdown && (clock() - _shutdownStart > _shutdownTimeout || activeConnections_.size() == 0))
+		if (_shutdown &&  /*(clock() - _shutdownStart > _shutdownTimeout || */ activeConnections_.size() == 0) //)
 			stop();
 
 		//For now, just close immediately

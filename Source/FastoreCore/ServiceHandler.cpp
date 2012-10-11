@@ -371,7 +371,12 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 			Log << log_info << __func__ 
 				<< ": creating worker on pod" << iter->podID 
 				<< " at '" << name << ":" << iter->port << "'" << log_endl;
-			boost::shared_ptr<TSocket> socket(new TSocket(name, iter->port));
+			boost::shared_ptr<TSocket> socket(new TSocket(name, iter->port));		
+			socket->setConnTimeout(2000);
+			socket->setRecvTimeout(2000);
+			socket->setSendTimeout(2000);
+			socket->setMaxRecvRetries(3);
+
 			boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 			boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 

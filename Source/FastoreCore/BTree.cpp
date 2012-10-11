@@ -31,11 +31,9 @@ BTree::~BTree()
 	delete _root;
 }
 
-BTree::Path BTree::GetPath(void* key)
+void BTree::GetPath(void* key, BTree::Path& result)
 {
-	Path result;
 	_root->GetPath(key, result);
-	return result;
 }
 
 void BTree::DoValuesMoved(Node* newLeaf)
