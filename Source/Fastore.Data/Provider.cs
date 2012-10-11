@@ -33,6 +33,21 @@ namespace Fastore.Data
 			public int Result;
 		}
 
+		[StructLayout(LayoutKind.Sequential)]
+		public struct PrepareResult
+		{
+			public int Result;
+			public IntPtr Statement;
+			public int ColumnCount;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct NextResult
+		{
+			public int Result;
+			public bool Eof;
+		};
+
 		// Retrieves the message and code of the last error
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreGetLastError", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
 		[return: MarshalAs(UnmanagedType.Bool)]
@@ -56,23 +71,34 @@ namespace Fastore.Data
 			FastoreAddress[] addresses
 		);
 
-		//// Dereferences the given database connection; the connection may remain open if any transactions are still open on it
+		// Dereferences the given database connection; the connection may remain open if any transactions are still open on it
 		//FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreDisconnect", CallingConvention = CallingConvention.Cdecl)]
 		public extern static GeneralResult Disconnect(IntPtr connection);
 
-		//// Prepares a given query or statement statement and returns a cursor
-		//FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *sql);
+		// Prepares a given query or statement statement and returns a cursor
+		//FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastorePrepare", CallingConvention = CallingConvention.Cdecl)]
+		public extern static PrepareResult Prepare(IntPtr connection, [MarshalAs(UnmanagedType.LPStr)]string batch);
+
 		//// Provides values for any parameters included in the prepared statement and resets the cursor
 		//FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
-		//// Executes the statement, or navigates to the first or next row
+
+		// Executes the statement, or navigates to the first or next row
 		//FASTOREAPI NextResult fastoreNext(StatementHandle statement);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreNext", CallingConvention = CallingConvention.Cdecl)]
+		public extern static NextResult Next(IntPtr statement);
+
+		
 		//// Gets the column name for the given column index
 		//FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex);
 		//// Gets the column value of the current row given an index
 		//FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
-		//// Closes the given cursor
+		
+		// Closes the given cursor
 		//FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreClose", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult Close(IntPtr statement);
 
 		//// Short-hand for Prepare followed by Next... then close if eof.
 		//FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *sql);

@@ -104,56 +104,79 @@ ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress ad
 	);
 }
 
-GeneralResult fastoreDisconnect(ConnectionHandle database)
+GeneralResult fastoreDisconnect(ConnectionHandle connection)
 {
 	return WrapCall<GeneralResult>
 	(
 		[&](GeneralResult &result) 
 		{ 
 			// Free the shared pointer, database provider will be freed when all shared pointers are freed
-			delete static_cast<prov::PConnectionObject>(database); 
+			delete static_cast<prov::PConnectionObject>(connection); 
 		}
 	);
 }
 
-PrepareResult fastorePrepare(ConnectionHandle database, const char *batch)
+PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch)
 {
-	PrepareResult result;
-	return result;
+	return WrapCall<PrepareResult>
+	(
+		[&](PrepareResult &result) 
+		{ 
+			auto statement = 
+				new shared_ptr<prov::Statement>
+				(
+					static_cast<prov::PConnectionObject>(connection)->get()->execute(batch)
+				); 
+			result.statement = statement;
+			result.columnCount = statement->get()->columnCount();
+		}
+	);
 }
 
-GeneralResult fastoreBind(StatementHandle cursor, size_t argumentCount, void *arguments, const ArgumentType argumentTypes[])
+GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType argumentTypes[])
 {
 	return GeneralResult();
 }
 
-NextResult fastoreNext(StatementHandle cursor)
+NextResult fastoreNext(StatementHandle statement)
 {
-	NextResult result;
-	return result;
+	return WrapCall<NextResult>
+	(
+		[&](NextResult &result) 
+		{ 
+			result.eof = !static_cast<prov::PStatementObject>(statement)->get()->next(); 
+		}
+	);
 }
 
-ColumnInfoResult fastoreColumnInfo(StatementHandle cursor, int columnIndex)
+ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex)
 {
 	return ColumnInfoResult();
 }
 
-GeneralResult fastoreColumnValue(StatementHandle cursor, int columnIndex, int targetMaxBytes, void *valueTarget)
+GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget)
 {
 	return GeneralResult();
 }
 
-GeneralResult fastoreClose(StatementHandle cursor)
+GeneralResult fastoreClose(StatementHandle statement)
 {
-	return GeneralResult();
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			// Free the shared pointer, statement provider will be freed when all shared pointers are freed
+			delete static_cast<prov::PStatementObject>(statement); 
+		}
+	);
 }
 
 // Short-hand for Prepare followed by Next (and a close if eof)
-inline ExecuteResult fastoreExecute(ConnectionHandle database, const char *sql)
+inline ExecuteResult fastoreExecute(ConnectionHandle connection, const char *batch)
 {
 	ExecuteResult result = { FASTORE_OK };
 
-	PrepareResult prepareResult = fastorePrepare(database, sql);
+	PrepareResult prepareResult = fastorePrepare(connection, batch);
 	if (prepareResult.result != FASTORE_OK)
 	{
 		result.result = prepareResult.result;

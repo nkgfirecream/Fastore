@@ -47,6 +47,6 @@ namespace fastore
 		};
 
 		typedef std::shared_ptr<Statement> StatementObject; 
-		typedef StatementObject* PCursorObject;
+		typedef StatementObject* PStatementObject;
 	}
 }

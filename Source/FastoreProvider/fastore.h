@@ -100,7 +100,7 @@ FASTOREAPI ConnectResult fastoreConnect(size_t addressCount, const struct Fastor
 FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 
 // Prepares a given query or statement statement and returns a cursor
-FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle database, const char *batch);
+FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch);
 // Provides values for any parameters included in the prepared statement and resets the cursor
 FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
 // Executes the statement, or navigates to the first or next row
@@ -113,4 +113,4 @@ FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int colum
 FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 
 // Short-hand for Prepare followed by Next... then close if eof.
-FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *sql);
+FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *batch);
