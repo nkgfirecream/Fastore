@@ -7,10 +7,10 @@
 
 #undef max
 
-#define SAFE_CAST(t,f) safe_cast<t>(__FILE__, __LINE__, (f))
+#define SAFE_CAST(t,f) ::safe_cast<t>(__FILE__, __LINE__, (f))
 
-#define INT_CAST(x) safe_cast<int>(__FILE__, __LINE__, (x))
-#define SHORT_CAST(x) safe_cast<short>(__FILE__, __LINE__, (x))
+#define INT_CAST(x) ::safe_cast<int>(__FILE__, __LINE__, (x))
+#define SHORT_CAST(x) ::safe_cast<short>(__FILE__, __LINE__, (x))
 
 template <typename T, typename F>
 T safe_cast(const char file[], size_t line, F input) {

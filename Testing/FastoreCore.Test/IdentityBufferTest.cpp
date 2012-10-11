@@ -1,9 +1,7 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "Column\IdentityBuffer.h"
-#include "Extensions.h"
 
 using namespace std;
 

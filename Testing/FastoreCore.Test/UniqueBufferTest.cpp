@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include <sstream>
@@ -7,9 +6,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include <hash_set>
 #include <algorithm>
 
-#include "Schema\standardtypes.h"
 #include "Column\UniqueBuffer.h"
-#include "Extensions.h"
 
 using namespace std;
 

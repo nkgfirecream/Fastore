@@ -2,8 +2,6 @@
 #include <vector>
 #include <boost\assign\list_of.hpp>
 #include "TestSetup.h"
-#include "CppUnitTest.h"
-#include "Extensions.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace fastore::client;

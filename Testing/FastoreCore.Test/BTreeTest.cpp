@@ -1,12 +1,10 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "BTree.h"
 #include "Schema\standardtypes.h"
 #include <hash_set>
 #include <algorithm>
-#include "Extensions.h"
 
 using namespace std;
 

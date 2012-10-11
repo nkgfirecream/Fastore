@@ -261,7 +261,7 @@ TreeEntry BTree::iterator::operator*()
 void DeallocateNode(void* items, int count)
 {
 	for (int i = 0; i < count; i++)
-		((Node*)items)[i].~Node();
+		delete ((Node**)items)[i];
 }
 
 template<> void CopyToArray<Node*>(const void* item, void* arrpointer)

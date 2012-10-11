@@ -105,6 +105,9 @@
     <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Column\IdentityBuffer.cpp" />
+    <ClCompile Include="Column\TreeBuffer.cpp" />
+    <ClCompile Include="Column\UniqueBuffer.cpp" />
     <ClCompile Include="Endpoint.cpp" />
     <ClCompile Include=".\BTree.cpp" />
     <ClCompile Include="Log\Syslog.cpp" />

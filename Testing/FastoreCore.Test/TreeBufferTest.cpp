@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include <cassert>
@@ -8,9 +7,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include <hash_set>
 #include <algorithm>
 
-#include "Schema\standardtypes.h"
 #include "Column\TreeBuffer.h"
-#include "Extensions.h"
 
 using namespace std;
 

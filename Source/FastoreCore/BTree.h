@@ -12,8 +12,6 @@
 #include <cassert>
 #include <cstring>
 
-#undef max
-
 using namespace std;
 using namespace standardtypes;
 

@@ -28,9 +28,7 @@ template<> void CopyToArray<BTree*>(const void* item, void* arrpointer)
 void DeallocateBTree(void* items, int count)
 {
 	for (int i = 0; i < count; i++)
-	{
 		delete ((BTree**)items)[i];
-	}
 }
 
 BTreeType::BTreeType()

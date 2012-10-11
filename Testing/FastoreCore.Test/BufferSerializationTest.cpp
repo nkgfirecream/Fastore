@@ -1,16 +1,12 @@
 #include "stdafx.h"
-#include "CppUnitTest.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-#include "Schema\standardtypes.h"
+
 #include "Column\UniqueBuffer.h"
 #include "Serialization.h"
-#include "Extensions.h"
-
 #include <stdio.h>
 
 using namespace std;
-
 
 TEST_CLASS(BufferSerializationTest)
 {
