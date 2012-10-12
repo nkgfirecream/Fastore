@@ -1,8 +1,7 @@
 #include "IdentityBuffer.h"
 
-IdentityBuffer::IdentityBuffer(const ScalarType& type)
+IdentityBuffer::IdentityBuffer(const ScalarType& type): _type(type)
 {
-	_type = type;
 	_rows = std::unique_ptr<BTree>(new BTree(_type));
 	_count = 0;
 }

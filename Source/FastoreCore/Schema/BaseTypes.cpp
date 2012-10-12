@@ -7,7 +7,7 @@ using namespace std;
 
 int LongCompare(const void* left, const void* right)
 {
-	   long long result =  *(long long*)left - *(long long*)right;
+	   const long long result = *reinterpret_cast<const long long*>(left) - *reinterpret_cast<const long long*>(right);
 	   if (result > 0)
 		   return 1;
 	   else if (result == 0)
@@ -39,7 +39,7 @@ LongType::LongType()
 
 int IntCompare(const void* left, const void* right)
 {
-	return *(int*)left - *(int*)right;
+	return *reinterpret_cast<const int*>(left) - *reinterpret_cast<const int*>(right);
 }
 
 std::wstring IntString(const void* item)
@@ -66,17 +66,11 @@ int BoolCompare(const void* left, const void* right)
 {
 	//Arbitrarily put true after false.
 	if (*(bool*)left == *(bool*)right)
-	{
 		return 0;
-	} 
 	else if (*(bool*)left)
-	{
 		return 1;
-	}
 	else
-	{
 		return -1;
-	}
 }
 
 std::wstring BoolString(const void* item)

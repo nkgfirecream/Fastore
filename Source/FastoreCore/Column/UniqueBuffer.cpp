@@ -1,11 +1,8 @@
 #include "UniqueBuffer.h"
 
-UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType)
+UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType): _rowType(rowType), _valueType(valueType)
 {
-	_rowType = rowType;
-	_valueType = valueType;
-	_nodeType = NoOpNodeType();
-	_rows = std::unique_ptr<BTree>(new BTree(_rowType, _nodeType));
+	_rows = std::unique_ptr<BTree>(new BTree(_rowType, standardtypes::StandardNoOpNodeType));
 	_values =  std::unique_ptr<BTree>(new BTree(_valueType, standardtypes::StandardHashSet));
 	_count = 0;
 	_values->setValuesMovedCallback
@@ -147,7 +144,7 @@ void UniqueBuffer::ValuesMoved(void* value, Node* leaf)
 	_rows->GetPath(value, result);
 	if (result.Match)
 	{
-		_nodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
+		standardtypes::StandardNodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
 	}
 }
 

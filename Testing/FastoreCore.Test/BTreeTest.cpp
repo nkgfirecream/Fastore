@@ -179,7 +179,7 @@ public:
 			//on the btree. Currently DefaultListSize is set at 128.
 			int numrows = countarray[i];
 
-			for (int i = 0; i <= numrows; i++)
+			for (int i = 0; i < numrows; i++)
 			{
 				BTree::Path path;
 				tree.GetPath(&i, path);
@@ -188,14 +188,14 @@ public:
 			}
 
 			auto begin = tree.begin();
-			for (int i = 0; i <= numrows; i++)
+			for (int i = 0; i < numrows; i++)
 			{
 				Assert::AreEqual<int>((*(int*)(*begin).key), i);
 				Assert::AreEqual<int>((*(int*)(*begin).value), i);
 				begin++;
 			}
 
-			for (int i = 0; i <= numrows; i++)
+			for (int i = 0; i < numrows; i++)
 			{
 				BTree::Path path;
 				tree.GetPath(&i, path);
@@ -216,7 +216,7 @@ public:
 
 			int numrows = countarray[i];
 
-			for (int i = numrows; i >= 0; i--)
+			for (int i = numrows - 1; i >= 0; i--)
 			{
 				BTree::Path path;
 				tree.GetPath(&i, path);
@@ -225,7 +225,7 @@ public:
 			}
 
 			auto begin = tree.begin();
-			for (int i = 0; i <= numrows; i++)
+			for (int i = 0; i < numrows; i++)
 			{
 				Assert::AreEqual<int>((*(int*)(*begin).key), i);
 				Assert::AreEqual<int>((*(int*)(*begin).value), i);
@@ -287,7 +287,7 @@ public:
 		BTree tree(standardtypes::Int, standardtypes::Int);
 
 		//Put stuff in tree
-		int numrows = 4096;
+		int numrows = 10000;
 		for (int i = 0; i < numrows; i++)
 		{
 			BTree::Path path;

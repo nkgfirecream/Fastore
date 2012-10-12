@@ -10,20 +10,18 @@ using namespace std;
 	Assumption: nodes will never be empty, except for a leaf when root.
 */
 
-BTree::BTree(ScalarType keyType, ScalarType valueType) : 
+BTree::BTree(const ScalarType& keyType, const ScalarType& valueType) : 
 	_keyType(keyType), _valueType(valueType), _count(0)
 {
 	_keyOnly = false;
-	_nodeType = NodeType();
-	_root = new Node(this);
+	_root = new Node(*this);
 }
 
-BTree::BTree(ScalarType keyType) :
-	_keyType(keyType), _count(0)
+BTree::BTree(const ScalarType& keyType) :
+	_keyType(keyType), _valueType(standardtypes::StandardNodeType), _count(0)
 {
 	_keyOnly = true;
-	_nodeType = NodeType();
-	_root = new Node(this);
+	_root = new Node(*this);
 }
 
 BTree::~BTree()
@@ -100,40 +98,47 @@ void BTree::Insert(Path& path, void* key, void* value)
 
 	if (result != NULL)
 	{
-		_root = new Node(this, true, 1, _root, result->right, result->key);
+		_root = new Node(*this, true, 1, _root, result->right, result->key);
 		delete result;
 	}
 
 	_count++;
 }
 
-BTree::Path BTree::SeekToFirst()
+BTree::Path BTree::SeekToBegin()
 {
 	Path result;
 	_root->SeekToFirst(result);
 	return result;
 }
 
-BTree::Path BTree::SeekToLast()
+BTree::Path BTree::SeekToEnd()
 {
 	Path result;
 	_root->SeekToLast(result);
+
+	if (result.LeafIndex > 0)
+		result.LeafIndex++;
+
 	return result;
 }
 
 // BTree iterator
-BTree::iterator::iterator(const BTree::Path& path, bool eofOnEmpty = false)
+BTree::iterator::iterator(const BTree::Path& path)
 	: _path(path), _eof(false)
 {
 	//Validate path: Iterators can only ever point at the end of the BTree (one index past the end of the last leaf)
 	//or at an item in the tree. All other paths are invalid. (they may be valid for insertion, such as adding an item
 	//to the end of the Leaf, but insertion and iteration are different concepts).
 	//Don't validate on empty tree, because we'll throw an exception.
-	if ((_path.LeafIndex >= _path.Leaf->_count) && !(_path.Branches.size() == 0 && _path.Leaf->_count == 0))
-		MoveNext();
+	if (!path.Match)
+	{
+		if ((_path.LeafIndex >= _path.Leaf->_count) && (_path.Branches.size() != 0 && _path.Branches[_path.Branches.size()-1].Index < _path.Branches[_path.Branches.size()-1].pNode->_count))
+			MoveNext();
 
-	if (eofOnEmpty && (_path.Branches.size() == 0 && _path.Leaf->_count == 0))
-		_eof = true;
+		if (_path.LeafIndex >= _path.Leaf->_count)
+			_eof = true;
+	}
 }
 
 void BTree::iterator::MoveNext()
@@ -166,13 +171,12 @@ void BTree::iterator::MoveNext()
 		else
 		{
 			for(size_t i = 0; i < nummaxed; i++)
-			{
 				_path.Branches.pop_back();
-			}
 
 			BTree::PathNode& pnode = _path.Branches.back();
 			++pnode.Index;
-			(*(Node**)((*(Node*)pnode.pNode)[pnode.Index].value))->SeekToFirst(_path);
+			int offset = pnode.Index * sizeof(Node*);
+			(*(Node**)(pnode.pNode->_values + offset))->SeekToFirst(_path);
 		}
 	}
 	else
@@ -203,13 +207,12 @@ void BTree::iterator::MovePrior()
 		else
 		{
 			for(size_t i = 0; i < nummin; i++)
-			{
 				_path.Branches.pop_back();
-			}
 
 			BTree::PathNode& pnode = _path.Branches.back();
 			--pnode.Index;
-			(*(Node**)((*(Node*)pnode.pNode)[pnode.Index].value))->SeekToLast(_path);
+			int offset = pnode.Index * sizeof(Node*);
+			(*(Node**)(pnode.pNode->_values + offset))->SeekToLast(_path);
 			_eof = false;
 		}
 	}
@@ -255,34 +258,3 @@ TreeEntry BTree::iterator::operator*()
 
 	return (*(_path.Leaf))[_path.LeafIndex];
 }
-
-void DeallocateNode(void* items, int count)
-{
-	for (int i = 0; i < count; i++)
-		delete ((Node**)items)[i];
-}
-
-template<> void CopyToArray<Node*>(const void* item, void* arrpointer)
-{
-	memcpy(arrpointer, item, sizeof(Node*));
-}
-
-NodeType::NodeType()
-{
-	CopyIn = CopyToArray<Node*>;
-	Name = "NodeType";
-	Size = sizeof(Node*);
-	Deallocate = DeallocateNode;
-}
-
-NoOpNodeType::NoOpNodeType()
-{
-	CopyIn = CopyToArray<Node*>;
-	Name = "NoOpNodeType";
-	Size = sizeof(Node*);
-	Deallocate = NoOpDeallocate;
-}
-
-
-
-

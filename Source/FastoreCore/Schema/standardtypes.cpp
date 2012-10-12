@@ -12,3 +12,6 @@ DoubleType standardtypes::Double;
 // Internal Types
 HashSetType standardtypes::StandardHashSet;
 BTreeType standardtypes::StandardBTreeType;
+
+NodeType standardtypes::StandardNodeType;
+NoOpNodeType standardtypes::StandardNoOpNodeType;

@@ -115,6 +115,7 @@
     <ClCompile Include=".\Scheduler.cpp" />
     <ClCompile Include="Schema\BaseTypes.cpp" />
     <ClCompile Include="Schema\InternalTypes.cpp" />
+    <ClCompile Include="Schema\NodeTypes.cpp" />
     <ClCompile Include="Schema\scalar.cpp" />
     <ClCompile Include="Schema\standardtypes.cpp" />
     <ClCompile Include="Schema\StringTypes.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="Schema\BaseTypes.h" />
     <ClInclude Include="schema\column.h" />
     <ClInclude Include="Schema\InternalTypes.h" />
+    <ClInclude Include="Schema\NodeTypes.h" />
     <ClInclude Include="schema\scalar.h" />
     <ClInclude Include="schema\standardtypes.h" />
     <ClInclude Include="Schema\StringTypes.h" />

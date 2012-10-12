@@ -17,7 +17,7 @@ class IdentityBuffer : public IColumnBuffer
 		bool Include(void* rowId);
 		bool Exclude(void* rowId);
 
-		ScalarType _type;
+		const ScalarType& _type;
 		std::unique_ptr<BTree> _rows;
 		long long _count;
 };

@@ -3,6 +3,7 @@
 #include "BaseTypes.h"
 #include "StringTypes.h"
 #include "InternalTypes.h"
+#include "NodeTypes.h"
 
 namespace standardtypes
 {
@@ -16,4 +17,7 @@ namespace standardtypes
 	// Internal Types
 	extern HashSetType StandardHashSet;
 	extern BTreeType StandardBTreeType;
+
+	extern NodeType StandardNodeType;
+	extern NoOpNodeType StandardNoOpNodeType;
 }

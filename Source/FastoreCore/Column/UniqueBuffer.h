@@ -21,9 +21,8 @@ class UniqueBuffer : public IColumnBuffer
 		void* GetValue(void* rowId);
 
 		void ValuesMoved(void* value, Node* leaf);		
-		ScalarType _rowType;
-		ScalarType _valueType;
-		ScalarType _nodeType;
+		const ScalarType& _rowType;
+		const ScalarType& _valueType;
 		std::unique_ptr<BTree> _rows;
 		std::unique_ptr<BTree> _values;
 		long long _count;

@@ -1,11 +1,8 @@
 #include "TreeBuffer.h"
 
-TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &valueType)
+TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &valueType) : _rowType(rowType), _valueType(valueType)
 {
-	_rowType = rowType;
-	_valueType = valueType;
-	_nodeType = NoOpNodeType();
-	_rows = std::unique_ptr<BTree>(new BTree(_rowType, _nodeType));
+	_rows = std::unique_ptr<BTree>(new BTree(_rowType,standardtypes::StandardNoOpNodeType));
 	_values = std::unique_ptr<BTree>(new BTree(_valueType, standardtypes::StandardBTreeType));
 	_unique = 0;
 	_total = 0;
@@ -182,7 +179,7 @@ void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 		
 		if (result.Match)
 		{
-			_nodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
+			standardtypes::StandardNodeType.CopyIn(&leaf, (*result.Leaf)[result.LeafIndex].value);
 		}
 		else
 		{
