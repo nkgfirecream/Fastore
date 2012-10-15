@@ -1,9 +1,7 @@
 #pragma once
 #include "../FastoreCommunication/Worker.h"
 #include "../FastoreCommunication/Comm_types.h"
-#if USE_WAL
-# include "Wal/Wal.h"
-#endif
+#include "Wal/Wal.h"
 #include <thrift/TProcessor.h>
 #include <unordered_map>
 #include "Repository.h"
