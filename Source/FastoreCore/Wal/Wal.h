@@ -15,6 +15,8 @@
 
 #include <string>
 
+#include "../Log/Syslog.h"
+
 ///namespace fastore { namespace communication {
 using fastore::communication::ColumnID;
 using fastore::communication::ColumnWrites;
@@ -23,9 +25,15 @@ using fastore::communication::Revision;
 using fastore::communication::TransactionID;
 using fastore::communication::Writes;
 
+using fastore::Log;
+using fastore::log_endl;
+using fastore::log_info;
+using fastore::log_debug;
+using fastore::log_err;
+
 #if DEBUG_WAL_FUNC
 # define DEBUG_FUNC() {													\
-		std::cerr << __FUNCTION__  << ":" << __LINE__  << std::endl; }
+		Log << log_debug << __FUNCTION__  << ":" << __LINE__  << log_endl; }
 #else
 # define DEBUG_FUNC() {}
 #endif
@@ -64,6 +72,8 @@ public:
 		 const std::string& name, 
 		 const NetworkAddress& addr );
   
+	Status apply(Revision revision, const ColumnWrites& writes);
+
 	Status Write( const TransactionID& transactionID, const Writes& writes );
 
 	Status Flush( const TransactionID& transactionID );

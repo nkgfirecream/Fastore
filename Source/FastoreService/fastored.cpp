@@ -8,6 +8,7 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -47,6 +48,11 @@ static void term_handler(int, siginfo *, void *)
 	if( endpoint ) 
 		endpoint->Stop();
 	return;
+}
+
+static void sigusr1_handler(int)
+{
+	exit(EXIT_SUCCESS);
 }
 
 extern "C" {
@@ -92,30 +98,65 @@ void RunService(ServiceEventCallback started,
 	// attach to syslogd
 	openlog( name, LOG_CONS|LOG_PID, LOG_DAEMON);
 
+	pid_t pid = getpid();
+
+	/*
+	 * Prepare for the "all clear" (SIGUSR1) from the child, then fork. 
+	 */
+	struct sigaction act;
+	sigset_t set;
+
+	if( -1 == sigemptyset(&set) ) {
+		syslog( LOG_ERR, "%d: %m", __LINE__ );
+		exit(EXIT_FAILURE);
+	}
+	act.sa_handler = sigusr1_handler;
+	act.sa_mask = set;
+
+	if( -1 == sigaction(SIGUSR1, &act, NULL) ) {
+		syslog( LOG_ERR, "%d: %m", __LINE__ );
+		exit(EXIT_FAILURE);
+	}		
+
+	pid = fork();
+
 	/*
 	 * Kill parent process, become child of init.
 	 * Become session leader. 
 	 * Clear umask. 
 	 */
-	pid_t pid = getpid();
-	if( fdaemonize ) {
-		pid = fork();
-
-		if( pid != 0 ) {
-			if( pid == -1 ) {
-				err(errno, "wald");
-			}
-			exit(EXIT_SUCCESS);
+	if( pid != 0 ) { // parent process
+		if( pid == -1 ) {
+			err(errno, NULL);
 		}
-		if( setsid() == -1 ) {
+
+		int status;
+		if( (pid = wait(&status)) == -1 ) {
+			err(errno, NULL);
+		}
+		warnx("process %d stopped, see system log", pid);
+		exit(EXIT_FAILURE);
+	}
+
+	if( setsid() == -1 ) {
+		syslog( LOG_ERR, "%d: %m", __LINE__);
+		exit(EXIT_FAILURE);
+	}
+
+	umask(0);
+
+	/*
+	 * Close existing descriptor and reopen them on the null device.
+	 */  
+	for( int fd=0; close(fd) != -1; fd++ ) {
+		static const char dev_null[] = "/dev/null";
+		if( -1 == open(dev_null, 0, 0) ) {
 			syslog( LOG_ERR, "%d: %m", __LINE__);
 			exit(EXIT_FAILURE);
 		}
-
-		umask(0);
-
-		syslog( LOG_INFO, "%d: server started", __LINE__);
 	}
+
+	syslog( LOG_INFO, "%d: server started", __LINE__);
 
 	/*
 	 * Create pid file if possible. 
@@ -129,8 +170,7 @@ void RunService(ServiceEventCallback started,
 			exit(EXIT_FAILURE);
 	} 
 
-	struct sigaction act;
-	sigset_t set;
+	// Handle ^C gracefully 
 	if( -1 == sigemptyset(&set) ) {
 		syslog( LOG_ERR, "%d: %m", __LINE__ );
 		exit(EXIT_FAILURE);
@@ -219,9 +259,9 @@ BOOL CtrlCHandler(DWORD fdwCtrlType)
 
 void ConsoleStarted()
 {
+#if defined(_WIN32)
 	// Report running status when initialization is complete.
 	cout << "Service started.\nPress Ctrl-C to stop...\n";
-#if defined(_WIN32)
 	// Ctrl-C handling
 	if (!SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlCHandler, TRUE) ) 
 		cout << "ERROR: Could not set control handler.\n";
@@ -256,28 +296,11 @@ main(int argc, char* argv[])
 	if( (optarg = getenv("FASTORED_DATA")) != NULL ) 
 		config.startupConfig.dataPath = optarg;
 
-    while ((ch = getopt(argc, argv, "d:gp:")) != -1) {
+    while ((ch = getopt(argc, argv, "d:p:")) != -1) {
 		switch (ch) {
-		case 'g':
-			fdaemonize = false;
-			break;
-		case 'd': {
-			struct stat sb;
-			if( -1 == stat(optarg, &sb) ) {
-				ostringstream oops;
-				oops << optarg << " is not a valid path";
-				perror(oops.str().c_str());
-				return EXIT_FAILURE;
-			}
+		case 'd':
 			config.startupConfig.dataPath = optarg;
-			if( -1 == chdir(dirname(optarg)) ) {
-				syslog( LOG_ERR, 
-						"could not change to '%s' (based on  %s), %d: %m", 
-						dirname(optarg), optarg, __LINE__ );
-				return EXIT_FAILURE;
-			}
-    
-	    } break;
+			break;
 		case 'p': {
 			istringstream is(optarg);
 			is >> config.endpointConfig.port;
@@ -292,23 +315,30 @@ main(int argc, char* argv[])
 			break;
 		}
     }
-
+	size_t pathlen = config.startupConfig.dataPath.size();
+	if( pathlen > 0 ) {
+		char *datapath = new char[pathlen+1];
+		strcpy( datapath, config.startupConfig.dataPath.c_str() );
+		struct stat sb;
+		if( -1 == stat(datapath, &sb) ) {
+			ostringstream oops;
+			oops << datapath << " is not a valid path";
+			perror(oops.str().c_str());
+			return EXIT_FAILURE;
+		}
+		if( -1 == chdir(dirname(datapath)) ) {
+			syslog( LOG_ERR, 
+					"could not change to '%s' (based on  %s), %d: %m", 
+					dirname(datapath), datapath, __LINE__ );
+			return EXIT_FAILURE;
+		}
+		delete[] datapath;
+	}
     cout << "Configuration: port = " << config.endpointConfig.port 
 		 << "	data path = '"       << config.startupConfig.dataPath 
 		 << "'\n";
 
-    cout << "Service starting....\n";
-
-	/*
-	 * Close existing descriptor and reopen them on the null device.
-	 */  
-	for( int fd=0; fdaemonize && close(fd) != -1; fd++ ) {
-		static const char dev_null[] = "/dev/null";
-		if( -1 == open(dev_null, 0, 0) ) {
-			syslog( LOG_ERR, "%d: %m", __LINE__);
-			return EXIT_FAILURE;
-		}
-	}
+    cout << "Service starting...\n";
 
     RunService(&ConsoleStarted, 
 			   &ConsoleStopping, 

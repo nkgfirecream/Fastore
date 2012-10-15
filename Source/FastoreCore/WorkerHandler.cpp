@@ -20,10 +20,12 @@ const int MaxSystemColumnID = 9999;
 WorkerHandler::
 WorkerHandler(const PodID podId, 
 			  const string path, 
-			  const boost::shared_ptr<Scheduler> scheduler) 
+			  const boost::shared_ptr<Scheduler> scheduler, 
+			        Wal& wal) 
   : _podId(podId)
   , _path(path)
   , _scheduler(scheduler)
+  , _pwal(&wal)
 {
 	//* Attempt to open data file
 	//* Check data directory for improper shut down - see Recovery
@@ -429,7 +431,9 @@ Revision WorkerHandler::prepare(const TransactionID& transactionID, const Writes
 	return 0;
 }
 
-void WorkerHandler::apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) 
+void WorkerHandler::apply(      TransactionID& _return, 
+						  const TransactionID& transactionID, 
+						  const Writes& writes) 
 {
 	bool syncSchema = false;
 
@@ -439,7 +443,7 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 	{
 		fastore::communication::ColumnID id = start->first;
 
-		//If pod or column table changes we need to check and see if we should update.
+		// If pod or column table changes, check if we should update.
 		if (id == 400 || id == 401)
 			syncSchema = true;
 
@@ -453,10 +457,12 @@ void WorkerHandler::apply(TransactionID& _return, const TransactionID& transacti
 			SyncToSchema();
 		}
 
-		boost::shared_ptr<Repository> repo = _repositories[id];
-		ColumnWrites writes = start->second;
+		Repository& repo = *_repositories[id];
+		Wal& wal(*_pwal);
+		const ColumnWrites& writes = start->second;
 
-		repo->apply(transactionID.revision, writes);
+		 wal.apply(transactionID.revision, writes);
+		repo.apply(transactionID.revision, writes);
 		
 		++start;
 	}

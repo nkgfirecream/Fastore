@@ -10,21 +10,19 @@ class Worker
 public:
 	enum status_t { idle, running, stopped } ; 
 private:
+	Wal _wal;
 	boost::shared_ptr<WorkerHandler>  phandler;
 	WorkerState state;
 	boost::shared_ptr<WorkerProcessor> pprocessor;
 	const EndpointConfig config;
 	Endpoint endpoint;
 	status_t _status;
-#if USE_WAL
-	Wal _wal;
-#endif
 	boost::shared_ptr<boost::thread>  pthread;
 
 public:
 	Worker( const PodID podId, 
 			const string& path, 
-			int port,
+			uint64_t port,
 			const boost::shared_ptr<Scheduler> pscheduler );
 
 	bool run();

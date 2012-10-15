@@ -1,7 +1,7 @@
 // $Id$
 #include "Worker.h"
 
-static string id2str( PodID id ) 
+static string stringof( PodID id ) 
 {	// just a little temporary hack to help instantiate the Wal object
 	ostringstream out;
 	out << id;
@@ -11,17 +11,14 @@ static string id2str( PodID id )
 
 Worker::Worker( const PodID podId, 
 				const string& path, 
-				int port,
+				uint64_t port,
 				const boost::shared_ptr<Scheduler> pscheduler ) 
-	: phandler( new WorkerHandler(podId, path, pscheduler) )
+	: _wal(path, stringof(podId), NetworkAddress() ) 
+	,  phandler( new WorkerHandler(podId, path, pscheduler, _wal) )
 	, pprocessor( new WorkerProcessor(phandler) )
-	, config(port)
+	, config(INT_CAST(port))
 	, endpoint( config, pprocessor )
 	, _status(idle)
-#if USE_WAL
-	, _wal(path, id2str(podId), NetworkAddress() ) 
-#endif
-//	, thread( &Endpoint::Run )
 {
 	WorkerProcessor& processor(*pprocessor);
 

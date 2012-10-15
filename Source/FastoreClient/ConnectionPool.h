@@ -8,13 +8,13 @@
 #include <functional>
 #include <boost/shared_ptr.hpp>
 #include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCore/safe_cast.h"
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransport.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <boost/thread/mutex.hpp>
-
 
 using namespace fastore::communication;
 using namespace apache::thrift::protocol;
@@ -172,7 +172,9 @@ namespace fastore { namespace client
 	template<typename TKey, typename TClient>
 	TClient ConnectionPool<TKey, TClient>::Connect(const NetworkAddress &address)
 	{
-		auto transport = boost::shared_ptr<TSocket>(new TSocket(address.name, address.port));
+		auto transport = boost::shared_ptr<TSocket>(
+								new TSocket(address.name, 
+											SAFE_CAST(int, address.port)));
 		//TODO: Make this all configurable.
 		transport->setConnTimeout(2000);
 		transport->setRecvTimeout(2000);

@@ -40,7 +40,8 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 	auto configFileName = path(startup.path) / path(ConfigFileName);
 	if (exists(configFileName))
 	{
-		cout << "Existing instance:" << startup.path;
+		Log << log_info << __func__ 
+			<< ": Existing instance: " << startup.path << log_endl;
 
 		// Open and hold the configuration file
 		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), true, true));
@@ -53,7 +54,8 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 	else
 	{
 		configChanged = true;
-		cout << "New instance:" << startup.path;
+		Log << log_info << __func__ 
+			<< ": New instance: " << startup.path << log_endl;
 
 		// Create new configuration
 		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), true, true));
@@ -142,71 +144,16 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 {
 	// Ensure that there enough configured paths for each worker
 	EnsureWorkerPaths((int)states.size());
-	const static char *func = __func__;
-	const char *s = getenv("FASTORE_WORKER");
-	if( s && *s == 'T' ) { 
-		// Constructor starts each Worker running.  
-		// If Worker::endpoint::run throws an exception, 
-		// it's caught and logged by Worker::run().  
-		std::transform( states.begin(), states.end(), 
-						_config->workerPaths.begin(), 
-						std::back_inserter(_workers), 
-						Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
-		return;	// returns because replaces old for loop that follows it. 
-	}
+	///	const static char *func = __func__;
 
-
-	for (size_t i = 0; i < states.size(); ++i)
-	{
-		auto podID = states[i].podID;
-
-		// Create a handler for the worker
-		auto handler = boost::shared_ptr<WorkerHandler>(new WorkerHandler(podID, _config->workerPaths[i], _scheduler));
-
-		auto processor = boost::shared_ptr<TProcessor>(new WorkerProcessor(handler));
-
-		processor->setEventHandler(handler);
-		
-		// Create an endpoint for the worker
-		EndpointConfig endPointConfig;
-		endPointConfig.port = states[i].port;
-		auto endpoint = boost::shared_ptr<Endpoint>(new Endpoint(endPointConfig, processor));
-		
-		// Track the endpoint by worker number
-		_endpoints.push_front(endpoint);
-
-		// Start the endpoint's thread
-		_workerThreads.push_back(
-			boost::thread
-			(
-				[endpoint, i, podID]() -> void 
-				{ 
-					try
-					{
-						Log << log_info << func 
-							<< ": start pod " << podID << log_endl;
-						endpoint->Run();
-						Log << log_info << func 
-							<< ": Endpoint::run returned  " << podID << log_endl;
-					}
-					catch (const exception& e)
-					{
-						Log << log_err  << func 
-							<< ": exception running the endpoint for worker " << i 
-							<< ", pod " << podID << e << log_endl;
-					}
-					catch (...)
-					{
-						Log << log_err << func 
-							<< ": unhandled exception running the endpoint for worker " << i 
-							<< " for pod " << podID << "." << log_endl;
-					} 
-				}
-			)
-		);
-
-		// TODO: experiment with explicitly setting the worker thread's affinity 
-	}
+	// Constructor starts each Worker running.  
+	// If Worker::endpoint::run throws an exception, 
+	// it's caught and logged by Worker::run().  
+	std::transform( states.begin(), states.end(), 
+					_config->workerPaths.begin(), 
+					std::back_inserter(_workers), 
+					Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
+	return;	// returns because replaces old for loop that follows it. 
 }
 
 void ServiceHandler::ping()
@@ -371,7 +318,8 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 			Log << log_info << __func__ 
 				<< ": creating worker on pod" << iter->podID 
 				<< " at '" << name << ":" << iter->port << "'" << log_endl;
-			boost::shared_ptr<TSocket> socket(new TSocket(name, iter->port));		
+			boost::shared_ptr<TSocket> socket(new TSocket(name, 
+														  INT_CAST(iter->port)));
 			socket->setConnTimeout(2000);
 			socket->setRecvTimeout(2000);
 			socket->setSendTimeout(2000);
@@ -449,7 +397,7 @@ void ServiceHandler::shutdown()
 		{
 			try
 			{
-				boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, iter->port));
+				boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, INT_CAST(iter->port)));
 				boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 				boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 

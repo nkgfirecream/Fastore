@@ -37,6 +37,7 @@
 
 #include <errno.h>
 #include <assert.h>
+#include <signal.h>
 
 #ifdef HAVE_SCHED_H
 #include <sched.h>
@@ -814,6 +815,10 @@ void TFastoreServer::run()
 			++iter;
 		}
 
+#ifndef _WIN32
+		// Signal the parent process we've successfully set up. 
+		kill(getppid(), SIGUSR1);
+#endif
 		int numready = poll(_fds, fdindex, pollTimeout_);
 		if (numready == -1)
 		{

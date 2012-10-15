@@ -1,6 +1,6 @@
 #include "NodeTypes.h"
-
-class Node;
+#include "../BTree.h"
+#include <cstring>
 
 void DeallocateNode(void* items, int count)
 {

@@ -63,9 +63,8 @@ void initializeFastoreModule(sqlite3* db, int argc, void* argv)
 		const char * input = reinterpret_cast<const char *>(argv);
 		istringstream reader(input);
 		std::getline(reader, address.Name, ';');
-		address.Port = -1;
 		reader >> address.Port;
-		if( address.Port == -1 ) {
+		if( reader.bad() || reader.fail() ) {
 			ostringstream msg;
 			msg << "could not parse port from: " << input;
 			errorMessage = msg.str(); 

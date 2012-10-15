@@ -23,6 +23,7 @@ private:
 
 	//Not a shared pointer because we don't own the connection.
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;
+	Wal *_pwal;
 
 	void CheckState();
 	void Bootstrap();
@@ -34,11 +35,13 @@ private:
 	ColumnDef GetDefFromSchema(ColumnID id);
 
 	ScalarType GetTypeFromName(std::string typeName);
+
 	
 public:
 	WorkerHandler(const PodID podId, 
 				  const string path, 
-				  const boost::shared_ptr<Scheduler>);
+				  const boost::shared_ptr<Scheduler>, 
+				        Wal& wal);
 	~WorkerHandler();
 
 	Revision prepare(const fastore::communication::TransactionID& transID, 

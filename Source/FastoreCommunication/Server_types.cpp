@@ -64,14 +64,14 @@ uint32_t ServiceStartup::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->workerPaths.clear();
             uint32_t _size0;
             ::apache::thrift::protocol::TType _etype3;
-            iprot->readListBegin(_etype3, _size0);
+            xfer += iprot->readListBegin(_etype3, _size0);
             this->workerPaths.resize(_size0);
             uint32_t _i4;
             for (_i4 = 0; _i4 < _size0; ++_i4)
             {
               xfer += iprot->readString(this->workerPaths[_i4]);
             }
-            iprot->readListEnd();
+            xfer += iprot->readListEnd();
           }
           this->__isset.workerPaths = true;
         } else {
@@ -176,14 +176,14 @@ uint32_t ServiceConfig::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->workerPaths.clear();
             uint32_t _size6;
             ::apache::thrift::protocol::TType _etype9;
-            iprot->readListBegin(_etype9, _size6);
+            xfer += iprot->readListBegin(_etype9, _size6);
             this->workerPaths.resize(_size6);
             uint32_t _i10;
             for (_i10 = 0; _i10 < _size6; ++_i10)
             {
               xfer += iprot->readString(this->workerPaths[_i10]);
             }
-            iprot->readListEnd();
+            xfer += iprot->readListEnd();
           }
           isset_workerPaths = true;
         } else {

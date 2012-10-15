@@ -221,7 +221,7 @@ class Node
 
 		  match = n >= 0;
 
-		  return match ? n : ~n;
+		  return match ? n : short(~n);
 		}
 
 		void* GetKey(function<bool(void*)> predicate)

@@ -175,7 +175,7 @@ void BTree::iterator::MoveNext()
 
 			BTree::PathNode& pnode = _path.Branches.back();
 			++pnode.Index;
-			int offset = pnode.Index * sizeof(Node*);
+			size_t offset = pnode.Index * sizeof(Node*);
 			(*(Node**)(pnode.pNode->_values + offset))->SeekToFirst(_path);
 		}
 	}
@@ -211,7 +211,7 @@ void BTree::iterator::MovePrior()
 
 			BTree::PathNode& pnode = _path.Branches.back();
 			--pnode.Index;
-			int offset = pnode.Index * sizeof(Node*);
+			size_t offset = pnode.Index * sizeof(Node*);
 			(*(Node**)(pnode.pNode->_values + offset))->SeekToLast(_path);
 			_eof = false;
 		}
