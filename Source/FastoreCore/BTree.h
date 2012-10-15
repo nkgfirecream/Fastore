@@ -71,9 +71,7 @@ class BTree
 		int Count();
 
 		class iterator : public std::iterator<bidirectional_iterator_tag, void*>
-		{
-				BTree::Path _path;
-				iterator(const BTree::Path& path);
+		{			
 			public:
 				iterator(const iterator& iter) : _path(iter._path), _eof(iter._eof) {}				
 			
@@ -86,6 +84,8 @@ class BTree
 				TreeEntry operator*();
 
 			private:
+				BTree::Path _path;
+				iterator(const BTree::Path& path);
 				void MoveNext();
 				void MovePrior();
 				bool _eof;
