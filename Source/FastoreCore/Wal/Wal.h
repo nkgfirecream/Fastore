@@ -10,6 +10,8 @@
 #include <time.h>
 #if HAVE_UNISTD_H
 # include <unistd.h>
+#else
+# include <io.h>
 #endif
 
 #if HAVE_SYS_MMAN_H
