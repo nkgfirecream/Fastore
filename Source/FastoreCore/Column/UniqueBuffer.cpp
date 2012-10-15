@@ -170,8 +170,8 @@ RangeResult UniqueBuffer::GetRows(const RangeRequest& range)
 	}
 
 	//cache markers since we will use it several times
+	BTree::iterator firstMarker = range.ascending ? _values->begin() : _values->end();
 	BTree::iterator lastMarker = range.ascending ? _values->end() : _values->begin();
-	BTree::iterator firstMarker = !range.ascending ? _values->end() : _values->begin();
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;

@@ -195,7 +195,7 @@ RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	void* firstp = range.__isset.first ? _valueType.GetPointer(range.first.value) : NULL;
 	void* lastp = range.__isset.last ? _valueType.GetPointer(range.last.value) : NULL;
 	void* startId = range.__isset.rowID ? _rowType.GetPointer(range.rowID) : NULL;
-
+	
 	RangeResult result;	
 	ValueRowsList vrl;
 
@@ -212,8 +212,9 @@ RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 	}
 
 	//cache markers since we will use it several times
-	BTree::iterator lastMarker = range.ascending ? _values->end() : _values->begin();
 	BTree::iterator firstMarker = range.ascending ? _values->begin() : _values->end();
+	BTree::iterator lastMarker = range.ascending ? _values->end() : _values->begin();
+	
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
@@ -245,7 +246,6 @@ RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 			++begin;
 			//reset BOF Marker since we are excluding
 			result.__set_bof(false);
-
 		}
 
 		if (eInclusive && endMatch)
@@ -263,7 +263,6 @@ RangeResult TreeBuffer::GetRows(const RangeRequest& range)
 			++begin;
 			//reset BOF Marker since we are excluding
 			result.__set_bof(false);
-
 		}
 
 		if (!eInclusive && endMatch)

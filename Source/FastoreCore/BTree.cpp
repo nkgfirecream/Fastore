@@ -117,8 +117,7 @@ BTree::Path BTree::SeekToEnd()
 	Path result;
 	_root->SeekToLast(result);
 
-	if (result.LeafIndex > 0)
-		result.LeafIndex++;
+	result.LeafIndex = result.Leaf->_count > 0 ? result.Leaf->_count : 0;
 
 	return result;
 }

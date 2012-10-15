@@ -38,15 +38,44 @@ public:
 		//Empty tree should return end pointer
 		Assert::IsTrue(begin == end);
 
-		T i = 2;
-		auto find = etree.find(&i);
+		T z = 2;
+		auto find = etree.find(&z);
 		Assert::IsTrue(find == end);
 
 		bool match;
-		find = etree.findNearest(&i, match);
+		find = etree.findNearest(&z, match);
 		Assert::IsTrue(find == end);
 		Assert::IsFalse(match);
 
+		//Just one item in the tree..
+		BTree::Path pathone;
+		etree.GetPath(&z, pathone);
+		etree.Insert(pathone, &z, &z);
+
+		begin = etree.begin();
+		end = etree.end();
+		Assert::IsFalse(begin == end);
+
+		find = etree.find(&z);
+		Assert::IsTrue(find == begin);
+		Assert::AreEqual<T>((*(T*)(*find).key), z);
+		Assert::AreEqual<T>((*(T*)(*find).value), z);
+		
+		find = etree.findNearest(&z, match);
+		Assert::IsTrue(match);
+		Assert::IsTrue(find == begin);
+		Assert::AreEqual<T>((*(T*)(*find).key), z);
+		Assert::AreEqual<T>((*(T*)(*find).value), z);
+
+		z++;
+		find = etree.find(&z);
+		Assert::IsTrue(find == end);
+		
+		find = etree.findNearest(&z, match);
+		Assert::IsFalse(match);
+		Assert::IsTrue(find == end);
+
+		//Multiple values
 		int countarray[] = {50 , 5000, 100000 };
 		for (T i = 0; i < 3; i++)
 		{

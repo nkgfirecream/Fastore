@@ -106,8 +106,8 @@ RangeResult IdentityBuffer::GetRows(const RangeRequest& range)
 	}
 
 	//cache markers since we will use it several times
-	BTree::iterator lastMarker = range.ascending ? _rows->end() : _rows->begin();
 	BTree::iterator firstMarker = range.ascending ? _rows->begin() : _rows->end();
+	BTree::iterator lastMarker = range.ascending ? _rows->end() : _rows->begin();
 
 	bool bInclusive = range.__isset.first ? range.first.inclusive : true;
 	bool eInclusive = range.__isset.last ? range.last.inclusive : true;
