@@ -11,16 +11,15 @@ using namespace std;
 */
 
 BTree::BTree(const ScalarType& keyType, const ScalarType& valueType) : 
-	_keyType(keyType), _valueType(valueType), _count(0)
-{
-	_keyOnly = false;
+	_keyType(keyType), _valueType(valueType), _listCapacity(1), _count(0), _keyOnly(false)
+{ 
 	_root = new Node(*this);
 }
 
+
 BTree::BTree(const ScalarType& keyType) :
-	_keyType(keyType), _valueType(standardtypes::StandardNodeType), _count(0)
+	_keyType(keyType), _valueType(standardtypes::StandardNodeType), _listCapacity(1), _count(0),  _keyOnly(true)
 {
-	_keyOnly = true;
 	_root = new Node(*this);
 }
 
@@ -39,7 +38,7 @@ void BTree::DoValuesMoved(Node* newLeaf)
 	if (_valuesMovedCallback != NULL)
 	{
 		Node::iterator end = newLeaf->valueEnd();
-		for (Node::iterator i = newLeaf->valueBegin(); i != end; i++)
+		for (Node::iterator i = newLeaf->valueBegin(); i != end; ++i)
 			_valuesMovedCallback(*i, newLeaf);
 	}
 }
@@ -84,7 +83,33 @@ void BTree::Delete(Path& path)
 
 void BTree::Insert(Path& path, void* key, void* value)
 {
-	Split* result = path.Leaf->Insert(path.LeafIndex, key, value);
+	Split* result;
+	//If we are a root node, it's an under-sized minimal node, and the node is full, expand it.
+	if (_listCapacity < DefaultListCapacity && path.Leaf->_count == _listCapacity)
+	{
+		_listCapacity = _listCapacity * 4;
+		Node* temp = new Node(*this, false, _root->_count); //Should pull size from list capacity, so is already doubled.
+		//Copy old into temp.
+
+		memcpy(temp->_keys, _root->_keys, temp->_count * _keyType.Size);
+		if (!_keyOnly)
+			memcpy(temp->_values, _root->_values, temp->_count * _valueType.Size);		
+
+		_root->_count = -1; //-1 signals release Node, but not resources of keys and values.
+		delete _root;
+
+		_root = temp;
+		path.Leaf = temp;
+
+		result = path.Leaf->Insert(path.LeafIndex, key, value);
+
+		DoValuesMoved(temp);
+	}
+	else
+	{
+		result = path.Leaf->Insert(path.LeafIndex, key, value);
+	}
+
 	while (result != NULL && path.Branches.size() > 0)
 	{
 		auto pathNode = path.Branches.back();

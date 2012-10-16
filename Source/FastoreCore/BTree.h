@@ -35,9 +35,8 @@ class BTree
 		~BTree();
 
 		std::wstring ToString();
-		int getListCapacity();
 
-		const static short DefaultListCapacity = 32;
+		const static short DefaultListCapacity = 64;
 
 		void setValuesMovedCallback(onevaluesMovedHandler callback);
 		onevaluesMovedHandler getValuesMovedCallback();
@@ -121,7 +120,7 @@ class BTree
 				return end();
 		}
 
-		//find nearest points the to either the item, or the item direct AFTER it in the
+		//find nearest points the to either the item, or the item directly AFTER it in the
 		//BTrees sort order.
 		iterator findNearest(void* key, bool& match)
 		{
@@ -142,6 +141,7 @@ class BTree
 		Path SeekToEnd();
 
 		int _count;
+		short _listCapacity;
 		
 		void DoValuesMoved(Node* newLeaf);
 		onevaluesMovedHandler _valuesMovedCallback;
@@ -159,15 +159,15 @@ class Node
 			{
 				if(_branch)
 				{
-					_keys = new char[(_tree.DefaultListCapacity - 1) * _tree._keyType.Size];
-					_values = new char[(_tree.DefaultListCapacity) * sizeof(Node*)];		
+					_keys = new char[(_tree._listCapacity - 1) * _tree._keyType.Size];
+					_values = new char[(_tree._listCapacity) * sizeof(Node*)];		
 				}
 				else
 				{
-					_keys = new char[(_tree.DefaultListCapacity) * _tree._keyType.Size];
+					_keys = new char[(_tree._listCapacity) * _tree._keyType.Size];
 					if (!_tree._keyOnly)
 					{				
-						_values = new char[(_tree.DefaultListCapacity) * _tree._valueType.Size];		
+						_values = new char[(_tree._listCapacity) * _tree._valueType.Size];		
 					}
 					else
 					{
@@ -226,13 +226,13 @@ class Node
 
 		void* GetKey(function<bool(void*)> predicate)
 		{
-			for (short i = 0; i < _count; i++)
+			for (short i = 0; i < _count; ++i)
 			{
 				if (predicate(operator[](i).value))
 					return operator[](i).key;
 			}
 
-			throw;
+			throw "Value not found in Node!";
 		}
 
 		std::wstring ToString()
@@ -243,7 +243,7 @@ class Node
 
 				result << "\n[";
 				bool first = true;
-				for (int i = 0; i <= _count; i++)
+				for (int i = 0; i <= _count; ++i)
 				{
 					if (!first)
 						result << ",";
@@ -261,7 +261,7 @@ class Node
 				wstringstream result;
 				result << "\n{";
 				bool first = true;
-				for(int i = 0; i < _count; i++)
+				for(int i = 0; i < _count; ++i)
 				{
 					if(!first)
 						result << ",";
@@ -361,7 +361,7 @@ class Node
 
 		Split* Insert(short index, void* key, void* value)
 		{
-			if (_count != _tree.DefaultListCapacity)
+			if (_count != _tree._listCapacity)
 			{
 			    InternalInsertIndex(index, key, value);
 			    return NULL;
@@ -370,14 +370,14 @@ class Node
 			Node* node = new Node(_tree, false);
 			if (!_tree._keyOnly)
 			{
-			    node->_count = (_tree.DefaultListCapacity + 1) / 2;
+			    node->_count = (_tree._listCapacity + 1) / 2;
 			    _count = short(_count - node->_count);
 
 			    memcpy( node->_keys, 
 				    _keys + node->_count * _tree._keyType.Size,
 				    node->_count * _tree._keyType.Size );
 
-			    if (_values != NULL)
+			    if (!_tree._keyOnly)
 			      memcpy( node->_values, 
 				      _values + node->_count * _tree._valueType.Size, 
 				      node->_count * _tree._valueType.Size );
@@ -387,6 +387,7 @@ class Node
 			  InternalInsertIndex(index, key, value);
 			else
 			  node->InternalInsertIndex(short(index - _count), key, value);
+
 
 			_tree.DoValuesMoved(node);
 
@@ -401,7 +402,7 @@ class Node
 
 		Split* Insert(short index, void* key, Node* child)
 		{
-			if (_count != _tree.DefaultListCapacity - 1)
+			if (_count != _tree._listCapacity - 1)
 			{
 				InternalInsertIndex(index, key, child);
 				return NULL;
@@ -455,7 +456,7 @@ class Node
 		Node* RebalanceLeaf(BTree::Path& path, size_t depth)
 		{
 				//No need to rebalance
-				if (_count >= _tree.DefaultListCapacity / 2 || depth == 0)
+				if (_count >= _tree._listCapacity / 2 || depth == 0)
 					return NULL;
 
 				Node* parent = path.Branches.at(depth - 1).pNode;
@@ -464,7 +465,7 @@ class Node
 				Node* leftSib = pIndex > 0 ? *(Node**)(parent->_values + ((pIndex - 1) * sizeof(Node*))) : NULL;
 
 				//Attempt to borrow from right sibling
-				if (rightSib != NULL && rightSib->_count > _tree.DefaultListCapacity / 2)
+				if (rightSib != NULL && rightSib->_count > _tree._listCapacity / 2)
 				{
 					//Grab left item from right sibling
 					memcpy(&_keys[_count *  _tree._keyType.Size], &rightSib->_keys[0], _tree._keyType.Size);
@@ -483,7 +484,7 @@ class Node
 				}
 
 				//Attempt to borrow from left sibling
-				if (leftSib != NULL && leftSib->_count > _tree.DefaultListCapacity / 2)
+				if (leftSib != NULL && leftSib->_count > _tree._listCapacity / 2)
 				{
 					//Make room for new item
 					memcpy(&_keys[ _tree._keyType.Size], &_keys[0], _count *  _tree._keyType.Size);
@@ -504,7 +505,7 @@ class Node
 				}
 
 				//Attempt to merge with right sibling
-				if (rightSib != NULL && rightSib->_count + this->_count <= _tree.DefaultListCapacity)
+				if (rightSib != NULL && rightSib->_count + this->_count <= _tree._listCapacity)
 				{
 					//Grab all of right's items
 					memcpy(&_keys[_count *  _tree._keyType.Size], &rightSib ->_keys[0], rightSib ->_count *  _tree._keyType.Size);
@@ -528,7 +529,7 @@ class Node
 				}
 
 				//Attempt to merge with left sibling
-				if (leftSib != NULL && leftSib->_count + this->_count <= _tree.DefaultListCapacity)
+				if (leftSib != NULL && leftSib->_count + this->_count <= _tree._listCapacity)
 				{
 					//Move everything over to left.
 					memcpy(&leftSib->_keys[leftSib->_count *  _tree._keyType.Size], &_keys[0], _count *  _tree._keyType.Size);
@@ -563,7 +564,7 @@ class Node
 				}
 
 				//No need to rebalance if we are an acceptable size
-				if ((_count + 1) >= _tree.DefaultListCapacity / 2 || depth == 0)
+				if ((_count + 1) >= _tree._listCapacity / 2 || depth == 0)
 					return NULL;				
 
 				//At this point we know we are not root, so we have a parent.
@@ -573,7 +574,7 @@ class Node
 				Node* leftSib = pIndex > 0 ? *(Node**)(parent->_values + ((pIndex - 1) * sizeof(Node*))) : NULL;
 
 				//Attempt to borrow from right sibling
-				if (rightSib != NULL && (rightSib->_count + 1) > _tree.DefaultListCapacity / 2)
+				if (rightSib != NULL && (rightSib->_count + 1) > _tree._listCapacity / 2)
 				{
 					//Grab left item from right sibling		
 					memcpy(&_values[(_count + 1) * sizeof(Node*)], &rightSib->_values[0], sizeof(Node*));
@@ -592,7 +593,7 @@ class Node
 				}
 
 				//Attempt to borrow form left sibling
-				if (leftSib != NULL && (leftSib->_count + 1) > _tree.DefaultListCapacity / 2)
+				if (leftSib != NULL && (leftSib->_count + 1) > _tree._listCapacity / 2)
 				{
 						//Make room for new item
 					memcpy(&_keys[ _tree._keyType.Size], &_keys[0], _count *  _tree._keyType.Size);
@@ -613,7 +614,7 @@ class Node
 				}
 
 				//Attempt to merge with right sibling
-				if (rightSib != NULL && (rightSib->_count + 1 + this->_count + 1) <= _tree.DefaultListCapacity)
+				if (rightSib != NULL && (rightSib->_count + 1 + this->_count + 1) <= _tree._listCapacity)
 				{
 					//Grab all of rights items
 					memcpy(&_keys[(_count + 1) *  _tree._keyType.Size], &rightSib->_keys[0], rightSib->_count *  _tree._keyType.Size);
@@ -639,7 +640,7 @@ class Node
 				}
 
 				//Attempt to merge with left sibling
-				if (leftSib != NULL && (leftSib->_count + 1 + this->_count + 1) <= _tree.DefaultListCapacity)
+				if (leftSib != NULL && (leftSib->_count + 1 + this->_count + 1) <= _tree._listCapacity)
 				{
 					//Move everything over to left.
 					memcpy(&leftSib->_keys[(leftSib->_count + 1) *  _tree._keyType.Size], &_keys[0], _count *  _tree._keyType.Size);

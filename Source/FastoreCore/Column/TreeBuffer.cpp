@@ -2,7 +2,7 @@
 
 TreeBuffer::TreeBuffer(const ScalarType& rowType, const ScalarType &valueType) : _rowType(rowType), _valueType(valueType)
 {
-	_rows = std::unique_ptr<BTree>(new BTree(_rowType,standardtypes::StandardNoOpNodeType));
+	_rows = std::unique_ptr<BTree>(new BTree(_rowType, standardtypes::StandardNoOpNodeType));
 	_values = std::unique_ptr<BTree>(new BTree(_valueType, standardtypes::StandardBTreeType));
 	_unique = 0;
 	_total = 0;
@@ -26,7 +26,7 @@ Statistic TreeBuffer::GetStatistic()
 vector<OptionalValue> TreeBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());
-	for (unsigned int i = 0; i < rowIds.size(); i++)
+	for (unsigned int i = 0; i < rowIds.size(); ++i)
 	{
 		auto result = GetValue(_rowType.GetPointer(rowIds[i]));
 		if (result != NULL)
@@ -53,7 +53,7 @@ void* TreeBuffer::GetValue(void* rowId)
 			[rowId](void* kt) -> bool
 			{
 				BTree::Path p;
-				(*(BTree**)kt)->GetPath(rowId,p);
+				(*(BTree**)kt)->GetPath(rowId, p);
 				return p.Match; 
 			}
 		);
@@ -166,6 +166,7 @@ bool TreeBuffer::Exclude(void* rowId)
 
 void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 {
+	//Values in this case is a BTree containing rowIds.
 	BTree* existingValues = *(BTree**)(value);
 
 	auto start = existingValues->begin();
@@ -173,7 +174,6 @@ void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 
 	while (start != end)
 	{
-		//TODO: Make Btree or iterator writeable
 		BTree::Path result;
 		_rows->GetPath((*start).key, result);
 		
@@ -183,7 +183,7 @@ void TreeBuffer::ValuesMoved(void* value, Node* leaf)
 		}
 		else
 		{
-			throw;
+			throw "Attempted to update reverse index and found a value in the forward index that didn't exist in the reverse";
 		}
 
 		++start;

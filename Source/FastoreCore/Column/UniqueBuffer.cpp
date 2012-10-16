@@ -47,13 +47,12 @@ void* UniqueBuffer::GetValue(void* rowId)
 	if (match)
 	{
 		Node* leaf = *(Node**)(*(iterator)).value;
-		auto locRowType = _rowType;
 
 		return leaf->GetKey
 		(
-			[rowId, locRowType](void* foundId) -> bool
+			[&](void* foundId) -> bool
 			{
-				return locRowType.Compare(rowId, foundId) == 0;
+				return _rowType.Compare(rowId, foundId) == 0;
 			}
 		);
 	}
