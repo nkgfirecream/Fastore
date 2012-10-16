@@ -8,6 +8,7 @@
 #include <vector>
 #include <cstring>
 #include "../FastoreClient/ClientException.h"
+#include "../FastoreCore/safe_cast.h"
 
 using namespace std;
 using namespace fastore::client;
@@ -95,7 +96,8 @@ ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress ad
 			for (size_t i = 0; i < addressCount; i++)
 			{
 				serverAddresses[i].Name = string(addresses[i].hostName);
-				serverAddresses[i].Port = addresses[i].port;
+				serverAddresses[i].Port = SAFE_CAST(int, 
+								    addresses[i].port);
 			}
 
 			// Create database
@@ -173,7 +175,7 @@ ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex)
 			auto info = static_cast<prov::PStatementObject>(statement)->get()->getColumnInfo(columnIndex);
 
 			strncpy(result.name, info.name.c_str(), sizeof(result.name) - 1);
-			result.name[sizeof(result.name) - 1] = NULL;
+			result.name[sizeof(result.name) - 1] = '\0';
 			
 			result.type = info.type; 
 		}
@@ -187,7 +189,7 @@ GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int
 		[&](GeneralResult &result) 
 		{ 
 			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumn(columnIndex);
-			*targetMaxBytes = min(*targetMaxBytes, value.size());
+			*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.size()));
 			memcpy(valueTarget, value.data(), *targetMaxBytes);
 		}
 	);

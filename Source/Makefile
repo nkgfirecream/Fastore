@@ -143,10 +143,10 @@ comm-clean thrift-clean:
 core FastoreCore: FastoreCore/libfastore-core.so
 FastoreCore/libfastore-core.so: $(CORE.OBJ) $(THRIFT.LIB)
 	$(CXX) $(CXXFLAGS) -shared $(CORE.OBJ) \
-		-Wl,-LFastoreCommunication,-L$(PREFIX)/lib \
+		-LFastoreCommunication -L$(PREFIX)/lib \
 		-Wl,-rpath,$(PREFIX)/lib \
 		-lfastore-communication  \
-		-lthrift -lboost_thread -lboost_filesystem
+		-lthrift -lboost_filesystem -lboost_thread 
 core-clean:
 	rm -f $(CORE.OBJ) FastoreCore/libfastore-core.so
 
@@ -170,7 +170,8 @@ FastoreModule/libfastore-module.so: 	$(MODULE.OBJ) \
 					$(MODULE.CLIENT.OBJ) \
 				$(PREFIX)/lib/libfastore-communication.so
 	$(CXX) $(CXXFLAGS) -shared $(MODULE.OBJ) $(MODULE.CLIENT.OBJ) \
-		-Wl,-L$(PREFIX)/lib,-rpath,$(PREFIX)/lib \
+		-L FastoreCore -L$(PREFIX)/lib \
+		-Wl,-rpath,$(PREFIX)/lib \
 		-lfastore-core -lfastore-communication -lboost_thread
 module-clean:
 	rm -f $(MODULE.OBJ) FastoreModule/libfastore-module.so
@@ -200,8 +201,8 @@ shell FastoreShell: FastoreShell/shell
 FastoreShell/shell: $(SHELL.SRC) $(THRIFT.LIB)
 	$(CC) $(SHELL.CXXFLAGS) $(SHELL.SRC) \
 		-L $(PREFIX)/lib \
-		-Wl,-rpath -Wl,$(PREFIX)/lib \
 		$(LIBS:H:S,^,-L./,g) \
+		-Wl,-rpath -Wl,$(PREFIX)/lib \
 		$(LIBS:T:R:S/^lib/-l/g) \
 		-lthrift $(BOOST_LIBS:S/^/-lboost_/g) -lsqlite3 -lreadline
 shell-clean:
