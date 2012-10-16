@@ -153,6 +153,12 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 					_config->workerPaths.begin(), 
 					std::back_inserter(_workers), 
 					Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
+
+	for (auto iter = _workers.begin(); iter != _workers.end(); ++iter)
+	{
+		iter->run();
+	}
+
 	return;	// returns because replaces old for loop that follows it. 
 }
 

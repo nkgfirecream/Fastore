@@ -43,8 +43,6 @@ public:
 					  state.port,
 					  pscheduler );
 
-			if( fRun ) 
-				w.run();
 			return w;
 		}
 	};
