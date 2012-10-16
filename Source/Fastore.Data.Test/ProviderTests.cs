@@ -61,6 +61,12 @@ namespace Fastore.Data.Test
 					{
 						var nextResult = Provider.Next(prepareResult.Statement);
 						CheckResult(nextResult.Result);
+					
+						int size = 4;
+						int value;
+						var getResult = Provider.ColumnValue(prepareResult.Statement, 0, ref size, out value);
+
+						Console.WriteLine(value);
 					}
 					finally
 					{

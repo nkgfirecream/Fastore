@@ -45,7 +45,8 @@ namespace Fastore.Data
 		public struct NextResult
 		{
 			public int Result;
-			public bool Eof;
+			// TODO: get this to marshal as a bool (tried all the obvious things)
+			public byte Eof;
 		};
 
 		// Retrieves the message and code of the last error
@@ -79,7 +80,7 @@ namespace Fastore.Data
 		// Prepares a given query or statement statement and returns a cursor
 		//FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastorePrepare", CallingConvention = CallingConvention.Cdecl)]
-		public extern static PrepareResult Prepare(IntPtr connection, [MarshalAs(UnmanagedType.LPStr)]string batch);
+		public extern static PrepareResult Prepare(IntPtr connection, [param: MarshalAs(UnmanagedType.LPStr)]string batch);
 
 		//// Provides values for any parameters included in the prepared statement and resets the cursor
 		//FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
@@ -91,10 +92,23 @@ namespace Fastore.Data
 
 		
 		//// Gets the column name for the given column index
-		//FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex);
-		//// Gets the column value of the current row given an index
-		//FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
-		
+		//FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int32_t columnIndex);
+
+		// Gets the column value of the current row given an index
+		//FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, void *valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValue", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult ColumnValue(IntPtr statement, int columnIndex, ref int targetMaxBytes, out double valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValue", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult ColumnValue(IntPtr statement, int columnIndex, ref int targetMaxBytes, out int valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValue", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult ColumnValue(IntPtr statement, int columnIndex, ref int targetMaxBytes, out long valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValue", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult ColumnValueA(IntPtr statement, int columnIndex, ref int targetMaxBytes, [param: MarshalAs(UnmanagedType.LPStr), Out()] StringBuilder valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValue", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult ColumnValueW(IntPtr statement, int columnIndex, ref int targetMaxBytes, [param: MarshalAs(UnmanagedType.LPWStr), Out()] StringBuilder valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValue", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult ColumnValue(IntPtr statement, int columnIndex, ref int targetMaxBytes, out bool valueTarget); // (bool)
+
 		// Closes the given cursor
 		//FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreClose", CallingConvention = CallingConvention.Cdecl)]

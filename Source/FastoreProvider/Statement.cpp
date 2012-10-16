@@ -40,7 +40,7 @@ void Statement::reset()
 	sqlite3_reset(_statement);
 }
 
-void Statement::bind(std::vector<Argument> arguments)
+void Statement::bind(std::vector<fastore::provider::Argument> arguments)
 {
 	sqlite3_reset(_statement);
 	int parameterCount = sqlite3_bind_parameter_count(_statement);

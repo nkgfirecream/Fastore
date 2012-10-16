@@ -133,9 +133,24 @@ PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch)
 	);
 }
 
-GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType argumentTypes[])
+GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, const Argument arguments[])
 {
-	return GeneralResult();
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			std::vector<prov::Argument> args;
+			for (size_t i = 0; i < argumentCount; ++i)
+			{
+				prov::Argument arg;
+				arg.type = arguments[i].type;
+				arg.value.resize(arguments[i].dataSize);
+				memcpy((void *)arg.value.data(), arguments[i].data, arg.value.size());
+				args.push_back(arg);
+			}
+			static_cast<prov::PStatementObject>(statement)->get()->bind(args);
+		}
+	);
 }
 
 NextResult fastoreNext(StatementHandle statement)
@@ -151,12 +166,31 @@ NextResult fastoreNext(StatementHandle statement)
 
 ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex)
 {
-	return ColumnInfoResult();
+	return WrapCall<ColumnInfoResult>
+	(
+		[&](ColumnInfoResult &result) 
+		{ 
+			auto info = static_cast<prov::PStatementObject>(statement)->get()->getColumnInfo(columnIndex);
+
+			strncpy(result.name, info.name.c_str(), sizeof(result.name) - 1);
+			result.name[sizeof(result.name) - 1] = NULL;
+			
+			result.type = info.type; 
+		}
+	);
 }
 
-GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget)
+GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int *targetMaxBytes, void *valueTarget)
 {
-	return GeneralResult();
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumn(columnIndex);
+			*targetMaxBytes = min(*targetMaxBytes, value.size());
+			memcpy(valueTarget, value.data(), *targetMaxBytes);
+		}
+	);
 }
 
 GeneralResult fastoreClose(StatementHandle statement)

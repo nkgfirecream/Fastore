@@ -11,7 +11,8 @@ namespace Fastore.Data.Test
 		public static int Main(string[] args)
 		{
 			var test = new ProviderTests();
-			test.ConnectDisconnectTest();
+			//test.ConnectDisconnectTest();
+			test.PrepareCloseTest();
 			return 0;
 		}
 	}

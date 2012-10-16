@@ -19,9 +19,9 @@
 typedef void *ConnectionHandle;
 typedef void *StatementHandle;
 
-const int MAX_HOST_NAME = 255;
-const int MAX_ERROR_MESSAGE = 255;
-const int MAX_NAME = 127;
+const int32_t MAX_HOST_NAME = 255;
+const int32_t MAX_ERROR_MESSAGE = 255;
+const int32_t MAX_NAME = 127;
 
 enum TransactionEndAction 
 {
@@ -44,13 +44,13 @@ enum ArgumentType
 struct FastoreAddress
 {
 	char hostName[MAX_HOST_NAME];
-	uint64_t port;
+	int64_t port;
 };
 
 typedef int32_t FastoreResultCode;
 typedef int32_t FastoreErrorCode;
 
-const FastoreResultCode FASTORE_OK = {0};
+const FastoreResultCode FASTORE_OK = 0;
 
 struct GeneralResult
 {
@@ -67,28 +67,35 @@ struct ExecuteResult
 {
 	FastoreResultCode result;
 	StatementHandle statement;
-	int columnCount;
-	bool eof;
+	int32_t columnCount;
+	uint8_t eof;
 };
 
 struct PrepareResult
 {
 	FastoreResultCode result;
 	StatementHandle statement;
-	int columnCount;
+	int32_t columnCount;
 };
 
 struct NextResult
 {
 	FastoreResultCode result;
-	bool eof;
+	uint8_t eof;
 };
 
 struct ColumnInfoResult
 {
 	FastoreResultCode result;
 	char name[MAX_NAME];
-	char type[MAX_NAME];
+	ArgumentType type;
+};
+
+struct Argument
+{
+	ArgumentType type;
+	void *data;
+	size_t dataSize;
 };
 
 // Retrieves the message and code of the last error
@@ -102,13 +109,13 @@ FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 // Prepares a given query or statement statement and returns a cursor
 FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch);
 // Provides values for any parameters included in the prepared statement and resets the cursor
-FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
+FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, const Argument arguments[]);
 // Executes the statement, or navigates to the first or next row
 FASTOREAPI NextResult fastoreNext(StatementHandle statement);
 // Gets the column name for the given column index
-FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex);
+FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int32_t columnIndex);
 // Gets the column value of the current row given an index
-FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int targetMaxBytes, void *valueTarget);
+FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, void *valueTarget);
 // Closes the given cursor
 FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 
