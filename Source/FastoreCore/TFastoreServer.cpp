@@ -822,6 +822,9 @@ void TFastoreServer::run()
 		int numready = poll(_fds, fdindex, pollTimeout_);
 		if (numready == -1)
 		{
+			if (EINTR == errno) {
+				continue;
+			}
 			GlobalOutput.printf("TFastoreServer: poll error: %s", 
 								strerror(errno));
 		}

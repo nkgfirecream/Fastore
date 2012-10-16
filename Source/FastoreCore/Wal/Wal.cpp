@@ -1,7 +1,9 @@
 #include "Wal.h"
 // $Id$
 
+#include <sys/mman.h>
 #include <sys/types.h>
+
 #include <openssl/md4.h>
 
 #include <string>

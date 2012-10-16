@@ -98,9 +98,10 @@ Database::Database(std::vector<ServiceAddress> addresses)
 	//Create a new topology instead.
 	auto newTopology = CreateTopology(serviceWorkers);
 
-	auto addressesByHost = std::map<HostID, NetworkAddress>();
-	for (size_t hostID = 0; hostID  < networkAddresses.size(); hostID++)
-		addressesByHost.insert(std::make_pair(HostID(hostID), networkAddresses[hostID]));
+	std::map<HostID, NetworkAddress> addressesByHost;
+	for (size_t hostID = 0; hostID  < networkAddresses.size(); hostID++) {
+		addressesByHost[hostID] = networkAddresses[hostID];
+	}
 
 	HiveState newHive;
 	newHive.__set_topologyID(newTopology.topologyID);
@@ -1206,6 +1207,31 @@ void Database::RefreshSchema()
 
 void Database::BootStrapSchema()
 {
+	static const std::map<fastore::communication::ColumnID,
+						  ColumnDef> defaultSchema 
+	{ { Dictionary::ColumnID, 
+		  { Dictionary::ColumnID, 
+			  "Column.ID", "Long", "Long", BufferType_t::Identity, true } }
+	, { Dictionary::ColumnName, 
+		  { Dictionary::ColumnName, 
+			  "Column.Name", "String", "Long", BufferType_t::Unique, true } }
+	, { Dictionary::ColumnValueType, 
+		  { Dictionary::ColumnValueType, 
+			"Column.ValueType", "String", "Long", BufferType_t::Multi, true } }
+   	, { Dictionary::ColumnRowIDType, 
+		  { Dictionary::ColumnRowIDType, 
+			"Column.RowIDType", "String", "Long", BufferType_t::Multi, true } }
+	, { Dictionary::ColumnBufferType, 
+		  { Dictionary::ColumnBufferType, 
+			"Column.BufferType", "Int", "Long", BufferType_t::Multi, true } }
+	, { Dictionary::ColumnRequired, 
+		  { Dictionary::ColumnRequired, 
+			"Column.Required", "Bool", "Long", BufferType_t::Multi, true } }
+	};	
+
+	_schema.insert( defaultSchema.begin(), defaultSchema.end() );
+
+#if 0
 	//TODO: Consider making bootstrap information shared between server and client so that 
 	//we don't have to change it two places.
 
@@ -1263,7 +1289,7 @@ void Database::BootStrapSchema()
 	required.BufferType = BufferType_t::Multi;
 	required.Required = true;
 	_schema.insert(std::make_pair(Dictionary::ColumnRequired, required));	
-
+#endif
 	//Boot strapping is done, pull in real schema
 	RefreshSchema();
 }

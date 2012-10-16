@@ -44,7 +44,7 @@ COMM.FILES = $(COMM.BASE:S,^,FastoreCommunication/,g)
 COMM.SRC = $(COMM.FILES:M*.cpp:N*.skeleton.*)
 COMM.OBJ = $(COMM.SRC:S/.cpp/.o/)
 
-CORE.SRC != find FastoreCore -name '*.cpp' |  grep -Ev '/t/|/OK/'
+CORE.SRC != find FastoreCore -name '*.cpp' |  grep -Ev '/t/|/OK/|Faux'
 CORE.OBJ = $(CORE.SRC:N*/wald.cpp:.cpp=.o)
 
 MODULE.BASE != ls FastoreModule

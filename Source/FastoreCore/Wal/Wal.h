@@ -8,10 +8,10 @@
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
-#if HAVE_UNISTD_H
-# include <unistd.h>
-#else
+#if _WIN32
 # include <io.h>
+#else
+# include <unistd.h>
 #endif
 
 #if HAVE_SYS_MMAN_H
