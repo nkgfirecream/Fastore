@@ -1207,90 +1207,27 @@ void Database::RefreshSchema()
 
 void Database::BootStrapSchema()
 {
-	static const std::map<fastore::communication::ColumnID,
-						  ColumnDef> defaultSchema 
+	static const ColumnDef defaults[] =  
 	{ { Dictionary::ColumnID, 
-		  { Dictionary::ColumnID, 
-			  "Column.ID", "Long", "Long", BufferType_t::Identity, true } }
+			  "Column.ID", "Long", "Long", BufferType_t::Identity, true }
 	, { Dictionary::ColumnName, 
-		  { Dictionary::ColumnName, 
-			  "Column.Name", "String", "Long", BufferType_t::Unique, true } }
+			  "Column.Name", "String", "Long", BufferType_t::Unique, true }
 	, { Dictionary::ColumnValueType, 
-		  { Dictionary::ColumnValueType, 
-			"Column.ValueType", "String", "Long", BufferType_t::Multi, true } }
+			"Column.ValueType", "String", "Long", BufferType_t::Multi, true }
    	, { Dictionary::ColumnRowIDType, 
-		  { Dictionary::ColumnRowIDType, 
-			"Column.RowIDType", "String", "Long", BufferType_t::Multi, true } }
+			"Column.RowIDType", "String", "Long", BufferType_t::Multi, true }
 	, { Dictionary::ColumnBufferType, 
-		  { Dictionary::ColumnBufferType, 
-			"Column.BufferType", "Int", "Long", BufferType_t::Multi, true } }
+			"Column.BufferType", "Int", "Long", BufferType_t::Multi, true }
 	, { Dictionary::ColumnRequired, 
-		  { Dictionary::ColumnRequired, 
-			"Column.Required", "Bool", "Long", BufferType_t::Multi, true } }
+			"Column.Required", "Bool", "Long", BufferType_t::Multi, true }
 	};	
 
-	_schema.insert( defaultSchema.begin(), defaultSchema.end() );
+	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 
+		[&](const ColumnDef& def) 
+		{
+			_schema[def.ColumnID] = def;
+		} );
 
-#if 0
-	//TODO: Consider making bootstrap information shared between server and client so that 
-	//we don't have to change it two places.
-
-	// Actually, we only need the ID and Type to bootstrap properly.
-	ColumnDef id;
-	id.ColumnID = Dictionary::ColumnID;
-	id.Name = "Column.ID";
-	id.Type = "Long";
-	id.IDType = "Long";
-	id.BufferType = BufferType_t::Identity;
-	id.Required = true;
-	_schema.insert(std::make_pair(Dictionary::ColumnID, id));
-
-	ColumnDef name;
-	name.ColumnID = Dictionary::ColumnName;
-	name.Name = "Column.Name";
-	name.Type = "String";
-	name.IDType = "Long";
-	name.BufferType = BufferType_t::Unique;
-	name.Required = true;
-	_schema.insert(std::make_pair(Dictionary::ColumnName, name));
-	
-	ColumnDef vt;
-	vt.ColumnID = Dictionary::ColumnValueType;
-	vt.Name = "Column.ValueType";
-	vt.Type = "String";
-	vt.IDType = "Long";
-	vt.BufferType = BufferType_t::Multi;
-	vt.Required = true;
-	_schema.insert(std::make_pair(Dictionary::ColumnValueType, vt));
-
-	ColumnDef idt;
-	idt.ColumnID = Dictionary::ColumnRowIDType;
-	idt.Name = "Column.RowIDType";
-	idt.Type = "String";
-	idt.IDType = "Long";
-	idt.BufferType = BufferType_t::Multi;
-	idt.Required = true;
-	_schema.insert(std::make_pair(Dictionary::ColumnRowIDType, idt));
-
-	ColumnDef unique;
-	unique.ColumnID = Dictionary::ColumnBufferType;
-	unique.Name = "Column.BufferType";
-	unique.Type = "Int";
-	unique.IDType = "Long";
-	unique.BufferType = BufferType_t::Multi;
-	unique.Required = true;
-	_schema.insert(std::make_pair(Dictionary::ColumnBufferType, unique));
-
-	ColumnDef required;
-	required.ColumnID = Dictionary::ColumnRequired;
-	required.Name = "Column.Required";
-	required.Type = "Bool";
-	required.IDType = "Long";
-	required.BufferType = BufferType_t::Multi;
-	required.Required = true;
-	_schema.insert(std::make_pair(Dictionary::ColumnRequired, required));	
-#endif
-	//Boot strapping is done, pull in real schema
 	RefreshSchema();
 }
 
