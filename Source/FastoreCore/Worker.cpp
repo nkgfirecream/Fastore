@@ -17,7 +17,7 @@ Worker::Worker( const PodID podId,
 	,  phandler( new WorkerHandler(podId, path, pscheduler, _wal) )
 	, pprocessor( new WorkerProcessor(phandler) )
 	, config(INT_CAST(port))
-	, endpoint( config, pprocessor )
+	, pendpoint( new Endpoint(config, pprocessor) )
 	, _status(idle)
 {
 	WorkerProcessor& processor(*pprocessor);
@@ -29,7 +29,7 @@ bool
 Worker::run() { 
 	try { 
 		pthread = boost::shared_ptr<boost::thread>(
-			new boost::thread(std::mem_fun(&Endpoint::Run), &endpoint) );
+			new boost::thread(std::mem_fun(&Endpoint::Run), pendpoint.get()) );
 		_status = running;
 	}
 	catch( std::exception& oops ) {

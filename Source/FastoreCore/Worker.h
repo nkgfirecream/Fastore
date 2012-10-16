@@ -15,7 +15,7 @@ private:
 	WorkerState state;
 	boost::shared_ptr<WorkerProcessor> pprocessor;
 	const EndpointConfig config;
-	Endpoint endpoint;
+	boost::shared_ptr<Endpoint> pendpoint;
 	status_t _status;
 	boost::shared_ptr<boost::thread>  pthread;
 
@@ -43,6 +43,8 @@ public:
 					  state.port,
 					  pscheduler );
 
+			if( fRun ) 
+				w.run();
 			return w;
 		}
 	};
