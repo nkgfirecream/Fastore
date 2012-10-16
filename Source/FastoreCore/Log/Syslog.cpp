@@ -2,9 +2,10 @@
 #if _WIN32
 # define SYSLOG_NAMES
 #endif
-#include "Syslog.h"
 #include <cstdlib>
 #include <algorithm>
+
+#include "Syslog.h"
 
 using namespace std;
 
@@ -145,5 +146,14 @@ operator<<( fastore::Syslog& log,
 			const std::exception& err )
 {
 	return log << fastore::log_err << ": " << err.what();
+}
+
+// This needs a convenient place.  
+// It could go in Communications/operators.cpp, but there's
+// nowhere to declare it. 
+
+ostream& operator<<( ostream& os, const fastore::communication::NetworkAddress& addr ) 
+{
+	return os << "{" << addr.name << ":" << addr.port << "}";
 }
 

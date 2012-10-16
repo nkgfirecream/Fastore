@@ -11,6 +11,8 @@
 #include <string>
 #include <sstream>
 
+#include "../../FastoreCommunication/Server_types.h"
+
 namespace fastore {
 
 class Syslog 
@@ -84,3 +86,6 @@ operator<<( fastore::Syslog& log,
 #if _WIN32
 # define __func__ __FUNCTION__
 #endif
+
+std::ostream& operator<<( std::ostream& os, const fastore::communication::NetworkAddress& addr );
+

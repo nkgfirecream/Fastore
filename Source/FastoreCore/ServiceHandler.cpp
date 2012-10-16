@@ -160,11 +160,6 @@ void ServiceHandler::ping()
 	// Do nothing
 }
 
-ostream& operator<<( ostream& os, const NetworkAddress& addr ) 
-{
-	return os << "{" << addr.name << ":" << addr.port << "}";
-}
-
 void ServiceHandler::init(ServiceState& _return, const Topology& topology, const HostAddresses& addresses, const HostID hostID) 
 {
 	Log << log_info << "ServiceHandler::init for host " << hostID << ", "

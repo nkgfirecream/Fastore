@@ -68,11 +68,16 @@ Database::Database(std::vector<ServiceAddress> addresses)
 			OptionalHiveState hiveStateResult;
 			service.getHiveState(hiveStateResult, false);
 			if (!hiveStateResult.__isset.hiveState)
-			{
-				// If no hive state is given, the service is not joined, we should proceed to discover the number 
-				//  of potential workers for the rest of the services ensuring that they are all not joined.
+			{  	/* 
+				 * If no hive state is given, the service is not joined. 
+				 * We should proceed to discover the number of potential 
+				 * workers for the rest of the services, ensuring that they 
+				 * are all not joined.
+				 */
 				serviceWorkers[i] = hiveStateResult.potentialWorkers;
 				_services.Destroy(service);
+				Log << log_err << __func__ << ": failed to join "
+					<< networkAddresses[i] << log_endl;
 				continue;
 			}
 
@@ -85,13 +90,23 @@ Database::Database(std::vector<ServiceAddress> addresses)
 			RefreshHiveState();
 
 			//Everything worked... exit function
+				Log << log_err << __func__ << ": joined "
+					<< networkAddresses[i] << log_endl;
 			return;
+		}
+		// If anything goes wrong, be sure to release the service client
+		catch(const std::exception& e)
+		{
+			Log << log_err << __func__ << ": could not connect to hive on "
+				<< networkAddresses[i] << ": " << e.what() << log_endl;
+			_services.Destroy(service);
+			throw;
 		}
 		catch (...)
 		{
-			// If anything goes wrong, be sure to release the service client
+			Log << log_err << __func__ << ": dive! dive!" << log_endl;
 			_services.Destroy(service);
-			throw;
+			throw;	// perhaps just exit()? 
 		}
 	}
 
@@ -113,12 +128,19 @@ Database::Database(std::vector<ServiceAddress> addresses)
 		{
 			ServiceState serviceState;
 			service.init(serviceState, newTopology, addressesByHost, HostID(hostID));
-			newHive.services.insert(std::make_pair(HostID(hostID), serviceState));
+			newHive.services[hostID] = serviceState;
 		}
-		catch(const std::exception&)
+		catch(const std::exception& e)
 		{
+			Log << log_err << __func__ << ": " << e.what() << log_endl;
 			_services.Destroy(service);
 		}
+	}
+
+	if (newHive.services.empty()) {
+		const static char msg[] = "no services created for new hive";
+		Log << log_err << __func__ << ": " << msg << log_endl;
+		throw runtime_error(msg);
 	}
 
 	UpdateHiveState(newHive);
