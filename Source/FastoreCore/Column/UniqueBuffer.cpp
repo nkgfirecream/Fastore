@@ -3,7 +3,7 @@
 UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType): _rowType(rowType), _valueType(valueType)
 {
 	_rows = std::unique_ptr<BTree>(new BTree(_rowType, standardtypes::StandardNoOpNodeType));
-	_values =  std::unique_ptr<BTree>(new BTree(_valueType, standardtypes::StandardHashSet));
+	_values =  std::unique_ptr<BTree>(new BTree(_valueType, _rowType));
 	_count = 0;
 	_values->setValuesMovedCallback
 	(

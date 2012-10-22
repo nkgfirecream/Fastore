@@ -2,8 +2,6 @@
 #include "../BTree.h"
 #include "../Column/IColumnBuffer.h"
 
-const int UniqueBufferRowMapInitialSize = 32;
-
 class UniqueBuffer : public IColumnBuffer
 {
 	public:

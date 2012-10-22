@@ -8,6 +8,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "RangeTests.h"
 #include "Column\UniqueBuffer.h"
+#include "Column\UniqueInlineBuffer.h"
 
 using namespace std;
 
@@ -21,6 +22,14 @@ public:
 	{
 		//Unique buffer -- one key has one and only one value
 		UniqueBuffer* buf = new UniqueBuffer(standardtypes::Int, standardtypes::Int);
+		OneToOneRangeTest(buf);	
+		delete buf;
+	}
+
+	TEST_METHOD(UniqueInlineRangeTests)
+	{
+		//Unique buffer -- one key has one and only one value
+		UniqueInlineBuffer* buf = new UniqueInlineBuffer(standardtypes::Int, standardtypes::Int);
 		OneToOneRangeTest(buf);	
 		delete buf;
 	}

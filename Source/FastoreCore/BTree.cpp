@@ -87,7 +87,7 @@ void BTree::Insert(Path& path, void* key, void* value)
 	//If we are a root node, it's an under-sized minimal node, and the node is full, expand it.
 	if (_listCapacity < DefaultListCapacity && path.Leaf->_count == _listCapacity)
 	{
-		_listCapacity = _listCapacity * 4;
+		_listCapacity = _listCapacity * 2;
 		Node* temp = new Node(*this, false, _root->_count); //Should pull size from list capacity, so is already doubled.
 		//Copy old into temp.
 

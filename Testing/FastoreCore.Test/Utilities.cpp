@@ -3,9 +3,9 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "Utilities.h"
 
-void AssignString(string& str, int value)
+void AssignString(string& str, int64_t value)
 {
-	str.assign((const char*)&value, sizeof(int));
+	str.assign((const char*)&value, sizeof(int64_t));
 }
 
 void AssignBound(RangeBound& bound, bool inclusive, string& value)

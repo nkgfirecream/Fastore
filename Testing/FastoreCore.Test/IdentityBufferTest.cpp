@@ -15,7 +15,7 @@ public:
 	TEST_METHOD(IdentityRangeTests)
 	{
 		//Identity buffer -- one key has one and only one value. Value is the same type and 'number' as key.
-		IdentityBuffer* buf = new IdentityBuffer(standardtypes::Int);
+		IdentityBuffer* buf = new IdentityBuffer(standardtypes::Long);
 		OneToOneRangeTest(buf);
 		delete buf;
 	}

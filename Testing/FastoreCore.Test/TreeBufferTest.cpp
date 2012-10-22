@@ -10,6 +10,8 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include "RangeTests.h"
 
 #include "Column\TreeBuffer.h"
+#include "Column\TreeInlineBuffer.h"
+#include "Column\MultiBimapBuffer.h"
 
 using namespace std;
 
@@ -30,12 +32,38 @@ public:
 	TEST_METHOD(TreeBufferRangeTests)
 	{
 		//Tree buffer -- has multiple values per key.
-		TreeBuffer* buf = new TreeBuffer(standardtypes::Int, standardtypes::Int);
+		TreeBuffer* buf = new TreeBuffer(standardtypes::Long, standardtypes::Long);
 		OneToOneRangeTest(buf);
 		delete buf;
 
 		//TODO: Only partially implemented.
-		buf = new TreeBuffer(standardtypes::Int, standardtypes::Int);
+		buf = new TreeBuffer(standardtypes::Long, standardtypes::Long);
+		OneToManyRangeTest(buf);
+		delete buf;
+	 }
+
+	TEST_METHOD(TreeInlineBufferRangeTests)
+	{
+		//Tree buffer -- has multiple values per key.
+		TreeInlineBuffer* buf = new TreeInlineBuffer(standardtypes::Long, standardtypes::Long);
+		OneToOneRangeTest(buf);
+		delete buf;
+
+		//TODO: Only partially implemented.
+		buf = new TreeInlineBuffer(standardtypes::Long, standardtypes::Long);
+		OneToManyRangeTest(buf);
+		delete buf;
+	 }
+
+	TEST_METHOD(MultiBimapBufferRangeTests)
+	{
+		//Tree buffer -- has multiple values per key.
+		IColumnBuffer* buf = new MultiBimapBuffer<int64_t>();
+		OneToOneRangeTest(buf);
+		delete buf;
+
+		//TODO: Only partially implemented.
+		buf = new  MultiBimapBuffer<int64_t>();
 		OneToManyRangeTest(buf);
 		delete buf;
 	 }

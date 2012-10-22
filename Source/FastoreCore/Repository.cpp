@@ -5,8 +5,11 @@
 #include <boost/filesystem/path.hpp>
 
 #include "Column/UniqueBuffer.h"
+#include "Column/UniqueInlineBuffer.h"
 #include "Column/TreeBuffer.h"
+#include "Column/TreeInlineBuffer.h"
 #include "Column/IdentityBuffer.h"
+//#include "Column/MultiBimapBuffer.h"
 
 using namespace boost::filesystem;
 
@@ -50,9 +53,8 @@ void Repository::create(ColumnDef def)
 	
 	//There's no previous data... continue with creation
 	//Set our column definition
-	_def = def;
+	_def = def;	
 	
-	//Instatiante buffer
 	if (_def.BufferType == BufferType_t::Identity)
 	{
 		if (_def.RowIDType.Name != _def.ValueType.Name)
@@ -62,13 +64,27 @@ void Repository::create(ColumnDef def)
 	}
 	else if(_def.BufferType == BufferType_t::Unique)
 	{
-		_buffer = std::unique_ptr<IColumnBuffer>(new UniqueBuffer(_def.RowIDType, _def.ValueType));
+		//8 is the size of a pointer. If the size is less than 8, it's cheaper (from a memory point of view) to duplicate the value in the reverse index than it is to track pointers and update.
+		if (_def.ValueType.Size <= 8) 
+		{
+			_buffer = std::unique_ptr<IColumnBuffer>(new UniqueInlineBuffer(_def.RowIDType, _def.ValueType));
+		}
+		else
+		{
+			_buffer = std::unique_ptr<IColumnBuffer>(new UniqueBuffer(_def.RowIDType, _def.ValueType));
+		}
 	}
 	else
 	{
-		_buffer = std::unique_ptr<IColumnBuffer>(new TreeBuffer(_def.RowIDType, _def.ValueType));
+		if (_def.ValueType.Size <= 8)
+		{
+			_buffer = std::unique_ptr<IColumnBuffer>(new TreeInlineBuffer(_def.RowIDType, _def.ValueType));		
+		}
+		else
+		{
+			_buffer = std::unique_ptr<IColumnBuffer>(new TreeBuffer(_def.RowIDType, _def.ValueType));		
+		}
 	}
-
 
 	// Initialize the log file
 	//_log = auto_ptr<Log>(new Log(GetLogFileName()));

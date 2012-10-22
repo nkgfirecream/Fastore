@@ -36,7 +36,7 @@ class BTree
 
 		std::wstring ToString();
 
-		const static short DefaultListCapacity = 64;
+		const static short DefaultListCapacity = 128;
 
 		void setValuesMovedCallback(onevaluesMovedHandler callback);
 		onevaluesMovedHandler getValuesMovedCallback();
