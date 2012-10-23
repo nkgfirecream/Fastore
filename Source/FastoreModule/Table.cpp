@@ -57,20 +57,26 @@ int module::Table::begin()
 int module::Table::sync()
 {
 	//Do nothing for now.. we may need to expose two stage transactions on the client.
-	return SQLITE_ERROR;
+	return SQLITE_OK;
 }
 
 int module::Table::commit()
 {
-	_transaction->Commit();
-	_transaction.reset();
+	if (_transaction != NULL)
+	{
+		_transaction->Commit();
+		_transaction.reset();
+	}
 	return SQLITE_OK;
 }
 
 int module::Table::rollback()
 {
-	_transaction->Rollback();
-	_transaction.reset();
+	if (_transaction != NULL)
+	{
+		_transaction->Rollback();
+		_transaction.reset();
+	}
 	return SQLITE_OK;
 }
 

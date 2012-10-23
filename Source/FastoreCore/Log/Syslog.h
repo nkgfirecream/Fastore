@@ -1,5 +1,9 @@
 // $Id$
 #pragma once 
+//Thrift defines it's own windows configuration (see next couple of lines)
+//So on windows, it must be included first.
+#include "../../FastoreCommunication/Server_types.h"
+
 #if _WIN32
 # include <windows.h>
 # include "sys/syslog.h"
@@ -10,8 +14,6 @@
 #include <cstring>
 #include <string>
 #include <sstream>
-
-#include "../../FastoreCommunication/Server_types.h"
 
 namespace fastore {
 

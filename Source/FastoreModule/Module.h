@@ -657,10 +657,10 @@ sqlite3_module fastoreModule =
 	moduleUpdate,	// int (*xUpdate)(sqlite3_vtab *, int, sqlite3_value **, sqlite3_int64 *);
 	
 	//The are called per table, so figure out how to implement them per table. Each table gets its own transaction perhaps?
-	0 /* moduleBegin */,	// int (*xBegin)(sqlite3_vtab *pVTab);
-	0 /* moduleSync */,	// int (*xSync)(sqlite3_vtab *pVTab);
-	0 /* moduleCommit */,	// int (*xCommit)(sqlite3_vtab *pVTab);
-	0 /*moduleRollback */,	// int (*xRollback)(sqlite3_vtab *pVTab);
+	moduleBegin,	// int (*xBegin)(sqlite3_vtab *pVTab);
+    0 /*moduleSync */,	// int (*xSync)(sqlite3_vtab *pVTab);
+	moduleCommit,	// int (*xCommit)(sqlite3_vtab *pVTab);
+	moduleRollback,	// int (*xRollback)(sqlite3_vtab *pVTab);
 	0 /* moduleFindFunction */,	// int (*xFindFunction)(sqlite3_vtab *pVtab, int nArg, const char *zName, void (**pxFunc)(sqlite3_context*,int,sqlite3_value**), void **ppArg);
 	moduleRename,	// int (*xRename)(sqlite3_vtab *pVtab, const char *zNew);
 	
