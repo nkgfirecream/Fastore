@@ -7,6 +7,8 @@ namespace Fastore.Data
 {
 	public class Statement : IDisposable
 	{
+		public const int MaxStringSize = 512;
+
 		private IntPtr _statement;
 
 		internal Statement(IntPtr connection, string batch)
@@ -61,6 +63,16 @@ namespace Fastore.Data
 			double value;
 			var getResult = Provider.ColumnValue(_statement, index, ref size, out value);
 			return value;
+		}
+
+		public string GetString(int index)
+		{
+			int size = MaxStringSize;
+			var value = new StringBuilder(MaxStringSize);
+			value.Length = size;
+			var getResult = Provider.ColumnValueA(_statement, index, ref size, value);
+			value.Length = size;
+			return value.ToString();;
 		}
 	}
 }
