@@ -9,12 +9,14 @@ using namespace fastore::provider;
 std::map<int, ArgumentType> createTypeMap()
 {
 	map<int, ArgumentType> m;
+	
 	//m[] = ArgumentType::FASTORE_ARGUMENT_BOOL;
 	//m[] =  ArgumentType::FASTORE_ARGUMENT_INT32;
-	m[1] = ArgumentType::FASTORE_ARGUMENT_INT64;
-	m[3] = ArgumentType::FASTORE_ARGUMENT_STRING8;
+	m[SQLITE_INTEGER] = ArgumentType::FASTORE_ARGUMENT_INT64;
+	m[SQLITE3_TEXT] = ArgumentType::FASTORE_ARGUMENT_STRING8;
 	//m["WString"] = ArgumentType::FASTORE_ARGUMENT_STRING16;
-	m[5] = ArgumentType::FASTORE_ARGUMENT_NULL;
+	m[SQLITE_FLOAT] = ArgumentType::FASTORE_ARGUMENT_DOUBLE;
+	m[SQLITE_NULL] = ArgumentType::FASTORE_ARGUMENT_NULL;
 
 	return m;
 }
