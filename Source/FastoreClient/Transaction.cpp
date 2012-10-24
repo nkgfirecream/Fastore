@@ -48,32 +48,36 @@ std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
 	// Gather changes for each column
 	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
 	{
-		boost::shared_ptr<ColumnWrites> writes(new ColumnWrites);
+		boost::shared_ptr<ColumnWrites> writes(new ColumnWrites());
 
 		// Process Includes
-		for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include)
+		if (entry->second.Includes.size() > 0)
 		{
-			if (!writes->__isset.includes)
+			writes->__set_includes(std::vector<fastore::communication::Include>(entry->second.Includes.size()));
+			int i = 0;
+			for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include)
 			{
-				writes->__set_includes(std::vector<fastore::communication::Include>());
+				fastore::communication::Include inc;
+				inc.__set_rowID(include->first);
+				inc.__set_value(include->second);
+				writes->includes[i] = inc;
+				++i;
 			}
-
-			fastore::communication::Include inc;
-			inc.__set_rowID(include->first);
-			inc.__set_value(include->second);
-			writes->includes.push_back(inc);
 		}
 
 		// Process Excludes
-		for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude)
+		if (entry->second.Excludes.size() > 0)
 		{
-			if (!writes->__isset.excludes)
-				writes->__set_excludes(std::vector<fastore::communication::Exclude>());
-
-			fastore::communication::Exclude ex; 
-			ex.__set_rowID(*exclude);
+			writes->__set_excludes(std::vector<fastore::communication::Exclude>(entry->second.Excludes.size()));
+			int i = 0;
+			for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude)
+			{
+				fastore::communication::Exclude ex; 
+				ex.__set_rowID(*exclude);
 			
-			writes->excludes.push_back(ex);
+				writes->excludes[i] = ex;
+				++i;
+			}
 		}
 
 		if (writes->__isset.excludes || writes->__isset.includes)

@@ -1,93 +1,88 @@
-create table CUSTOMER (
-C_CUSTKEY int primary key,
-C_NAME varchar,
-C_ADDRESS varchar,
-C_NATIONKEY int,
-C_PHONE varchar,
-C_ACCTBAL float,
-C_MKTSEGMENT varchar,
-C_COMMENT varchar,
-);
-
-create table HISTORY (
-H_P_KEY int,
-H_S_KEY int,
-H_O_KEY int,
-H_L_KEY int,
-H_DELTA int,
-H_DATE_T datetime
-);
-
-create table LINEITEM (
-L_ORDERKEY int,
-L_PARTKEY int,
-L_SUPPKEY int,
-L_LINENUMBER int,
-L_QUANTITY float,
-L_EXTENDEDPRICE float,
-L_DISCOUNT float,
-L_TAX float,
-L_RETURNFLAG varchar,
-L_LINESTATUS varchar,
-L_SHIPDATE date,
-L_COMMITDATE date,
-L_RECEIPTDATE date,
-L_SHIPINSTRUCT varchar,
-L_SHIPMODE varchar,
-L_COMMENT varchar,
-);
-
 create table NATION (
 N_NATIONKEY int primary key,
-N_NAME varchar,
-N_REGIONKEY int,
+N_NAME varchar not null,
+N_REGIONKEY int not null,
 N_COMMENT varchar,
-);
-
-create table ORDERS (
-O_ORDERKEY int primary key,
-O_CUSTKEY int,
-O_ORDERSTATUS varchar,
-O_TOTALPRICE float,
-O_ORDERDATE date,
-O_ORDERPRIORITY varchar,
-O_CLERK varchar,
-O_SHIPPRIORITY int,
-O_COMMENT varchar,
-);
-
-create table PART (
-P_PARTKEY int primary key,
-P_NAME varchar,
-P_MFGR varchar,
-P_BRAND varchar,
-P_TYPE varchar,
-P_SIZE int,
-P_CONTAINER varchar,
-P_RETAILPRICE float,
-P_COMMENT varchar,
-);
-
-create table PARTSUPP (
-PS_PARTKEY int,
-PS_SUPPKEY int,
-PS_AVAILQTY int,
-PS_SUPPLYCOST float,
-PS_COMMENT varchar,
 );
 
 create table REGION (
 R_REGIONKEY int primary key,
-R_NAME varchar,
+R_NAME varchar not null,
 R_COMMENT varchar,
+);
+
+create table PART (
+P_PARTKEY int primary key,
+P_NAME varchar not null,
+P_MFGR varchar not null,
+P_BRAND varchar not null,
+P_TYPE varchar not null,
+P_SIZE int not null,
+P_CONTAINER varchar not null,
+P_RETAILPRICE float not null,
+P_COMMENT varchar not null,
 );
 
 create table SUPPLIER (
 S_SUPPKEY int primary key,
-S_NAME varchar,
-S_ADDRESS varchar,
-S_NATIONKEY int,
-S_PHONE varchar,
-S_ACCTBAL float,
-S_COMMENT varchar,
+S_NAME varchar not null,
+S_ADDRESS varchar not null,
+S_NATIONKEY int not null,
+S_PHONE varchar not null,
+S_ACCTBAL float not null,
+S_COMMENT varchar not null,
 );
+
+create table PARTSUPP (
+PS_PARTKEY int not null,
+PS_SUPPKEY int not null,
+PS_AVAILQTY int not null,
+PS_SUPPLYCOST float not null,
+PS_COMMENT varchar not null,
+);
+
+create table CUSTOMER (
+C_CUSTKEY int primary key,
+C_NAME varchar not null,
+C_ADDRESS varchar not null,
+C_NATIONKEY int not null,
+C_PHONE varchar not null,
+C_ACCTBAL float not null,
+C_MKTSEGMENT varchar not null,
+C_COMMENT varchar not null,
+);
+
+create table ORDERS (
+O_ORDERKEY int primary key,
+O_CUSTKEY int not null,
+O_ORDERSTATUS varchar not null,
+O_TOTALPRICE float not null,
+O_ORDERDATE date not null,
+O_ORDERPRIORITY varchar not null,
+O_CLERK varchar not null,
+O_SHIPPRIORITY int not null,
+O_COMMENT varchar not null,
+);
+
+create table LINEITEM (
+L_ORDERKEY int not null,
+L_PARTKEY int not null,
+L_SUPPKEY int not null,
+L_LINENUMBER int not null,
+L_QUANTITY float not null,
+L_EXTENDEDPRICE float not null,
+L_DISCOUNT float not null,
+L_TAX float not null,
+L_RETURNFLAG varchar not null,
+L_LINESTATUS varchar not null,
+L_SHIPDATE date not null,
+L_COMMITDATE date not null,
+L_RECEIPTDATE date not null,
+L_SHIPINSTRUCT varchar not null,
+L_SHIPMODE varchar not null,
+L_COMMENT varchar not null,
+);
+
+
+
+

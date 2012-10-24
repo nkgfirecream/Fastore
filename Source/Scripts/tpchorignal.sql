@@ -1,110 +1,170 @@
-create table CUSTOMER (
-	C_CUSTKEY	integer,
-	C_NAME		varchar(25),
-	C_ADDRESS	varchar(40),
-	C_NATIONKEY	integer,
-	C_PHONE		character(15),
-	C_ACCTBAL	numeric (20,2),
-	C_MKTSEGMENT	character(10),
-	C_COMMENT	varchar(117),
-	primary key (C_CUSTKEY)
-)
-;
+-- Sccsid:     @(#)dss.ddl	2.1.8.1
+CREATE TABLE NATION  ( N_NATIONKEY  INTEGER NOT NULL,
+                            N_NAME       CHAR(25) NOT NULL,
+                            N_REGIONKEY  INTEGER NOT NULL,
+                            N_COMMENT    VARCHAR(152));
 
-create table HISTORY (
-	H_P_KEY integer,
-	H_S_KEY integer,
-	H_O_KEY integer,
-	H_L_KEY integer,
-	H_DELTA integer,
-	H_DATE_T datetime
-)
-;
+CREATE TABLE REGION  ( R_REGIONKEY  INTEGER NOT NULL,
+                            R_NAME       CHAR(25) NOT NULL,
+                            R_COMMENT    VARCHAR(152));
 
-create table LINEITEM (
-	L_ORDERKEY	integer,
-	L_PARTKEY	integer,
-	L_SUPPKEY	integer,
-	L_LINENUMBER	integer,
-	L_QUANTITY	numeric (20,2),
-	L_EXTENDEDPRICE	numeric (20,2),
-	L_DISCOUNT	numeric (3,2),
-	L_TAX		numeric (3,2),
-	L_RETURNFLAG	character(1),
-	L_LINESTATUS	character(1),
-	L_SHIPDATE	date,
-	L_COMMITDATE	date,
-	L_RECEIPTDATE	date,
-	L_SHIPINSTRUCT	character(25),
-	L_SHIPMODE	character(10),
-	L_COMMENT	varchar(44),
-	primary key (L_ORDERKEY, L_LINENUMBER)
-)
-;
+CREATE TABLE PART  ( P_PARTKEY     INTEGER NOT NULL,
+                          P_NAME        VARCHAR(55) NOT NULL,
+                          P_MFGR        CHAR(25) NOT NULL,
+                          P_BRAND       CHAR(10) NOT NULL,
+                          P_TYPE        VARCHAR(25) NOT NULL,
+                          P_SIZE        INTEGER NOT NULL,
+                          P_CONTAINER   CHAR(10) NOT NULL,
+                          P_RETAILPRICE DECIMAL(15,2) NOT NULL,
+                          P_COMMENT     VARCHAR(23) NOT NULL );
 
-create table NATION (
-	N_NATIONKEY	integer,
-	N_NAME		character(25),
-	N_REGIONKEY	integer,
-	N_COMMENT	varchar(152),
-	primary key (N_NATIONKEY)
-)
-;
+CREATE TABLE SUPPLIER ( S_SUPPKEY     INTEGER NOT NULL,
+                             S_NAME        CHAR(25) NOT NULL,
+                             S_ADDRESS     VARCHAR(40) NOT NULL,
+                             S_NATIONKEY   INTEGER NOT NULL,
+                             S_PHONE       CHAR(15) NOT NULL,
+                             S_ACCTBAL     DECIMAL(15,2) NOT NULL,
+                             S_COMMENT     VARCHAR(101) NOT NULL);
 
-create table ORDERS (
-	O_ORDERKEY	integer,
-	O_CUSTKEY	integer,
-	O_ORDERSTATUS	character(1),
-	O_TOTALPRICE	numeric (20,2),
-	O_ORDERDATE	date,
-	O_ORDERPRIORITY	character(15),
-	O_CLERK		character(15),
-	O_SHIPPRIORITY	integer,
-	O_COMMENT	varchar(79),
-	primary key(O_ORDERKEY)
-)
-;
+CREATE TABLE PARTSUPP ( PS_PARTKEY     INTEGER NOT NULL,
+                             PS_SUPPKEY     INTEGER NOT NULL,
+                             PS_AVAILQTY    INTEGER NOT NULL,
+                             PS_SUPPLYCOST  DECIMAL(15,2)  NOT NULL,
+                             PS_COMMENT     VARCHAR(199) NOT NULL );
 
-create table PART (
-	P_PARTKEY	integer,
-	P_NAME		varchar(55),
-	P_MFGR		character(25),
-	P_BRAND		character(10),
-	P_TYPE		varchar(25),
-	P_SIZE		integer,
-	P_CONTAINER	character(10),
-	P_RETAILPRICE	numeric (20,2),
-	P_COMMENT	varchar(23),
-	primary key (P_PARTKEY)
-)
-;
+CREATE TABLE CUSTOMER ( C_CUSTKEY     INTEGER NOT NULL,
+                             C_NAME        VARCHAR(25) NOT NULL,
+                             C_ADDRESS     VARCHAR(40) NOT NULL,
+                             C_NATIONKEY   INTEGER NOT NULL,
+                             C_PHONE       CHAR(15) NOT NULL,
+                             C_ACCTBAL     DECIMAL(15,2)   NOT NULL,
+                             C_MKTSEGMENT  CHAR(10) NOT NULL,
+                             C_COMMENT     VARCHAR(117) NOT NULL);
 
-create table PARTSUPP (
-	PS_PARTKEY	integer,
-	PS_SUPPKEY	integer,
-	PS_AVAILQTY	integer,
-	PS_SUPPLYCOST	numeric (20,2),
-	PS_COMMENT	varchar(199),
-	primary key (PS_PARTKEY, PS_SUPPKEY)
-)
-;
+CREATE TABLE ORDERS  ( O_ORDERKEY       INTEGER NOT NULL,
+                           O_CUSTKEY        INTEGER NOT NULL,
+                           O_ORDERSTATUS    CHAR(1) NOT NULL,
+                           O_TOTALPRICE     DECIMAL(15,2) NOT NULL,
+                           O_ORDERDATE      DATE NOT NULL,
+                           O_ORDERPRIORITY  CHAR(15) NOT NULL,  
+                           O_CLERK          CHAR(15) NOT NULL, 
+                           O_SHIPPRIORITY   INTEGER NOT NULL,
+                           O_COMMENT        VARCHAR(79) NOT NULL);
 
-create table REGION (
-	R_REGIONKEY	integer,
-	R_NAME		character(25),
-	R_COMMENT	varchar(152),
-	primary key (R_REGIONKEY)
-)
-;
+CREATE TABLE LINEITEM ( L_ORDERKEY    INTEGER NOT NULL,
+                             L_PARTKEY     INTEGER NOT NULL,
+                             L_SUPPKEY     INTEGER NOT NULL,
+                             L_LINENUMBER  INTEGER NOT NULL,
+                             L_QUANTITY    DECIMAL(15,2) NOT NULL,
+                             L_EXTENDEDPRICE  DECIMAL(15,2) NOT NULL,
+                             L_DISCOUNT    DECIMAL(15,2) NOT NULL,
+                             L_TAX         DECIMAL(15,2) NOT NULL,
+                             L_RETURNFLAG  CHAR(1) NOT NULL,
+                             L_LINESTATUS  CHAR(1) NOT NULL,
+                             L_SHIPDATE    DATE NOT NULL,
+                             L_COMMITDATE  DATE NOT NULL,
+                             L_RECEIPTDATE DATE NOT NULL,
+                             L_SHIPINSTRUCT CHAR(25) NOT NULL,
+                             L_SHIPMODE     CHAR(10) NOT NULL,
+                             L_COMMENT      VARCHAR(44) NOT NULL);
+							 
+							 
+							 
+							 
+CONNECT TO TPCD;
 
-create table SUPPLIER (
-	S_SUPPKEY	integer,
-	S_NAME		character(25),
-	S_ADDRESS	varchar(40),
-	S_NATIONKEY	integer,
-	S_PHONE		character(15),
-	S_ACCTBAL	numeric (20,2),
-	S_COMMENT	varchar(101),
-	primary key (S_SUPPKEY)
-)
-;
+--ALTER TABLE TPCD.REGION DROP PRIMARY KEY;
+--ALTER TABLE TPCD.NATION DROP PRIMARY KEY;
+--ALTER TABLE TPCD.PART DROP PRIMARY KEY;
+--ALTER TABLE TPCD.SUPPLIER DROP PRIMARY KEY;
+--ALTER TABLE TPCD.PARTSUPP DROP PRIMARY KEY;
+--ALTER TABLE TPCD.ORDERS DROP PRIMARY KEY;
+--ALTER TABLE TPCD.LINEITEM DROP PRIMARY KEY;
+--ALTER TABLE TPCD.CUSTOMER DROP PRIMARY KEY;
+
+
+-- For table REGION
+ALTER TABLE TPCD.REGION
+ADD PRIMARY KEY (R_REGIONKEY);
+
+-- For table NATION
+ALTER TABLE TPCD.NATION
+ADD PRIMARY KEY (N_NATIONKEY);
+
+ALTER TABLE TPCD.NATION
+ADD FOREIGN KEY NATION_FK1 (N_REGIONKEY) references TPCD.REGION;
+
+COMMIT WORK;
+
+-- For table PART
+ALTER TABLE TPCD.PART
+ADD PRIMARY KEY (P_PARTKEY);
+
+COMMIT WORK;
+
+-- For table SUPPLIER
+ALTER TABLE TPCD.SUPPLIER
+ADD PRIMARY KEY (S_SUPPKEY);
+
+ALTER TABLE TPCD.SUPPLIER
+ADD FOREIGN KEY SUPPLIER_FK1 (S_NATIONKEY) references TPCD.NATION;
+
+COMMIT WORK;
+
+-- For table PARTSUPP
+ALTER TABLE TPCD.PARTSUPP
+ADD PRIMARY KEY (PS_PARTKEY,PS_SUPPKEY);
+
+COMMIT WORK;
+
+-- For table CUSTOMER
+ALTER TABLE TPCD.CUSTOMER
+ADD PRIMARY KEY (C_CUSTKEY);
+
+ALTER TABLE TPCD.CUSTOMER
+ADD FOREIGN KEY CUSTOMER_FK1 (C_NATIONKEY) references TPCD.NATION;
+
+COMMIT WORK;
+
+-- For table LINEITEM
+ALTER TABLE TPCD.LINEITEM
+ADD PRIMARY KEY (L_ORDERKEY,L_LINENUMBER);
+
+COMMIT WORK;
+
+-- For table ORDERS
+ALTER TABLE TPCD.ORDERS
+ADD PRIMARY KEY (O_ORDERKEY);
+
+COMMIT WORK;
+
+-- For table PARTSUPP
+ALTER TABLE TPCD.PARTSUPP
+ADD FOREIGN KEY PARTSUPP_FK1 (PS_SUPPKEY) references TPCD.SUPPLIER;
+
+COMMIT WORK;
+
+ALTER TABLE TPCD.PARTSUPP
+ADD FOREIGN KEY PARTSUPP_FK2 (PS_PARTKEY) references TPCD.PART;
+
+COMMIT WORK;
+
+-- For table ORDERS
+ALTER TABLE TPCD.ORDERS
+ADD FOREIGN KEY ORDERS_FK1 (O_CUSTKEY) references TPCD.CUSTOMER;
+
+COMMIT WORK;
+
+-- For table LINEITEM
+ALTER TABLE TPCD.LINEITEM
+ADD FOREIGN KEY LINEITEM_FK1 (L_ORDERKEY)  references TPCD.ORDERS;
+
+COMMIT WORK;
+
+ALTER TABLE TPCD.LINEITEM
+ADD FOREIGN KEY LINEITEM_FK2 (L_PARTKEY,L_SUPPKEY) references 
+        TPCD.PARTSUPP;
+
+COMMIT WORK;
+
+
