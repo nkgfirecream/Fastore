@@ -116,5 +116,17 @@ namespace Fastore.Data
 
 		//// Short-hand for Prepare followed by Next... then close if eof.
 		//FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *sql);
+
+		public static void CheckResult(int result)
+		{
+			if (result != Provider.FASTORE_OK)
+			{
+				var message = new StringBuilder(255);
+				int code;
+				if (!Provider.GetLastError(result, (uint)message.Capacity, message, out code))
+					throw new Exception("Unable to retrieve error details.");
+				throw new Exception(String.Format("Error {0}: {1}", code, message));
+			}
+		}
     }
 }

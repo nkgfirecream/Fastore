@@ -106,9 +106,9 @@ std::string Statement::getColumn(int index)
 	switch (type)
 	{
 		//case ArgumentType::FASTORE_ARGUMENT_BOOL : break;
-		//case ArgumentType::FASTORE_ARGUMENT_DOUBLE :  break;
-		//case ArgumentType::FASTORE_ARGUMENT_INT32 :  break;
-		case ArgumentType::FASTORE_ARGUMENT_INT64 :  return fastore::client::Encoder<long long>::Encode(sqlite3_column_int64(_statement, index));
+		case ArgumentType::FASTORE_ARGUMENT_DOUBLE : return fastore::client::Encoder<double>::Encode(sqlite3_column_double(_statement, index));
+		case ArgumentType::FASTORE_ARGUMENT_INT32 : return fastore::client::Encoder<int32_t>::Encode(sqlite3_column_int(_statement, index));
+		case ArgumentType::FASTORE_ARGUMENT_INT64 : return fastore::client::Encoder<int64_t>::Encode(sqlite3_column_int64(_statement, index));
 		case ArgumentType::FASTORE_ARGUMENT_NULL : /* return null string */
 		//case ArgumentType::FASTORE_ARGUMENT_STRING16 : sqlite3_bind_text16(_statement, index, value.c_str(), value.length(), NULL); break;
 		case ArgumentType::FASTORE_ARGUMENT_STRING8 : return std::string((char*)sqlite3_column_text(_statement, index));

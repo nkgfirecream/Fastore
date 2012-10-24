@@ -7,45 +7,21 @@ namespace Fastore.Data.Test
 	[TestClass]
 	public class ProviderTests
 	{
-		private static void CheckResult(int result)
+		private static void InternalConnectDisconnect(Action<Connection> callback)
 		{
-			if (result != Provider.FASTORE_OK)
+			using (var connection = new Connection(new Provider.FastoreAddress[] { new Provider.FastoreAddress { HostName = "localhost", Port = 8765 } }))
 			{
-				var message = new StringBuilder(255);
-				int code;
-				if (!Provider.GetLastError(result, (uint)message.Capacity, message, out code))
-					throw new Exception("Unable to retrieve error details.");
-				throw new Exception(String.Format("Error {0}: {1}", code, message));
-			}
-		}
-
-		private static void InternalConnectDisconnect(Action<IntPtr> callback)
-		{
-			var conResult =
-				Provider.Connect
-				(
-					1,
-					new Provider.FastoreAddress[] 
-					{ 
-						new Provider.FastoreAddress { HostName = "localhost", Port = 8765 }
-					}
-				);
-			CheckResult(conResult.Result);
-			try
-			{
-				callback(conResult.Connection);
-			}
-			finally
-			{
-				var disResult = Provider.Disconnect(conResult.Connection);
-				CheckResult(disResult.Result);
+				callback(connection);
 			}
 		}
 
 		[TestMethod]
 		public void ConnectDisconnectTest()
 		{
-			InternalConnectDisconnect((c) => {});
+			InternalConnectDisconnect
+			(
+				(c) => { }
+			);
 		}
 
 		[TestMethod]
@@ -53,25 +29,64 @@ namespace Fastore.Data.Test
 		{
 			InternalConnectDisconnect
 			(
+				(c) => 
+				{ 
+					using (var statement = c.Prepare("select 5"))
+					{
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void GetInt32Test()
+		{
+			InternalConnectDisconnect
+			(
 				(c) =>
 				{
-					var prepareResult = Provider.Prepare(c, "select 5");
-					CheckResult(prepareResult.Result);
-					try
+					using (var statement = c.Prepare("select 5"))
 					{
-						var nextResult = Provider.Next(prepareResult.Statement);
-						CheckResult(nextResult.Result);
-					
-						int size = 4;
-						int value;
-						var getResult = Provider.ColumnValue(prepareResult.Statement, 0, ref size, out value);
+						if (!statement.Next())
+							Assert.Fail("No row.");
 
-						Console.WriteLine(value);
+						Assert.AreEqual(5, statement.GetInt32(0));
 					}
-					finally
+				}
+			);
+		}
+
+		[TestMethod]
+		public void GetInt64Test()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select 5523123232"))
 					{
-						var closeResult = Provider.Close(prepareResult.Statement);
-						CheckResult(closeResult.Result);
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.AreEqual(5523123232, statement.GetInt64(0));
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void GetDoubleTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select 1.234"))
+					{
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.AreEqual(1.234, statement.GetDouble(0));
 					}
 				}
 			);
