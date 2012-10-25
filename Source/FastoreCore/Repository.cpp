@@ -9,14 +9,36 @@
 #include "Column/TreeBuffer.h"
 #include "Column/TreeInlineBuffer.h"
 #include "Column/IdentityBuffer.h"
+#include "TFastoreFileTransport.h"
+#include <thrift/protocol/TBinaryProtocol.h>
 //#include "Column/MultiBimapBuffer.h"
 
 using namespace boost::filesystem;
 
 Repository::Repository(ColumnID columnID, const string& path) : _columnID(columnID), _path(path)
+{	
+	load();
+}
+
+Repository::Repository(ColumnDef def, const string& path) : _def(def), _path(path), _columnID(def.ColumnID)
 {
-	//set status to offline.
-	_status = RepositoryStatus::Offline;
+	create();
+}
+
+void Repository::checkExists()
+{
+	// Verify that there is no persistence to load from - shouldn't be if creating
+	auto logpath = path(GetLogFileName());
+	
+	if (exists(logpath))
+		throw "Existing log file!";
+
+	for (int i = 0; i <= 1; i++)
+	{
+		auto datapath = path(GetDataFileName(i));
+		if (exists(datapath))
+			throw "Existing data file!";
+	}
 }
 
 string Repository::GetLogFileName()
@@ -33,28 +55,17 @@ string Repository::GetDataFileName(int number)
 	return logFileName.str();
 }
 
-void Repository::create(ColumnDef def)
+void Repository::create()
 {
-	if (def.ColumnID != _columnID)
-		throw "Create definition columnId does not match assigned Id!";
+	_status = RepositoryStatus::Offline;
+	//checkExists();
+	initializeBuffer();
+	//initializeLog();
+	_status = RepositoryStatus::Online;
+}
 
-	// Verify that there is no persistence to load from - shouldn't be if creating
-	auto logpath = path(GetLogFileName());
-	
-	if (exists(logpath))
-		throw "Existing log file!";
-
-	for (int i = 0; i <= 1; i++)
-	{
-		auto datapath = path(GetDataFileName(i));
-		if (exists(datapath))
-			throw "Existing data file!";
-	}
-	
-	//There's no previous data... continue with creation
-	//Set our column definition
-	_def = def;	
-	
+void Repository::initializeBuffer()
+{
 	if (_def.BufferType == BufferType_t::Identity)
 	{
 		if (_def.RowIDType.Name != _def.ValueType.Name)
@@ -85,30 +96,85 @@ void Repository::create(ColumnDef def)
 			_buffer = std::unique_ptr<IColumnBuffer>(new TreeBuffer(_def.RowIDType, _def.ValueType));		
 		}
 	}
-
-	// Initialize the log file
-	//_log = auto_ptr<Log>(new Log(GetLogFileName()));
-
-	//Set status to online
-	_status = RepositoryStatus::Online;
 }
 
 void Repository::load()
 {
+	//TODO: refactor into set status? Should repos load in a separate thread
+	//so the worker can keep doing its thing?
 	// Update state to loading
 	_status = RepositoryStatus::Loading;
 
 	// Read header from each data file to determine which is newer
-	ifstream dataFile(GetDataFileName(1));
-	// ...
-	// Read file into buffer, checking against CRC
-	// If CRC checks out, take newer, otherwise take older
+	// and complete (via crc check)
+	auto datapath = path(GetDataFileName(0));
+	if (!exists(datapath))
+		throw "Can't load repo. File not found!";
+	
+	//Open file
+	boost::shared_ptr<apache::thrift::transport::TFastoreFileTransport> transport( new apache::thrift::transport::TFastoreFileTransport(datapath.string(), true));	
+	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocol(new apache::thrift::protocol::TBinaryProtocol(transport));
 
-	//DataFileHeader header = ;
-	//for (auto _log.GotoRevision(
+	transport->open();
 
-	// Initialize the log file
-	//_log = auto_ptr<Log>(new Log(GetLogFileName()));
+	//Read column definition
+	ColumnDef def;
+
+	int64_t columnId;
+	protocol->readI64(columnId);
+	def.ColumnID = columnId;
+
+	int buffer;
+	protocol->readI32(buffer);
+	def.BufferType = (BufferType_t)buffer;
+
+	string name;
+	protocol->readString(name);
+	def.Name = name;
+
+	bool required;
+	protocol->readBool(required);
+	def.Required = required;
+
+	string rowType;
+	protocol->readString(rowType);
+	def.RowIDType = standardtypes::GetTypeFromName(rowType);
+
+	string valueType;
+	protocol->readString(valueType);
+	def.ValueType = standardtypes::GetTypeFromName(valueType);
+
+
+	//Now have a definition, so initalize  the buffer
+	_def = def;
+	initializeBuffer();
+
+	//Read rest of file into buffer
+	ColumnWrites writes;
+	vector<Include> includes;
+	while(protocol->getTransport()->peek())
+	{
+		ValueRows vr;
+		vr.read(protocol.get());
+		for (size_t j = 0; j < vr.rowIDs.size(); j++)
+		{
+			Include inc;
+			inc.__set_value(vr.value);
+			inc.__set_rowID(vr.rowIDs.at(j));
+			includes.push_back(inc);
+		}
+	}
+
+	writes.__set_includes(includes);
+	_buffer->Apply(writes);
+
+	transport->close();
+
+	//initialize log if not present
+	//if (no log)
+	//intialize log()
+	//else
+	//read log()
 
 	// Read the head two pages of the log file
 	// Take the newest non-torn page
@@ -126,9 +192,50 @@ void Repository::checkpoint()
 	_status = RepositoryStatus::Checkpointing;
 
 	// Pick oldest datafile
-	ofstream dataFile(GetDataFileName(1));
+	auto datapath = path(GetDataFileName(0));
+
+	if (!exists(datapath.branch_path()))
+	{
+		boost::system::error_code e;
+		boost::filesystem::create_directories(datapath.branch_path(), e);
+		if (e)
+		{
+			string 	what = e.message();
+		}
+	}	
+
+	//Open file
+	boost::shared_ptr<apache::thrift::transport::TFastoreFileTransport> transport( new apache::thrift::transport::TFastoreFileTransport(datapath.string(), false));	
+	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocol(new apache::thrift::protocol::TBinaryProtocol(transport));
+
+	transport->open();
 	// ...
 	// Write buffer to file
+	// Write column definition
+	//TODO completed bits, time stamp, revision, etc.
+	protocol->writeI64(_def.ColumnID);
+	protocol->writeI32((int)_def.BufferType);
+	protocol->writeString(_def.Name);
+	protocol->writeBool(_def.Required);
+	protocol->writeString(_def.RowIDType.Name);
+	protocol->writeString(_def.ValueType.Name);
+
+	//Write rest of buffer
+	fastore::communication::RangeRequest range;
+
+	range.__set_ascending(true);
+	range.__set_limit(2000000000);
+	RangeResult result = _buffer->GetRows(range);
+	
+	ValueRowsList vrl = result.valueRowsList;
+	for (size_t i = 0; i < vrl.size(); i++)
+	{
+		ValueRows vr = vrl[i];
+		vr.write(protocol.get());
+	}
+
+	transport->flush();
+	transport->close();
 
 	// Truncate log
 

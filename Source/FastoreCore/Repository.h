@@ -24,11 +24,26 @@ private:
 	string GetLogFileName();
 	string GetDataFileName(int number);
 	
+	//Attempts to load from disk
+	void load();
+
+	//Attempts to create a new repo
+	void create();
+
+	//Makes sure no files are present before create a new repo
+	void checkExists();
+
+	//Initializes a buffer repo matching the definition
+	void initializeBuffer();
+	
 	void WriteToLog(const Revision& revision, const ColumnWrites& writes);
 
 public:
+	//Load repo
 	Repository(ColumnID columnID, const string& path);
-	
+
+	//Create repo
+	Repository(ColumnDef def, const string& path);
 
 	ColumnID getColumnID() { return _columnID; }
 	string getPath() { return _path; }
@@ -36,14 +51,8 @@ public:
 	ColumnDef getDef() { return _def; }
 	Revision getRevision() { return _revision; }
 
-	//Attempts to load from disk
-	void load();
-
 	//Unload instead? Saves to disk and releases memory
 	void shutdown();
-
-	//Initializes the repo matching the definition
-	void create(ColumnDef def);
 
 	//Frees buffer, erases physical files
 	void drop();

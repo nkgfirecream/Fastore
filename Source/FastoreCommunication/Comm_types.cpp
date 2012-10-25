@@ -170,7 +170,7 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size0;
             ::apache::thrift::protocol::TType _ktype1;
             ::apache::thrift::protocol::TType _vtype2;
-            xfer += iprot->readMapBegin(_ktype1, _vtype2, _size0);
+            iprot->readMapBegin(_ktype1, _vtype2, _size0);
             uint32_t _i4;
             for (_i4 = 0; _i4 < _size0; ++_i4)
             {
@@ -181,7 +181,7 @@ uint32_t WorkerState::read(::apache::thrift::protocol::TProtocol* iprot) {
               xfer += iprot->readI32(ecast7);
               _val6 = (RepositoryStatus::type)ecast7;
             }
-            xfer += iprot->readMapEnd();
+            iprot->readMapEnd();
           }
           isset_repositoryStatus = true;
         } else {
@@ -310,14 +310,14 @@ uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->workers.clear();
             uint32_t _size10;
             ::apache::thrift::protocol::TType _etype13;
-            xfer += iprot->readListBegin(_etype13, _size10);
+            iprot->readListBegin(_etype13, _size10);
             this->workers.resize(_size10);
             uint32_t _i14;
             for (_i14 = 0; _i14 < _size10; ++_i14)
             {
               xfer += this->workers[_i14].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_workers = true;
         } else {
@@ -426,7 +426,7 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size16;
             ::apache::thrift::protocol::TType _ktype17;
             ::apache::thrift::protocol::TType _vtype18;
-            xfer += iprot->readMapBegin(_ktype17, _vtype18, _size16);
+            iprot->readMapBegin(_ktype17, _vtype18, _size16);
             uint32_t _i20;
             for (_i20 = 0; _i20 < _size16; ++_i20)
             {
@@ -435,7 +435,7 @@ uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
               ServiceState& _val22 = this->services[_key21];
               xfer += _val22.read(iprot);
             }
-            xfer += iprot->readMapEnd();
+            iprot->readMapEnd();
           }
           isset_services = true;
         } else {
@@ -545,7 +545,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
             uint32_t _size24;
             ::apache::thrift::protocol::TType _ktype25;
             ::apache::thrift::protocol::TType _vtype26;
-            xfer += iprot->readMapBegin(_ktype25, _vtype26, _size24);
+            iprot->readMapBegin(_ktype25, _vtype26, _size24);
             uint32_t _i28;
             for (_i28 = 0; _i28 < _size24; ++_i28)
             {
@@ -557,7 +557,7 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
                 uint32_t _size31;
                 ::apache::thrift::protocol::TType _ktype32;
                 ::apache::thrift::protocol::TType _vtype33;
-                xfer += iprot->readMapBegin(_ktype32, _vtype33, _size31);
+                iprot->readMapBegin(_ktype32, _vtype33, _size31);
                 uint32_t _i35;
                 for (_i35 = 0; _i35 < _size31; ++_i35)
                 {
@@ -568,20 +568,20 @@ uint32_t Topology::read(::apache::thrift::protocol::TProtocol* iprot) {
                     _val37.clear();
                     uint32_t _size38;
                     ::apache::thrift::protocol::TType _etype41;
-                    xfer += iprot->readListBegin(_etype41, _size38);
+                    iprot->readListBegin(_etype41, _size38);
                     _val37.resize(_size38);
                     uint32_t _i42;
                     for (_i42 = 0; _i42 < _size38; ++_i42)
                     {
                       xfer += iprot->readI64(_val37[_i42]);
                     }
-                    xfer += iprot->readListEnd();
+                    iprot->readListEnd();
                   }
                 }
-                xfer += iprot->readMapEnd();
+                iprot->readMapEnd();
               }
             }
-            xfer += iprot->readMapEnd();
+            iprot->readMapEnd();
           }
           isset_hosts = true;
         } else {
@@ -1296,14 +1296,14 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->includes.clear();
             uint32_t _size46;
             ::apache::thrift::protocol::TType _etype49;
-            xfer += iprot->readListBegin(_etype49, _size46);
+            iprot->readListBegin(_etype49, _size46);
             this->includes.resize(_size46);
             uint32_t _i50;
             for (_i50 = 0; _i50 < _size46; ++_i50)
             {
               xfer += this->includes[_i50].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.includes = true;
         } else {
@@ -1316,14 +1316,14 @@ uint32_t ColumnWrites::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->excludes.clear();
             uint32_t _size51;
             ::apache::thrift::protocol::TType _etype54;
-            xfer += iprot->readListBegin(_etype54, _size51);
+            iprot->readListBegin(_etype54, _size51);
             this->excludes.resize(_size51);
             uint32_t _i55;
             for (_i55 = 0; _i55 < _size51; ++_i55)
             {
               xfer += this->excludes[_i55].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.excludes = true;
         } else {
@@ -1706,14 +1706,14 @@ uint32_t ValueRows::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rowIDs.clear();
             uint32_t _size58;
             ::apache::thrift::protocol::TType _etype61;
-            xfer += iprot->readListBegin(_etype61, _size58);
+            iprot->readListBegin(_etype61, _size58);
             this->rowIDs.resize(_size58);
             uint32_t _i62;
             for (_i62 = 0; _i62 < _size58; ++_i62)
             {
               xfer += iprot->readBinary(this->rowIDs[_i62]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_rowIDs = true;
         } else {
@@ -1800,14 +1800,14 @@ uint32_t RangeResult::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->valueRowsList.clear();
             uint32_t _size64;
             ::apache::thrift::protocol::TType _etype67;
-            xfer += iprot->readListBegin(_etype67, _size64);
+            iprot->readListBegin(_etype67, _size64);
             this->valueRowsList.resize(_size64);
             uint32_t _i68;
             for (_i68 = 0; _i68 < _size64; ++_i68)
             {
               xfer += this->valueRowsList[_i68].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           isset_valueRowsList = true;
         } else {
@@ -1928,14 +1928,14 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rowIDs.clear();
             uint32_t _size70;
             ::apache::thrift::protocol::TType _etype73;
-            xfer += iprot->readListBegin(_etype73, _size70);
+            iprot->readListBegin(_etype73, _size70);
             this->rowIDs.resize(_size70);
             uint32_t _i74;
             for (_i74 = 0; _i74 < _size70; ++_i74)
             {
               xfer += iprot->readBinary(this->rowIDs[_i74]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.rowIDs = true;
         } else {
@@ -1948,14 +1948,14 @@ uint32_t Query::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->ranges.clear();
             uint32_t _size75;
             ::apache::thrift::protocol::TType _etype78;
-            xfer += iprot->readListBegin(_etype78, _size75);
+            iprot->readListBegin(_etype78, _size75);
             this->ranges.resize(_size75);
             uint32_t _i79;
             for (_i79 = 0; _i79 < _size75; ++_i79)
             {
               xfer += this->ranges[_i79].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.ranges = true;
         } else {
@@ -2108,14 +2108,14 @@ uint32_t Answer::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rowIDValues.clear();
             uint32_t _size82;
             ::apache::thrift::protocol::TType _etype85;
-            xfer += iprot->readListBegin(_etype85, _size82);
+            iprot->readListBegin(_etype85, _size82);
             this->rowIDValues.resize(_size82);
             uint32_t _i86;
             for (_i86 = 0; _i86 < _size82; ++_i86)
             {
               xfer += this->rowIDValues[_i86].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.rowIDValues = true;
         } else {
@@ -2128,14 +2128,14 @@ uint32_t Answer::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->rangeValues.clear();
             uint32_t _size87;
             ::apache::thrift::protocol::TType _etype90;
-            xfer += iprot->readListBegin(_etype90, _size87);
+            iprot->readListBegin(_etype90, _size87);
             this->rangeValues.resize(_size87);
             uint32_t _i91;
             for (_i91 = 0; _i91 < _size87; ++_i91)
             {
               xfer += this->rangeValues[_i91].read(iprot);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.rangeValues = true;
         } else {
@@ -2437,14 +2437,14 @@ uint32_t Conflict::read(::apache::thrift::protocol::TProtocol* iprot) {
             this->columnIDs.clear();
             uint32_t _size94;
             ::apache::thrift::protocol::TType _etype97;
-            xfer += iprot->readListBegin(_etype97, _size94);
+            iprot->readListBegin(_etype97, _size94);
             this->columnIDs.resize(_size94);
             uint32_t _i98;
             for (_i98 = 0; _i98 < _size94; ++_i98)
             {
               xfer += iprot->readI64(this->columnIDs[_i98]);
             }
-            xfer += iprot->readListEnd();
+            iprot->readListEnd();
           }
           this->__isset.columnIDs = true;
         } else {

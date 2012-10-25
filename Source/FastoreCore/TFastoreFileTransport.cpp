@@ -72,11 +72,8 @@ uint32_t TFastoreFileTransport::read(uint8_t* buf, uint32_t len)
 void TFastoreFileTransport::write(const uint8_t* buf, uint32_t len)
 {
 
-  if (_read)
+  if (!_read)
 	{
-
-		flush();
-
 		while (len > 0)
 		{
 			size_t rv = ::fwrite(buf, 1, len, _file);
@@ -95,9 +92,6 @@ void TFastoreFileTransport::write(const uint8_t* buf, uint32_t len)
 			// rv <= len, because len was input to write(2)
 			len -= static_cast<uint32_t>(rv);
 		}
-
-		//For debugging purposes, flush after every write.
-		flush();
 	}
 	else
 		throw TTransportException(TTransportException::UNKNOWN, "Attempted write on read-only TFastoreFileTransport");

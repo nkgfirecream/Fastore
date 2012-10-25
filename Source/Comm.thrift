@@ -321,6 +321,9 @@ service Worker
 	ReadResults query(1:Queries queries),
 	
 	/** Retrieves statistics for a given list of columns based on the latest committed revision. */
-	list<Statistic> getStatistics(1:list<ColumnID> columnIDs)	
+	list<Statistic> getStatistics(1:list<ColumnID> columnIDs),
+
+	/** INCOMPLETE: Checkpoints all repos in worker **/
+	oneway void checkpoint()
 }
 

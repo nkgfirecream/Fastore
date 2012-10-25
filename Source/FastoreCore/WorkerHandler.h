@@ -31,9 +31,6 @@ private:
 
 	void AddColumnToSchema(ColumnDef def);
 	ColumnDef GetDefFromSchema(ColumnID id);
-
-	ScalarType GetTypeFromName(std::string typeName);
-
 	
 public:
 	WorkerHandler(const PodID podId, 
@@ -80,6 +77,7 @@ public:
 
 	//Admin
 	void shutdown();
+	void checkpoint();
 
 	//TProcessorEventHandler
 	void handlerError(void* ctx, const char* fn_name);

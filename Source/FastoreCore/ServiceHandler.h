@@ -3,20 +3,22 @@
 #include "../FastoreCommunication/Server_types.h"
 #include "Endpoint.h"
 #include <thrift/server/TServer.h>
-#include <thrift/transport/TSimpleFileTransport.h>
+#include <thrift/transport/TFDTransport.h>
 #include <boost/thread.hpp>
 #include <unordered_map>
 #include <string>
 #include "Scheduler.h"
 #include "TFastoreServer.h"
 #include "Worker.h"
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 
 class ServiceHandler : virtual public fastore::communication::ServiceIf, virtual public apache::thrift::TProcessorEventHandler
 {
 private: 
 	static const char* const ConfigFileName;
 
-	boost::shared_ptr<apache::thrift::transport::TSimpleFileTransport> _configFile;
+	boost::filesystem::path _configPath;
 	boost::shared_ptr<fastore::server::ServiceConfig> _config;
 	std::list<boost::shared_ptr<Endpoint>> _endpoints;
 	std::list<boost::thread> _workerThreads;

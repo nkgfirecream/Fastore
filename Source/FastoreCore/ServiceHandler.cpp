@@ -31,25 +31,27 @@ using fastore::log_endl;
 using fastore::log_info;
 using fastore::log_err;
 
-const char* const ServiceHandler::ConfigFileName = "config.json";
+const char* const ServiceHandler::ConfigFileName = "config.dat";
 
 ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 {
 	bool configChanged = false;
 
-	auto configFileName = path(startup.path) / path(ConfigFileName);
-	if (exists(configFileName))
+	_configPath = path(startup.path) / path(ConfigFileName);
+	if (exists(_configPath))
 	{
 		Log << log_info << __func__ 
 			<< ": Existing instance: " << startup.path << log_endl;
 
 		// Open and hold the configuration file
-		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), true, true));
+		boost::shared_ptr<TFDTransport>_configFile = boost::shared_ptr<TFDTransport>(new TFDTransport(open(_configPath.string().c_str(), O_RDONLY), TFDTransport::CLOSE_ON_DESTROY));
 
 		// Read the configuration
-		TJSONProtocol reader(_configFile);
+		TBinaryProtocol reader(_configFile);
 		_config = boost::shared_ptr<ServiceConfig>(new ServiceConfig());
 		_config->read(&reader);
+
+		_configFile->close();
 	}
 	else
 	{
@@ -58,7 +60,6 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 			<< ": New instance: " << startup.path << log_endl;
 
 		// Create new configuration
-		_configFile = boost::shared_ptr<TSimpleFileTransport>(new TSimpleFileTransport(configFileName.string(), true, true));
 		_config = boost::shared_ptr<ServiceConfig>(new ServiceConfig());
 	}
 
@@ -135,9 +136,23 @@ void ServiceHandler::EnsureWorkerPaths(size_t numWorkers)
 
 void ServiceHandler::SaveConfiguration()
 {
+	#ifndef _WIN32
+	  mode_t mode = S_IRUSR | S_IWUSR| S_IRGRP | S_IROTH;
+	#else
+	  int mode = _S_IREAD | _S_IWRITE;
+	#endif
+	 
+	int fd = open(_configPath.string().c_str(), O_CREAT | O_TRUNC|  O_WRONLY, mode);
+	if (fd < 0)
+		throw "Failed to config for writing";
+
+	boost::shared_ptr<TFDTransport>_configFile = boost::shared_ptr<TFDTransport>(new TFDTransport(fd, TFDTransport::CLOSE_ON_DESTROY));
 	// Write the configuration for the new instance
-	TJSONProtocol writer(_configFile);
+	TBinaryProtocol writer(_configFile);
 	_config->write(&writer);
+
+	_configFile->flush();
+	_configFile->close();
 }
 
 void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
@@ -228,8 +243,7 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 	}
 
 	// Update the configuration
-	_config->__set_joinedHive(*_hiveState);
-	SaveConfiguration();
+	_config->__set_joinedHive(*_hiveState);	
 
 	_scheduler = boost::shared_ptr<Scheduler>(new Scheduler(_config->address));
 
@@ -238,6 +252,8 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 
 	// Start scheduler running... Or should it start on the first callback?
 	_scheduler->start();
+
+	SaveConfiguration();
 }
 
 void ServiceHandler::join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) 

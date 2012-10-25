@@ -7,6 +7,9 @@
 #include <unordered_set>
 #include "Schema/standardtypes.h"
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
 using namespace ::apache::thrift::transport;
@@ -29,11 +32,32 @@ WorkerHandler(const PodID podId,
 {
 	//* Attempt to open data file
 	//* Check data directory for improper shut down - see Recovery
+	boost::filesystem::path fpath (_path);
+	//If existing data, load it.
+	if (boost::filesystem::exists(fpath))
+	{
+		boost::filesystem::directory_iterator iter(fpath), end;
+		while(iter != end)
+		{
+			auto fnpath = iter->path();
+			std::string fn = fnpath.filename().string();
 
-	//* If (new instance), bootstrap
-	Bootstrap();
-	//  else load system columns
+			std::stringstream ss(fn);
+			std::string id;
+			std::getline(ss, id, '_');
+			
+			int64_t columnid = _atoi64(id.c_str());
 
+			boost::shared_ptr<Repository> repo(new Repository(columnid, _path));
+			_repositories[columnid] = repo;
+			++iter;
+		}
+	}
+	else
+	{
+		//* If (new instance), bootstrap
+		Bootstrap();
+	}
 
 	//* Read rest of topology columns into memory; play log files for the same
 }
@@ -169,8 +193,7 @@ void WorkerHandler::Bootstrap()
 
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
-	boost::shared_ptr<Repository> repo(new Repository(def.ColumnID, _path));
-	repo->create(def);
+	boost::shared_ptr<Repository> repo(new Repository(def, _path));
 	_repositories[def.ColumnID] = repo;
 }
 
@@ -349,71 +372,17 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 
 	//ValueType
 	answer = _repositories[2]->query(query);
-	def.ValueType = GetTypeFromName(answer.rowIDValues.at(0).value);
+	def.ValueType = standardtypes::GetTypeFromName(answer.rowIDValues.at(0).value);
 
 	//RowType
 	answer = _repositories[3]->query(query);
-	def.RowIDType = GetTypeFromName(answer.rowIDValues[0].value);
+	def.RowIDType = standardtypes::GetTypeFromName(answer.rowIDValues[0].value);
 
 	//Unique
 	answer = _repositories[4]->query(query);
 	def.BufferType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
 
 	return def;
-}
-
-ScalarType WorkerHandler::GetTypeFromName(std::string typeName)
-{
-#if 0
-	// This compiles with GNU and is valid C++11, but not with VS 2012. 
-	const static map< std::string, ScalarType > output = 
-		{ { "Bool", BoolType() }
-		, { "WString", WStringType() }
-		, { "String", StringType() }
-		, { "Int", IntType() }
-		, { "Long", LongType() }
-		};
-
-	map< std::string, ScalarType >::const_iterator p = 
-		output.find(argv[1]);
-
-	if( p == output.end() ) {
-		ostringstream oops;
-		oops << "invalid TypeName: " << argv[1];
- 		throw runtime_error( oops.str() );
-	}
-
-	return p->second.Name;
-#else
-	if (typeName == "WString")
-	{
-		return standardtypes::WString;
-	}
-	else if (typeName == "String")
-	{
-		return standardtypes::String;
-	}
-	else if (typeName == "Int")
-	{
-		return standardtypes::Int;
-	}
-	else if (typeName == "Long")
-	{
-		return standardtypes::Long;
-	}
-	else if (typeName == "Bool")
-	{
-		return standardtypes::Bool;
-	}
-	else if (typeName == "Double")
-	{
-		return standardtypes::Double;
-	}
-	else
-	{
-		throw "TypeName not recognized";
-	}
-#endif
 }
 
 void WorkerHandler::CheckState()
@@ -558,6 +527,16 @@ void WorkerHandler::getState(WorkerState& _return)
 	}
 	
 	_return.__set_repositoryStatus(statuses);
+}
+
+void WorkerHandler::checkpoint()
+{
+	//Save all repos to disk.
+	for (auto begin = _repositories.begin(), end = _repositories.end(); begin != end; ++begin)
+	{
+		begin->second->checkpoint();
+	}
+
 }
 
 void WorkerHandler::handlerError(void* ctx, const char* fn_name)

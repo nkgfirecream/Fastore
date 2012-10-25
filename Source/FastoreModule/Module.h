@@ -639,6 +639,12 @@ int moduleRollbackTo(sqlite3_vtab *pVTab, int savePoint)
 	);
 }
 
+void moduleCheckpoint(sqlite3_context* context, int argc, sqlite3_value** argv)
+{
+	module::Connection* conn = (module::Connection*)sqlite3_user_data(context);
+	conn->_database->Checkpoint();
+}
+
 sqlite3_module fastoreModule =
 {
 	0,	// iVersion;
@@ -674,6 +680,7 @@ void intializeFastoreModule(sqlite3* db, std::vector<module::Address> addresses)
 {
 	module::Connection* conn = createModuleConnection( addresses);
 	sqlite3_create_module_v2(db, SQLITE_MODULE_NAME, &fastoreModule, conn, &destroyFastoreModule);
+	sqlite3_create_function_v2(db, "CHECKPOINT", 0, SQLITE_ANY, conn, &moduleCheckpoint, NULL, NULL, NULL);
 	detectExistingSchema(conn, db);
 }
 

@@ -1312,3 +1312,19 @@ std::map<HostID, long long> Database::Ping()
 
 	return result;
 }
+
+void Database::Checkpoint()
+{
+	try
+	{
+		for (auto iter = _workerStates.begin(), end = _workerStates.end(); iter != end; ++iter)
+		{
+			communication::PodID podId = iter->first;
+			WorkerInvoke(podId, [](fastore::communication::WorkerClient client)-> void { client.checkpoint(); });
+		}
+	}
+	catch(...)
+	{
+		throw;
+	}
+}

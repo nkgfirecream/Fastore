@@ -82,6 +82,11 @@ class WorkerHandler : virtual public WorkerIf {
     printf("getStatistics\n");
   }
 
+  void checkpoint() {
+    // Your implementation goes here
+    printf("checkpoint\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

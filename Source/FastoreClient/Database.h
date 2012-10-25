@@ -30,6 +30,8 @@ namespace fastore { namespace client
 	// TODO: concurrency
 	class Database : public IDataAccess
 	{
+
+		friend class Transaction;
 			
 	public:
 		/// <summary> The maximum number of rows to attempt to fetch at one time. </summary>
@@ -96,15 +98,13 @@ namespace fastore { namespace client
 		DataSet GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
 
 		void Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);
-
+		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);	
+		
 		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
 		std::map<HostID, long long> Ping();
 
-		void Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& writes, const bool flush);
-		Schema GetSchema();
-
-		void RefreshSchema();
+		void Checkpoint();
+		Schema GetSchema();		
 
 				/// <summary> ApplyTimeout specifies the maximum time in milliseconds to wait for workers to respond to an apply request. </summary>
 		/// <remarks> The default is 1000 (1 second). </remarks>
@@ -114,10 +114,11 @@ namespace fastore { namespace client
 	private:
 		NetworkAddress& GetServiceAddress(HostID hostID);
 
+	
+		void RefreshSchema();
+
 		HiveState GetHiveState();
-
 		void RefreshHiveState();
-
 		void UpdateHiveState(const HiveState &newState);
 
 		NetworkAddress GetWorkerAddress(PodID podID);
@@ -156,6 +157,7 @@ namespace fastore { namespace client
 		DataSet InternalGetValues(const ColumnIDs& columnIds, const ColumnID exclusionColumnId, const Query& rowIdQuery);	
 		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const ReadResults& rowResults);
 		RangeSet ResultsToRangeSet(DataSet& set, size_t rangeColumnId, size_t rangeColumnIndex, const RangeResult& rangeResult);	
+		void Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& writes, const bool flush);
 
 		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
 

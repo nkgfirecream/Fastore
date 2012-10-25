@@ -506,7 +506,7 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		if (sqlite3_value_type(pValue) != SQLITE_NULL)
 		{
 			std::string type = _columns[i].Type;
-			int datatype = FastoreTypeToSQLiteTypeID(type);
+			int datatype = sqlite3_value_type(pValue);
 
 			if (datatype != FastoreTypeToSQLiteTypeID(type))
 			{

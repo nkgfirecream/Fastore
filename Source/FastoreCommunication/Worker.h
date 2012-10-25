@@ -27,6 +27,7 @@ class WorkerIf {
   virtual void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) = 0;
   virtual void query(ReadResults& _return, const Queries& queries) = 0;
   virtual void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) = 0;
+  virtual void checkpoint() = 0;
 };
 
 class WorkerIfFactory {
@@ -92,6 +93,9 @@ class WorkerNull : virtual public WorkerIf {
     return;
   }
   void getStatistics(std::vector<Statistic> & /* _return */, const std::vector<ColumnID> & /* columnIDs */) {
+    return;
+  }
+  void checkpoint() {
     return;
   }
 };
@@ -1351,6 +1355,43 @@ class Worker_getStatistics_presult {
 
 };
 
+
+class Worker_checkpoint_args {
+ public:
+
+  Worker_checkpoint_args() {
+  }
+
+  virtual ~Worker_checkpoint_args() throw() {}
+
+
+  bool operator == (const Worker_checkpoint_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_checkpoint_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_checkpoint_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_checkpoint_pargs {
+ public:
+
+
+  virtual ~Worker_checkpoint_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
 class WorkerClient : virtual public WorkerIf {
  public:
   WorkerClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -1405,6 +1446,8 @@ class WorkerClient : virtual public WorkerIf {
   void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
   void send_getStatistics(const std::vector<ColumnID> & columnIDs);
   void recv_getStatistics(std::vector<Statistic> & _return);
+  void checkpoint();
+  void send_checkpoint();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -1432,6 +1475,7 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_transgrade(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_query(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getStatistics(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_checkpoint(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   WorkerProcessor(boost::shared_ptr<WorkerIf> iface) :
     iface_(iface) {
@@ -1447,6 +1491,7 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["transgrade"] = &WorkerProcessor::process_transgrade;
     processMap_["query"] = &WorkerProcessor::process_query;
     processMap_["getStatistics"] = &WorkerProcessor::process_getStatistics;
+    processMap_["checkpoint"] = &WorkerProcessor::process_checkpoint;
   }
 
   virtual ~WorkerProcessor() {}
@@ -1587,6 +1632,15 @@ class WorkerMultiface : virtual public WorkerIf {
     }
     ifaces_[i]->getStatistics(_return, columnIDs);
     return;
+  }
+
+  void checkpoint() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->checkpoint();
+    }
+    ifaces_[i]->checkpoint();
   }
 
 };
