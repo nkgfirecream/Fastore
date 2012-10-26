@@ -382,6 +382,10 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 	answer = _repositories[4]->query(query);
 	def.BufferType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
 
+	//Required
+	answer = _repositories[5]->query(query);
+	def.Required = *(bool*)(answer.rowIDValues[0].value.data());
+
 	return def;
 }
 

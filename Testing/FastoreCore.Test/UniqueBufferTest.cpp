@@ -21,7 +21,7 @@ public:
 	TEST_METHOD(UniqueRangeTests)
 	{
 		//Unique buffer -- one key has one and only one value
-		UniqueBuffer* buf = new UniqueBuffer(standardtypes::Int, standardtypes::Int);
+		UniqueBuffer* buf = new UniqueBuffer(standardtypes::Long, standardtypes::Long);
 		OneToOneRangeTest(buf);	
 		delete buf;
 	}
@@ -29,7 +29,7 @@ public:
 	TEST_METHOD(UniqueInlineRangeTests)
 	{
 		//Unique buffer -- one key has one and only one value
-		UniqueInlineBuffer* buf = new UniqueInlineBuffer(standardtypes::Int, standardtypes::Int);
+		UniqueInlineBuffer* buf = new UniqueInlineBuffer(standardtypes::Long, standardtypes::Long);
 		OneToOneRangeTest(buf);	
 		delete buf;
 	}

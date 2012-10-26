@@ -36,7 +36,7 @@ class BTree
 
 		std::wstring ToString();
 
-		const static short DefaultListCapacity = 128;
+		const static short DefaultListCapacity = 64;
 
 		void setValuesMovedCallback(onevaluesMovedHandler callback);
 		onevaluesMovedHandler getValuesMovedCallback();
@@ -368,25 +368,22 @@ class Node
 			}
 
 			Node* node = new Node(_tree, false);
+			node->_count = (_tree._listCapacity + 1) / 2;
+			_count = short(_count - node->_count);
+
+			memcpy( node->_keys, 
+				_keys + node->_count * _tree._keyType.Size,
+				node->_count * _tree._keyType.Size );
+
 			if (!_tree._keyOnly)
-			{
-			    node->_count = (_tree._listCapacity + 1) / 2;
-			    _count = short(_count - node->_count);
-
-			    memcpy( node->_keys, 
-				    _keys + node->_count * _tree._keyType.Size,
-				    node->_count * _tree._keyType.Size );
-
-			    if (!_tree._keyOnly)
-			      memcpy( node->_values, 
-				      _values + node->_count * _tree._valueType.Size, 
-				      node->_count * _tree._valueType.Size );
-			}
+			    memcpy( node->_values, 
+				    _values + node->_count * _tree._valueType.Size, 
+				    node->_count * _tree._valueType.Size );
 
 			if (index < _count)
 			  InternalInsertIndex(index, key, value);
 			else
-			  node->InternalInsertIndex(short(index - _count), key, value);
+			  node->InternalInsertIndex(index - _count, key, value);
 
 
 			_tree.DoValuesMoved(node);

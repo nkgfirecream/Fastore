@@ -27,6 +27,7 @@ namespace Fastore.Core.Demo2
 
         private Connection _connection;
         private Task _commitTask;
+        private int NumPerTransaction = 5000;
 		public bool Canceled { get; set; }
 
 		private void Form1_Shown(object sender, EventArgs e)
@@ -79,7 +80,7 @@ namespace Fastore.Core.Demo2
 			var fileName = @"e:\Ancestry\owt\owt.csv";
 			using (var fileStream = new StreamReader(new FileStream(fileName, FileMode.Open, FileAccess.Read)))
 			{
-				_connection.Execute("begin;");
+				_connection.Execute("begin");
 
 				var count = 0;
 				long lastMilliseconds = 0;
@@ -100,7 +101,7 @@ namespace Fastore.Core.Demo2
 
 					InsertRecord(record);
 
-					if (count % 5000 == 0)
+                    if (count % NumPerTransaction == 0)
 					{
 
 						//Wait until task is done.
@@ -121,9 +122,9 @@ namespace Fastore.Core.Demo2
 						_connection.Execute("begin");
 						Application.DoEvents();
 					}
-					if (count % 5000 == 0)
+                    if (count % NumPerTransaction == 0)
 					{
-						StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / 5000)));
+                        StatusBox.AppendText(String.Format("\r\nLoaded: {0}  Last Rate: {1} rows/sec", count, 1000 / ((double)(watch.ElapsedMilliseconds - lastMilliseconds) / NumPerTransaction)));
 						lastMilliseconds = watch.ElapsedMilliseconds;
 					}
 				}
