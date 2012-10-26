@@ -158,7 +158,7 @@ class TTransport {
     write_virt(buf, len);
   }
   void write(const char* buf, size_t len) {
-	  write( reinterpret_cast<const uint8_t*>(buf), THRIFT_SAFE_CAST(uint32_t, len) );
+	  write( reinterpret_cast<const uint8_t*>(buf), uint32_t(len));
   }
   virtual void write_virt(const uint8_t* /* buf */, uint32_t /* len */) {
     throw TTransportException(TTransportException::NOT_OPEN,

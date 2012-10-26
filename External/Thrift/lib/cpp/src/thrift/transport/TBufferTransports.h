@@ -483,9 +483,9 @@ class TMemoryBuffer : public TVirtualTransport<TMemoryBuffer, TBufferBase> {
 #if defined(_WIN64) || !defined(_WIN32)
   void initCommon(uint8_t* buf, size_t size, bool owner, size_t wPos) {
     initCommon( buf, 
-		THRIFT_SAFE_CAST(uint32_t, size), 
+		uint32_t(size), 
 		owner, 
-		THRIFT_SAFE_CAST(uint32_t, wPos) );
+		uint32_t(wPos));
   }
 #endif
 
@@ -559,7 +559,7 @@ class TMemoryBuffer : public TVirtualTransport<TMemoryBuffer, TBufferBase> {
         break;
       case COPY:
         initCommon(NULL, sz, true, 0);
-        this->write(buf, THRIFT_SAFE_CAST(uint32_t, sz));
+        this->write(buf, uint32_t(sz));
         break;
       default:
         throw TTransportException(TTransportException::BAD_ARGS,
