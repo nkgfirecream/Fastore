@@ -7,8 +7,10 @@ EXPORTS
 	fastoreBind	@5
 	fastoreNext	@6
 	fastoreColumnInfo	@7
-	fastoreColumnValue	@8
-	fastoreClose	@9
-	fastoreExecute	@10
+	fastoreColumnValueInt64	@8
+	fastoreColumnValueDouble	@9
+	fastoreColumnValueAString	@10
+	fastoreClose	@11
+	fastoreExecute	@12
 
 

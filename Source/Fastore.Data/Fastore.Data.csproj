@@ -7,8 +7,8 @@
     <ProjectGuid>{9194764D-A87D-400D-B5C4-51F904C22117}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Fastore.Data</RootNamespace>
-    <AssemblyName>Fastore.Data</AssemblyName>
+    <RootNamespace>Alphora.Fastore.Data</RootNamespace>
+    <AssemblyName>Alphora.Fastore.Data</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

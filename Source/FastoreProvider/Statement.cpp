@@ -4,19 +4,19 @@
 #include "../FastoreClient/Encoder.h"
 using namespace std;
 using namespace fastore::provider;
+using boost::optional;
 
-
-std::map<int, ArgumentType> createTypeMap()
+std::map<string, ArgumentType, LexCompare> createTypeMap()
 {
-	map<int, ArgumentType> m;
+	map<string, ArgumentType, LexCompare> m;
 	
 	//m[] = ArgumentType::FASTORE_ARGUMENT_BOOL;
 	//m[] =  ArgumentType::FASTORE_ARGUMENT_INT32;
-	m[SQLITE_INTEGER] = ArgumentType::FASTORE_ARGUMENT_INT64;
-	m[SQLITE3_TEXT] = ArgumentType::FASTORE_ARGUMENT_STRING8;
+	m["int"] = ArgumentType::FASTORE_ARGUMENT_INT64;
+	m["varchar"] = ArgumentType::FASTORE_ARGUMENT_STRING8;
 	//m["WString"] = ArgumentType::FASTORE_ARGUMENT_STRING16;
-	m[SQLITE_FLOAT] = ArgumentType::FASTORE_ARGUMENT_DOUBLE;
-	m[SQLITE_NULL] = ArgumentType::FASTORE_ARGUMENT_NULL;
+	m["float"] = ArgumentType::FASTORE_ARGUMENT_DOUBLE;
+	m["null"] = ArgumentType::FASTORE_ARGUMENT_NULL;
 
 	return m;
 }
@@ -94,7 +94,8 @@ ColumnInfo Statement::getColumnInfo(int index)
 	//TODO: encode type information as a string and return it.
 	//Problem here is bools. Sqlite will return them as integers, so we need
 	//to compare what sqlite reports and what we have actually defined the column as.
-	info.type = _types[sqlite3_column_type(_statement, index)];
+	info.logicalType = std::string(sqlite3_column_decltype(_statement, index));
+	info.type = _types[info.logicalType];
 	info.name = sqlite3_column_name(_statement, index);
 
 	_infos.insert(std::pair<int, ColumnInfo>(index, info));
@@ -102,19 +103,23 @@ ColumnInfo Statement::getColumnInfo(int index)
 	return info;
 }
 
-std::string Statement::getColumn(int index)
+optional<int64_t> Statement::getColumnValueInt64(int index)
 {
-	auto type = _types[sqlite3_column_type(_statement, index)];
-	switch (type)
-	{
-		//case ArgumentType::FASTORE_ARGUMENT_BOOL : break;
-		case ArgumentType::FASTORE_ARGUMENT_DOUBLE : return fastore::client::Encoder<double>::Encode(sqlite3_column_double(_statement, index));
-		case ArgumentType::FASTORE_ARGUMENT_INT32 : return fastore::client::Encoder<int32_t>::Encode(sqlite3_column_int(_statement, index));
-		case ArgumentType::FASTORE_ARGUMENT_INT64 : return fastore::client::Encoder<int64_t>::Encode(sqlite3_column_int64(_statement, index));
-		case ArgumentType::FASTORE_ARGUMENT_NULL : /* return null string */
-		//case ArgumentType::FASTORE_ARGUMENT_STRING16 : sqlite3_bind_text16(_statement, index, value.c_str(), value.length(), NULL); break;
-		case ArgumentType::FASTORE_ARGUMENT_STRING8 : return std::string((char*)sqlite3_column_text(_statement, index));
-		default :
-			throw "Unrecognized argument type";
-	}
+	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
+		return sqlite3_column_int64(_statement, index);	
+	return optional<int64_t>();
+}
+
+optional<double> Statement::getColumnValueDouble(int index)
+{
+	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
+		return sqlite3_column_double(_statement, index);	
+	return optional<double>();
+}
+
+optional<std::string> Statement::getColumnValueAString(int index)
+{
+	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
+		return std::string((char*)sqlite3_column_text(_statement, index));	
+	return optional<std::string>();
 }

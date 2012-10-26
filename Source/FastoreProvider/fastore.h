@@ -98,6 +98,26 @@ struct Argument
 	size_t dataSize;
 };
 
+struct ColumnValueInt64Result
+{
+	FastoreResultCode result;
+	uint8_t isNull;
+	int64_t value;
+};
+
+struct ColumnValueDoubleResult
+{
+	FastoreResultCode result;
+	uint8_t isNull;
+	double value;
+};
+
+struct ColumnValueStringResult
+{
+	FastoreResultCode result;
+	uint8_t isNull;
+};
+
 // Retrieves the message and code of the last error
 FASTOREAPI bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength, char* message, FastoreErrorCode *code);
 
@@ -115,9 +135,11 @@ FASTOREAPI NextResult fastoreNext(StatementHandle statement);
 // Gets the column name for the given column index
 FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int32_t columnIndex);
 // Gets the column value of the current row given an index
-FASTOREAPI GeneralResult fastoreColumnValue(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, void *valueTarget);
+FASTOREAPI ColumnValueInt64Result fastoreColumnValueInt64(StatementHandle statement, int32_t columnIndex);
+FASTOREAPI ColumnValueDoubleResult fastoreColumnValueDouble(StatementHandle statement, int32_t columnIndex);
+FASTOREAPI ColumnValueStringResult fastoreColumnValueAString(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, char *valueTarget);
 // Closes the given cursor
 FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 
-// Short-hand for Prepare followed by Next... then close if eof.
+// Short-hand for Prepare followed by Next... then close if eof or no columns.
 FASTOREAPI ExecuteResult fastoreExecute(ConnectionHandle connection, const char *batch);

@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Alphora.Fastore.Client;
+using Alphora.Fastore.Data;
 
 namespace Fastore.Core.Demo2
 {
@@ -17,23 +17,18 @@ namespace Fastore.Core.Demo2
 			InitializeComponent();
 		}
 
-		public ServiceAddress[] Addresses
+		public Provider.FastoreAddress[] Addresses
 		{
 			get
 			{
-				var results = new List<ServiceAddress>();
+				var results = new List<Provider.FastoreAddress>();
 				if (!String.IsNullOrEmpty(AddressBox.Text))
-					results.Add(new ServiceAddress { Name = AddressBox.Text, Port = (int)PortBox.Value });
+					results.Add(new Provider.FastoreAddress { HostName = AddressBox.Text, Port = (ulong)PortBox.Value });
 				foreach (ListViewItem item in this.list.Items)
-					results.Add(new ServiceAddress { Name = item.SubItems[0].Text, Port = Int32.Parse(item.SubItems[1].Text) });
+					results.Add(new Provider.FastoreAddress { HostName = item.SubItems[0].Text, Port = UInt64.Parse(item.SubItems[1].Text) });
 				return results.ToArray();
 			}
 		}
-
-        public bool Detect
-        {
-            get { return DetectCheck.Checked; }
-        }
 
 		private void button1_Click(object sender, EventArgs e)
 		{

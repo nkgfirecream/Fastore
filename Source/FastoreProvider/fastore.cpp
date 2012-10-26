@@ -182,15 +182,47 @@ ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex)
 	);
 }
 
-GeneralResult fastoreColumnValue(StatementHandle statement, int columnIndex, int *targetMaxBytes, void *valueTarget)
+ColumnValueInt64Result fastoreColumnValueInt64(StatementHandle statement, int32_t columnIndex)
 {
-	return WrapCall<GeneralResult>
+	return WrapCall<ColumnValueInt64Result>
 	(
-		[&](GeneralResult &result) 
+		[&](ColumnValueInt64Result &result) 
 		{ 
-			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumn(columnIndex);
-			*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.size()));
-			memcpy(valueTarget, value.data(), *targetMaxBytes);
+			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumnValueInt64(columnIndex);
+			result.isNull = !value.is_initialized();
+			if (!result.isNull)
+				result.value = value.get();
+		}
+	);
+}
+
+ColumnValueDoubleResult fastoreColumnValueDouble(StatementHandle statement, int32_t columnIndex)
+{
+	return WrapCall<ColumnValueDoubleResult>
+	(
+		[&](ColumnValueDoubleResult &result) 
+		{ 
+			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumnValueDouble(columnIndex);
+			result.isNull = !value.is_initialized();
+			if (!result.isNull)
+				result.value = value.get();
+		}
+	);
+}
+
+ColumnValueStringResult fastoreColumnValueAString(StatementHandle statement, int32_t columnIndex, int *targetMaxBytes, char *valueTarget)
+{
+	return WrapCall<ColumnValueStringResult>
+	(
+		[&](ColumnValueStringResult &result) 
+		{ 
+			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumnValueAString(columnIndex);
+			result.isNull = !value.is_initialized();
+			if (!result.isNull)
+			{
+				*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.get().size()));
+				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
+			}
 		}
 	);
 }
@@ -207,7 +239,7 @@ GeneralResult fastoreClose(StatementHandle statement)
 	);
 }
 
-// Short-hand for Prepare followed by Next (and a close if eof)
+// Short-hand for Prepare followed by Next (and a close if eof or no columns)
 inline ExecuteResult fastoreExecute(ConnectionHandle connection, const char *batch)
 {
 	ExecuteResult result = { FASTORE_OK };
@@ -220,8 +252,13 @@ inline ExecuteResult fastoreExecute(ConnectionHandle connection, const char *bat
 	}
 
 	NextResult nextResult = fastoreNext(prepareResult.statement);
-	if (nextResult.result != FASTORE_OK || nextResult.eof)
+	if (nextResult.result != FASTORE_OK || nextResult.eof || prepareResult.columnCount == 0)
+	{
 		fastoreClose(prepareResult.statement);	// Ignore any close error so as not to lose original error
+		result.statement = nullptr;
+	}
+	else
+		result.statement = prepareResult.statement;
 
 	if (nextResult.result != FASTORE_OK)
 	{

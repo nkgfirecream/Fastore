@@ -6,8 +6,8 @@
     <ProjectGuid>{6CE0B6C9-A273-4056-A6E0-7C03DDB2142E}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Fastore.Data.Test</RootNamespace>
-    <AssemblyName>Fastore.Data.Test</AssemblyName>
+    <RootNamespace>Alphora.Fastore.Data.Test</RootNamespace>
+    <AssemblyName>Alphora.Fastore.Data.Test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -39,7 +39,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>Fastore.Data.Test.Program</StartupObject>
+    <StartupObject>Alphora.Fastore.Data.Test.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

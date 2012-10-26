@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fastore.Data
+namespace Alphora.Fastore.Data
 {
 	public class Connection : IDisposable
 	{
@@ -35,7 +35,21 @@ namespace Fastore.Data
 
 		public Statement Prepare(string batch)
 		{
-			return new Statement(_connection, batch);
+			var result = Provider.Prepare(_connection, batch);
+			Provider.CheckResult(result.Result);
+
+			return new Statement(result.Statement, result.ColumnCount);
+		}
+
+		public Statement Execute(string batch)
+		{
+			var result = Provider.Execute(_connection, batch);
+			Provider.CheckResult(result.Result);
+
+			if (result.Statement != IntPtr.Zero)
+				return new Statement(result.Statement, result.ColumnCount);
+			else
+				return null;
 		}
 	}
 }

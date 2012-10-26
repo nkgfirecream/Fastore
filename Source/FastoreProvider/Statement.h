@@ -6,6 +6,8 @@
 #include <vector>
 #include <map>
 #include "fastore.h"
+#include "LexCompare.h"
+#include <boost/optional.hpp>
 
 namespace fastore 
 {
@@ -20,6 +22,7 @@ namespace fastore
 		struct ColumnInfo
 		{
 			ArgumentType type;
+			std::string logicalType;
 			std::string name;
 		};
 
@@ -31,7 +34,7 @@ namespace fastore
 			bool _eof;
 
 			std::map<int, ColumnInfo> _infos;
-			std::map<int, ArgumentType> _types;
+			std::map<std::string, ArgumentType, LexCompare> _types;
 
 		public:
 			Statement(sqlite3* db, const std::string &sql);
@@ -43,7 +46,9 @@ namespace fastore
 			bool eof();
 			void reset();
 			ColumnInfo getColumnInfo(int index);
-			std::string getColumn(int index);
+			boost::optional<int64_t> getColumnValueInt64(int index);
+			boost::optional<double> getColumnValueDouble(int index);
+			boost::optional<std::string> getColumnValueAString(int index);
 		};
 
 		typedef std::shared_ptr<Statement> StatementObject; 

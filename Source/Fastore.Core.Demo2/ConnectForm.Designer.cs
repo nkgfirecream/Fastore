@@ -34,12 +34,11 @@
 			this.CancelBtn = new System.Windows.Forms.Button();
 			this.label2 = new System.Windows.Forms.Label();
 			this.PortBox = new System.Windows.Forms.NumericUpDown();
-			this.DetectCheck = new System.Windows.Forms.CheckBox();
 			this.list = new System.Windows.Forms.ListView();
-			this.button1 = new System.Windows.Forms.Button();
-			this.button2 = new System.Windows.Forms.Button();
 			this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
 			this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+			this.button1 = new System.Windows.Forms.Button();
+			this.button2 = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.PortBox)).BeginInit();
 			this.SuspendLayout();
 			// 
@@ -65,7 +64,7 @@
 			// 
 			this.OKButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.OKButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-			this.OKButton.Location = new System.Drawing.Point(233, 252);
+			this.OKButton.Location = new System.Drawing.Point(233, 233);
 			this.OKButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.OKButton.Name = "OKButton";
 			this.OKButton.Size = new System.Drawing.Size(109, 27);
@@ -77,7 +76,7 @@
 			// 
 			this.CancelBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.CancelBtn.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-			this.CancelBtn.Location = new System.Drawing.Point(351, 254);
+			this.CancelBtn.Location = new System.Drawing.Point(351, 235);
 			this.CancelBtn.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
 			this.CancelBtn.Name = "CancelBtn";
 			this.CancelBtn.Size = new System.Drawing.Size(107, 25);
@@ -112,18 +111,6 @@
             0,
             0});
 			// 
-			// DetectCheck
-			// 
-			this.DetectCheck.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.DetectCheck.AutoSize = true;
-			this.DetectCheck.Location = new System.Drawing.Point(17, 215);
-			this.DetectCheck.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
-			this.DetectCheck.Name = "DetectCheck";
-			this.DetectCheck.Size = new System.Drawing.Size(249, 21);
-			this.DetectCheck.TabIndex = 6;
-			this.DetectCheck.Text = "Detect Previously Created Schema";
-			this.DetectCheck.UseVisualStyleBackColor = true;
-			// 
 			// list
 			// 
 			this.list.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -135,10 +122,21 @@
 			this.list.Location = new System.Drawing.Point(16, 108);
 			this.list.MultiSelect = false;
 			this.list.Name = "list";
-			this.list.Size = new System.Drawing.Size(449, 100);
+			this.list.Size = new System.Drawing.Size(449, 120);
 			this.list.TabIndex = 7;
 			this.list.UseCompatibleStateImageBehavior = false;
 			this.list.View = System.Windows.Forms.View.Details;
+			// 
+			// columnHeader1
+			// 
+			this.columnHeader1.Text = "Address";
+			this.columnHeader1.Width = 360;
+			// 
+			// columnHeader2
+			// 
+			this.columnHeader2.Text = "Port";
+			this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			this.columnHeader2.Width = 80;
 			// 
 			// button1
 			// 
@@ -160,27 +158,15 @@
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
-			// columnHeader1
-			// 
-			this.columnHeader1.Text = "Address";
-			this.columnHeader1.Width = 360;
-			// 
-			// columnHeader2
-			// 
-			this.columnHeader2.Text = "Port";
-			this.columnHeader2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			this.columnHeader2.Width = 80;
-			// 
 			// ConnectForm
 			// 
 			this.AcceptButton = this.OKButton;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(477, 289);
+			this.ClientSize = new System.Drawing.Size(477, 270);
 			this.Controls.Add(this.button2);
 			this.Controls.Add(this.button1);
 			this.Controls.Add(this.list);
-			this.Controls.Add(this.DetectCheck);
 			this.Controls.Add(this.PortBox);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.CancelBtn);
@@ -204,7 +190,6 @@
 		private System.Windows.Forms.Button CancelBtn;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.NumericUpDown PortBox;
-        private System.Windows.Forms.CheckBox DetectCheck;
 		private System.Windows.Forms.ListView list;
 		private System.Windows.Forms.ColumnHeader columnHeader1;
 		private System.Windows.Forms.ColumnHeader columnHeader2;

@@ -12,7 +12,7 @@ using System.Xml;
 using System.Diagnostics;
 using Microsoft.VisualBasic.FileIO;
 
-using Alphora.Fastore.Client;
+using Alphora.Fastore.Data;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -25,10 +25,7 @@ namespace Fastore.Core.Demo2
 			InitializeComponent();
 		}
 
-        private Database _database;
-		private Transaction _transaction;
-        private int[] _columns = new int[] { 10000, 10001, 10002, 10003, 10004, 10005 };
-        private int[] _schemaColumns = new int[] { 0, 1, 2, 3, 4 };	
+        private Connection _connection;
         private Task _commitTask;
 		public bool Canceled { get; set; }
 
@@ -43,16 +40,10 @@ namespace Fastore.Core.Demo2
 			var addresses = connect.Addresses;
 			connect.Dispose();
 
-			_database = Client.Connect(addresses);
+			_connection = new Connection(addresses);
 
-            if (connect.Detect)
-            {
-                DetectSchema();
-            }
-            else
-            {
+			if (!DetectSchema())
                 CreateSchema();
-            }
 
 			LoadData();
 
@@ -66,60 +57,33 @@ namespace Fastore.Core.Demo2
 
         void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-                GetMoreItems();
+            GetMoreItems();
         }
 
-        private void DetectSchema()
+        private bool DetectSchema()
         {
-            _columns[0] = GetColumnID("ID");
-            _columns[1] = GetColumnID("Given");
-            _columns[2] = GetColumnID("Surname");
-            _columns[3] = GetColumnID("Gender");
-            _columns[4] = GetColumnID("BirthDate");
-            _columns[5] = GetColumnID("BirthPlace");
-        }
-
-        private int GetColumnID(string columnName)
-        {
-            var nameBound = new RangeBound();
-            nameBound.Bound = columnName;
-            nameBound.Inclusive = true;
-
-            var nameRange = new Range();
-            nameRange.Ascending = true;
-            nameRange.ColumnID = 1;
-            nameRange.Start = nameBound;
-            nameRange.End = nameBound;
-
-            var result = _database.GetRange(new int[] { 1, 0 }, nameRange, 1);
-
-            if (result.Data.Count == 0)
-                throw new Exception(String.Format("Column {0} not found in hive", columnName));
-
-            return (int)result.Data[0].Values[1];
+			using (var statement = _connection.Execute("select 1 from sqlite_master where name = 'Person'"))
+				return (statement.GetInt64(0) ?? 0) == 1;
         }
 
 		private void CreateSchema()
 		{		
-			_database.Include(_schemaColumns, _columns[0], new object[] { _columns[0], "ID", "Int", "Int", BufferType.Identity });
-			_database.Include(_schemaColumns, _columns[1], new object[] { _columns[1], "Given", "String", "Int", BufferType.Multi });
-            _database.Include(_schemaColumns, _columns[2], new object[] { _columns[2], "Surname", "String", "Int", BufferType.Multi });
-            _database.Include(_schemaColumns, _columns[3], new object[] { _columns[3], "Gender", "Bool", "Int", BufferType.Multi });
-            _database.Include(_schemaColumns, _columns[4], new object[] { _columns[4], "BirthDate", "String", "Int", BufferType.Multi });
-            _database.Include(_schemaColumns, _columns[5], new object[] { _columns[5], "BirthPlace", "String", "Int", BufferType.Multi });
-
-			int[] _podIdColumn = new int[] { 300 };
-			Range podIdRange = new Range();
-			podIdRange.Ascending = true;
-			podIdRange.ColumnID = _podIdColumn[0];
-
-			var podIds = _database.GetRange(_podIdColumn, podIdRange, 500);
-
-			int[] _podColumnColumns = new int[] { 400, 401 };
-			for (int i = 0; i < _columns.Length; i++)
-			{
-				_database.Include(_podColumnColumns, i, new object[] { podIds.Data[i % podIds.Data.Count].Values[0], _columns[i] });
-			}
+			_connection.Execute
+			(
+				@"
+					create table Person
+					(
+						ID int primary,
+						Given varchar not null,
+						Surname varchar not null,
+						Gender int not null,
+						BirthDate varchar not null,
+						BirthPlace varchar not null,
+						MID int,
+						FID int
+					)
+				"
+			);
 		}
 
 		private void LoadData()
@@ -127,7 +91,7 @@ namespace Fastore.Core.Demo2
 			var fileName = @"e:\Ancestry\owt\owt.csv";
 			using (var fileStream = new StreamReader(new FileStream(fileName, FileMode.Open, FileAccess.Read)))
 			{
-				_transaction = _database.Begin(true, true);
+				_connection.Execute("begin");
 
 				var count = 0;
 				long lastMilliseconds = 0;
@@ -157,15 +121,15 @@ namespace Fastore.Core.Demo2
 
 						_commitTask = Task.Factory.StartNew
 							(
-								(t) =>
+								(c) =>
 								{
-									((Transaction)t).Commit();
+									((Connection)c).Execute("commit");
 									//((Transaction)t).Ping();
 								},
-								_transaction
+								_connection
 							);
 						//_transaction.Commit();
-						_transaction = _database.Begin(true, true);
+						_connection.Execute("begin");
 						Application.DoEvents();
 					}
 					if (count % 5000 == 0)
@@ -178,6 +142,8 @@ namespace Fastore.Core.Demo2
 				//Wait until task is done.
 				if (_commitTask != null)
                     _commitTask.Wait();
+
+				_connection.Execute("commit");
 
 				watch.Stop();
 
@@ -245,18 +211,25 @@ namespace Fastore.Core.Demo2
         {
             if (record != null && record[0] != null) //Filter out junk data..
             {
-				var data = new object[6];
+				var data = new object[8];
 				data[0] = Int32.Parse(record[0]);
-                data[1] = record[1] ?? "";
-                data[2] = record[2] ?? "";
+                data[1] = Escape(record[1] ?? "");
+                data[2] = Escape(record[2] ?? "");
                 data[3] = (record[3] ?? "0") == "1";
-                data[4] = record[4] ?? "";
-                data[5] = record[5] ?? "";
+                data[4] = Escape(record[4] ?? "");
+                data[5] = Escape(record[5] ?? "");
+				data[6] = Escape(record[6] ?? "null");
+				data[7] = Escape(record[7] ?? "null");
 
-				_transaction.Include(_columns, data[0], data);
+				_connection.Execute(String.Format("insert into Person (ID, Given, Surname, Gender, BirthDate, BirthPlace) values ({0}, '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7})", data));
 				//_database.Include(_columns, _ids, record);
             }
         }
+
+		private string Escape(string value)
+		{
+			return value.Replace("'", "''");
+		}
 
 		private void RefreshItems()
 		{
@@ -292,55 +265,49 @@ namespace Fastore.Core.Demo2
 
         private IEnumerable<string[]> SelectData(object startId = null)
         {
-            RangeBound? start = null;
+			string orderBy = comboBox1.SelectedText;
+			string condition = "";
             if (!String.IsNullOrWhiteSpace(Search.Text))
             {
-                object value = null;
+				//object value = null;
 
-                switch (comboBox1.SelectedIndex)
-                {
-                    case 0:
-                        int id = 0;
-                        int.TryParse(Search.Text, out id);
-                        value = id;
-                        break;
-                    case 3:     
-                        bool result = true;
-                        bool.TryParse(Search.Text, out result);
-                        value = result;
-                        break;
-                    default:
-                        value = Search.Text;
-                        break;
-                }
+				//switch (comboBox1.SelectedIndex)
+				//{
+				//	case 0:
+				//		int id = 0;
+				//		int.TryParse(Search.Text, out id);
+				//		value = id;
+				//		break;
+				//	case 3:     
+				//		bool result = true;
+				//		bool.TryParse(Search.Text, out result);
+				//		value = result;
+				//		break;
+				//	default:
+                //      value = Search.Text;
+				//		break;
+				//}
 
-                start = new RangeBound { Bound = value, Inclusive = true };
+                //start = new RangeBound { Bound = value, Inclusive = true };
+
+				if (!String.IsNullOrWhiteSpace(Search.Text))
+					condition = "where " + comboBox1.SelectedText + " >= '" + Search.Text + "'";
             }
 
-			var orderColumn = _columns[comboBox1.SelectedIndex];
-            Range range = new Range();
-            range.ColumnID = orderColumn;
-            range.Ascending = comboBox2.SelectedIndex == 0;
-            range.Start = startId == null ? start : null;
-
-            var set = 
-				_database.GetRange
-				(
-					_columns,
-					range,
-					50,
-                    startId
-				);
-
-            return ParseDataSet(set);
+			var query = "select ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID" + condition;
+            using (var statement = _connection.Prepare(query))
+	            return ParseDataSet(statement);
         }
 
 		// Convert each column to a string
-		private IEnumerable<string[]> ParseDataSet(Alphora.Fastore.Client.RangeSet set)
+		private IEnumerable<string[]> ParseDataSet(Statement set)
 		{
-			foreach (var item in set.Data)
+			for (var i = 0; i < 35 && set.Next(); i++)
 			{
-                yield return (from c in item.Values select (c == null ? "" : c.ToString())).ToArray();
+				string[] result = new string[set.ColumnCount];
+				for (int c = 0; c < set.ColumnCount; c++)
+					result[c] = set.GetAString(c);
+				yield return result;
 			}
 		}
 

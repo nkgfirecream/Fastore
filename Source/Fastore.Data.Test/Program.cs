@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Fastore.Data.Test
+namespace Alphora.Fastore.Data.Test
 {
 	public static class Program
 	{

@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text;
 
-namespace Fastore.Data.Test
+namespace Alphora.Fastore.Data.Test
 {
 	[TestClass]
 	public class ProviderTests
@@ -39,24 +39,6 @@ namespace Fastore.Data.Test
 		}
 
 		[TestMethod]
-		public void GetInt32Test()
-		{
-			InternalConnectDisconnect
-			(
-				(c) =>
-				{
-					using (var statement = c.Prepare("select 5"))
-					{
-						if (!statement.Next())
-							Assert.Fail("No row.");
-
-						Assert.AreEqual(5, statement.GetInt32(0));
-					}
-				}
-			);
-		}
-
-		[TestMethod]
 		public void GetInt64Test()
 		{
 			InternalConnectDisconnect
@@ -68,7 +50,7 @@ namespace Fastore.Data.Test
 						if (!statement.Next())
 							Assert.Fail("No row.");
 
-						Assert.AreEqual(5523123232, statement.GetInt64(0));
+						Assert.AreEqual(5523123232, statement.GetInt64(0).Value);
 					}
 				}
 			);
@@ -86,14 +68,14 @@ namespace Fastore.Data.Test
 						if (!statement.Next())
 							Assert.Fail("No row.");
 
-						Assert.AreEqual(1.234, statement.GetDouble(0));
+						Assert.AreEqual(1.234, statement.GetDouble(0).Value);
 					}
 				}
 			);
 		}
 
 		[TestMethod]
-		public void GetStringTest()
+		public void GetAStringTest()
 		{
 			InternalConnectDisconnect
 			(
@@ -104,7 +86,7 @@ namespace Fastore.Data.Test
 						if (!statement.Next())
 							Assert.Fail("No row.");
 
-						Assert.AreEqual("Hello World", statement.GetString(0));
+						Assert.AreEqual("Hello World", statement.GetAString(0));
 					}
 				}
 			);
@@ -122,16 +104,37 @@ namespace Fastore.Data.Test
 						if (!statement.Next())
 							Assert.Fail("No row.");
 
-						Assert.AreEqual("Hello World", statement.GetString(0));
-						Assert.AreEqual(5, statement.GetInt32(1));
+						Assert.AreEqual("Hello World", statement.GetAString(0));
+						Assert.AreEqual(5, statement.GetInt64(1));
 						Assert.AreEqual(1.234, statement.GetDouble(2));
 
 						if (!statement.Next())
 							Assert.Fail("No 2nd row.");
 
-						Assert.AreEqual("Hey There", statement.GetString(0));
-						Assert.AreEqual(10, statement.GetInt32(1));
+						Assert.AreEqual("Hey There", statement.GetAString(0));
+						Assert.AreEqual(10, statement.GetInt64(1));
 						Assert.AreEqual(2.345, statement.GetDouble(2));
+
+						if (statement.Next())
+							Assert.Fail("Invalid 3rd row.");
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void GetNullTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select null"))
+					{
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.IsFalse(statement.GetInt64(0).HasValue);
 					}
 				}
 			);

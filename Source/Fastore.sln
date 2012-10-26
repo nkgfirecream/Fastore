@@ -66,6 +66,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Data", "Fastore.Dat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Data.Test", "Fastore.Data.Test\Fastore.Data.Test.csproj", "{6CE0B6C9-A273-4056-A6E0-7C03DDB2142E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo2", "Fastore.Core.Demo2\Fastore.Core.Demo2.csproj", "{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -217,6 +219,18 @@ Global
 		{6CE0B6C9-A273-4056-A6E0-7C03DDB2142E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6CE0B6C9-A273-4056-A6E0-7C03DDB2142E}.Release|Win32.ActiveCfg = Release|Any CPU
 		{6CE0B6C9-A273-4056-A6E0-7C03DDB2142E}.Release|x64.ActiveCfg = Release|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Win32.ActiveCfg = Release|Any CPU
+		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
