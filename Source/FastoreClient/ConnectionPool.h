@@ -27,7 +27,7 @@ namespace fastore { namespace client
 	{
 	public:
 		static const int MaxConnectionRetries = 3;
-		static const int DefaultMaxPooledPerKey = 3;
+		static const int DefaultMaxPooledPerKey = 1;
 
 	private:
 		boost::shared_ptr<boost::mutex> _lock;
@@ -179,7 +179,7 @@ namespace fastore { namespace client
 		transport->setConnTimeout(2000);
 		transport->setRecvTimeout(2000);
 		transport->setSendTimeout(2000);
-		transport->setMaxRecvRetries(MaxConnectionRetries);
+		//transport->setMaxRecvRetries(MaxConnectionRetries);
 
 		// Establish connection, retrying if necessary
 		auto retries = MaxConnectionRetries;

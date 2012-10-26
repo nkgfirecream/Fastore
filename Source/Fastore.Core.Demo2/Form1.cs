@@ -27,7 +27,7 @@ namespace Fastore.Core.Demo2
 
         private Connection _connection;
         private Task _commitTask;
-        private int NumPerTransaction = 100;
+        private int NumPerTransaction = 5000;
 		public bool Canceled { get; set; }
 
 		private void Form1_Shown(object sender, EventArgs e)

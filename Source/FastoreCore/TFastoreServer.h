@@ -91,7 +91,6 @@ enum TAppState
 	APP_READ_REQUEST,
 	APP_PARKED,
 	APP_SEND_RESULT,
-	APP_CLOSE_CONNECTION
 };
 
 enum TServerState
@@ -141,7 +140,7 @@ private:
 	static const int INVALID_SOCKET_VALUE = -1;
 
 	/// Default poll timeout
-	static const int POLL_TIMEOUT = 1000;
+	static const int POLL_TIMEOUT = 100;
 
 	/// Default number of milliseconds a connections is idle before it timesout
 	static const int CONNECTION_EXPIRE_TIMEOUT = 0; //10000;
@@ -221,8 +220,8 @@ private:
 	//Pool of UNUSED connections
 	std::stack<TConnection*> connectionPool_;
 
-	//List of Active connections (by socket fd id).
-	std::map<SOCKET, TConnection*> activeConnections_;
+	//List of Active connections
+	std::vector<TConnection*> activeConnections_;
 
 	//List of connections to close when no longer in use
 	std::vector<int> closePool_;
@@ -708,11 +707,7 @@ private:
 	/**
 	* Returns a connection to pool (or deletes it if pool is full).
 	*/
-	void returnConnection(int socket);
-
-	void markForClose(int socket);
-
-	void closeMarkedConnections();
+	void returnConnections();
 
 	//Run connection loop
 	void run();
@@ -799,10 +794,7 @@ private:
 	boost::shared_ptr<TServerEventHandler> serverEventHandler_;
 
 	/// Thrift call context, if any
-	void *connectionContext_;
-
-	/// Close this connection and free or reset its resources.
-	void close();
+	void *connectionContext_;	
 
 public:
 
@@ -863,17 +855,9 @@ public:
 
 	//Attempt to expire the connection. If the last action occured
 	// more than timeout milliseconds ago, close the connection.
-	void expire(long timeout)
+	bool isExpired(long timeout)
 	{
-		if ((clock() - lastAction_) > timeout)
-			appState_ = APP_CLOSE_CONNECTION;
-	}
-
-	/// Force connection shutdown for this connection.
-	void forceClose()
-	{
-		appState_ = APP_CLOSE_CONNECTION;
-		close();
+		return clock() - lastAction_ > timeout;
 	}
 
 	/// return the server this connection was initialized for.
@@ -916,6 +900,9 @@ public:
 	{
 		return server_;
 	}
+
+	/// Close this connection and free or reset its resources.
+	void close();
 
 };
 

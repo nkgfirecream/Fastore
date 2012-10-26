@@ -408,10 +408,6 @@ void TFastoreServer::TConnection::transition()
 
 			return;
 
-		case APP_CLOSE_CONNECTION:
-			close();
-			return;
-
 		default:
 			GlobalOutput.printf("Unexpected Application State %d", appState_);
 			assert(0);
@@ -429,17 +425,12 @@ void TFastoreServer::TConnection::close()
 		serverEventHandler_->deleteContext(connectionContext_, inputProtocol_, outputProtocol_);
 	}
 
-	int id = tSocket_->getSocketFD();
-
 	// Close the socket
 	tSocket_->close();
 
 	// close any factory produced transports
 	factoryInputTransport_->close();
 	factoryOutputTransport_->close();
-
-	// Tell the server to free this connection when it can.
-	server_->markForClose(id);
 }
 
 void TFastoreServer::TConnection::checkIdleBufferMemLimit(size_t readLimit,	size_t writeLimit)
@@ -465,12 +456,11 @@ void TFastoreServer::TConnection::checkIdleBufferMemLimit(size_t readLimit,	size
 TFastoreServer::~TFastoreServer() 
 {
 	//Kill our current active connections...
-	for (auto iter = activeConnections_.begin(); iter != activeConnections_.end(); ++iter)
+	for(size_t i = 0; i < activeConnections_.size(); ++i)
 	{		
-		iter->second->forceClose();
+		activeConnections_[i]->close();
+		delete activeConnections_[i];
 	}
-
-	closeMarkedConnections();
 
 	// Clean up unused TConnection objects in connectionStack_
 	while (!connectionPool_.empty())
@@ -515,51 +505,33 @@ TFastoreServer::TConnection* TFastoreServer::
 		result->init(socket, this, addr, addrLen);
 	}
 
-	activeConnections_.insert(pair<SOCKET,TConnection*>(socket, result));
+	activeConnections_.push_back(result);
 
 	return result;
 }
 
 /**
-* Marks a connection for closure at next opportunity
+* Returns closed connections to the stack
 */
-void TFastoreServer::markForClose(int socket)
+void TFastoreServer::returnConnections()
 {
-	closePool_.push_back(socket);
-}
-
-void TFastoreServer::closeMarkedConnections()
-{
-	//clean any dead connections discovered by socket id;
-  for (size_t i = 0; i < closePool_.size(); ++i)
+	for (size_t i = 0; i < activeConnections_.size(); ++i)
 	{
-		returnConnection(closePool_[i]);
-	}
-
-	closePool_.clear();
-}
-
-/**
-* Returns a connection to the stack
-*/
-void TFastoreServer::returnConnection(int socket)
-{
-
-	auto it = activeConnections_.find(socket);
-	if( it == activeConnections_.end() ) {
-		return;
-	}
-	TConnection* connection = it->second;
-	activeConnections_.erase(it);
-
-	if (connectionPoolLimit_ &&	(connectionPool_.size() >= connectionPoolLimit_))
-	{
-		delete connection;
-	} 
-	else
-	{
-		connection->checkIdleBufferMemLimit(idleReadBufferLimit_, idleWriteBufferLimit_);
-		connectionPool_.push(connection);
+		auto connection = activeConnections_[i];
+		if(!connection->getTSocket()->isOpen())
+		{
+			activeConnections_.erase(activeConnections_.begin() + i);
+			--i; //Going to lose one item, so move back down. Linked list might be better than vector. don't know.
+			if (connectionPoolLimit_ &&	(connectionPool_.size() >= connectionPoolLimit_))
+			{
+				delete connection;
+			} 
+			else
+			{
+				connection->checkIdleBufferMemLimit(idleReadBufferLimit_, idleWriteBufferLimit_);
+				connectionPool_.push(connection);
+			}
+		}
 	}
 }
 
@@ -727,9 +699,15 @@ void TFastoreServer::expireConnections()
 {
 	if (connectionExpireTime_ > 0)
 	{
-		for (auto iter = activeConnections_.begin(); iter != activeConnections_.end(); ++iter)
+		int i = 0;
+		while(i < activeConnections_.size())
 		{
-			iter->second->expire(connectionExpireTime_);
+			if (activeConnections_[i]->isExpired(connectionExpireTime_))
+			{
+				activeConnections_[i]->close();
+				--i;
+			}
+			++i;
 		}
 	}
 }
@@ -777,46 +755,39 @@ void TFastoreServer::run()
 		_fds[0].revents = 0;
 
 		//construct fd array using active connections
-		int fdindex = 1;
-		for (auto iter = activeConnections_.begin(); iter != activeConnections_.end(); )
+		for (size_t i = 0 ; i < activeConnections_.size(); ++i)	
 		{
-			TAppState connState = iter->second->getState();
-			switch (connState)
+			size_t fdindex = i + 1;
+			auto conn = activeConnections_[i];
+			_fds[fdindex].events = 0;
+			_fds[fdindex].fd = -1;
+			_fds[fdindex].revents = 0;
+			switch (conn->getState())
 			{
 				case APP_READ_FRAME_SIZE:
 				case APP_READ_REQUEST:
 					_fds[fdindex].events = POLLIN;
-					_fds[fdindex].fd = iter->first;
-					_fds[fdindex].revents = 0;
-					++fdindex;
+					_fds[fdindex].fd = conn->getTSocket()->getSocketFD();
 					break;
 
 				case APP_SEND_RESULT:
 					_fds[fdindex].events = POLLOUT;
-					_fds[fdindex].fd = iter->first;
-					_fds[fdindex].revents = 0;
-					++fdindex;
+					_fds[fdindex].fd = conn->getTSocket()->getSocketFD();
 					break;
 
-				case APP_CLOSE_CONNECTION:
 				case APP_INIT:
-					//The transition call will cause new connections to be initialized
-					//and closed connection to be added to the closePool.
-					iter->second->transition();
-					break;
-				case APP_PARKED:
+					conn->transition();
+				case APP_PARKED:					
 				default:
 					break;
 			}
-
-			++iter;
 		}
 
 #ifndef _WIN32
 		// Signal the parent process we've successfully set up. 
 		kill(getppid(), SIGUSR1);
 #endif
-		int numready = poll(_fds, fdindex, pollTimeout_);
+		int numready = poll(_fds, ULONG(activeConnections_.size() + 1), pollTimeout_);
 		if (numready == -1)
 		{
 			if (EINTR == errno) {
@@ -827,16 +798,17 @@ void TFastoreServer::run()
 		}
 		else if(numready > 0 )
 		{
-			for (int i = 1; i < fdindex; i++)
+			for (size_t i = 0; i < activeConnections_.size(); i++)
 			{
-				if (_fds[i].revents != 0)
-					activeConnections_[_fds[i].fd]->workSocket();
+				size_t fdindex = i + 1;
+				if (_fds[fdindex].revents > 0)
+					activeConnections_[i]->workSocket();
 			}
 
 			//We still accept connections even if we are shutting down
 			//So that we can tell them we are shutting down (in the future, not implemented yet...)
 			// (Do we want a different behavior?)
-			if (_fds[0].revents != 0)
+			if (_fds[0].revents & POLLIN)
 			{
 				acceptConnections();
 			}
@@ -845,9 +817,8 @@ void TFastoreServer::run()
 		//Close connections that have been unused for a while.
 		expireConnections();
 
-		//If any active connections were marked for closure on thise last iteration,
-		//free them and return them to the pool.
-		closeMarkedConnections();
+		//Remove active connections that have been closed and return them to the pool.
+		returnConnections();
 
 		//If we are passed our timeout, or have successfully closed all connections, then stop serving.
 		if (_shutdown &&  /*(clock() - _shutdownStart > _shutdownTimeout || */ activeConnections_.size() == 0) //)
@@ -907,9 +878,8 @@ void TFastoreServer::acceptConnections()
 			break;
 		}
 
-		//Initialize connection, try to perform first work.
+		//Initialize connection
 		clientConnection->transition();
-
 
 		// addrLen is written by the accept() call, so needs to be set before the next call.
 		addrLen = sizeof(addrStorage);
