@@ -62,7 +62,7 @@ namespace Fastore.Core.Demo2
 
         private bool DetectSchema()
         {
-			using (var statement = _connection.Execute("select 1 from sqlite_master where name = 'Person'"))
+			using (var statement = _connection.Execute("select 1 from sqlite_master where name = 'Person';"))
 				return (statement.GetInt64(0) ?? 0) == 1;
         }
 
@@ -70,19 +70,7 @@ namespace Fastore.Core.Demo2
 		{		
 			_connection.Execute
 			(
-				@"
-					create table Person
-					(
-						ID int primary,
-						Given varchar not null,
-						Surname varchar not null,
-						Gender int not null,
-						BirthDate varchar not null,
-						BirthPlace varchar not null,
-						MID int,
-						FID int
-					)
-				"
+				@"create table Person(ID int primary key, Given varchar not null, Surname varchar not null, Gender int not null, BirthDate varchar not null, BirthPlace varchar not null, MID int, FID int)"
 			);
 		}
 
@@ -91,7 +79,7 @@ namespace Fastore.Core.Demo2
 			var fileName = @"e:\Ancestry\owt\owt.csv";
 			using (var fileStream = new StreamReader(new FileStream(fileName, FileMode.Open, FileAccess.Read)))
 			{
-				_connection.Execute("begin");
+				_connection.Execute("begin;");
 
 				var count = 0;
 				long lastMilliseconds = 0;
@@ -116,19 +104,20 @@ namespace Fastore.Core.Demo2
 					{
 
 						//Wait until task is done.
-                        if (_commitTask != null)
-                            _commitTask.Wait();
+                        //if (_commitTask != null)
+                        //    _commitTask.Wait();
 
-						_commitTask = Task.Factory.StartNew
-							(
-								(c) =>
-								{
-									((Connection)c).Execute("commit");
-									//((Transaction)t).Ping();
-								},
-								_connection
-							);
+                        //_commitTask = Task.Factory.StartNew
+                        //    (
+                        //        (c) =>
+                        //        {
+                        //            ((Connection)c).Execute("commit");
+                        //            //((Transaction)t).Ping();
+                        //        },
+                        //        _connection
+                        //    );
 						//_transaction.Commit();
+                        _connection.Execute("commit");
 						_connection.Execute("begin");
 						Application.DoEvents();
 					}
@@ -140,10 +129,10 @@ namespace Fastore.Core.Demo2
 				}
 
 				//Wait until task is done.
-				if (_commitTask != null)
-                    _commitTask.Wait();
+				//if (_commitTask != null)
+                //    _commitTask.Wait();
 
-				_connection.Execute("commit");
+				_connection.Execute("commit;");
 
 				watch.Stop();
 
@@ -221,7 +210,7 @@ namespace Fastore.Core.Demo2
 				data[6] = Escape(record[6] ?? "null");
 				data[7] = Escape(record[7] ?? "null");
 
-				_connection.Execute(String.Format("insert into Person (ID, Given, Surname, Gender, BirthDate, BirthPlace) values ({0}, '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7})", data));
+				_connection.Execute(String.Format("insert into Person (ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID) values ({0}, '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7})", data));
 				//_database.Include(_columns, _ids, record);
             }
         }

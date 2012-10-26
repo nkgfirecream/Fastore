@@ -24,7 +24,8 @@ std::map<string, ArgumentType, LexCompare> createTypeMap()
 Statement::Statement(sqlite3* db, const string &sql)
 {
 	_types = createTypeMap();
-	_eof = (!(sqlite3_prepare_v2(db, sql.c_str(), -1, &_statement, NULL) == SQLITE_ROW));
+	int result = sqlite3_prepare_v2(db, sql.c_str(), -1, &_statement, NULL);
+	_eof = false;
 }
 
 Statement::~Statement()

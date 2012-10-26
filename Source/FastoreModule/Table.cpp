@@ -26,11 +26,11 @@ void module::Table::EnsureFastoreTypeMaps()
 {
 	if (sqliteTypesToFastoreTypes.size() == 0)
 	{
-		sqliteTypesToFastoreTypes["VARCHAR"] = "String";
-		sqliteTypesToFastoreTypes["INT"] = "Long";
-		sqliteTypesToFastoreTypes["FLOAT"] = "Double";
-		sqliteTypesToFastoreTypes["DATE"] = "Double";
-		sqliteTypesToFastoreTypes["DATETIME"] = "Double";
+		sqliteTypesToFastoreTypes["varchar"] = "String";
+		sqliteTypesToFastoreTypes["int"] = "Long";
+		sqliteTypesToFastoreTypes["float"] = "Double";
+		sqliteTypesToFastoreTypes["date"] = "Double";
+		sqliteTypesToFastoreTypes["datetime"] = "Double";
 	}
 
 	if (sqliteTypeIDToFastoreTypes.size() == 0)

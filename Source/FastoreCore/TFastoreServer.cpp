@@ -547,10 +547,7 @@ void TFastoreServer::returnConnection(int socket)
 
 	auto it = activeConnections_.find(socket);
 	if( it == activeConnections_.end() ) {
-		ostringstream msg;
-		msg << __func__ << ": no connection for socket " << socket;
-		Log << log_err << msg.str() << log_endl;
-		throw logic_error(msg.str());
+		return;
 	}
 	TConnection* connection = it->second;
 	activeConnections_.erase(it);
