@@ -42,14 +42,6 @@ int64_t IDGenerator::Generate()
 		auto remaining = _endOfRange - _nextId;
 		if (remaining <= 0)
 		{
-			Log << log_info << __func__ 
-				<< ", _endOfRange " << _endOfRange
-				<< ", _nextId " << _nextId
-				<< ", remaining " << remaining 
-				// ", _loadingBlock " << _loadingBlock
-				<< log_endl;
-			// If haven't begun loading the next block, commence
-
 			try
 			{
 				AsyncGenerateBlock();

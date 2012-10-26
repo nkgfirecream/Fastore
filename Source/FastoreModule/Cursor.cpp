@@ -39,7 +39,7 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 			sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
 			break;
 		case SQLITE_INTEGER:
-			sqlite3_result_int64(pContext, Encoder<long long>::Decode(value.value));
+			sqlite3_result_int64(pContext, Encoder<int64_t>::Decode(value.value));
 			break;
 		case SQLITE_FLOAT:
 			sqlite3_result_double(pContext, Encoder<double>::Decode(value.value));
@@ -53,7 +53,7 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 
 int module::Cursor::setRowId(sqlite3_int64 *pRowid)
 {
-	*pRowid = (sqlite3_int64)client::Encoder<long long>::Decode(_set.Data[_index].ID);
+	*pRowid = (sqlite3_int64)client::Encoder<int64_t>::Decode(_set.Data[_index].ID);
 
 	return SQLITE_OK;
 }

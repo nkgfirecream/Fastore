@@ -125,11 +125,11 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 				(client::Encoder<bool>::Encode(defs[i].Required))
 			);
 
-			long long surrogateId = connection->_generator->Generate(Dictionary::PodColumnPodID);
+			int64_t surrogateId = connection->_generator->Generate(Dictionary::PodColumnPodID);
 			transaction->Include
 			(
 				Dictionary::PodColumnColumns,
-				client::Encoder<long long>::Encode(surrogateId),
+				client::Encoder<int64_t>::Encode(surrogateId),
 				boost::assign::list_of<std::string>
 				(podId)
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
@@ -313,7 +313,7 @@ fastore_vtab* tableInstantiate(sqlite3 *db, void *pAux, int argc, const char *co
 			ddl << ",";
 		//TODO: Clean arguments. Make sure they are SQLite compatible.
 		ddl << argv[i];
-	}
+	}	
 
 	auto vtab = (fastore_vtab*)sqlite3_malloc(sizeof(fastore_vtab));
 	*ppVTab = &vtab->base;

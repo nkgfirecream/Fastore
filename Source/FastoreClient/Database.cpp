@@ -76,8 +76,8 @@ Database::Database(std::vector<ServiceAddress> addresses)
 				 */
 				serviceWorkers[i] = hiveStateResult.potentialWorkers;
 				_services.Destroy(service);
-				Log << log_err << __func__ << ": failed to join "
-					<< networkAddresses[i] << log_endl;
+				//Log << log_err << __func__ << ": failed to join "
+				//	<< networkAddresses[i] << log_endl;
 				continue;
 			}
 
@@ -90,15 +90,15 @@ Database::Database(std::vector<ServiceAddress> addresses)
 			RefreshHiveState();
 
 			//Everything worked... exit function
-				Log << log_err << __func__ << ": joined "
-					<< networkAddresses[i] << log_endl;
+				//Log << log_err << __func__ << ": joined "
+				//	<< networkAddresses[i] << log_endl;
 			return;
 		}
 		// If anything goes wrong, be sure to release the service client
 		catch(const std::exception& e)
 		{
-			Log << log_err << __func__ << ": could not connect to hive on "
-				<< networkAddresses[i] << ": " << e.what() << log_endl;
+			//Log << log_err << __func__ << ": could not connect to hive on "
+			//	<< networkAddresses[i] << ": " << e.what() << log_endl;
 			_services.Destroy(service);
 			throw;
 		}

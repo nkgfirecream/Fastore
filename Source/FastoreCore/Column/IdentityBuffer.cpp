@@ -46,7 +46,7 @@ void IdentityBuffer::Apply(const ColumnWrites& writes)
 		void* value = _type.GetPointer((*incstart).value);
 		void* rowId = _type.GetPointer((*incstart).rowID);
 
-		if (_type.Compare(value,rowId) != 0)
+		if (_type.Compare(value, rowId) != 0)
 			throw "Identity buffer requires the rowId and value to be the same";
 
 		Include(rowId);

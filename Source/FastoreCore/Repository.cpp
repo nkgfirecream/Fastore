@@ -87,14 +87,14 @@ void Repository::initializeBuffer()
 	}
 	else
 	{
-		if (_def.ValueType.Size <= 8)
-		{
-			_buffer = std::unique_ptr<IColumnBuffer>(new TreeInlineBuffer(_def.RowIDType, _def.ValueType));		
-		}
-		else
-		{
+		//if (_def.ValueType.Size <= 8)
+		//{
+		//	_buffer = std::unique_ptr<IColumnBuffer>(new TreeInlineBuffer(_def.RowIDType, _def.ValueType));		
+		//}
+		//else
+		//{
 			_buffer = std::unique_ptr<IColumnBuffer>(new TreeBuffer(_def.RowIDType, _def.ValueType));		
-		}
+		//}
 	}
 }
 
@@ -149,24 +149,24 @@ void Repository::load()
 	_def = def;
 	initializeBuffer();
 
-	//Read rest of file into buffer
-	ColumnWrites writes;
-	vector<Include> includes;
+	//Read rest of file into buffer	
 	while(protocol->getTransport()->peek())
 	{
+		ColumnWrites writes;
+		vector<Include> includes;
 		ValueRows vr;
 		vr.read(protocol.get());
 		for (size_t j = 0; j < vr.rowIDs.size(); j++)
 		{
 			Include inc;
 			inc.__set_value(vr.value);
-			inc.__set_rowID(vr.rowIDs.at(j));
+			inc.__set_rowID(vr.rowIDs[j]);
 			includes.push_back(inc);
 		}
-	}
 
-	writes.__set_includes(includes);
-	_buffer->Apply(writes);
+		writes.__set_includes(includes);
+		_buffer->Apply(writes);
+	}	
 
 	transport->close();
 
@@ -224,14 +224,48 @@ void Repository::checkpoint()
 	fastore::communication::RangeRequest range;
 
 	range.__set_ascending(true);
-	range.__set_limit(2000000000);
-	RangeResult result = _buffer->GetRows(range);
-	
-	ValueRowsList vrl = result.valueRowsList;
-	for (size_t i = 0; i < vrl.size(); i++)
+	range.__set_limit(1000);	
+
+	bool firstWrite = true;
+	string lastValue;
+	string lastRowId;
+
+	//TODO: Encasulate logic to either breathe or do this in background...
+	while (true)
 	{
-		ValueRows vr = vrl[i];
-		vr.write(protocol.get());
+		if (!firstWrite)
+		{
+			fastore::communication::RangeBound bound;
+			bound.__set_inclusive(true);
+			bound.__set_value(lastValue);
+
+			range.__set_rowID(lastRowId);
+			range.__set_first(bound);
+		}
+		else
+		{
+			firstWrite = false;
+		}		
+
+		RangeResult result = _buffer->GetRows(range);
+	
+		ValueRowsList vrl = result.valueRowsList;
+		for (size_t i = 0; i < vrl.size(); i++)
+		{
+			ValueRows vr = vrl[i];
+			vr.write(protocol.get());
+		}
+
+		if (vrl.size() > 0)
+		{
+			ValueRows lastValueRows = vrl.at(vrl.size() - 1);
+
+			lastValue = lastValueRows.value;
+			lastRowId = lastValueRows.rowIDs.at(lastValueRows.rowIDs.size() - 1);
+		}
+
+		if (result.eof)
+			break;
 	}
 
 	transport->flush();

@@ -2,12 +2,13 @@
 #include "../Util/utilities.h"
 #include <sstream>
 #include <functional>
+#include <stdint.h>
 
 using namespace std;
 
 int LongCompare(const void* left, const void* right)
 {
-	   const long long result = *reinterpret_cast<const long long*>(left) - *reinterpret_cast<const long long*>(right);
+	   const int64_t result = *reinterpret_cast<const int64_t*>(left) - *reinterpret_cast<const int64_t*>(right);
 	   if (result > 0)
 		   return 1;
 	   else if (result == 0)
@@ -18,7 +19,7 @@ int LongCompare(const void* left, const void* right)
 
 std::wstring LongString(const void* item)
 {
-	const long long temp = *reinterpret_cast<const long long*>(item) ;
+	const int64_t temp = *reinterpret_cast<const int64_t*>(item) ;
 	wostringstream os;
 	os << temp;
 	return os.str();
@@ -28,12 +29,12 @@ LongType::LongType()
 {
 	Name = "Long";
 	Compare = LongCompare;
-	Size = sizeof(long long);
+	Size = sizeof(int64_t);
 	ToString = LongString;
-	IndexOf =  CompareIndexOf<long long, LongCompare>;
-	CopyIn = CopyToArray<long long>;
-	CopyOut = CopyOutOfArray<long long>;
-	GetPointer = GetPointerFromString<long long>;
+	IndexOf =  CompareIndexOf<int64_t, LongCompare>;
+	CopyIn = CopyToArray<int64_t>;
+	CopyOut = CopyOutOfArray<int64_t>;
+	GetPointer = GetPointerFromString<int64_t>;
 	Deallocate = NoOpDeallocate;
 }
 
@@ -103,7 +104,7 @@ BoolType::BoolType()
 int DoubleCompare(const void* left, const void* right)
 {
 	//TODO: Make this configurable
-	double e = .0005;
+	double e = .000000000000005;
 	double result =  *(double*)left - *(double*)right;
 	if (result > e)
 		return 1;

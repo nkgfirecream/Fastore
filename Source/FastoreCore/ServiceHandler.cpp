@@ -203,8 +203,8 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 		ServiceState state;
 		state.__set_address(hostAddress->second);
 
-		Log << log_info << __func__ << ": host " << host->first 
-			<< " has address " << hostAddress->second << log_endl;
+		//Log << log_info << __func__ << ": host " << host->first 
+		//	<< " has address " << hostAddress->second << log_endl;
 
 		// If the host is this one, fill in details
 		if (host->first == hostID)

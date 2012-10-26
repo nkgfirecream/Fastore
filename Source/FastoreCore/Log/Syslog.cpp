@@ -152,8 +152,8 @@ operator<<( fastore::Syslog& log,
 // It could go in Communications/operators.cpp, but there's
 // nowhere to declare it. 
 
-ostream& operator<<( ostream& os, const fastore::communication::NetworkAddress& addr ) 
-{
-	return os << "{" << addr.name << ":" << addr.port << "}";
-}
+//ostream& operator<<( ostream& os, const fastore::communication::NetworkAddress& addr ) 
+//{
+//	return os << "{" << addr.name << ":" << addr.port << "}";
+//}
 

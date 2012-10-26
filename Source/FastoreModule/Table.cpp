@@ -26,11 +26,11 @@ void module::Table::EnsureFastoreTypeMaps()
 {
 	if (sqliteTypesToFastoreTypes.size() == 0)
 	{
-		sqliteTypesToFastoreTypes["varchar"] = "String";
-		sqliteTypesToFastoreTypes["int"] = "Long";
-		sqliteTypesToFastoreTypes["float"] = "Double";
-		sqliteTypesToFastoreTypes["date"] = "String";
-		sqliteTypesToFastoreTypes["datetime"] = "String";
+		sqliteTypesToFastoreTypes["VARCHAR"] = "String";
+		sqliteTypesToFastoreTypes["INT"] = "Long";
+		sqliteTypesToFastoreTypes["FLOAT"] = "Double";
+		sqliteTypesToFastoreTypes["DATE"] = "Double";
+		sqliteTypesToFastoreTypes["DATETIME"] = "Double";
 	}
 
 	if (sqliteTypeIDToFastoreTypes.size() == 0)
@@ -291,7 +291,7 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 	transaction->Include
 	(
 		client::Dictionary::PodColumnColumns,
-		client::Encoder<long long>::Encode(_connection->_generator->Generate(client::Dictionary::PodColumnPodID)),
+		client::Encoder<int64_t>::Encode(_connection->_generator->Generate(client::Dictionary::PodColumnPodID)),
 		boost::assign::list_of<std::string>
 		(podId)
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
@@ -507,18 +507,49 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		{
 			std::string type = _columns[i].Type;
 			int datatype = sqlite3_value_type(pValue);
+			int desiredType = FastoreTypeToSQLiteTypeID(type);
 
-			if (datatype != FastoreTypeToSQLiteTypeID(type))
-			{
-				//Attempt a conversion to the correct type
-				datatype = sqlite3_value_numeric_type(pValue);
-				if (datatype != FastoreTypeToSQLiteTypeID(type))
-					return SQLITE_MISMATCH;
-			}
+			//TODO: Handle conversions
+			//if (datatype != desiredType && datatype != SQLITE_BLOB) //For blobs, just do what we can
+			//{
+			//	switch(desiredType)
+			//	{
+			//		//Conversion to float is:
+			//		case SQLITE_FLOAT:
+			//			{
+			//			//Fine if it can be converted losslessly to a float or int
+			//			int converted = sqlite3_value_numeric_type(pValue);
+			//			if (converted == SQLITE_INTEGER || converted == SQLITE_FLOAT)
+			//				break;
+			//			//Otherwise it's not ok
+			//			else
+			//				return SQLITE_MISMATCH;						
+			//			}
+			//			break;
+
+			//		//Conversion to text is:
+			//		case SQLITE_TEXT:
+			//			//always ok
+			//			break;
+
+			//		//Conversion to int is:
+			//		case SQLITE_INTEGER:
+			//			//fine if it can be converted losslessly
+			//			if (sqlite3_value_numeric_type(pValue) == SQLITE_INTEGER)
+			//				break;
+			//			else
+			//				return SQLITE_MISMATCH;
+			//			break;
+
+			//		default:
+			//			return SQLITE_MISMATCH;
+			//			break;
+			//	}
+			//}
 
 			std::string value;
 
-			switch(datatype)
+			switch(desiredType)
 			{
 				case SQLITE_TEXT:
 					value = std::string((const char *)sqlite3_value_text(pValue));

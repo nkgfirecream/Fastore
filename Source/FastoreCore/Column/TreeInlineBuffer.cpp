@@ -86,7 +86,7 @@ bool TreeInlineBuffer::Include(void* rowId, void* value)
 		existing->GetPath(rowId, keypath);
 		existing->Insert(keypath, rowId, rowId);			
 
-		_rows->Insert(rowpath, rowId, &path.Leaf);
+		_rows->Insert(rowpath, rowId, value);
 
 		_total++;
 		return true;

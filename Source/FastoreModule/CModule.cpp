@@ -72,7 +72,7 @@ void initializeFastoreModule(sqlite3* db, int argc, void* argv)
 		}
 
 		intializeFastoreModule(db, mas);
-		Log << log_info << __func__ << " Module initialized" << log_endl;
+		//Log << log_info << __func__ << " Module initialized" << log_endl;
 	}
 	catch( const std::string& errorMessage ) {
 		cerr << getprogname() << ": error:: " << errorMessage << endl;

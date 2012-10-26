@@ -16,7 +16,7 @@ namespace fastore { namespace client
 
 	public:
 		/// <summary> The default number of IDs to allocate with each batch. </summary>
-		static const int DefaultBlockSize = 100;
+		static const int DefaultBlockSize = 5000; //Approx once per transaction...
 
 		/// <summary> The default low-water mark for starting allocation of next block. </summary>
 		static const int DefaultAllocationThreshold = 5;

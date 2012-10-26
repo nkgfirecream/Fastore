@@ -2,7 +2,7 @@
 #pragma once 
 //Thrift defines it's own windows configuration (see next couple of lines)
 //So on windows, it must be included first.
-#include "../../FastoreCommunication/Server_types.h"
+//#include "../../FastoreCommunication/Server_types.h"
 
 #if _WIN32
 # include <windows.h>
@@ -88,6 +88,4 @@ operator<<( fastore::Syslog& log,
 #if _WIN32
 # define __func__ __FUNCTION__
 #endif
-
-std::ostream& operator<<( std::ostream& os, const fastore::communication::NetworkAddress& addr );
 

@@ -46,7 +46,7 @@ void Statement::bind(std::vector<fastore::provider::Argument> arguments)
 {
 	sqlite3_reset(_statement);
 	int parameterCount = sqlite3_bind_parameter_count(_statement);
-	if (parameterCount != SAFE_CAST(int,arguments.size()))
+	if (parameterCount != SAFE_CAST(int, arguments.size()))
 		throw "Wrong number of arguments";
 
 	for (int i = 0; i < parameterCount; ++i)
@@ -63,9 +63,9 @@ void Statement::internalBind(int index, ArgumentType type, std::string& value)
 	case ArgumentType::FASTORE_ARGUMENT_BOOL : sqlite3_bind_int(_statement, index, fastore::client::Encoder<bool>::Decode(value)); break;
 	case ArgumentType::FASTORE_ARGUMENT_DOUBLE :  sqlite3_bind_double(_statement, index, fastore::client::Encoder<double>::Decode(value)); break;
 	case ArgumentType::FASTORE_ARGUMENT_INT32 : sqlite3_bind_int(_statement, index, fastore::client::Encoder<int>::Decode(value)); break;
-	case ArgumentType::FASTORE_ARGUMENT_INT64 : sqlite3_bind_int64(_statement, index, fastore::client::Encoder<long long>::Decode(value)); break;
+	case ArgumentType::FASTORE_ARGUMENT_INT64 : sqlite3_bind_int64(_statement, index, fastore::client::Encoder<int64_t>::Decode(value)); break;
 	case ArgumentType::FASTORE_ARGUMENT_NULL : sqlite3_bind_null(_statement, index); break;
-	case ArgumentType::FASTORE_ARGUMENT_STRING16 : sqlite3_bind_text16(_statement, index, value.c_str(), SAFE_CAST(int,value.length()), NULL); break;
+	case ArgumentType::FASTORE_ARGUMENT_STRING16 : sqlite3_bind_text16(_statement, index, value.c_str(), SAFE_CAST(int, value.length()), NULL); break;
 	case ArgumentType::FASTORE_ARGUMENT_STRING8 : sqlite3_bind_text(_statement, index, value.c_str(), SAFE_CAST(int, value.length()), NULL); break;
 	default :
 		throw "Unrecognized argument type";
