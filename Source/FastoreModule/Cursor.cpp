@@ -127,10 +127,20 @@ client::Range module::Cursor::createRange(int idxNum, const char *idxStr, int ar
 			for (int i = 0; i < argc; i++)
 			{
 				client::RangeBound bound = getBound(colIndex, idxStr[i], argv[i]);
-				if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[0] == SQLITE_INDEX_CONSTRAINT_GE)
-					range.Start = bound;
+				if (range.Ascending)
+				{
+					if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[i] == SQLITE_INDEX_CONSTRAINT_GE)
+						range.Start = bound;
+					else
+						range.End = bound;
+				}
 				else
-					range.End = bound;
+				{
+					if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[i] == SQLITE_INDEX_CONSTRAINT_GE)
+						range.End = bound;
+					else
+						range.Start = bound;
+				}
 			}
 		}
 	}

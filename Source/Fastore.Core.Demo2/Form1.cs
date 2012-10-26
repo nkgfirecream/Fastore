@@ -27,7 +27,7 @@ namespace Fastore.Core.Demo2
 
         private Connection _connection;
         private Task _commitTask;
-        private int NumPerTransaction = 100;
+        private int NumPerTransaction = 5000;
 		public bool Canceled { get; set; }
 
 		private void Form1_Shown(object sender, EventArgs e)
@@ -255,7 +255,7 @@ namespace Fastore.Core.Demo2
 
         private IEnumerable<string[]> SelectData(object startId = null)
         {
-			string orderBy = comboBox1.SelectedText;
+            string orderBy = comboBox1.SelectedItem.ToString() + (comboBox2.SelectedIndex == 0 ? " asc" : " desc");
 			string condition = "";
             if (!String.IsNullOrWhiteSpace(Search.Text))
             {
@@ -281,11 +281,11 @@ namespace Fastore.Core.Demo2
                 //start = new RangeBound { Bound = value, Inclusive = true };
 
 				if (!String.IsNullOrWhiteSpace(Search.Text))
-					condition = "where " + comboBox1.SelectedText + " >= '" + Search.Text + "'";
+                    condition = "where " + comboBox1.SelectedItem.ToString() + (comboBox2.SelectedIndex == 0 ? " >= '" : " <= '") + Search.Text + "'";
             }
 
 			var query = "select ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID from Person " 
-				+ condition + (String.IsNullOrEmpty(orderBy) ? "" : " order by + " + orderBy);
+				+ condition + (String.IsNullOrEmpty(orderBy) ? "" : " order by " + orderBy);
             var statement = _connection.Prepare(query);
 	        return ParseDataSet(statement);
         }
