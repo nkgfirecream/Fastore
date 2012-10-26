@@ -27,7 +27,7 @@ namespace Fastore.Core.Demo2
 
         private Connection _connection;
         private Task _commitTask;
-        private int NumPerTransaction = 5000;
+        private int NumPerTransaction = 100;
 		public bool Canceled { get; set; }
 
 		private void Form1_Shown(object sender, EventArgs e)
@@ -63,7 +63,7 @@ namespace Fastore.Core.Demo2
 
         private bool DetectSchema()
         {
-			using (var statement = _connection.Execute("select 1 from sqlite_master where name = 'Person';"))
+			using (var statement = _connection.Execute("select * from sqlite_master where name = 'Person'"))
 				return (statement.GetInt64(0) ?? 0) == 1;
         }
 
@@ -284,9 +284,9 @@ namespace Fastore.Core.Demo2
 					condition = "where " + comboBox1.SelectedText + " >= '" + Search.Text + "'";
             }
 
-			var query = "select ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID" + condition;
-            using (var statement = _connection.Prepare(query))
-	            return ParseDataSet(statement);
+			var query = "select ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID from Person " + condition;
+            var statement = _connection.Prepare(query);
+	        return ParseDataSet(statement);
         }
 
 		// Convert each column to a string
