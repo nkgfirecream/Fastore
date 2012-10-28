@@ -30,25 +30,30 @@ namespace fastore
 		{
 		private:
 			sqlite3_stmt* _statement;
-			void internalBind(int index, ArgumentType type, std::string& value);
 			bool _eof;
 
 			std::map<int, ColumnInfo> _infos;
 			std::map<std::string, ArgumentType, LexCompare> _types;
 
+			void internalBind(int32_t index);
+			void checkBindResult(int result);
 		public:
 			Statement(sqlite3* db, const std::string &sql);
 			~Statement();
 
 			int columnCount();
-			void bind(std::vector<Argument> arguments);
+			void bindInt64(int32_t index, int64_t value);
+			void bindDouble(int32_t index, double value);
+			void bindAString(int32_t index, std::string value);
+			void bindWString(int32_t index, std::wstring value);
 			bool next();
 			bool eof();
 			void reset();
-			ColumnInfo getColumnInfo(int index);
-			boost::optional<int64_t> getColumnValueInt64(int index);
-			boost::optional<double> getColumnValueDouble(int index);
-			boost::optional<std::string> getColumnValueAString(int index);
+			ColumnInfo getColumnInfo(int32_t index);
+			boost::optional<int64_t> getColumnValueInt64(int32_t index);
+			boost::optional<double> getColumnValueDouble(int32_t index);
+			boost::optional<std::string> getColumnValueAString(int32_t index);
+			boost::optional<std::wstring> getColumnValueWString(int32_t index);
 		};
 
 		typedef std::shared_ptr<Statement> StatementObject; 

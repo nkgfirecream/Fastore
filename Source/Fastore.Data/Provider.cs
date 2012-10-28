@@ -119,7 +119,21 @@ namespace Alphora.Fastore.Data
 		public extern static PrepareResult Prepare(IntPtr connection, [param: MarshalAs(UnmanagedType.LPStr)]string batch);
 
 		//// Provides values for any parameters included in the prepared statement and resets the cursor
-		//FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, void *arguments, const ArgumentType ArgumentType[]);
+		//FASTOREAPI GeneralResult fastoreBindInt64(StatementHandle statement, int32_t argumentIndex, int64_t value);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindInt64", CallingConvention = CallingConvention.Cdecl)]
+		public extern static PrepareResult Bind(IntPtr statement, int argumentIndex, long value);
+
+		//FASTOREAPI GeneralResult fastoreBindDouble(StatementHandle statement, int32_t argumentIndex, double value);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindDouble", CallingConvention = CallingConvention.Cdecl)]
+		public extern static PrepareResult Bind(IntPtr statement, int argumentIndex, double value);
+
+		//FASTOREAPI GeneralResult fastoreBindAString(StatementHandle statement, int32_t argumentIndex, const char *value);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindAString", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+		public extern static PrepareResult BindAString(IntPtr statement, int argumentIndex, string value);
+
+		//FASTOREAPI GeneralResult fastoreBindWString(StatementHandle statement, int32_t argumentIndex, const wchar_t *value);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindWString", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
+		public extern static PrepareResult BindWString(IntPtr statement, int argumentIndex, string value);
 
 		// Executes the statement, or navigates to the first or next row
 		//FASTOREAPI NextResult fastoreNext(StatementHandle statement);
@@ -142,6 +156,10 @@ namespace Alphora.Fastore.Data
 		//FASTOREAPI ColumnValueAStringResult fastoreColumnValueAString(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, char *valueTarget);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValueAString", CallingConvention = CallingConvention.Cdecl)]
 		public extern static ColumnValueStringResult ColumnValueAString(IntPtr statement, int columnIndex, ref int targetMaxBytes, [param: MarshalAs(UnmanagedType.LPStr), Out()] StringBuilder valueTarget);
+
+		//FASTOREAPI ColumnValueAStringResult fastoreColumnValueWString(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, wchar_t *valueTarget);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnValueWString", CallingConvention = CallingConvention.Cdecl)]
+		public extern static ColumnValueStringResult ColumnValueWString(IntPtr statement, int columnIndex, ref int targetMaxBytes, [param: MarshalAs(UnmanagedType.LPWStr), Out()] StringBuilder valueTarget);
 
 		// Closes the given cursor
 		//FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);

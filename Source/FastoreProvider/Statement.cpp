@@ -2,9 +2,13 @@
 #include <sqlite3.h>
 #include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Encoder.h"
+#include "../FastoreClient/ClientException.h"
+#include "SQLiteHelpers.h"
+#include <boost/format.hpp>
 using namespace std;
 using namespace fastore::provider;
 using boost::optional;
+using fastore::client::ClientException;
 
 std::map<string, ArgumentType, LexCompare> createTypeMap()
 {
@@ -14,7 +18,7 @@ std::map<string, ArgumentType, LexCompare> createTypeMap()
 	//m[] =  ArgumentType::FASTORE_ARGUMENT_INT32;
 	m["int"] = ArgumentType::FASTORE_ARGUMENT_INT64;
 	m["varchar"] = ArgumentType::FASTORE_ARGUMENT_STRING8;
-	//m["WString"] = ArgumentType::FASTORE_ARGUMENT_STRING16;
+	//m["nvarchar"] = ArgumentType::FASTORE_ARGUMENT_STRING16;
 	m["float"] = ArgumentType::FASTORE_ARGUMENT_DOUBLE;
 	m["null"] = ArgumentType::FASTORE_ARGUMENT_NULL;
 
@@ -40,42 +44,53 @@ bool Statement::eof()
 
 void Statement::reset()
 {
+	_eof = false;
 	sqlite3_reset(_statement);
 }
 
-void Statement::bind(std::vector<fastore::provider::Argument> arguments)
+void Statement::internalBind(int32_t index)
 {
+	_eof = false;
 	sqlite3_reset(_statement);
-	int parameterCount = sqlite3_bind_parameter_count(_statement);
-	if (parameterCount != int(arguments.size()))
-		throw "Wrong number of arguments";
-
-	for (int i = 0; i < parameterCount; ++i)
-	{
-		auto arg = arguments[i];
-		internalBind(i, arg.type, arg.value);
-	}
 }
 
-void Statement::internalBind(int index, ArgumentType type, std::string& value)
+void Statement::checkBindResult(int result)
 {
-	switch(type)
+	if (result == SQLITE_RANGE)
 	{
-	case ArgumentType::FASTORE_ARGUMENT_BOOL : sqlite3_bind_int(_statement, index, fastore::client::Encoder<bool>::Decode(value)); break;
-	case ArgumentType::FASTORE_ARGUMENT_DOUBLE :  sqlite3_bind_double(_statement, index, fastore::client::Encoder<double>::Decode(value)); break;
-	case ArgumentType::FASTORE_ARGUMENT_INT32 : sqlite3_bind_int(_statement, index, fastore::client::Encoder<int>::Decode(value)); break;
-	case ArgumentType::FASTORE_ARGUMENT_INT64 : sqlite3_bind_int64(_statement, index, fastore::client::Encoder<int64_t>::Decode(value)); break;
-	case ArgumentType::FASTORE_ARGUMENT_NULL : sqlite3_bind_null(_statement, index); break;
-	case ArgumentType::FASTORE_ARGUMENT_STRING16 : sqlite3_bind_text16(_statement, index, value.c_str(), int(value.length()), NULL); break;
-	case ArgumentType::FASTORE_ARGUMENT_STRING8 : sqlite3_bind_text(_statement, index, value.c_str(), int(value.length()), NULL); break;
-	default :
-		throw "Unrecognized argument type";
+		int parameterCount = sqlite3_bind_parameter_count(_statement);
+		throw ClientException((boost::format("Parameter index is out of range (max %i)") % parameterCount).str());
 	}
+	checkSQLiteResult(result);
+}
+
+void Statement::bindInt64(int32_t index, int64_t value)
+{
+	internalBind(index);
+	checkBindResult(sqlite3_bind_int64(_statement, index, value));
+}
+
+void Statement::bindDouble(int32_t index, double value)
+{
+	internalBind(index);
+	checkBindResult(sqlite3_bind_double(_statement, index, value));
+}
+
+void Statement::bindAString(int32_t index, std::string value)
+{
+	internalBind(index);
+	checkBindResult(sqlite3_bind_text(_statement, index, value.c_str(), -1, SQLITE_TRANSIENT));
+}
+
+void Statement::bindWString(int32_t index, std::wstring value)
+{
+	internalBind(index);
+	checkBindResult(sqlite3_bind_text16(_statement, index, value.c_str(), -1, SQLITE_TRANSIENT));
 }
 
 bool Statement::next()
 {
-	_eof = (!(sqlite3_step(_statement) == SQLITE_ROW));
+	_eof = sqlite3_step(_statement) != SQLITE_ROW;
 	return _eof;
 }
 
@@ -84,7 +99,7 @@ int Statement::columnCount()
 	return sqlite3_column_count(_statement);
 }
 
-ColumnInfo Statement::getColumnInfo(int index)
+ColumnInfo Statement::getColumnInfo(int32_t index)
 {
 	auto iter = _infos.find(index);
 
@@ -104,23 +119,30 @@ ColumnInfo Statement::getColumnInfo(int index)
 	return info;
 }
 
-optional<int64_t> Statement::getColumnValueInt64(int index)
+optional<int64_t> Statement::getColumnValueInt64(int32_t index)
 {
 	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
 		return sqlite3_column_int64(_statement, index);	
 	return optional<int64_t>();
 }
 
-optional<double> Statement::getColumnValueDouble(int index)
+optional<double> Statement::getColumnValueDouble(int32_t index)
 {
 	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
 		return sqlite3_column_double(_statement, index);	
 	return optional<double>();
 }
 
-optional<std::string> Statement::getColumnValueAString(int index)
+optional<std::string> Statement::getColumnValueAString(int32_t index)
 {
 	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
 		return std::string((char*)sqlite3_column_text(_statement, index));	
 	return optional<std::string>();
+}
+
+optional<std::wstring> Statement::getColumnValueWString(int32_t index)
+{
+	if (sqlite3_column_type(_statement, index) != SQLITE_NULL)
+		return std::wstring((wchar_t*)sqlite3_column_text16(_statement, index));	
+	return optional<std::wstring>();
 }

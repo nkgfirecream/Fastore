@@ -139,5 +139,39 @@ namespace Alphora.Fastore.Data.Test
 				}
 			);
 		}
+
+		[TestMethod]
+		public void ExecuteFunctionTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					var statement = c.Execute("select sqlite_version()");
+
+					Assert.IsNull(statement);
+				}
+			);
+		}
+
+		[TestMethod]
+		public void BasicBindTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select ?"))
+					{
+						statement.Bind(1, 1234);
+
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.AreEqual(1234, statement.GetInt64(0));
+					}
+				}
+			);
+		}
 	}
 }

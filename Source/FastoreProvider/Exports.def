@@ -4,13 +4,17 @@ EXPORTS
 	fastoreConnect	@2
 	fastoreDisconnect	@3
 	fastorePrepare	@4
-	fastoreBind	@5
-	fastoreNext	@6
-	fastoreColumnInfo	@7
-	fastoreColumnValueInt64	@8
-	fastoreColumnValueDouble	@9
-	fastoreColumnValueAString	@10
-	fastoreClose	@11
-	fastoreExecute	@12
+	fastoreBindInt64	@5
+	fastoreBindDouble	@6
+	fastoreBindAString	@7
+	fastoreBindWString	@8
+	fastoreNext	@9
+	fastoreColumnInfo	@10
+	fastoreColumnValueInt64	@11
+	fastoreColumnValueDouble	@12
+	fastoreColumnValueAString	@13
+	fastoreColumnValueWString	@14
+	fastoreClose	@15
+	fastoreExecute	@16
 
 

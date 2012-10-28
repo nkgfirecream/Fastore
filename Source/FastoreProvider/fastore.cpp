@@ -135,22 +135,46 @@ PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch)
 	);
 }
 
-GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, const Argument arguments[])
+GeneralResult fastoreBindInt64(StatementHandle statement, int32_t argumentIndex, int64_t value)
 {
 	return WrapCall<GeneralResult>
 	(
 		[&](GeneralResult &result) 
 		{ 
-			std::vector<prov::Argument> args;
-			for (size_t i = 0; i < argumentCount; ++i)
-			{
-				prov::Argument arg;
-				arg.type = arguments[i].type;
-				arg.value.resize(arguments[i].dataSize);
-				memcpy((void *)arg.value.data(), arguments[i].data, arg.value.size());
-				args.push_back(arg);
-			}
-			static_cast<prov::PStatementObject>(statement)->get()->bind(args);
+			static_cast<prov::PStatementObject>(statement)->get()->bindInt64(argumentIndex, value);
+		}
+	);
+}
+
+GeneralResult fastoreBindDouble(StatementHandle statement, int32_t argumentIndex, double value)
+{
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			static_cast<prov::PStatementObject>(statement)->get()->bindDouble(argumentIndex, value);
+		}
+	);
+}
+
+GeneralResult fastoreBindAString(StatementHandle statement, int32_t argumentIndex, const char *value)
+{
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			static_cast<prov::PStatementObject>(statement)->get()->bindAString(argumentIndex, std::string(value));
+		}
+	);
+}
+
+GeneralResult fastoreBindWString(StatementHandle statement, int32_t argumentIndex, const wchar_t *value)
+{
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			static_cast<prov::PStatementObject>(statement)->get()->bindWString(argumentIndex, std::wstring(value));
 		}
 	);
 }
@@ -221,6 +245,23 @@ ColumnValueStringResult fastoreColumnValueAString(StatementHandle statement, int
 			if (!result.isNull)
 			{
 				*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.get().size()));
+				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
+			}
+		}
+	);
+}
+
+ColumnValueStringResult fastoreColumnValueWString(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, wchar_t *valueTarget)
+{
+	return WrapCall<ColumnValueStringResult>
+	(
+		[&](ColumnValueStringResult &result) 
+		{ 
+			auto value = static_cast<prov::PStatementObject>(statement)->get()->getColumnValueWString(columnIndex);
+			result.isNull = !value.is_initialized();
+			if (!result.isNull)
+			{
+				*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.get().size() * sizeof(wchar_t)));
 				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
 			}
 		}

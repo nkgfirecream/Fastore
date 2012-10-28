@@ -43,6 +43,30 @@ namespace Alphora.Fastore.Data
 			return result.Eof != 0;
 		}
 
+		public void Bind(int index, long value)
+		{
+			var result = Provider.Bind(_statement, index, value);
+			Provider.CheckResult(result.Result);
+		}
+
+		public void Bind(int index, double value)
+		{
+			var result = Provider.Bind(_statement, index, value);
+			Provider.CheckResult(result.Result);
+		}
+
+		public void BindAString(int index, string value)
+		{
+			var result = Provider.BindAString(_statement, index, value);
+			Provider.CheckResult(result.Result);
+		}
+
+		public void BindWString(int index, string value)
+		{
+			var result = Provider.BindWString(_statement, index, value);
+			Provider.CheckResult(result.Result);
+		}
+
 		public long? GetInt64(int index)
 		{
 			var getResult = Provider.ColumnValueInt64(_statement, index);
@@ -59,11 +83,23 @@ namespace Alphora.Fastore.Data
 		{
 			int size = MaxStringSize;
 			var value = new StringBuilder(MaxStringSize);
-			value.Length = size;
+			value.Length = MaxStringSize;
 			var getResult = Provider.ColumnValueAString(_statement, index, ref size, value);
 			if (getResult.IsNull != 0)
 				return null;
 			value.Length = size;
+			return value.ToString();
+		}
+
+		public string GetWString(int index)
+		{
+			int size = MaxStringSize * 2;
+			var value = new StringBuilder(MaxStringSize);
+			value.Length = MaxStringSize;
+			var getResult = Provider.ColumnValueWString(_statement, index, ref size, value);
+			if (getResult.IsNull != 0)
+				return null;
+			value.Length = size / 2;
 			return value.ToString();
 		}
 	}

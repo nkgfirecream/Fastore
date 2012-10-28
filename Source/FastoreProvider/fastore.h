@@ -91,13 +91,6 @@ struct ColumnInfoResult
 	ArgumentType type;
 };
 
-struct Argument
-{
-	ArgumentType type;
-	void *data;
-	size_t dataSize;
-};
-
 struct ColumnValueInt64Result
 {
 	FastoreResultCode result;
@@ -129,7 +122,10 @@ FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 // Prepares a given query or statement statement and returns a cursor
 FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch);
 // Provides values for any parameters included in the prepared statement and resets the cursor
-FASTOREAPI GeneralResult fastoreBind(StatementHandle statement, size_t argumentCount, const Argument arguments[]);
+FASTOREAPI GeneralResult fastoreBindInt64(StatementHandle statement, int32_t argumentIndex, int64_t value);
+FASTOREAPI GeneralResult fastoreBindDouble(StatementHandle statement, int32_t argumentIndex, double value);
+FASTOREAPI GeneralResult fastoreBindAString(StatementHandle statement, int32_t argumentIndex, const char *value);
+FASTOREAPI GeneralResult fastoreBindWString(StatementHandle statement, int32_t argumentIndex, const wchar_t *value);
 // Executes the statement, or navigates to the first or next row
 FASTOREAPI NextResult fastoreNext(StatementHandle statement);
 // Gets the column name for the given column index
@@ -138,6 +134,7 @@ FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int32_t
 FASTOREAPI ColumnValueInt64Result fastoreColumnValueInt64(StatementHandle statement, int32_t columnIndex);
 FASTOREAPI ColumnValueDoubleResult fastoreColumnValueDouble(StatementHandle statement, int32_t columnIndex);
 FASTOREAPI ColumnValueStringResult fastoreColumnValueAString(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, char *valueTarget);
+FASTOREAPI ColumnValueStringResult fastoreColumnValueWString(StatementHandle statement, int32_t columnIndex, int32_t *targetMaxBytes, wchar_t *valueTarget);
 // Closes the given cursor
 FASTOREAPI GeneralResult fastoreClose(StatementHandle statement);
 
