@@ -756,11 +756,9 @@ void TFastoreServer::run()
 
 		//construct fd array using active connections
 		for (size_t i = 0 ; i < activeConnections_.size(); ++i)	
-		{
+		{			
+			auto conn = activeConnections_[i];		
 			size_t fdindex = i + 1;
-			auto conn = activeConnections_[i];
-			_fds[fdindex].events = 0;
-			_fds[fdindex].fd = -1;
 			_fds[fdindex].revents = 0;
 			switch (conn->getState())
 			{
@@ -779,6 +777,8 @@ void TFastoreServer::run()
 					conn->transition();
 				case APP_PARKED:					
 				default:
+					_fds[fdindex].events = 0;
+					_fds[fdindex].fd = -1;
 					break;
 			}
 		}

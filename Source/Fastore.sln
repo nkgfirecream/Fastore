@@ -69,6 +69,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Data.Test", "Fastor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo2", "Fastore.Core.Demo2\Fastore.Core.Demo2.csproj", "{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TPCHDriver", "TPCHDriver\TPCHDriver.vcxproj", "{182462A1-3E34-4D80-A7A9-184BD42A0A67}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -235,6 +237,18 @@ Global
 		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|Win32.ActiveCfg = Release|Any CPU
 		{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}.Release|x64.ActiveCfg = Release|Any CPU
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Debug|Win32.ActiveCfg = Debug|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Debug|x64.ActiveCfg = Debug|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Debug|x64.Build.0 = Debug|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|Any CPU.ActiveCfg = Release|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|Mixed Platforms.Build.0 = Release|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|Win32.ActiveCfg = Release|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|x64.ActiveCfg = Release|x64
+		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
