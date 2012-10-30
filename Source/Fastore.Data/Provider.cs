@@ -121,19 +121,19 @@ namespace Alphora.Fastore.Data
 		//// Provides values for any parameters included in the prepared statement and resets the cursor
 		//FASTOREAPI GeneralResult fastoreBindInt64(StatementHandle statement, int32_t argumentIndex, int64_t value);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindInt64", CallingConvention = CallingConvention.Cdecl)]
-		public extern static PrepareResult Bind(IntPtr statement, int argumentIndex, long value);
+		public extern static GeneralResult Bind(IntPtr statement, int argumentIndex, long value);
 
 		//FASTOREAPI GeneralResult fastoreBindDouble(StatementHandle statement, int32_t argumentIndex, double value);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindDouble", CallingConvention = CallingConvention.Cdecl)]
-		public extern static PrepareResult Bind(IntPtr statement, int argumentIndex, double value);
+		public extern static GeneralResult Bind(IntPtr statement, int argumentIndex, double value);
 
 		//FASTOREAPI GeneralResult fastoreBindAString(StatementHandle statement, int32_t argumentIndex, const char *value);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindAString", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-		public extern static PrepareResult BindAString(IntPtr statement, int argumentIndex, string value);
+		public extern static GeneralResult BindAString(IntPtr statement, int argumentIndex, string value);
 
 		//FASTOREAPI GeneralResult fastoreBindWString(StatementHandle statement, int32_t argumentIndex, const wchar_t *value);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindWString", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl)]
-		public extern static PrepareResult BindWString(IntPtr statement, int argumentIndex, string value);
+		public extern static GeneralResult BindWString(IntPtr statement, int argumentIndex, string value);
 
 		// Executes the statement, or navigates to the first or next row
 		//FASTOREAPI NextResult fastoreNext(StatementHandle statement);

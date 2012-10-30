@@ -155,7 +155,7 @@ namespace Alphora.Fastore.Data.Test
 		}
 
 		[TestMethod]
-		public void BasicBindTest()
+		public void BasicBindInt64Test()
 		{
 			InternalConnectDisconnect
 			(
@@ -169,6 +169,66 @@ namespace Alphora.Fastore.Data.Test
 							Assert.Fail("No row.");
 
 						Assert.AreEqual(1234, statement.GetInt64(0));
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void BasicBindDoubleTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select ?"))
+					{
+						statement.Bind(1, 12.34);
+
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.AreEqual(12.34, statement.GetDouble(0));
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void BasicBindAStringTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select ?"))
+					{
+						statement.BindAString(1, "Blah");
+
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.AreEqual("Blah", statement.GetAString(0));
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void BasicBindWStringTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select ?"))
+					{
+						statement.BindWString(1, "BlahW");
+
+						if (!statement.Next())
+							Assert.Fail("No row.");
+
+						Assert.AreEqual("BlahW", statement.GetWString(0));
 					}
 				}
 			);

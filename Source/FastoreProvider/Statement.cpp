@@ -29,6 +29,7 @@ Statement::Statement(sqlite3* db, const string &sql)
 {
 	_types = createTypeMap();
 	int result = sqlite3_prepare_v2(db, sql.c_str(), -1, &_statement, NULL);
+	checkSQLiteResult(result);
 	_eof = false;
 }
 
@@ -45,14 +46,15 @@ bool Statement::eof()
 void Statement::reset()
 {
 	_eof = false;
-	sqlite3_reset(_statement);
+	auto result = sqlite3_reset(_statement);
+	checkSQLiteResult(result);
 }
 
 void Statement::internalBind(int32_t index)
 {
 	_eof = false;
-	sqlite3_reset(_statement);
-}
+	auto result = sqlite3_reset(_statement);
+	checkSQLiteResult(result);}
 
 void Statement::checkBindResult(int result)
 {
@@ -67,30 +69,37 @@ void Statement::checkBindResult(int result)
 void Statement::bindInt64(int32_t index, int64_t value)
 {
 	internalBind(index);
-	checkBindResult(sqlite3_bind_int64(_statement, index, value));
+	auto result = sqlite3_bind_int64(_statement, index, value);
+	checkBindResult(result);
 }
 
 void Statement::bindDouble(int32_t index, double value)
 {
 	internalBind(index);
-	checkBindResult(sqlite3_bind_double(_statement, index, value));
+	auto result = sqlite3_bind_double(_statement, index, value);
+	checkBindResult(result);
 }
 
 void Statement::bindAString(int32_t index, std::string value)
 {
 	internalBind(index);
-	checkBindResult(sqlite3_bind_text(_statement, index, value.c_str(), -1, SQLITE_TRANSIENT));
+	auto result = sqlite3_bind_text(_statement, index, value.c_str(), -1, SQLITE_TRANSIENT);
+	checkBindResult(result);
 }
 
 void Statement::bindWString(int32_t index, std::wstring value)
 {
 	internalBind(index);
-	checkBindResult(sqlite3_bind_text16(_statement, index, value.c_str(), -1, SQLITE_TRANSIENT));
+	auto result = sqlite3_bind_text16(_statement, index, value.c_str(), -1, SQLITE_TRANSIENT);
+	checkBindResult(result);
 }
 
 bool Statement::next()
 {
-	_eof = sqlite3_step(_statement) != SQLITE_ROW;
+	auto result = sqlite3_step(_statement);
+	if (result != SQLITE_ROW && result != SQLITE_DONE)
+		checkSQLiteResult(result);
+	_eof = result != SQLITE_ROW;
 	return _eof;
 }
 
