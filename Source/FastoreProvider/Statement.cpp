@@ -100,7 +100,7 @@ bool Statement::next()
 	if (result != SQLITE_ROW && result != SQLITE_DONE)
 		checkSQLiteResult(result);
 	_eof = result != SQLITE_ROW;
-	return _eof;
+	return !_eof;
 }
 
 int Statement::columnCount()

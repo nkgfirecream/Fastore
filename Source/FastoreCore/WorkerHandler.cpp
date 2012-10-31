@@ -424,18 +424,25 @@ void WorkerHandler::apply(      TransactionID& _return,
 		//That would cause our current pod to instantiate a new repo. This creates the repo
 		//before continuing on with the apply, since both the creation of a repo and the first
 		//data may be in the same transaction. If we try to insert without creating it... bad things happen.
+		auto repo = _repositories.find(id);
+		if (repo == _repositories.end())
+		{
+			++start;
+			continue;
+		}
+
+
 		if (syncSchema && id > 401)
 		{
 			syncSchema = false;
 			SyncToSchema();
 		}
 
-		Repository& repo = *_repositories[id];
 		Wal& wal(*_pwal);
-		const ColumnWrites& writes = start->second;
+		const ColumnWrites& colwrites = start->second;
 
-		 wal.apply(transactionID.revision, writes);
-		repo.apply(transactionID.revision, writes);
+		 wal.apply(transactionID.revision, colwrites);
+		repo->second->apply(transactionID.revision, colwrites);
 		
 		++start;
 	}

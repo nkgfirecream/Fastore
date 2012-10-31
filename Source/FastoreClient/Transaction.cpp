@@ -33,7 +33,8 @@ Transaction::~Transaction()
 
 void Transaction::Commit(bool flush)
 {
-	auto writes = GatherWrites();
+	std::map<ColumnID,  ColumnWrites> writes;
+	GatherWrites(writes);
 
 	privateDatabase.Apply(writes, flush);
 
@@ -41,50 +42,42 @@ void Transaction::Commit(bool flush)
 	_completed = true;
 }
 
-std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Transaction::GatherWrites()
+void Transaction::GatherWrites(std::map<ColumnID,  ColumnWrites>& output)
 {
-	std::map<ColumnID,  boost::shared_ptr<ColumnWrites>> writesPerColumn;
-
 	// Gather changes for each column
 	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
 	{
-		boost::shared_ptr<ColumnWrites> writes(new ColumnWrites());
+		if(entry->second.Includes.size() == 0 && entry->second.Excludes.size() == 0)
+		{
+			continue;
+		}
+
+		output.insert(std::make_pair(entry->first, ColumnWrites()));
+		ColumnWrites& writes = output[entry->first];
 
 		// Process Includes
 		if (entry->second.Includes.size() > 0)
 		{
-			writes->__set_includes(std::vector<fastore::communication::Include>(entry->second.Includes.size()));
+			writes.__set_includes(std::vector<fastore::communication::Include>(entry->second.Includes.size()));
 			int i = 0;
-			for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include)
+			for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include, ++i)
 			{
-				fastore::communication::Include inc;
-				inc.__set_rowID(include->first);
-				inc.__set_value(include->second);
-				writes->includes[i] = inc;
-				++i;
+				writes.includes[i].__set_rowID(include->first);
+				writes.includes[i].__set_value(include->second);
 			}
 		}
 
 		// Process Excludes
 		if (entry->second.Excludes.size() > 0)
 		{
-			writes->__set_excludes(std::vector<fastore::communication::Exclude>(entry->second.Excludes.size()));
+			writes.__set_excludes(std::vector<fastore::communication::Exclude>(entry->second.Excludes.size()));
 			int i = 0;
-			for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude)
+			for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude, ++i)
 			{
-				fastore::communication::Exclude ex; 
-				ex.__set_rowID(*exclude);
-			
-				writes->excludes[i] = ex;
-				++i;
+				writes.excludes[i].__set_rowID(*exclude);
 			}
-		}
-
-		if (writes->__isset.excludes || writes->__isset.includes)
-			writesPerColumn.insert(std::pair<ColumnID,  boost::shared_ptr<ColumnWrites>>(entry->first, writes));
+		}			
 	}
-
-	return writesPerColumn;
 }
 
 void Transaction::Rollback()

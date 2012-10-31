@@ -14,10 +14,10 @@
 const static int NUM_QUERIES = 22;
 const static int NUM_SETS = 41;
 const static int NUM_STREAMS = 1; //This may be variable depending how many client we have processing.
-const static double SCALE_FACTOR = .01; //This depends on the generated data, and may change as an argument or if we generate data via the driver.
+const static double SCALE_FACTOR = .001; //This depends on the generated data, and may change as an argument or if we generate data via the driver.
 const char* const SCRIPT_PATH = "..\\..\\SCRIPTS\\";
 const char* const TPCH_DEF = "TPCH";
-const static int TRANSACTION_SIZE = 1500;
+const static int TRANSACTION_SIZE = 500;
 const std::string TABLES[] =
 {
 	"CUSTOMER",
@@ -103,7 +103,7 @@ std::string ReadAll(std::string filename)
 std::string LoadQuery(int i)
 {
 	std::stringstream path;
-	path << SCRIPT_PATH << i << ".sql";
+	path << SCRIPT_PATH << i << ".out";
 	return ReadAll(path.str());
 }
 
@@ -125,8 +125,7 @@ void InsertRecord(std::string& table, std::vector<std::string>& record)
 	}
 	ss << ")";
 
-	auto result = fastorePrepare(_connection, ss.str().c_str());
-	fastoreNext(result.statement);
+	auto result = fastoreExecute(_connection, ss.str().c_str());
 }
 
 void ImportTable(std::string tablename)
@@ -138,8 +137,7 @@ void ImportTable(std::string tablename)
 
 	std::ifstream infile(path.str());
 
-	auto result = fastorePrepare(_connection, "begin");
-	fastoreNext(result.statement);
+	auto result = fastoreExecute(_connection, "begin");
 	int num = 0;
 	while (infile)
 	{
@@ -162,15 +160,12 @@ void ImportTable(std::string tablename)
 		if (num % TRANSACTION_SIZE == 0)
 		{
 			std::cout << num << std::endl;
-			result = fastorePrepare(_connection, "commit");
-			fastoreNext(result.statement);
-			result = fastorePrepare(_connection, "begin");
-			fastoreNext(result.statement);
+			result = fastoreExecute(_connection, "commit");
+			result = fastoreExecute(_connection, "begin");
 		}
 	}
 
-	result = fastorePrepare(_connection, "commit");
-	fastoreNext(result.statement);
+	result = fastoreExecute(_connection, "commit");
 
 	std::cout << "Inserted " << num << " rows\n";
 }
@@ -220,9 +215,8 @@ void CreateTableDefs()
 
 	for (int i = 0; i < statements.size(); ++i)
 	{
-		auto result = fastorePrepare(_connection, statements[i].c_str());
-		auto nextResult = fastoreNext(result.statement);
-		if (nextResult.result != FASTORE_OK)
+		auto result = fastoreExecute(_connection, statements[i].c_str());
+		if (result.result != FASTORE_OK)
 			throw "Error creating TPCH schema!";
 	}	
 }
@@ -242,14 +236,29 @@ void ThroughputTest()
 	std::cout << "Running throughput test...\n";
 	long long start = clock();
 
-	for (int set = 1; set < NUM_SETS; ++set)
+	for (int set = 1; set <= NUM_STREAMS/*NUM_SETS -- one set per stream*/; ++set)
 	{
-		//std::cout << "Executing Set: " << set << std::endl;
-		for (int query = 0; query < NUM_QUERIES; ++query)
+		std::cout << "Executing Set: " << set << std::endl;
+		for (int query = 1; query < NUM_QUERIES; ++query)
 		{
-			//std::cout << "Executing query: " << query << " (" << testSets[set][query] << ")" << std::endl;
+			std::cout << "Executing query: " << query << " (" << testSets[set][query] << ")" << std::endl;
 			auto result = fastorePrepare(_connection, (queries[testSets[set][query]]).c_str());
-			auto data = fastoreNext(result.statement);
+			if (result.result != FASTORE_OK)
+			{
+				throw "Error Preparing query!";
+			}			
+
+			NextResult data;
+			do
+			{
+				data = fastoreNext(result.statement);
+				if (data.result != FASTORE_OK)
+				{
+					throw "Error Executing query!";
+				}
+			} 
+			while(!data.eof);
+
 		}
 	}
 
@@ -262,7 +271,7 @@ double _throughput;
 void CalculateMetrics()
 {
 	std::cout << "Calculating metrics...\n";
-	_throughput = (1 * 22 * 3600) / (_interval / (double)1000) * SCALE_FACTOR;
+	_throughput = (NUM_STREAMS * NUM_QUERIES * 3600) / (_interval / (double)1000) * SCALE_FACTOR;
 }
 
 void DisplayMetrics()

@@ -43,7 +43,7 @@ namespace fastore { namespace client
 		bool privateWriteIsolation;
 		bool _completed;
 		TransactionID _transactionId;
-		std::map<ColumnID, boost::shared_ptr<ColumnWrites>> GatherWrites();
+		void GatherWrites(std::map<ColumnID,  ColumnWrites>& output);
 
 		// Log entries - by column ID then by row ID - null value means exclude
 		std::map<ColumnID, LogColumn> _log;

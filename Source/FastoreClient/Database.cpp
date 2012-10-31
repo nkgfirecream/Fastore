@@ -150,7 +150,7 @@ Database::Database(std::vector<ServiceAddress> addresses)
 
 void Database::UpdateTopologySchema(const Topology &newTopology)
 {
-	auto writes = std::map<ColumnID, boost::shared_ptr<ColumnWrites>>();
+	std::map<ColumnID, ColumnWrites> writes;
 
 	// Insert the topology
 	std::vector<fastore::communication::Include> tempVector;
@@ -161,40 +161,41 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 
 	tempVector.push_back(inc);
 
-	boost::shared_ptr<ColumnWrites> topoWrites(new ColumnWrites());
-	topoWrites->__set_includes(tempVector);
+	ColumnWrites topoWrites;
+	topoWrites.__set_includes(tempVector);
 	writes.insert(std::make_pair(Dictionary::TopologyID, topoWrites));
 
 	// Insert the hosts and pods
-	boost::shared_ptr<ColumnWrites> hostWrites(new ColumnWrites());
-	hostWrites->__set_includes(std::vector<fastore::communication::Include>());
+	ColumnWrites hostWrites;
+	hostWrites.__set_includes(std::vector<fastore::communication::Include>());
 
-	boost::shared_ptr<ColumnWrites> podWrites(new ColumnWrites());
-	podWrites->__set_includes(std::vector<fastore::communication::Include>());
+	ColumnWrites podWrites;
+	podWrites.__set_includes(std::vector<fastore::communication::Include>());
 
-	boost::shared_ptr<ColumnWrites> podHostWrites(new ColumnWrites());
-	podHostWrites->__set_includes(std::vector<fastore::communication::Include>());
+	ColumnWrites podHostWrites;
+	podHostWrites.__set_includes(std::vector<fastore::communication::Include>());
 
 	for (auto h = newTopology.hosts.begin(); h != newTopology.hosts.end(); ++h)
 	{
 		fastore::communication::Include inc;		
 		inc.__set_rowID(Encoder<HostID>::Encode(h->first));
 		inc.__set_value(Encoder<HostID>::Encode(h->first));
-		hostWrites->includes.push_back(inc);
+		hostWrites.includes.push_back(inc);
 
 		for (auto p = h->second.begin(); p != h->second.end(); ++p)
 		{
 			fastore::communication::Include pwinc;
 			pwinc.__set_rowID(Encoder<PodID>::Encode(p->first));
 			pwinc.__set_value(Encoder<PodID>::Encode(p->first));
-			podWrites->includes.push_back(pwinc);
+			podWrites.includes.push_back(pwinc);
 
 			fastore::communication::Include phinc;
 			phinc.__set_rowID(Encoder<PodID>::Encode(p->first));
 			phinc.__set_value(Encoder<HostID>::Encode(h->first));
-			podHostWrites->includes.push_back(phinc);
+			podHostWrites.includes.push_back(phinc);
 		}
 	}
+
 	writes.insert(std::make_pair(Dictionary::HostID, hostWrites));
 	writes.insert(std::make_pair(Dictionary::PodID, podWrites));
 	writes.insert(std::make_pair(Dictionary::PodHostID, podHostWrites));
@@ -425,7 +426,7 @@ std::pair<PodID, WorkerClient> Database::GetWorkerForSystemColumn()
 	return std::make_pair(podID, _workers[podID]);
 }
 
-std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>> &writes)
+std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<ColumnID, ColumnWrites>& writes)
 {
 	_lock->lock();
 	std::vector<WorkerInfo> results;
@@ -632,14 +633,14 @@ void Database::TrackErrors(std::map<PodID, std::exception> &errors)
 {
 	// TODO: stop trying to reach workers that keep giving errors, ask for a state update too
 	if( errors.size() ) {
-		Log << log_info << "Database::" << __func__  << ": "
+		/*Log << log_info << "Database::" << __func__  << ": "
 			<< errors.size() << " errors ... " << log_endl;
 		for_each( errors.begin(), errors.end(), 
 				  [&]( const std::map<PodID, std::exception>::value_type& e ) {
 					  Log << log_info << "    {pod " 
 						  << e.first << ", " << e.second.what() 
 						  << "}" << log_endl;
-				  } );
+				  } );*/
 	}
 }
 
@@ -839,7 +840,7 @@ Query Database::CreateQuery(const Range range, const int limit, const boost::opt
 	return rangeQuery;
 }
 
-void Database::Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& writes, const bool flush)
+void Database::Apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush)
 {
 	if (writes.size() > 0)
 		while (true)
@@ -873,31 +874,20 @@ void Database::Apply(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>>& 
 		}
 }
 
-std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorkerWrites(const std::map<ColumnID, boost::shared_ptr<ColumnWrites>> &writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
+std::vector<std::future<TransactionID>> Database::StartWorkerWrites(const std::map<ColumnID, ColumnWrites>& writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
 {
-	std::vector<boost::shared_ptr<std::future<TransactionID>>> tasks;
+	std::vector<std::future<TransactionID>> tasks;
 	// Apply the modification to every worker, even if no work
 	for (auto worker = workers.begin(); worker != workers.end(); ++worker)
 	{
-		// Determine the set of writes that apply to the worker's repositories
-		std::map<ColumnID, ColumnWrites> work;
-		for (auto columnId = worker->Columns.begin(); columnId != worker->Columns.end(); ++columnId)
-		{
-			auto iter = writes.find(*columnId);
-			if (iter != writes.end())
-			{
-				work.insert(std::make_pair(*columnId, *(iter->second)));
-			}
-		}
-
-		auto task = boost::shared_ptr<std::future<TransactionID>>
+		tasks.push_back
 		(
-			new std::future<TransactionID>
+			std::future<TransactionID>
 			(
 				std::async
 				(
 					std::launch::async,
-					[&, worker, work]()-> TransactionID
+					[&, worker]()-> TransactionID
 					{
 						TransactionID result;
 						AttemptWrite
@@ -905,7 +895,7 @@ std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorker
 							worker->podID,
 							[&](WorkerClient client)
 							{
-								client.apply(result, transactionID, work);
+								client.apply(result, transactionID, writes);
 							}
 						);
 
@@ -914,20 +904,19 @@ std::vector<boost::shared_ptr<std::future<TransactionID>>> Database::StartWorker
 				)
 			)
 		);
-
-		tasks.push_back(task);
 	}
+
 	return tasks;
 }
 
 void Database::FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers)
 {
-	std::vector<boost::shared_ptr<std::future<void>>> flushTasks;
+	std::vector<std::future<void>> flushTasks;
 	for (auto w = workers.begin(); w != workers.end(); ++w)
 	{
-		auto task = boost::shared_ptr<std::future<void>>
+		flushTasks.push_back
 		(
-			new std::future<void>
+			std::future<void>
 			(
 				std::async
 				(
@@ -952,19 +941,17 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 				)
 			)
 		);
-		
-		flushTasks.push_back(task);
 	}
 
 	// Wait for critical number of workers to flush
 	auto neededCount =  workers.size() / 2 > 1 ? workers.size() / 2 : 1;
 	for (size_t i = 0; i < flushTasks.size() && i < neededCount; i++)
-		flushTasks[i]->wait();
+		flushTasks[i].wait();
 }
 
 std::map<TransactionID, std::vector<Database::WorkerInfo>> 
 Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers, 
-			      const std::vector<boost::shared_ptr<std::future<TransactionID>>>& tasks, 
+			      std::vector<std::future<TransactionID>>& tasks, 
 				std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers)
 {
 	clock_t start = clock();
@@ -979,14 +966,14 @@ Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers,
 			//tasks[i]->wait();
 			//resultId = tasks[i]->get();
 			clock_t timeToWait = getWriteTimeout() - (clock() - start);
-			auto result = tasks[i]->wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
+			auto result = tasks[i].wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
 #if __GNUC_MINOR__ == 6
 			// ignore what wait_for returns until GNU and Microsoft agree
 			if (result)
 #else
 			if (result == std::future_status::ready)
 #endif
-				resultId = tasks[i]->get();
+				resultId = tasks[i].get();
 			else
 			{
 				failedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
@@ -1097,9 +1084,9 @@ void Database::Include(const ColumnIDs& columnIds, const std::string& rowId, con
 	Apply(writes, false);
 }
 
-std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
+std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
 {
-	std::map<ColumnID, boost::shared_ptr<ColumnWrites>> writes;
+	std::map<ColumnID, ColumnWrites> writes;
 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
@@ -1107,11 +1094,12 @@ std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Database::CreateIncludes(con
 		inc.__set_rowID(rowId);
 		inc.__set_value(row[i]);
 
-		boost::shared_ptr<ColumnWrites> wt(new ColumnWrites);
-		wt->__set_includes(std::vector<fastore::communication::Include>());
-		wt->includes.push_back(inc);
+		ColumnWrites wt;
+		wt.__set_includes(std::vector<fastore::communication::Include>());
+		wt.includes.push_back(inc);
 		writes.insert(std::make_pair(columnIds[i], wt));
 	}
+
 	return writes;
 }
 
@@ -1120,18 +1108,18 @@ void Database::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
 	Apply(CreateExcludes(columnIds, rowId), false);
 }
 
-std::map<ColumnID, boost::shared_ptr<ColumnWrites>> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId)
+std::map<ColumnID, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId)
 {
-	std::map<ColumnID, boost::shared_ptr<ColumnWrites>> writes;
+	std::map<ColumnID, ColumnWrites> writes;
 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		fastore::communication::Exclude ex;
 		ex.__set_rowID(rowId);
 
-		boost::shared_ptr<ColumnWrites> wt(new ColumnWrites);
-		wt->__set_excludes(std::vector<fastore::communication::Exclude>());
-		wt->excludes.push_back(ex);
+		ColumnWrites wt;
+		wt.__set_excludes(std::vector<fastore::communication::Exclude>());
+		wt.excludes.push_back(ex);
 		writes.insert(std::make_pair(columnIds[i], wt));
 	}
 	return writes;
@@ -1141,13 +1129,13 @@ std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 {
 	// Make the request against each column
 	//TODO: Instead of requesting each column individually, combine columns on a single worker.
-	std::vector<boost::shared_ptr<std::future<Statistic>>> tasks;
+	std::vector<std::future<Statistic>> tasks;
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		auto columnId = columnIds[i];
-		auto task = boost::shared_ptr<std::future<Statistic>>
+		tasks.push_back
 		(
-			new std::future<Statistic>
+			std::future<Statistic>
 			(
 				std::async
 				(
@@ -1171,16 +1159,14 @@ std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 					}
 				)
 			)
-		);
-
-		tasks.push_back(task);
+		);		
 	}
 
 	std::vector<Statistic> stats;
 	for (auto iter = tasks.begin(); iter != tasks.end(); ++iter)
 	{
-		(*iter)->wait();
-		stats.push_back((*iter)->get());
+		iter->wait();
+		stats.push_back(iter->get());
 	}
 
 	return stats; 
