@@ -84,7 +84,7 @@ bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength
 		return false;
 }
 
-ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress addresses[])
+ConnectResult fastoreConnect(size_t addressCount, const FastoreAddress addresses[])
 {
 	return WrapCall<ConnectResult>
 	(
@@ -131,6 +131,17 @@ PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch)
 				); 
 			result.statement = statement;
 			result.columnCount = statement->get()->columnCount();
+		}
+	);
+}
+
+GeneralResult fastoreReset(StatementHandle statement)
+{
+	return WrapCall<GeneralResult>
+	(
+		[&](GeneralResult &result) 
+		{ 
+			static_cast<prov::PStatementObject>(statement)->get()->reset();
 		}
 	);
 }

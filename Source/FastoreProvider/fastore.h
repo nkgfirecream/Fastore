@@ -23,104 +23,99 @@ const int32_t MAX_HOST_NAME = 255;
 const int32_t MAX_ERROR_MESSAGE = 255;
 const int32_t MAX_NAME = 127;
 
-enum TransactionEndAction 
+typedef enum 
 {
-	FASTORE_TRANSACTION_COMMIT, 
-	FASTORE_TRANSACTION_ROLLBACK,
-	FASTORE_TRANSACTION_COMMIT_FLUSH 
-};
+	FASTORE_ARGUMENT_NULL = 0,
+	FASTORE_ARGUMENT_DOUBLE = 1,
+	FASTORE_ARGUMENT_INT32 = 2,
+	FASTORE_ARGUMENT_INT64 = 3,
+	FASTORE_ARGUMENT_STRING8 = 4,
+	FASTORE_ARGUMENT_STRING16 = 5,
+	FASTORE_ARGUMENT_BOOL = 6
+} ArgumentType;
 
-enum ArgumentType
-{
-	FASTORE_ARGUMENT_NULL,
-	FASTORE_ARGUMENT_DOUBLE,
-	FASTORE_ARGUMENT_INT32,
-	FASTORE_ARGUMENT_INT64,
-	FASTORE_ARGUMENT_STRING8,
-	FASTORE_ARGUMENT_STRING16,
-	FASTORE_ARGUMENT_BOOL
-};
-
-struct FastoreAddress
+typedef struct 
 {
 	char hostName[MAX_HOST_NAME];
 	int64_t port;
-};
+} FastoreAddress;
 
 typedef int32_t FastoreResultCode;
 typedef int32_t FastoreErrorCode;
 
 const FastoreResultCode FASTORE_OK = 0;
 
-struct GeneralResult
+typedef struct 
 {
 	FastoreResultCode result;
-};
+} GeneralResult;
 
-struct ConnectResult
+typedef struct 
 {
 	FastoreResultCode result;
 	ConnectionHandle connection;
-};
+} ConnectResult;
 
-struct ExecuteResult
+typedef struct 
 {
 	FastoreResultCode result;
 	StatementHandle statement;
 	int32_t columnCount;
 	uint8_t eof;
-};
+} ExecuteResult;
 
-struct PrepareResult
+typedef struct 
 {
 	FastoreResultCode result;
 	StatementHandle statement;
 	int32_t columnCount;
-};
+} PrepareResult;
 
-struct NextResult
+typedef struct 
 {
 	FastoreResultCode result;
 	uint8_t eof;
-};
+} NextResult;
 
-struct ColumnInfoResult
+typedef struct 
 {
 	FastoreResultCode result;
 	char name[MAX_NAME];
 	ArgumentType type;
-};
+} ColumnInfoResult;
 
-struct ColumnValueInt64Result
+typedef struct 
 {
 	FastoreResultCode result;
 	uint8_t isNull;
 	int64_t value;
-};
+} ColumnValueInt64Result;
 
-struct ColumnValueDoubleResult
+typedef struct 
 {
 	FastoreResultCode result;
 	uint8_t isNull;
 	double value;
-};
+} ColumnValueDoubleResult;
 
-struct ColumnValueStringResult
+typedef struct 
 {
 	FastoreResultCode result;
 	uint8_t isNull;
-};
+} ColumnValueStringResult;
 
 // Retrieves the message and code of the last error
 FASTOREAPI bool fastoreGetLastError(const FastoreResultCode result, size_t messageMaxLength, char* message, FastoreErrorCode *code);
 
 // Creates a new database connection
-FASTOREAPI ConnectResult fastoreConnect(size_t addressCount, const struct FastoreAddress addresses[]);
+FASTOREAPI ConnectResult fastoreConnect(size_t addressCount, const FastoreAddress addresses[]);
 // Dereferences the given database connection; the connection may remain open if any transactions are still open on it
 FASTOREAPI GeneralResult fastoreDisconnect(ConnectionHandle connection);
 
 // Prepares a given query or statement statement and returns a cursor
 FASTOREAPI PrepareResult fastorePrepare(ConnectionHandle connection, const char *batch);
+// Resets the cursor to the BOF crack
+FASTOREAPI GeneralResult fastoreReset(StatementHandle statement);
 // Provides values for any parameters included in the prepared statement and resets the cursor
 FASTOREAPI GeneralResult fastoreBindInt64(StatementHandle statement, int32_t argumentIndex, int64_t value);
 FASTOREAPI GeneralResult fastoreBindDouble(StatementHandle statement, int32_t argumentIndex, double value);

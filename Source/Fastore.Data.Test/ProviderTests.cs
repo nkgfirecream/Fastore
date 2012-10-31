@@ -47,8 +47,7 @@ namespace Alphora.Fastore.Data.Test
 				{
 					using (var statement = c.Prepare("select 5523123232"))
 					{
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual(5523123232, statement.GetInt64(0).Value);
 					}
@@ -65,8 +64,7 @@ namespace Alphora.Fastore.Data.Test
 				{
 					using (var statement = c.Prepare("select 1.234"))
 					{
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual(1.234, statement.GetDouble(0).Value);
 					}
@@ -83,8 +81,7 @@ namespace Alphora.Fastore.Data.Test
 				{
 					using (var statement = c.Prepare("select 'Hello World'"))
 					{
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual("Hello World", statement.GetAString(0));
 					}
@@ -131,11 +128,30 @@ namespace Alphora.Fastore.Data.Test
 				{
 					using (var statement = c.Prepare("select null"))
 					{
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.IsFalse(statement.GetInt64(0).HasValue);
 					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void ResetTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					var statement = c.Prepare("select sqlite_version()");
+
+					Assert.IsTrue(statement.Next(), "No row.");
+					Assert.IsFalse(statement.Next(), "Invalid row.");
+
+					statement.Reset();
+
+					Assert.IsTrue(statement.Next(), "No row.");
+					Assert.IsFalse(statement.Next(), "Invalid row.");
 				}
 			);
 		}
@@ -165,8 +181,7 @@ namespace Alphora.Fastore.Data.Test
 					{
 						statement.Bind(1, 1234);
 
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual(1234, statement.GetInt64(0));
 					}
@@ -185,8 +200,7 @@ namespace Alphora.Fastore.Data.Test
 					{
 						statement.Bind(1, 12.34);
 
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual(12.34, statement.GetDouble(0));
 					}
@@ -205,8 +219,7 @@ namespace Alphora.Fastore.Data.Test
 					{
 						statement.BindAString(1, "Blah");
 
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual("Blah", statement.GetAString(0));
 					}
@@ -225,10 +238,53 @@ namespace Alphora.Fastore.Data.Test
 					{
 						statement.BindWString(1, "BlahW");
 
-						if (!statement.Next())
-							Assert.Fail("No row.");
+						Assert.IsTrue(statement.Next(), "No row.");
 
 						Assert.AreEqual("BlahW", statement.GetWString(0));
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void BasicBindAgainTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select ?"))
+					{
+						statement.Bind(1, 1234);
+
+						Assert.IsTrue(statement.Next(), "No row.");
+
+						Assert.AreEqual(1234, statement.GetInt64(0));
+
+						statement.Bind(1, 2468);
+
+						Assert.IsTrue(statement.Next(), "No row.");
+
+						Assert.AreEqual(2468, statement.GetInt64(0));
+					}
+				}
+			);
+		}
+
+		[TestMethod]
+		public void GetColumnInfoTest()
+		{
+			InternalConnectDisconnect
+			(
+				(c) =>
+				{
+					using (var statement = c.Prepare("select 'Blah'"))
+					{
+						Assert.AreEqual(1, statement.ColumnCount, "Incorrect number of columns in result.");
+
+						var info = statement.GetColumnInfo(0);
+						Assert.AreEqual("varchar", info.Name);
+						Assert.AreEqual(Provider.ArgumentType.FASTORE_ARGUMENT_STRING8, info.Type);
 					}
 				}
 			);

@@ -63,8 +63,8 @@ namespace Fastore.Core.Demo2
 
         private bool DetectSchema()
         {
-			using (var statement = _connection.Execute("select * from sqlite_master where name = 'Person'"))
-				return (statement.GetInt64(0) ?? 0) == 1;
+			using (var statement = _connection.Prepare("select * from sqlite_master where name = 'Person'"))
+				return statement.Next();
         }
 
 		private void CreateSchema()
@@ -197,21 +197,18 @@ namespace Fastore.Core.Demo2
             return results;
         }
 
+		private Statement _insertStatement;
+
         private void InsertRecord(string[] record)
         {
             if (record != null && record[0] != null) //Filter out junk data..
             {
-				var data = new object[8];
-				data[0] = Int32.Parse(record[0]);
-                data[1] = Escape(record[1] ?? "");
-                data[2] = Escape(record[2] ?? "");
-                data[3] = (record[3] ?? "0") == "1";
-                data[4] = Escape(record[4] ?? "");
-                data[5] = Escape(record[5] ?? "");
-				data[6] = Escape(record[6] ?? "null");
-				data[7] = Escape(record[7] ?? "null");
-
-				_connection.Execute(String.Format("insert into Person (ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID) values ({0}, '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7})", data));
+				if (_insertStatement == null)
+					_insertStatement = _connection.Prepare("insert into Person (ID, Given, Surname, Gender, BirthDate, BirthPlace, MID, FID) values (?, ?, ?, ?, ?, ?, ?, ?)");
+				for (int i = 0; i < record.Length; i++)
+					if (record[i] != null)
+						_insertStatement.BindAString(i + 1, record[i]);
+				_insertStatement.Next();
 				//_database.Include(_columns, _ids, record);
             }
         }

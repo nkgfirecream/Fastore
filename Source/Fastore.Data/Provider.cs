@@ -10,6 +10,7 @@ namespace Alphora.Fastore.Data
     public static class Provider
     {
 		public const int MAX_HOST_NAME = 255;
+		public const int MAX_NAME = 127;
 		public const int FASTORE_OK = 0;
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
@@ -57,6 +58,26 @@ namespace Alphora.Fastore.Data
 			public int Result;
 			// TODO: get this to marshal as a bool (tried all the obvious things)
 			public byte Eof;
+		};
+
+		public enum ArgumentType
+		{
+			FASTORE_ARGUMENT_NULL = 0,
+			FASTORE_ARGUMENT_DOUBLE = 1,
+			FASTORE_ARGUMENT_INT32 = 2,
+			FASTORE_ARGUMENT_INT64 = 3,
+			FASTORE_ARGUMENT_STRING8 = 4,
+			FASTORE_ARGUMENT_STRING16 = 5,
+			FASTORE_ARGUMENT_BOOL = 6
+		}
+
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+		public struct ColumnInfoResult
+		{
+			public int Result;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_NAME)]
+			public string Name;
+			public int Type;//ArgumentType Type;
 		};
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -118,6 +139,11 @@ namespace Alphora.Fastore.Data
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastorePrepare", CallingConvention = CallingConvention.Cdecl)]
 		public extern static PrepareResult Prepare(IntPtr connection, [param: MarshalAs(UnmanagedType.LPStr)]string batch);
 
+		/// Resets the cursor to the BOF crack
+		//FASTOREAPI GeneralResult fastoreReset(StatementHandle statement);
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreReset", CallingConvention = CallingConvention.Cdecl)]
+		public extern static GeneralResult Reset(IntPtr statement);
+
 		//// Provides values for any parameters included in the prepared statement and resets the cursor
 		//FASTOREAPI GeneralResult fastoreBindInt64(StatementHandle statement, int32_t argumentIndex, int64_t value);
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreBindInt64", CallingConvention = CallingConvention.Cdecl)]
@@ -140,9 +166,10 @@ namespace Alphora.Fastore.Data
 		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreNext", CallingConvention = CallingConvention.Cdecl)]
 		public extern static NextResult Next(IntPtr statement);
 
-		
 		//// Gets the column name for the given column index
-		//FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int32_t columnIndex);
+		//FASTOREAPI ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int32_t columnIndex)
+		[DllImport("FastoreProvider.dll", EntryPoint = "fastoreColumnInfo", CallingConvention = CallingConvention.Cdecl)]
+		public extern static ColumnInfoResult ColumnInfo(IntPtr statement, int columnIndex);
 
 		// Gets the column value of the current row given an index
 		//FASTOREAPI ColumnValueInt64Result fastoreColumnValueInt64(StatementHandle statement, int32_t columnIndex);

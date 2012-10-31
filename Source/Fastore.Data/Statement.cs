@@ -36,11 +36,24 @@ namespace Alphora.Fastore.Data
 
 		public int ColumnCount { get { return _columnCount; } }
 
+		public void Reset()
+		{
+			var result = Provider.Reset(_statement);
+			Provider.CheckResult(result.Result);
+		}
+
 		public bool Next()
 		{
 			var result = Provider.Next(_statement);
 			Provider.CheckResult(result.Result);
 			return result.Eof != 0;
+		}
+
+		public ColumnInfo GetColumnInfo(int index)
+		{
+			var result = Provider.ColumnInfo(_statement, index);
+			Provider.CheckResult(result.Result);
+			return new ColumnInfo { Name = result.Name, Type = (Provider.ArgumentType)result.Type };	// TODO: temporary
 		}
 
 		public void Bind(int index, long value)
