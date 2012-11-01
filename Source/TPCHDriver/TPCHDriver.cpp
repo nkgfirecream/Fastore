@@ -17,7 +17,7 @@ const static int NUM_STREAMS = 1; //This may be variable depending how many clie
 const static double SCALE_FACTOR = .001; //This depends on the generated data, and may change as an argument or if we generate data via the driver.
 const char* const SCRIPT_PATH = "..\\SCRIPTS\\";
 const char* const TPCH_DEF = "TPCH";
-const static int TRANSACTION_SIZE = 500;
+const static int TRANSACTION_SIZE = 100;
 const std::string TABLES[] =
 {
 	"CUSTOMER",
@@ -246,7 +246,11 @@ void ThroughputTest()
 	for (int set = 1; set <= NUM_STREAMS/*NUM_SETS -- one set per stream*/; ++set)
 	{
 		std::cout << "Executing set: " << set << std::endl;
-		for (int query = 0; query < NUM_QUERIES; ++query)
+#if 0
+		for (int query = 0; query <= NUM_QUERIES; ++query)
+#else
+		for (int query = 2; query <= 2 /*NUM_QUERIES*/; ++query)
+#endif
 		{
 			std::cout << "Executing query: " << query << " (" << (testSets[set][query] + 1) << ".OUT)" << std::endl;
 			auto result = fastorePrepare(_connection, (queries[testSets[set][query]]).c_str());

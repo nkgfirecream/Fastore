@@ -29,8 +29,8 @@ void module::Table::EnsureFastoreTypeMaps()
 		sqliteTypesToFastoreTypes["varchar"] = "String";
 		sqliteTypesToFastoreTypes["int"] = "Long";
 		sqliteTypesToFastoreTypes["float"] = "Double";
-		sqliteTypesToFastoreTypes["date"] = "Double";
-		sqliteTypesToFastoreTypes["datetime"] = "Double";
+		sqliteTypesToFastoreTypes["date"] = "String";
+		sqliteTypesToFastoreTypes["datetime"] = "String";
 	}
 
 	if (sqliteTypeIDToFastoreTypes.size() == 0)

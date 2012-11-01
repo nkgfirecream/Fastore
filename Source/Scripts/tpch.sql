@@ -82,7 +82,3 @@ L_SHIPINSTRUCT varchar not null,
 L_SHIPMODE varchar not null,
 L_COMMENT varchar not null,
 );
-
-
-
-
