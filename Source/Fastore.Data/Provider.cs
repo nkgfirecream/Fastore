@@ -72,12 +72,32 @@ namespace Alphora.Fastore.Data
 		}
 
 		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-		public struct ColumnInfoResult
+		public unsafe struct ColumnInfoResult
 		{
 			public int Result;
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst = MAX_NAME)]
-			public string Name;
-			public int Type;//ArgumentType Type;
+			public fixed byte Name[MAX_NAME];
+			public string NameAsString
+			{
+				get 
+				{
+					fixed (byte* value = Name)
+					{
+						return Marshal.PtrToStringAnsi(new IntPtr(value));
+					}
+				}
+			}
+			public fixed byte LogicalType[MAX_NAME];
+			public string LogicalTypeAsString
+			{
+				get
+				{
+					fixed (byte* value = LogicalType)
+					{
+						return Marshal.PtrToStringAnsi(new IntPtr(value));
+					}
+				}
+			}
+			public ArgumentType PhysicalType;
 		};
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -125,7 +145,7 @@ namespace Alphora.Fastore.Data
 		public extern static ConnectResult Connect
 		(
 			int addressCount, 
-			[MarshalAs(UnmanagedType.LPArray)]
+			[MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]
 			FastoreAddress[] addresses
 		);
 

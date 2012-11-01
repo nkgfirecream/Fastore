@@ -8,6 +8,7 @@ namespace Alphora.Fastore.Data
 	public struct ColumnInfo
 	{
 		public string Name;
-		public Provider.ArgumentType Type;
+		public string LogicalType;
+		public Provider.ArgumentType PhysicalType;
 	}
 }

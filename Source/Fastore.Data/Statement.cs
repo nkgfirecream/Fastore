@@ -53,7 +53,7 @@ namespace Alphora.Fastore.Data
 		{
 			var result = Provider.ColumnInfo(_statement, index);
 			Provider.CheckResult(result.Result);
-			return new ColumnInfo { Name = result.Name, Type = (Provider.ArgumentType)result.Type };	// TODO: temporary
+			return new ColumnInfo { Name = result.NameAsString, LogicalType = result.LogicalTypeAsString, PhysicalType = result.PhysicalType };
 		}
 
 		public void Bind(int index, long value)

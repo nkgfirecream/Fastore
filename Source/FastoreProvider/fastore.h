@@ -81,7 +81,8 @@ typedef struct
 {
 	FastoreResultCode result;
 	char name[MAX_NAME];
-	ArgumentType type;
+	char logicalType[MAX_NAME];
+	ArgumentType physicalType;
 } ColumnInfoResult;
 
 typedef struct 

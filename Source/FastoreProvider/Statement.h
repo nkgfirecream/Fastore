@@ -21,7 +21,7 @@ namespace fastore
 
 		struct ColumnInfo
 		{
-			ArgumentType type;
+			ArgumentType physicalType;
 			std::string logicalType;
 			std::string name;
 		};

@@ -110,18 +110,18 @@ int Statement::columnCount()
 
 ColumnInfo Statement::getColumnInfo(int32_t index)
 {
+	//TODO: concurrency
 	auto iter = _infos.find(index);
 
 	if (iter != _infos.end())
 		return iter->second;
 
 	ColumnInfo info;
-	//TODO: encode type information as a string and return it.
-	//Problem here is bools. Sqlite will return them as integers, so we need
-	//to compare what sqlite reports and what we have actually defined the column as.
-	info.logicalType = std::string(sqlite3_column_decltype(_statement, index));
-	info.type = _types[info.logicalType];
-	info.name = sqlite3_column_name(_statement, index);
+	auto typeName = sqlite3_column_decltype(_statement, index);
+	info.logicalType = typeName == nullptr ? std::string() : std::string(typeName);
+	info.physicalType = _types[info.logicalType];
+	auto columnName = sqlite3_column_name(_statement, index);
+	info.name = columnName == nullptr ? std::string() : std::string(columnName);
 
 	_infos.insert(std::pair<int, ColumnInfo>(index, info));
 

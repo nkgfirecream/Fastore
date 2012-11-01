@@ -212,7 +212,10 @@ ColumnInfoResult fastoreColumnInfo(StatementHandle statement, int columnIndex)
 			strncpy(result.name, info.name.c_str(), sizeof(result.name) - 1);
 			result.name[sizeof(result.name) - 1] = '\0';
 			
-			result.type = info.type; 
+			strncpy(result.logicalType, info.logicalType.c_str(), sizeof(result.logicalType) - 1);
+			result.logicalType[sizeof(result.logicalType) - 1] = '\0';
+			
+			result.physicalType = info.physicalType; 
 		}
 	);
 }

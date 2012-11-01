@@ -278,13 +278,33 @@ namespace Alphora.Fastore.Data.Test
 			(
 				(c) =>
 				{
-					using (var statement = c.Prepare("select 'Blah'"))
+					using (var statement = c.Prepare("select 'Blah' Col1"))
 					{
 						Assert.AreEqual(1, statement.ColumnCount, "Incorrect number of columns in result.");
 
 						var info = statement.GetColumnInfo(0);
-						Assert.AreEqual("varchar", info.Name);
-						Assert.AreEqual(Provider.ArgumentType.FASTORE_ARGUMENT_STRING8, info.Type);
+						Assert.AreEqual("Col1", info.Name);
+						Assert.AreEqual("", info.LogicalType);
+						Assert.AreEqual(Provider.ArgumentType.FASTORE_ARGUMENT_NULL, info.PhysicalType);
+					}
+
+					c.Execute("create table Test1 (A varchar, B int)");
+					try
+					{
+
+						using (var statement = c.Prepare("select * from Test1"))
+						{
+							Assert.AreEqual(2, statement.ColumnCount, "Incorrect number of columns in result.");
+
+							var info = statement.GetColumnInfo(0);
+							Assert.AreEqual("A", info.Name);
+							Assert.AreEqual("varchar", info.LogicalType);
+							Assert.AreEqual(Provider.ArgumentType.FASTORE_ARGUMENT_STRING8, info.PhysicalType);
+						}
+					}
+					finally
+					{
+						c.Execute("drop table Test1");
 					}
 				}
 			);
