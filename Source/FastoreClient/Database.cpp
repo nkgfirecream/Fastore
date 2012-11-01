@@ -1140,7 +1140,7 @@ std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 				std::async
 				(
 					std::launch::async,
-					[&]() -> Statistic
+					[&, columnId]() -> Statistic
 					{
 						Statistic result;
 						AttemptRead

@@ -46,8 +46,9 @@ public:
 			errnum = errno;
 			errstr = strerror(errno);
 		} 
-	
-		msg << input;
+		
+		//The log is causing heap errors.
+		//msg << input;
 
 		return *this;
 	}

@@ -429,7 +429,7 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 	else if (useOrder)
 		cost = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
 	else
-		cost = 0; //static_cast<double>(_stats[0].total); //If no ordering, size of whole table -- pick a key column.
+		cost = static_cast<double>(maxColTot()); //If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
 
 	//Step 6. Set remaining outputs.
 	info->estimatedCost = cost;
@@ -703,5 +703,24 @@ void module::Table::determineRowIDColumn()
 			_rowIDIndex = i;
 			break;
 		}
+	}
+}
+
+int64_t module::Table::maxColTot()
+{
+	if (_rowIDIndex != -1)
+	{
+		return _stats[_rowIDIndex].total;
+	}
+	else
+	{
+		int64_t max = 0;
+		for (auto col = _stats.begin(), end = _stats.end(); col != end; ++col)
+		{
+			if (col->total > max)
+				max = col->total;
+		}
+
+		return max;
 	}
 }

@@ -15,7 +15,7 @@ const static int NUM_QUERIES = 22;
 const static int NUM_SETS = 41;
 const static int NUM_STREAMS = 1; //This may be variable depending how many client we have processing.
 const static double SCALE_FACTOR = .001; //This depends on the generated data, and may change as an argument or if we generate data via the driver.
-const char* const SCRIPT_PATH = "..\\..\\SCRIPTS\\";
+const char* const SCRIPT_PATH = "..\\SCRIPTS\\";
 const char* const TPCH_DEF = "TPCH";
 const static int TRANSACTION_SIZE = 500;
 const std::string TABLES[] =
@@ -105,6 +105,13 @@ std::string LoadQuery(int i)
 	std::stringstream path;
 	path << SCRIPT_PATH << i << ".out";
 	return ReadAll(path.str());
+}
+
+bool DetectSchema()
+{
+	std::cout << "Detecting schema...\n";
+	auto result = fastoreExecute(_connection, ("select * from sqlite_master where name = '" + TABLES[0] + "';").c_str());
+	return !result.eof;
 }
 
 void InsertRecord(std::string& table, std::vector<std::string>& record)
@@ -238,14 +245,14 @@ void ThroughputTest()
 
 	for (int set = 1; set <= NUM_STREAMS/*NUM_SETS -- one set per stream*/; ++set)
 	{
-		std::cout << "Executing Set: " << set << std::endl;
-		for (int query = 1; query < NUM_QUERIES; ++query)
+		std::cout << "Executing set: " << set << std::endl;
+		for (int query = 0; query < NUM_QUERIES; ++query)
 		{
-			std::cout << "Executing query: " << query << " (" << testSets[set][query] << ")" << std::endl;
+			std::cout << "Executing query: " << query << " (" << (testSets[set][query] + 1) << ".OUT)" << std::endl;
 			auto result = fastorePrepare(_connection, (queries[testSets[set][query]]).c_str());
 			if (result.result != FASTORE_OK)
 			{
-				throw "Error Preparing query!";
+				throw "Error preparing query!";
 			}			
 
 			NextResult data;
@@ -254,7 +261,7 @@ void ThroughputTest()
 				data = fastoreNext(result.statement);
 				if (data.result != FASTORE_OK)
 				{
-					throw "Error Executing query!";
+					throw "Error executing query!";
 				}
 			} 
 			while(!data.eof);
@@ -292,10 +299,19 @@ int _tmain(int argc, _TCHAR* argv[])
 		
 	LoadQueries();	
 	ConnectToFastore();	
-	CreateTableDefs();
-	ImportTables();
 
-	std::cout << "Import complete. Press any key to begin test.\n";
+	if (!DetectSchema())
+	{
+		std::cout << "Schema not found. Creating data...\n";
+		CreateTableDefs();
+		ImportTables();
+	}
+	else
+	{
+		std::cout << "Schema detected. Skipping data creation...\n";
+	}
+
+	std::cout << "Setup complete. Press any key to begin tests.\n";
 	std::getchar();
 
 	//Run and time power test

@@ -10,7 +10,7 @@ module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1) { }
 int module::Cursor::next()
 {
 	++_index;
-	if (SAFE_CAST(size_t, _index) == _set.Data.size())
+	if (size_t(_index) == _set.Data.size())
 		getNextSet();
 
 	return SQLITE_OK;

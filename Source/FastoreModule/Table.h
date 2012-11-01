@@ -72,6 +72,7 @@ namespace fastore
 			void ensureColumns();
 			void parseDDL(); 
 			void determineRowIDColumn();
+			int64_t maxColTot();
 
 			client::ColumnDef parseColumnDef(std::string text, bool& isDef);
 

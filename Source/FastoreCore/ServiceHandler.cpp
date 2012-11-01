@@ -98,6 +98,7 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 
 	if (_config->__isset.joinedHive)
 	{
+		_hiveState = boost::shared_ptr<HiveState>(new HiveState(_config->joinedHive));
 		auto thisService = _config->joinedHive.services.find(_config->joinedHive.reportingHostID);
 		auto numPods = thisService->second.workers.size();
 
