@@ -33,7 +33,8 @@ namespace fastore
 			bool _eof;
 
 			std::map<int, ColumnInfo> _infos;
-			std::map<std::string, ArgumentType, LexCompare> _types;
+			static std::map<std::string, ArgumentType, LexCompare> Types;
+			static void EnsureTypes();
 
 			void internalBind(int32_t index);
 			void checkBindResult(int result);

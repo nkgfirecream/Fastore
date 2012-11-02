@@ -10,24 +10,25 @@ using namespace fastore::provider;
 using boost::optional;
 using fastore::client::ClientException;
 
-std::map<string, ArgumentType, LexCompare> createTypeMap()
-{
-	map<string, ArgumentType, LexCompare> m;
-	
-	//m[] = ArgumentType::FASTORE_ARGUMENT_BOOL;
-	//m[] =  ArgumentType::FASTORE_ARGUMENT_INT32;
-	m["int"] = ArgumentType::FASTORE_ARGUMENT_INT64;
-	m["varchar"] = ArgumentType::FASTORE_ARGUMENT_STRING8;
-	//m["nvarchar"] = ArgumentType::FASTORE_ARGUMENT_STRING16;
-	m["float"] = ArgumentType::FASTORE_ARGUMENT_DOUBLE;
-	m["null"] = ArgumentType::FASTORE_ARGUMENT_NULL;
+std::map<string, ArgumentType, LexCompare> Statement::Types;
 
-	return m;
+void Statement::EnsureTypes()
+{
+	if (Types.size() == 0)
+	{
+		//m[] = ArgumentType::FASTORE_ARGUMENT_BOOL;
+		//m[] =  ArgumentType::FASTORE_ARGUMENT_INT32;
+		Types["int"] = ArgumentType::FASTORE_ARGUMENT_INT64;
+		Types["varchar"] = ArgumentType::FASTORE_ARGUMENT_STRING8;
+		//m["nvarchar"] = ArgumentType::FASTORE_ARGUMENT_STRING16;
+		Types["float"] = ArgumentType::FASTORE_ARGUMENT_DOUBLE;
+		Types["null"] = ArgumentType::FASTORE_ARGUMENT_NULL;
+	}
 }
 
 Statement::Statement(sqlite3* db, const string &sql)
 {
-	_types = createTypeMap();
+	EnsureTypes();
 	int result = sqlite3_prepare_v2(db, sql.c_str(), -1, &_statement, NULL);
 	checkSQLiteResult(result);
 	_eof = false;
@@ -119,7 +120,7 @@ ColumnInfo Statement::getColumnInfo(int32_t index)
 	ColumnInfo info;
 	auto typeName = sqlite3_column_decltype(_statement, index);
 	info.logicalType = typeName == nullptr ? std::string() : std::string(typeName);
-	info.physicalType = _types[info.logicalType];
+	info.physicalType = Types[info.logicalType];
 	auto columnName = sqlite3_column_name(_statement, index);
 	info.name = columnName == nullptr ? std::string() : std::string(columnName);
 
