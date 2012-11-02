@@ -65,7 +65,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>FastoreClient.lib;FastoreCommunication.lib;libthrift.lib;FastoreCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FastoreClient.lib;FastoreCommon.lib;libthrift.lib;FastoreCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
@@ -87,7 +87,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>FastoreClient.lib;FastoreCommunication.lib;libthrift.lib;FastoreCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>FastoreClient.lib;FastoreCommon.lib;libthrift.lib;FastoreCore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

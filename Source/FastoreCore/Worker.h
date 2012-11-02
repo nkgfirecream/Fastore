@@ -3,7 +3,7 @@
 #include <boost/thread.hpp>
 #include "Endpoint.h"
 #include "WorkerHandler.h"
-#include "../FastoreCommunication/Server_types.h"
+#include "../FastoreCommon/Server_types.h"
 
 class Worker
 {

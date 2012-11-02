@@ -14,9 +14,9 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <thrift/protocol/TProtocol.h>
-#include "../FastoreCommunication/Comm_types.h"
-#include "../FastoreCommunication/Service.h"
-#include "../FastoreCommunication/Worker.h"
+#include "../FastoreCommon/Comm_types.h"
+#include "../FastoreCommon/Service.h"
+#include "../FastoreCommon/Worker.h"
 #include "typedefs.h"
 #include <future>
 

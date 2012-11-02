@@ -1,5 +1,5 @@
 #pragma once
-#include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCommon/Comm_types.h"
 
 
 // The purpose of the scheduler is to manage events that must happen

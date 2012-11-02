@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Schema/scalar.h"
-#include "../../FastoreCommunication/Comm_types.h"
+#include "../../FastoreCommon/Comm_types.h"
 #include <vector>
 
 using namespace fastore::communication;

@@ -11,26 +11,23 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
-  </PropertyGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{D38E1BBD-1972-451E-B28C-372EEBDFB047}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>FastoreShell</RootNamespace>
+    <ProjectGuid>{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}</ProjectGuid>
+    <RootNamespace>FastoreCommunication</RootNamespace>
+    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath11)</VCTargetsPath>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v110</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -45,66 +42,85 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <PreBuildEventUseInBuild>true</PreBuildEventUseInBuild>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <CustomBuildBeforeTargets>Rebuild</CustomBuildBeforeTargets>
+    <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>obj\$(Configuration)\</IntDir>
-    <CustomBuildAfterTargets>Build</CustomBuildAfterTargets>
+    <CustomBuildBeforeTargets>Rebuild</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
+      <AdditionalOptions>/D "_WIN32" %(AdditionalOptions)</AdditionalOptions>
+      <DisableSpecificWarnings>4065;4101</DisableSpecificWarnings>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sqlite3.lib;libthrift.lib;FastoreModule.lib;FastoreClient.lib;FastoreCore.lib;FastoreCommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libthrift.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /y $(SolutionDir)..\External\SQLite\$(Platform) $(OutDir)</Command>
+      <Command>$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>sqlite3.dll</Outputs>
+      <Message>Build thrift files</Message>
+      <Inputs>$(SolutionDir)Server.thrift;$(SolutionDir)Comm.thrift;$(TargetPath)</Inputs>
+      <Outputs>dummy</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>sqlite3.lib;libthrift.lib;FastoreModule.lib;FastoreClient.lib;FastoreCore.lib;FastoreCommon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
     <CustomBuildStep>
-      <Command>xcopy /y $(SolutionDir)..\External\SQLite\$(Platform) $(OutDir)</Command>
-      <Outputs>sqlite3.dll</Outputs>
+      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>Build thrift files</Message>
+      <Inputs>$(SolutionDir)Server.thrift;$(SolutionDir)Comm.thrift;$(TargetPath)</Inputs>
+      <Outputs>dummy</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="targetver.h" />
+    <ClCompile Include="Comm_constants.cpp" />
+    <ClCompile Include="Comm_types.cpp" />
+    <ClCompile Include="Operators.cpp" />
+    <ClCompile Include="Server_constants.cpp" />
+    <ClCompile Include="Server_types.cpp" />
+    <ClCompile Include="Service.cpp" />
+    <ClCompile Include="Worker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="shell.c" />
+    <ClInclude Include="Comm_constants.h" />
+    <ClInclude Include="Comm_types.h" />
+    <ClInclude Include="Server_constants.h" />
+    <ClInclude Include="Server_types.h" />
+    <ClInclude Include="Service.h" />
+    <ClInclude Include="Worker.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

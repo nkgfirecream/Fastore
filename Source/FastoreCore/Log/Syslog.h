@@ -2,7 +2,7 @@
 #pragma once 
 //Thrift defines it's own windows configuration (see next couple of lines)
 //So on windows, it must be included first.
-//#include "../../FastoreCommunication/Server_types.h"
+//#include "../../FastoreCommon/Server_types.h"
 
 #if _WIN32
 # include <windows.h>

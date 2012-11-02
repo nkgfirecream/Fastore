@@ -5,7 +5,7 @@
 #include "Schema/column.h"
 //#include "Logging/Log.h"
 #include "Column/IColumnBuffer.h"
-#include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCommon/Comm_types.h"
 
 using namespace ::fastore::communication;
 using namespace std;

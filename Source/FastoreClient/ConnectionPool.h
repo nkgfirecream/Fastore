@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <functional>
 #include <boost/shared_ptr.hpp>
-#include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCommon/Comm_types.h"
 #include "../FastoreCore/safe_cast.h"
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/protocol/TBinaryProtocol.h>

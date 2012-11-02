@@ -27,8 +27,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreService", "FastoreSe
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E} = {FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommunication", "FastoreCommunication\FastoreCommunication.vcxproj", "{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreShell", "FastoreShell\FastoreShell.vcxproj", "{D38E1BBD-1972-451E-B28C-372EEBDFB047}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D} = {5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D}
@@ -44,12 +42,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreProvider", "FastoreProvider\FastoreProvider.vcxproj", "{4D85216E-82BA-40B6-A0E2-676CB0DA638A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D} = {5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D}
-		{71CA22A1-136F-43EE-B8AB-29EFCE7776A0} = {71CA22A1-136F-43EE-B8AB-29EFCE7776A0}
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E} = {FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCore.Demo3", "FastoreCore.Demo3\FastoreCore.Demo3.vcxproj", "{B8F01458-59D5-4820-ADBB-582405BACB5E}"
-	ProjectSection(ProjectDependencies) = postProject
 		{71CA22A1-136F-43EE-B8AB-29EFCE7776A0} = {71CA22A1-136F-43EE-B8AB-29EFCE7776A0}
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E} = {FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}
 	EndProjectSection
@@ -70,6 +62,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo2", "Fastore.Core.Demo2\Fastore.Core.Demo2.csproj", "{ECED1EB2-BF0A-400C-AA14-C5AB78FCDFC9}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TPCHDriver", "TPCHDriver\TPCHDriver.vcxproj", "{182462A1-3E34-4D80-A7A9-184BD42A0A67}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4D85216E-82BA-40B6-A0E2-676CB0DA638A} = {4D85216E-82BA-40B6-A0E2-676CB0DA638A}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommon", "FastoreCommon\FastoreCommon.vcxproj", "{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}"
 EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
@@ -126,18 +123,6 @@ Global
 		{8B661664-3CFA-4152-ABD0-8EC85DD9E4B4}.Release|Win32.ActiveCfg = Release|x64
 		{8B661664-3CFA-4152-ABD0-8EC85DD9E4B4}.Release|x64.ActiveCfg = Release|x64
 		{8B661664-3CFA-4152-ABD0-8EC85DD9E4B4}.Release|x64.Build.0 = Release|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Win32.ActiveCfg = Debug|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|x64.ActiveCfg = Debug|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|x64.Build.0 = Debug|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Any CPU.ActiveCfg = Release|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Mixed Platforms.Build.0 = Release|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Win32.ActiveCfg = Release|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.ActiveCfg = Release|x64
-		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.Build.0 = Release|x64
 		{D38E1BBD-1972-451E-B28C-372EEBDFB047}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{D38E1BBD-1972-451E-B28C-372EEBDFB047}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
 		{D38E1BBD-1972-451E-B28C-372EEBDFB047}.Debug|Mixed Platforms.Build.0 = Debug|x64
@@ -174,18 +159,6 @@ Global
 		{4D85216E-82BA-40B6-A0E2-676CB0DA638A}.Release|Win32.ActiveCfg = Release|x64
 		{4D85216E-82BA-40B6-A0E2-676CB0DA638A}.Release|x64.ActiveCfg = Release|x64
 		{4D85216E-82BA-40B6-A0E2-676CB0DA638A}.Release|x64.Build.0 = Release|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Debug|Win32.ActiveCfg = Debug|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Debug|x64.ActiveCfg = Debug|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Debug|x64.Build.0 = Debug|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Release|Any CPU.ActiveCfg = Release|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Release|Mixed Platforms.Build.0 = Release|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Release|Win32.ActiveCfg = Release|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Release|x64.ActiveCfg = Release|x64
-		{B8F01458-59D5-4820-ADBB-582405BACB5E}.Release|x64.Build.0 = Release|x64
 		{5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
 		{5538C4A0-C1A6-46F4-A38D-AFB32DA6C33D}.Debug|Mixed Platforms.Build.0 = Debug|x64
@@ -249,6 +222,18 @@ Global
 		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|Win32.ActiveCfg = Release|x64
 		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|x64.ActiveCfg = Release|x64
 		{182462A1-3E34-4D80-A7A9-184BD42A0A67}.Release|x64.Build.0 = Release|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|Win32.ActiveCfg = Debug|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|x64.ActiveCfg = Debug|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Debug|x64.Build.0 = Debug|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Any CPU.ActiveCfg = Release|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Mixed Platforms.Build.0 = Release|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Win32.ActiveCfg = Release|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.ActiveCfg = Release|x64
+		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,6 @@
 #pragma once
-#include "../FastoreCommunication/Service.h"
-#include "../FastoreCommunication/Server_types.h"
+#include "../FastoreCommon/Service.h"
+#include "../FastoreCommon/Server_types.h"
 #include "Endpoint.h"
 #include <thrift/server/TServer.h>
 #include <thrift/transport/TFDTransport.h>

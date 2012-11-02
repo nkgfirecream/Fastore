@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCommon/Comm_types.h"
 #include "../FastoreCore/safe_cast.h"
 
 using namespace fastore::communication;

@@ -8,7 +8,7 @@
 #include <set>
 #include <algorithm>
 #include <boost/shared_ptr.hpp>
-#include "../FastoreCommunication/Comm_types.h"
+#include "../FastoreCommon/Comm_types.h"
 #include <unordered_set>
 
 using namespace fastore::communication;
