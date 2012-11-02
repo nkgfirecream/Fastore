@@ -1,6 +1,7 @@
 #include "Table.h"
 #include "Dictionary.h"
-#include "../FastoreCore/safe_cast.h"
+//#include "../FastoreCore/safe_cast.h"
+#include "../FastoreCommon/Type/Standardtypes.h"
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/Transaction.h"
@@ -12,7 +13,7 @@ namespace module = fastore::module;
 namespace client = fastore::client;
 namespace communication = fastore::communication;
 
-std::map<std::string, std::string>  module::Table::sqliteTypesToFastoreTypes;
+std::map<std::string, ScalarType>  module::Table::sqliteTypesToFastoreTypes;
 std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
 std::map<std::string, int> module::Table::fastoreTypeToSQLiteTypeID;
 
@@ -26,11 +27,11 @@ void module::Table::EnsureFastoreTypeMaps()
 {
 	if (sqliteTypesToFastoreTypes.size() == 0)
 	{
-		sqliteTypesToFastoreTypes["varchar"] = "String";
-		sqliteTypesToFastoreTypes["int"] = "Long";
-		sqliteTypesToFastoreTypes["float"] = "Double";
-		sqliteTypesToFastoreTypes["date"] = "String";
-		sqliteTypesToFastoreTypes["datetime"] = "String";
+		sqliteTypesToFastoreTypes["varchar"] = standardtypes::String;
+		sqliteTypesToFastoreTypes["int"] = standardtypes::Long;
+		sqliteTypesToFastoreTypes["float"] = standardtypes::Double;
+		sqliteTypesToFastoreTypes["date"] = standardtypes::String;
+		sqliteTypesToFastoreTypes["datetime"] = standardtypes::String;
 	}
 
 	if (sqliteTypeIDToFastoreTypes.size() == 0)
@@ -270,7 +271,7 @@ int module::Table::disconnect()
 	return SQLITE_ERROR;
 }
 
-void module::Table::createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId)
+void module::Table::createColumn(ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId)
 {
 
 	//TODO: Make workers smart enough to create/instantiate a column within one transaction.
@@ -283,9 +284,9 @@ void module::Table::createColumn(client::ColumnDef& column, std::string& combine
 		boost::assign::list_of<std::string>
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
 		(combinedName)
-		(column.Type)
-		(column.IDType)
-		(client::Encoder<client::BufferType_t>::Encode(column.BufferType))
+		(column.ValueType.Name)
+		(column.RowIDType.Name)
+		(client::Encoder<BufferType_t>::Encode(column.BufferType))
 		(client::Encoder<bool>::Encode(column.Required))
 	);
 	transaction->Include
@@ -361,7 +362,7 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 		int col = iter->first;
 
 		//cost factor -- strings are a bit more expensive to compare/search than integers.
-		double cost = _columns[col].Type == "String" || _columns[col].Type == "WString" ? 1.1 : 1;
+		double cost = _columns[col].ValueType.Name == "String" || _columns[col].ValueType.Name == "WString" ? 1.1 : 1;
 
 		//Average ids per value
 		int64_t avg = _stats[col].unique > 0 ? _stats[col].total / _stats[col].unique : 1;
@@ -505,7 +506,7 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		auto pValue = argv[i+2];
 		if (sqlite3_value_type(pValue) != SQLITE_NULL)
 		{
-			std::string type = _columns[i].Type;
+			std::string type = _columns[i].ValueType.Name;
 			int datatype = sqlite3_value_type(pValue);
 			int desiredType = FastoreTypeToSQLiteTypeID(type);
 
@@ -616,9 +617,9 @@ void module::Table::parseDDL()
 	}
 }
 
-client::ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
+ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 {
-	client::ColumnDef result;
+	ColumnDef result;
 	std::istringstream reader(text, std::istringstream::in);
 	if (!std::getline(reader, result.Name, ' ')) 
 		std::runtime_error("Missing column name");
@@ -638,40 +639,26 @@ client::ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	else
 	{
 		//More crappy parser-ness. If we don't recongize a type.. say it's not a column defintion.
-		result.Type = SQLiteTypeToFastoreType(type);
-		if (result.Type == "")
-		{
-			isDef = false;
-			return result;
-		}
+		result.ValueType = SQLiteTypeToFastoreType(type);
 	}
 
 	isDef = true;
 	auto stringText = std::string(text);
 	//TODO: When should we use an identity buffer? Primary key?
 	result.BufferType =	insensitiveStrPos(stringText, std::string("primary")) >= 0 ? 
-	    client::BufferType_t::Identity : 
+	    BufferType_t::Identity : 
 	    	insensitiveStrPos(stringText, std::string("unique")) >= 0 ? 
-	    		client::BufferType_t::Unique : client::BufferType_t::Multi;
+	    		BufferType_t::Unique : BufferType_t::Multi;
 	result.Required = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
 	                  insensitiveStrPos(stringText, std::string("primary key")) >= 0;
 
-	result.IDType = "Long";
+	result.RowIDType = standardtypes::Long;
 	return result;
 }
 
-std::string module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)
+ScalarType module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)
 {
 	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
-	if (result == sqliteTypesToFastoreTypes.end())
-	{
-		//std::ostringstream message;
-		//message << "Unknown type '" << SQLiteType << "'.";
-		//std::runtime_error(message.str());
-		
-		//Return "Null" for now... This will all need to be reworked.
-		return "";
-	}
 	return result->second;			
 }
 
@@ -696,9 +683,9 @@ void module::Table::determineRowIDColumn()
 	//However... That suggests only one identity column per table.. so it is a key...
 	for (size_t i = 0; i < _columns.size(); i++)
 	{
-		client::ColumnDef col = _columns[i];
+		ColumnDef col = _columns[i];
 
-		if (col.Required && col.BufferType == BufferType_t::Identity && col.Type == "Long")
+		if (col.Required && col.BufferType == BufferType_t::Identity && col.ValueType.Name == "Long")
 		{
 			_rowIDIndex = i;
 			break;

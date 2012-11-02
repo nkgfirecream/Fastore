@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
-#include "ColumnDef.h"
+#include "..\FastoreCommon\Buffer\ColumnDef.h"
 
 using namespace fastore::client;
 
-typedef std::map<ColumnID, fastore::client::ColumnDef> Schema;
+typedef std::map<ColumnID, ColumnDef> Schema;

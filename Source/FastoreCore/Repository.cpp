@@ -4,11 +4,11 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
-#include "Column/UniqueBuffer.h"
-#include "Column/UniqueInlineBuffer.h"
-#include "Column/TreeBuffer.h"
-#include "Column/TreeInlineBuffer.h"
-#include "Column/IdentityBuffer.h"
+#include "../FastoreCommon/Buffer/UniqueBuffer.h"
+#include "../FastoreCommon/Buffer/UniqueInlineBuffer.h"
+#include "../FastoreCommon/Buffer/TreeBuffer.h"
+#include "../FastoreCommon/Buffer/TreeInlineBuffer.h"
+#include "../FastoreCommon/Buffer/IdentityBuffer.h"
 #include "TFastoreFileTransport.h"
 #include <thrift/protocol/TBinaryProtocol.h>
 //#include "Column/MultiBimapBuffer.h"

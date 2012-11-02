@@ -5,7 +5,7 @@
 #include <thrift/transport/TBufferTransports.h>
 #include <utility>
 #include <unordered_set>
-#include "Schema/standardtypes.h"
+#include "../FastoreCommon/Type/standardtypes.h"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>

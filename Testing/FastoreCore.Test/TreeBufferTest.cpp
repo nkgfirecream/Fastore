@@ -9,9 +9,9 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "RangeTests.h"
 
-#include "Column\TreeBuffer.h"
-#include "Column\TreeInlineBuffer.h"
-#include "Column\MultiBimapBuffer.h"
+#include "..\FastoreCommon\Buffer\TreeBuffer.h"
+#include "..\FastoreCommon\Buffer\TreeInlineBuffer.h"
+#include "..\FastoreCommon\Buffer\MultiBimapBuffer.h"
 
 using namespace std;
 

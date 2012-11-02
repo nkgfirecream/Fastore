@@ -5,7 +5,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include <string>
 using std::string;
 
-#include "Column\IColumnBuffer.h"
+#include "..\FastoreCommon\Buffer\IColumnBuffer.h"
 
 void AssignString(string& str, int64_t value);
 void AssignBound(RangeBound& bound, bool inclusive, string& value);

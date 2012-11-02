@@ -105,57 +105,23 @@
     <CustomBuildStep />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Column\IdentityBuffer.cpp" />
-    <ClCompile Include="Column\TreeBuffer.cpp" />
-    <ClCompile Include="Column\TreeInlineBuffer.cpp" />
-    <ClCompile Include="Column\UniqueBuffer.cpp" />
-    <ClCompile Include="Column\UniqueInlineBuffer.cpp" />
     <ClCompile Include="Endpoint.cpp" />
-    <ClCompile Include=".\BTree.cpp" />
-    <ClCompile Include="Log\Syslog.cpp" />
     <ClCompile Include="Repository.cpp" />
     <ClCompile Include=".\Scheduler.cpp" />
-    <ClCompile Include="Schema\BaseTypes.cpp" />
-    <ClCompile Include="Schema\InternalTypes.cpp" />
-    <ClCompile Include="Schema\NodeTypes.cpp" />
-    <ClCompile Include="Schema\scalar.cpp" />
-    <ClCompile Include="Schema\standardtypes.cpp" />
-    <ClCompile Include="Schema\StringTypes.cpp" />
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
     <ClCompile Include="TFastoreFileTransport.cpp" />
     <ClCompile Include="TFastoreServer.cpp" />
-    <ClCompile Include="Util\Stopwatch.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
     <ClCompile Include="Wal\FauxWal.cpp" />
     <ClCompile Include="Worker.cpp" />
     <ClCompile Include="WorkerHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Column\BimapConversions.h" />
-    <ClInclude Include="Column\IColumnBuffer.h" />
-    <ClInclude Include="Column\IdentityBuffer.h" />
-    <ClInclude Include="Column\MultiBimapBuffer.h" />
-    <ClInclude Include="Column\TreeBuffer.h" />
-    <ClInclude Include="Column\TreeInlineBuffer.h" />
-    <ClInclude Include="Column\UniqueBuffer.h" />
-    <ClInclude Include="Column\UniqueInlineBuffer.h" />
     <ClInclude Include="Endpoint.h" />
     <ClInclude Include="EndpointConfig.h" />
-    <ClInclude Include=".\BTree.h" />
-    <ClInclude Include="Log\Syslog.h" />
-    <ClInclude Include="Order.h" />
     <ClInclude Include="Repository.h" />
-    <ClInclude Include="safe_cast.h" />
     <ClInclude Include="Scheduler.h" />
-    <ClInclude Include="Schema\BaseTypes.h" />
-    <ClInclude Include="schema\column.h" />
-    <ClInclude Include="Schema\InternalTypes.h" />
-    <ClInclude Include="Schema\NodeTypes.h" />
-    <ClInclude Include="schema\scalar.h" />
-    <ClInclude Include="schema\standardtypes.h" />
-    <ClInclude Include="Schema\StringTypes.h" />
-    <ClInclude Include="schema\tuple.h" />
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="StartupConfig.h" />
@@ -163,10 +129,7 @@
     <ClInclude Include="TFastoreServer.h" />
     <ClInclude Include="TransactionID.h" />
     <ClInclude Include="TransactionManager.h" />
-    <ClInclude Include="treeentry.h" />
-    <ClInclude Include="Util\Stopwatch.h" />
     <ClInclude Include="Storage\fastfile.h" />
-    <ClInclude Include="Util\utilities.h" />
     <ClInclude Include="Worker.h" />
     <ClInclude Include="WorkerHandler.h" />
   </ItemGroup>

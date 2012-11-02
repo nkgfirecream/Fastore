@@ -2,7 +2,7 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 
-#include "Column\UniqueBuffer.h"
+#include "../FastoreCommon/Buffer/UniqueBuffer.h"
 #include "Serialization.h"
 #include <stdio.h>
 

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
-#include "../FastoreCore/Log/Syslog.h"
+#include "../FastoreCommon/Log/Syslog.h"
 
 using namespace std;
 using fastore::Log;

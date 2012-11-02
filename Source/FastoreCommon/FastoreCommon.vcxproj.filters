@@ -1,60 +1,174 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Communication">
+      <UniqueIdentifier>{a9ff8d14-9d03-41b4-83d8-8923e4084024}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="Log">
+      <UniqueIdentifier>{c1babd62-d2df-43f5-9a84-fda96c82035c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Type">
+      <UniqueIdentifier>{2bb8360d-e5f2-471a-ad73-716e5d8fc295}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Buffer">
+      <UniqueIdentifier>{8ea7645a-9a0c-45d3-9a96-d05f2d875f69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{660033e8-4e02-4424-a881-33deae68aa72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tree">
+      <UniqueIdentifier>{8b6a0345-654f-47a5-94b6-165eca601925}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Service.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Comm_constants.cpp">
+      <Filter>Communication</Filter>
     </ClCompile>
-    <ClCompile Include="Operators.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Comm_types.cpp">
+      <Filter>Communication</Filter>
     </ClCompile>
-    <ClCompile Include="Worker.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Operators.cpp">
+      <Filter>Communication</Filter>
     </ClCompile>
-    <ClCompile Include="Comm_constants.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Server_constants.cpp">
+      <Filter>Communication</Filter>
     </ClCompile>
-    <ClCompile Include="Comm_types.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Server_types.cpp">
+      <Filter>Communication</Filter>
     </ClCompile>
-    <ClCompile Include="Server_constants.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Service.cpp">
+      <Filter>Communication</Filter>
     </ClCompile>
-    <ClCompile Include="Server_types.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Communication\Worker.cpp">
+      <Filter>Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="Log\Syslog.cpp">
+      <Filter>Log</Filter>
+    </ClCompile>
+    <ClCompile Include="Type\BaseTypes.cpp">
+      <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="Type\InternalTypes.cpp">
+      <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="Type\NodeTypes.cpp">
+      <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="Type\scalar.cpp">
+      <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="Type\standardtypes.cpp">
+      <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="Type\StringTypes.cpp">
+      <Filter>Type</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer\IdentityBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer\TreeBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer\TreeInlineBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer\UniqueBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer\UniqueInlineBuffer.cpp">
+      <Filter>Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\Stopwatch.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Tree\BTree.cpp">
+      <Filter>Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Service.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Communication\Comm_constants.h">
+      <Filter>Communication</Filter>
     </ClInclude>
-    <ClInclude Include="Worker.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Communication\Comm_types.h">
+      <Filter>Communication</Filter>
     </ClInclude>
-    <ClInclude Include="Comm_types.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Communication\Server_constants.h">
+      <Filter>Communication</Filter>
     </ClInclude>
-    <ClInclude Include="Comm_constants.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Communication\Server_types.h">
+      <Filter>Communication</Filter>
     </ClInclude>
-    <ClInclude Include="Server_types.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Communication\Service.h">
+      <Filter>Communication</Filter>
     </ClInclude>
-    <ClInclude Include="Server_constants.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Communication\Worker.h">
+      <Filter>Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="Log\Syslog.h">
+      <Filter>Log</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\BaseTypes.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\InternalTypes.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\NodeTypes.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\scalar.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\standardtypes.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\StringTypes.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Type\tuple.h">
+      <Filter>Type</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\IColumnBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\IdentityBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\TreeBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\TreeInlineBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\UniqueBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\UniqueInlineBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\BimapConversions.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\MultiBimapBuffer.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\safe_cast.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Stopwatch.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\utilities.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\BTree.h">
+      <Filter>Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree\TreeEntry.h">
+      <Filter>Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\ColumnDef.h">
+      <Filter>Buffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

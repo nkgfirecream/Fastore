@@ -7,8 +7,7 @@
 #include <stdexcept>
 #include <functional>
 #include <boost/shared_ptr.hpp>
-#include "../FastoreCommon/Comm_types.h"
-#include "../FastoreCore/safe_cast.h"
+#include "../FastoreCommon/Communication/Comm_types.h"
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TSocket.h>
@@ -174,7 +173,7 @@ namespace fastore { namespace client
 	{
 		auto transport = boost::shared_ptr<TSocket>(
 								new TSocket(address.name, 
-											SAFE_CAST(int, address.port)));
+											int(address.port)));
 		//TODO: Make this all configurable.
 		transport->setConnTimeout(2000);
 		transport->setRecvTimeout(2000);

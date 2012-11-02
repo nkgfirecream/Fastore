@@ -14,7 +14,7 @@
 
 #include <ctime>
 
-#include "Log/Syslog.h"
+#include "../FastoreCommon/Log/Syslog.h"
 
 using namespace boost::filesystem;
 using boost::shared_ptr;
@@ -330,7 +330,7 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 				<< ": creating worker on pod" << iter->podID 
 				<< " at '" << name << ":" << iter->port << "'" << log_endl;
 			boost::shared_ptr<TSocket> socket(new TSocket(name, 
-														  INT_CAST(iter->port)));
+														  int(iter->port)));
 			socket->setConnTimeout(2000);
 			socket->setRecvTimeout(2000);
 			socket->setSendTimeout(2000);
@@ -408,7 +408,7 @@ void ServiceHandler::shutdown()
 		{
 			try
 			{
-				boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, INT_CAST(iter->port)));
+				boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, int(iter->port)));
 				boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 				boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 

@@ -120,7 +120,7 @@ void ShutdownEndpoint()
 {
 	try
 	{
-		boost::shared_ptr<TSocket> socket(new TSocket("localhost", endpoint->getConfig().port));
+		boost::shared_ptr<TSocket> socket(new TSocket("localhost", int(endpoint->getConfig().port)));
 		boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
 		boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
 

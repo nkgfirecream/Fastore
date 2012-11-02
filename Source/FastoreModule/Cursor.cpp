@@ -1,5 +1,5 @@
 #include "Cursor.h"
-#include "../FastoreCore/safe_cast.h"
+//#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Encoder.h"
 
 namespace client = fastore::client;
@@ -28,7 +28,7 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 	if (!value.__isset.value)
 		sqlite3_result_null(pContext);
 
-	auto type = _table->_columns[index].Type;
+	auto type = _table->_columns[index].ValueType.Name;
 	//This function is static, and must be intialized. However,
 	//this cursor can't exist without table, so the table static functions
 	//must be initialized at this point. Consider refactoring.
@@ -164,7 +164,7 @@ client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg
 
 std::string module::Cursor::convertSqliteValueToString(int col, sqlite3_value* arg)
 {
-	std::string type = _table->_columns[col].Type;
+	std::string type = _table->_columns[col].ValueType.Name;
 	std::string result;
 	int datatype = module::Table::FastoreTypeToSQLiteTypeID(type);
 

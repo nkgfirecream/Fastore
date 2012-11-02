@@ -21,9 +21,6 @@
     <ClInclude Include="ClientException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ColumnDef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ConnectionPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>

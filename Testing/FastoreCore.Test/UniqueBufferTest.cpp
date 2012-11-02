@@ -7,8 +7,8 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include <algorithm>
 
 #include "RangeTests.h"
-#include "Column\UniqueBuffer.h"
-#include "Column\UniqueInlineBuffer.h"
+#include "..\FastoreCommon\Buffer\UniqueBuffer.h"
+#include "..\FastoreCommon\Buffer\UniqueInlineBuffer.h"
 
 using namespace std;
 

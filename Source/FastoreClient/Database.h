@@ -6,7 +6,7 @@
 #include "ClientException.h"
 #include "Transaction.h"
 #include "DataSet.h"
-#include "ColumnDef.h"
+#include "../FastoreCommon/Buffer/ColumnDef.h"
 #include <string>
 #include <map>
 #include <vector>
@@ -14,9 +14,9 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <thrift/protocol/TProtocol.h>
-#include "../FastoreCommon/Comm_types.h"
-#include "../FastoreCommon/Service.h"
-#include "../FastoreCommon/Worker.h"
+#include "../FastoreCommon/Communication/Comm_types.h"
+#include "../FastoreCommon/Communication/Service.h"
+#include "../FastoreCommon/Communication/Worker.h"
 #include "typedefs.h"
 #include <future>
 

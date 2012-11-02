@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <algorithm>
-#include "../FastoreCore/safe_cast.h"
+//#include "../FastoreCore/safe_cast.h"
 
 template<typename charT>
 class CaseInsensitiveComparer
@@ -22,7 +22,7 @@ int insensitiveStrPos(const T& str1, const T& str2, const std::locale& locale = 
 						str2.begin(), str2.end(), 
 						CaseInsensitiveComparer<typename T::value_type>(locale));
     if (it != str1.end()) 
-		return SAFE_CAST(int, it - str1.begin());
+		return int(it - str1.begin());
     else 
 		return -1;
 }

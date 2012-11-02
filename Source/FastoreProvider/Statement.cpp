@@ -1,6 +1,6 @@
 #include "Statement.h"
 #include <sqlite3.h>
-#include "../FastoreCore/safe_cast.h"
+//#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/ClientException.h"
 #include "SQLiteHelpers.h"

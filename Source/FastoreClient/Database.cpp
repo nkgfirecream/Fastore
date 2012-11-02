@@ -5,8 +5,9 @@
 
 #include <future>
 
-#include "../FastoreCore/safe_cast.h"
-#include "../FastoreCore/Log/Syslog.h"
+//#include "../FastoreCore/safe_cast.h"
+#include "../FastoreCommon/Log/Syslog.h"
+#include "../FastoreCommon/Type/Standardtypes.h"
 
 using namespace std;
 using namespace fastore::client;
@@ -1195,8 +1196,8 @@ Schema Database::LoadSchema()
 			ColumnDef def;
 			def.ColumnID = Encoder<ColumnID>::Decode(column.ID);
 			def.Name = Encoder<std::string>::Decode(column.Values[1].value);
-			def.Type = Encoder<std::string>::Decode(column.Values[2].value);
-			def.IDType = Encoder<std::string>::Decode(column.Values[3].value);
+			def.ValueType = standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[2].value));
+			def.RowIDType = standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[3].value));
 			def.BufferType = Encoder<BufferType_t>::Decode(column.Values[4].value);
 			def.Required = Encoder<bool>::Decode(column.Values[5].value);
 
@@ -1216,18 +1217,13 @@ void Database::RefreshSchema()
 void Database::BootStrapSchema()
 {
 	static const ColumnDef defaults[] =  
-	{ { Dictionary::ColumnID, 
-			  "Column.ID", "Long", "Long", BufferType_t::Identity, true }
-	, { Dictionary::ColumnName, 
-			  "Column.Name", "String", "Long", BufferType_t::Unique, true }
-	, { Dictionary::ColumnValueType, 
-			"Column.ValueType", "String", "Long", BufferType_t::Multi, true }
-   	, { Dictionary::ColumnRowIDType, 
-			"Column.RowIDType", "String", "Long", BufferType_t::Multi, true }
-	, { Dictionary::ColumnBufferType, 
-			"Column.BufferType", "Int", "Long", BufferType_t::Multi, true }
-	, { Dictionary::ColumnRequired, 
-			"Column.Required", "Bool", "Long", BufferType_t::Multi, true }
+	{ 
+		{ Dictionary::ColumnID, "Column.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
+		{ Dictionary::ColumnName, "Column.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
+		{ Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool, standardtypes::Long, BufferType_t::Multi, true }
 	};	
 
 	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 

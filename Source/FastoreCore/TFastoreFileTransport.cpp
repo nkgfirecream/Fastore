@@ -2,7 +2,6 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "safe_cast.h"
 #include "TFastoreFileTransport.h"
 
 #ifdef HAVE_UNISTD_H
@@ -62,7 +61,7 @@ uint32_t TFastoreFileTransport::read(uint8_t* buf, uint32_t len)
 				throw TTransportException(TTransportException::UNKNOWN, "FastoreFileTransport::read()", errno);
 			}
 
-			return SAFE_CAST(uint32_t, rv);
+			return uint32_t(rv);
 		}
 	}
 	else

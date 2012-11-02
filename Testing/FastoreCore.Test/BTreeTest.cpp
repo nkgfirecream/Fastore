@@ -1,8 +1,8 @@
 #include "stdafx.h"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-#include "BTree.h"
-#include "Schema\standardtypes.h"
+#include "..\FastoreCommon\Tree\BTree.h"
+#include "..\FastoreCommon\Type\standardtypes.h"
 #include <hash_set>
 #include <algorithm>
 

@@ -2,7 +2,7 @@
 #include <functional>
 #include <vector>
 
-#include "../FastoreCore/Log/Syslog.h"
+#include "../FastoreCommon/Log/Syslog.h"
 
 using namespace fastore::client;
 using namespace std;

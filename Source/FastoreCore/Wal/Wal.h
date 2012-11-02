@@ -1,7 +1,7 @@
 // $Id$
 #pragma once
 
-#include "../../FastoreCommunication/Comm_types.h"
+#include "../../FastoreCommon/Communication/Comm_types.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include "../Log/Syslog.h"
+#include "../../FastoreCommon/Log/Syslog.h"
 
 ///namespace fastore { namespace communication {
 using fastore::communication::ColumnID;

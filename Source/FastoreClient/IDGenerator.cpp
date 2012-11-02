@@ -1,5 +1,5 @@
 ﻿#include "IDGenerator.h"
-#include "../FastoreCore/Log/Syslog.h"
+#include "../FastoreCommon/Log/Syslog.h"
 
 using namespace fastore::client;
 using namespace std;

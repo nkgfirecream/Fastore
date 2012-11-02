@@ -1,5 +1,5 @@
-#include "Column/IColumnBuffer.h"
-#include "Schema/scalar.h"
+#include "../FastoreCommon/Buffer/IColumnBuffer.h"
+#include "../FastoreCommon/Type/scalar.h"
 #include <string>
 #include <fstream>
 

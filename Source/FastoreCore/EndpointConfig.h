@@ -4,9 +4,9 @@ struct EndpointConfig
 {
 	enum { DefaultPort = 8765 };
 
-	int port;
+	uint64_t port;
 
-	EndpointConfig( int port = DefaultPort) 
+	EndpointConfig( uint64_t port = DefaultPort) 
   : port(port)
 	{}
 };

@@ -8,7 +8,7 @@
 #include <vector>
 #include <cstring>
 #include "../FastoreClient/ClientException.h"
-#include "../FastoreCore/safe_cast.h"
+//#include "../FastoreCore/safe_cast.h"
 
 using namespace std;
 using namespace fastore::client;
@@ -96,8 +96,7 @@ ConnectResult fastoreConnect(size_t addressCount, const FastoreAddress addresses
 			for (size_t i = 0; i < addressCount; i++)
 			{
 				serverAddresses[i].Name = string(addresses[i].hostName);
-				serverAddresses[i].Port = SAFE_CAST(int, 
-								    addresses[i].port);
+				serverAddresses[i].Port = int(addresses[i].port);
 			}
 
 			// Create database
@@ -258,7 +257,7 @@ ColumnValueStringResult fastoreColumnValueAString(StatementHandle statement, int
 			result.isNull = !value.is_initialized();
 			if (!result.isNull)
 			{
-				*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.get().size()));
+				*targetMaxBytes = min(*targetMaxBytes, int(value.get().size()));
 				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
 			}
 		}
@@ -275,7 +274,7 @@ ColumnValueStringResult fastoreColumnValueWString(StatementHandle statement, int
 			result.isNull = !value.is_initialized();
 			if (!result.isNull)
 			{
-				*targetMaxBytes = min(*targetMaxBytes, INT_CAST(value.get().size() * sizeof(wchar_t)));
+				*targetMaxBytes = min(*targetMaxBytes, int(value.get().size() * sizeof(wchar_t)));
 				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
 			}
 		}

@@ -16,7 +16,7 @@ Worker::Worker( const PodID podId,
 	: _wal(path, stringof(podId), NetworkAddress() ) 
 	,  phandler( new WorkerHandler(podId, path, pscheduler, _wal) )
 	, pprocessor( new WorkerProcessor(phandler) )
-	, config(INT_CAST(port))
+	, config(port)
 	, pendpoint( new Endpoint(config, pprocessor) )
 	, _status(idle)
 {

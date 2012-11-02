@@ -4,7 +4,7 @@
 #include "boost/assign/std/vector.hpp"
 #include "boost/assign/list_of.hpp"
 
-#include "../FastoreCore/Log/Syslog.h"
+#include "../FastoreCommon/Log/Syslog.h"
 
 using namespace fastore::client;
 using namespace boost::assign;

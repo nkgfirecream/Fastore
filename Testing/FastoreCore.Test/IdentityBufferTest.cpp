@@ -2,7 +2,7 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "RangeTests.h"
-#include "Column\IdentityBuffer.h"
+#include "..\FastoreCommon\Buffer\IdentityBuffer.h"
 
 using namespace std;
 

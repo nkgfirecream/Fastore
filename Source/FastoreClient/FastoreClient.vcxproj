@@ -13,7 +13,6 @@
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="ClientException.h" />
-    <ClInclude Include="ColumnDef.h" />
     <ClInclude Include="ConnectionPool.h" />
     <ClInclude Include="Database.h" />
     <ClInclude Include="DataSet.h" />

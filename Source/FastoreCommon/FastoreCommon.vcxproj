@@ -10,6 +10,59 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Buffer\IdentityBuffer.cpp" />
+    <ClCompile Include="Buffer\TreeBuffer.cpp" />
+    <ClCompile Include="Buffer\TreeInlineBuffer.cpp" />
+    <ClCompile Include="Buffer\UniqueBuffer.cpp" />
+    <ClCompile Include="Buffer\UniqueInlineBuffer.cpp" />
+    <ClCompile Include="Communication\Comm_constants.cpp" />
+    <ClCompile Include="Communication\Comm_types.cpp" />
+    <ClCompile Include="Communication\Operators.cpp" />
+    <ClCompile Include="Communication\Server_constants.cpp" />
+    <ClCompile Include="Communication\Server_types.cpp" />
+    <ClCompile Include="Communication\Service.cpp" />
+    <ClCompile Include="Communication\Worker.cpp" />
+    <ClCompile Include="Log\Syslog.cpp" />
+    <ClCompile Include="Tree\BTree.cpp" />
+    <ClCompile Include="Type\BaseTypes.cpp" />
+    <ClCompile Include="Type\InternalTypes.cpp" />
+    <ClCompile Include="Type\NodeTypes.cpp" />
+    <ClCompile Include="Type\scalar.cpp" />
+    <ClCompile Include="Type\standardtypes.cpp" />
+    <ClCompile Include="Type\StringTypes.cpp" />
+    <ClCompile Include="Utility\Stopwatch.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Buffer\BimapConversions.h" />
+    <ClInclude Include="Buffer\ColumnDef.h" />
+    <ClInclude Include="Buffer\IColumnBuffer.h" />
+    <ClInclude Include="Buffer\IdentityBuffer.h" />
+    <ClInclude Include="Buffer\MultiBimapBuffer.h" />
+    <ClInclude Include="Buffer\TreeBuffer.h" />
+    <ClInclude Include="Buffer\TreeInlineBuffer.h" />
+    <ClInclude Include="Buffer\UniqueBuffer.h" />
+    <ClInclude Include="Buffer\UniqueInlineBuffer.h" />
+    <ClInclude Include="Communication\Comm_constants.h" />
+    <ClInclude Include="Communication\Comm_types.h" />
+    <ClInclude Include="Communication\Server_constants.h" />
+    <ClInclude Include="Communication\Server_types.h" />
+    <ClInclude Include="Communication\Service.h" />
+    <ClInclude Include="Communication\Worker.h" />
+    <ClInclude Include="Log\Syslog.h" />
+    <ClInclude Include="Tree\BTree.h" />
+    <ClInclude Include="Tree\TreeEntry.h" />
+    <ClInclude Include="Type\BaseTypes.h" />
+    <ClInclude Include="Type\InternalTypes.h" />
+    <ClInclude Include="Type\NodeTypes.h" />
+    <ClInclude Include="Type\scalar.h" />
+    <ClInclude Include="Type\standardtypes.h" />
+    <ClInclude Include="Type\StringTypes.h" />
+    <ClInclude Include="Type\tuple.h" />
+    <ClInclude Include="Utility\safe_cast.h" />
+    <ClInclude Include="Utility\Stopwatch.h" />
+    <ClInclude Include="Utility\utilities.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}</ProjectGuid>
     <RootNamespace>FastoreCommon</RootNamespace>
@@ -70,8 +123,8 @@
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
-$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+      <Command>$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)\Communication $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)\Communication -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Build thrift files</Message>
@@ -97,8 +150,8 @@ $(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) $(SolutionDir)Comm.thrift
-$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir)\Communication $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir)\Communication -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Build thrift files</Message>
@@ -106,23 +159,6 @@ $(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir) -I 
       <Outputs>dummy</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="Comm_constants.cpp" />
-    <ClCompile Include="Comm_types.cpp" />
-    <ClCompile Include="Operators.cpp" />
-    <ClCompile Include="Server_constants.cpp" />
-    <ClCompile Include="Server_types.cpp" />
-    <ClCompile Include="Service.cpp" />
-    <ClCompile Include="Worker.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Comm_constants.h" />
-    <ClInclude Include="Comm_types.h" />
-    <ClInclude Include="Server_constants.h" />
-    <ClInclude Include="Server_types.h" />
-    <ClInclude Include="Service.h" />
-    <ClInclude Include="Worker.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

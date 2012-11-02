@@ -5,7 +5,7 @@
 #include "Range.h"
 #include <boost/shared_ptr.hpp>
 #include <map>
-#include "../FastoreCommon/Comm_types.h"
+#include "../FastoreCommon/Communication/Comm_types.h"
 
 using namespace fastore::communication;
 

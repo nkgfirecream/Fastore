@@ -2,10 +2,10 @@
 #include <string>
 #include <exception>
 #include <memory>
-#include "Schema/column.h"
+#include "../FastoreCommon/Buffer/ColumnDef.h"
 //#include "Logging/Log.h"
-#include "Column/IColumnBuffer.h"
-#include "../FastoreCommon/Comm_types.h"
+#include "../FastoreCommon/Buffer/IColumnBuffer.h"
+#include "../FastoreCommon/Communication/Comm_types.h"
 
 using namespace ::fastore::communication;
 using namespace std;

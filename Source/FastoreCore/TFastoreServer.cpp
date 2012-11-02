@@ -8,7 +8,6 @@
 #include <thrift/windows/force_inc.h>
 #endif
 
-#include "safe_cast.h"
 #include "TFastoreServer.h"
 #include <thrift/transport/TSocket.h>
 
@@ -51,7 +50,7 @@
 #define PRIu32 "I32u"
 #endif
 
-#include "Log/Syslog.h"
+#include "../FastoreCommon/Log/Syslog.h"
 
 namespace apache { namespace thrift { namespace server {
 
@@ -70,7 +69,7 @@ using fastore::log_endl;
 
 void TFastoreServer::TConnection::init(SOCKET socket, TFastoreServer * server,	const sockaddr* addr, socklen_t addrLen)
 {
-	tSocket_->setSocketFD(INT_CAST(socket));
+	tSocket_->setSocketFD(int(socket));
 	tSocket_->setCachedAddress(addr, addrLen);
 
 	server_ = server;
@@ -668,7 +667,7 @@ bool  TFastoreServer::serverOverloaded()
 	} 
 	else
 	{
-	  if (overloaded_ && activeConnections <= SAFE_CAST(size_t, overloadHysteresis_ * double(maxConnections_)))
+	  if (overloaded_ && activeConnections <= size_t(overloadHysteresis_ * double(maxConnections_)))
 		{
 			GlobalOutput.printf("TFastoreServer: overload ended; %u dropped (%llu total)", nConnectionsDropped_, nTotalConnectionsDropped_);
 			nConnectionsDropped_ = 0;

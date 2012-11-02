@@ -2,8 +2,9 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-#include "../FastoreCore/safe_cast.h"
-#include "../FastoreClient/ColumnDef.h"
+//#include "../FastoreCore/safe_cast.h"
+#include "../FastoreCommon/Buffer/ColumnDef.h"
+#include "../FastoreCommon/Type/Standardtypes.h"
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
 #include <boost/assign/list_of.hpp>
@@ -61,7 +62,7 @@ void createVirtualTables(module::Connection* connection, sqlite3* sqliteConnecti
 	}
 }
 
-void ensureColumns(module::Connection* connection, std::vector<fastore::client::ColumnDef>& defs)
+void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 {
 	//TODO: This is more or less a duplicate of the table create code. Refactor to reduce duplication
 
@@ -119,9 +120,9 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 				boost::assign::list_of<std::string>
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
 				(defs[i].Name)
-				(defs[i].Type)
-				(defs[i].IDType)
-				(client::Encoder<client::BufferType_t>::Encode(defs[i].BufferType))
+				(defs[i].ValueType.Name)
+				(defs[i].RowIDType.Name)
+				(client::Encoder<BufferType_t>::Encode(defs[i].BufferType))
 				(client::Encoder<bool>::Encode(defs[i].Required))
 			);
 
@@ -143,64 +144,22 @@ void ensureColumns(module::Connection* connection, std::vector<fastore::client::
 
 void ensureTablesTable(module::Connection* connection)
 {
-	std::vector<fastore::client::ColumnDef> defs;
 
-	//TableTable
-	//Table.ID
-	ColumnDef tableId;
-	tableId.BufferType = BufferType_t::Identity;
-	tableId.ColumnID = module::Dictionary::TableID;
-	tableId.IDType = "Long";
-	tableId.Name = "Table.ID";
-	tableId.Required = true;
-	tableId.Type = "Long";
+	static const ColumnDef tableTable[] =  
+	{ 
+		{ module::Dictionary::TableID, "Table.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
+		{ module::Dictionary::TableName, "Table.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
+		{ module::Dictionary::TableDDL, "Table.DDL", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
+		{ module::Dictionary::TableColumnTableID, "TableColumn.TableID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
+		{ module::Dictionary::TableColumnColumnID, "TableColumn.ColumnID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true }
+	};
 
-	defs.push_back(tableId);
-	
-	//Table.Name
-	ColumnDef tableName;
-	tableName.BufferType = BufferType_t::Unique;
-	tableName.ColumnID = module::Dictionary::TableName;
-	tableName.IDType = "Long";
-	tableName.Name = "Table.Name";
-	tableName.Required = true;
-	tableName.Type = "String";
-
-	defs.push_back(tableName);
-
-	//Table.DDL
-	ColumnDef tableDDL;
-	tableDDL.BufferType = BufferType_t::Unique;
-	tableDDL.ColumnID = module::Dictionary::TableDDL;
-	tableDDL.IDType = "Long";
-	tableDDL.Name = "Table.DDL";
-	tableDDL.Required = true;
-	tableDDL.Type = "String";
-
-	defs.push_back(tableDDL);
-	
-	//TableColumnTable
-	//TableColumn.TableID
-	ColumnDef tableColumnTableId;
-	tableColumnTableId.BufferType = BufferType_t::Multi;
-	tableColumnTableId.ColumnID = module::Dictionary::TableColumnTableID;
-	tableColumnTableId.IDType = "Long";
-	tableColumnTableId.Name = "TableColumn.TableID";
-	tableColumnTableId.Required = true;
-	tableColumnTableId.Type = "Long";
-
-	defs.push_back(tableColumnTableId);
-
-	//TableColumn.ColumnID
-	ColumnDef tableColumnColumnId;
-	tableColumnColumnId.BufferType = BufferType_t::Multi;
-	tableColumnColumnId.ColumnID = module::Dictionary::TableColumnColumnID;
-	tableColumnColumnId.IDType = "Long";
-	tableColumnColumnId.Name = "TableColumn.ColumnID";
-	tableColumnColumnId.Required = true;
-	tableColumnColumnId.Type = "Long";
-
-	defs.push_back(tableColumnColumnId);
+	std::vector<ColumnDef> defs;
+	for_each( tableTable, tableTable + sizeof(tableTable)/sizeof(tableTable[0]), 
+		[&](const ColumnDef& def) 
+		{
+			defs.push_back(def);
+		} );
 
 	ensureColumns(connection, defs);
 }

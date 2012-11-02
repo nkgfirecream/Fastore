@@ -1,6 +1,6 @@
 #pragma once
-#include "../FastoreCommon/Worker.h"
-#include "../FastoreCommon/Comm_types.h"
+#include "../FastoreCommon/Communication/Worker.h"
+#include "../FastoreCommon/Communication/Comm_types.h"
 #include "Wal/Wal.h"
 #include <thrift/TProcessor.h>
 #include <unordered_map>

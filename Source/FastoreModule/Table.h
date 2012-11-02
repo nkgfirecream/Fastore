@@ -1,7 +1,7 @@
 #pragma once
 #include <sqlite3.h>
 #include "Connection.h"
-#include "../FastoreClient/ColumnDef.h"
+#include "../FastoreCommon/Buffer/ColumnDef.h"
 #include <map>
 
 namespace client = fastore::client;
@@ -19,11 +19,11 @@ namespace fastore
 
 		private:
 			
-			static std::map<std::string, std::string> sqliteTypesToFastoreTypes;
+			static std::map<std::string, ScalarType> sqliteTypesToFastoreTypes;
 			static std::map<int, std::string> sqliteTypeIDToFastoreTypes;
 			static std::map<std::string, int> fastoreTypeToSQLiteTypeID;
 
-			static std::string SQLiteTypeToFastoreType(const std::string &SQLiteType);
+			static ScalarType SQLiteTypeToFastoreType(const std::string &SQLiteType);
 			static int FastoreTypeToSQLiteTypeID(const std::string &fastoreType);
 			static void EnsureFastoreTypeMaps();
 
@@ -35,7 +35,7 @@ namespace fastore
 			std::string _ddl;
 			int64_t _id;
 			int _numoperations;
-			std::vector<client::ColumnDef> _columns;
+			std::vector<ColumnDef> _columns;
 			std::vector<communication::ColumnID> _columnIds;
 			std::vector<communication::Statistic> _stats;
 			int64_t _rowIDIndex;
@@ -74,9 +74,9 @@ namespace fastore
 			void determineRowIDColumn();
 			int64_t maxColTot();
 
-			client::ColumnDef parseColumnDef(std::string text, bool& isDef);
+			ColumnDef parseColumnDef(std::string text, bool& isDef);
 
-			void createColumn(client::ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId);
+			void createColumn(ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId);
 
 			//For use by the cursor. Depending on how SQLite is implemented this may either need to go through the transaction or around it.
 			client::RangeSet getRange(client::Range& range, const boost::optional<std::string>& startId);
