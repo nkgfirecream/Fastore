@@ -66,6 +66,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TPCHDriver", "TPCHDriver\TP
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommon", "FastoreCommon\FastoreCommon.vcxproj", "{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SQLite", "SQLite\SQLite.vcxproj", "{77FD310C-DECD-4913-90F4-F1BB76C69AA7}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -232,6 +234,17 @@ Global
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|Win32.ActiveCfg = Release|x64
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.ActiveCfg = Release|x64
 		{FE3749E8-3D88-4D85-A3D9-CAAF9CB5431E}.Release|x64.Build.0 = Release|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Debug|Win32.ActiveCfg = Debug|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Debug|x64.ActiveCfg = Debug|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Debug|x64.Build.0 = Debug|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|Any CPU.ActiveCfg = Release|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|Mixed Platforms.Build.0 = Release|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|Win32.ActiveCfg = Release|x64
+		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
