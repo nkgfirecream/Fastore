@@ -156,6 +156,8 @@ service Service
 	/** Releases the given lock */
 	void releaseLock(1:LockID lockID)
 		throws (1:LockExpired expired, 2:NotJoined notJoined)
+
+	oneway void checkpoint();
 }
 
 // Worker

@@ -1079,6 +1079,24 @@ void Database::WorkerInvoke(PodID podID, std::function<void(WorkerClient)> work)
 	}
 }
 
+void Database::ServiceInvoke(HostID podID, std::function<void(ServiceClient)> work)
+{
+	auto client = _services[podID];
+	bool released = false;
+	try
+	{
+		work(client);
+		released = true;
+		_services.Release(std::make_pair(podID, client));
+	}
+	catch(const std::exception& e)
+	{
+		if (!released)
+			_services.Release(std::make_pair(podID, client));
+		throw e;
+	}
+}
+
 void Database::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
 	auto writes = CreateIncludes(columnIds, rowId, row);
@@ -1299,6 +1317,12 @@ void Database::Checkpoint()
 {
 	try
 	{
+		for (auto iter = _hiveState.services.begin(), end = _hiveState.services.end(); iter != end; ++ iter)
+		{
+			communication::HostID hostId = iter->first;
+			ServiceInvoke(hostId, [](fastore::communication::ServiceClient client)-> void { client.checkpoint(); });
+		}
+
 		for (auto iter = _workerStates.begin(), end = _workerStates.end(); iter != end; ++iter)
 		{
 			communication::PodID podId = iter->first;

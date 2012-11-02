@@ -1991,6 +1991,56 @@ uint32_t Service_releaseLock_presult::read(::apache::thrift::protocol::TProtocol
   return xfer;
 }
 
+uint32_t Service_checkpoint_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Service_checkpoint_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Service_checkpoint_args");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Service_checkpoint_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Service_checkpoint_pargs");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
 void ServiceClient::shutdown()
 {
   send_shutdown();
@@ -2638,6 +2688,24 @@ void ServiceClient::recv_releaseLock()
   return;
 }
 
+void ServiceClient::checkpoint()
+{
+  send_checkpoint();
+}
+
+void ServiceClient::send_checkpoint()
+{
+  int32_t cseqid = 0;
+  oprot_->writeMessageBegin("checkpoint", ::apache::thrift::protocol::T_CALL, cseqid);
+
+  Service_checkpoint_pargs args;
+  args.write(oprot_);
+
+  oprot_->writeMessageEnd();
+  oprot_->getTransport()->writeEnd();
+  oprot_->getTransport()->flush();
+}
+
 bool ServiceProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext) {
   ProcessMap::iterator pfn;
   pfn = processMap_.find(fname);
@@ -3279,6 +3347,43 @@ void ServiceProcessor::process_releaseLock(int32_t seqid, ::apache::thrift::prot
   if (this->eventHandler_.get() != NULL) {
     this->eventHandler_->postWrite(ctx, "Service.releaseLock", bytes);
   }
+}
+
+void ServiceProcessor::process_checkpoint(int32_t, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol*, void* callContext)
+{
+  void* ctx = NULL;
+  if (this->eventHandler_.get() != NULL) {
+    ctx = this->eventHandler_->getContext("Service.checkpoint", callContext);
+  }
+  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Service.checkpoint");
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preRead(ctx, "Service.checkpoint");
+  }
+
+  Service_checkpoint_args args;
+  args.read(iprot);
+  iprot->readMessageEnd();
+  uint32_t bytes = iprot->getTransport()->readEnd();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postRead(ctx, "Service.checkpoint", bytes);
+  }
+
+  try {
+    iface_->checkpoint();
+  } catch (const std::exception& e) {
+    if (this->eventHandler_.get() != NULL) {
+      this->eventHandler_->handlerError(ctx, "Service.checkpoint");
+    }
+    return;
+  }
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->asyncComplete(ctx, "Service.checkpoint");
+  }
+
+  return;
 }
 
 ::boost::shared_ptr< ::apache::thrift::TProcessor > ServiceProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {

@@ -123,8 +123,8 @@
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)\Communication $(SolutionDir)Comm.thrift
-$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)\Communication -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+      <Command>$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)Communication\ $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)Communication\ -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Build thrift files</Message>
@@ -150,8 +150,8 @@ $(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)
       </Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Command>$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir)\Communication $(SolutionDir)Comm.thrift
-$(SolutionDir)..\External\Thrift\thrift --gen cpp -strict -out $(ProjectDir)\Communication -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
+      <Command>$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)Communication\ $(SolutionDir)Comm.thrift
+$(SolutionDir)..\External\Thrift.svn\thrift --gen cpp -strict -out $(ProjectDir)Communication\ -I $(SolutionDir) $(SolutionDir)Server.thrift</Command>
     </CustomBuildStep>
     <CustomBuildStep>
       <Message>Build thrift files</Message>

@@ -171,6 +171,9 @@ namespace fastore { namespace client
 		/// <summary> Invokes a given command against a worker. </summary>
 		void WorkerInvoke(PodID podID, std::function<void(WorkerClient)> work);
 
+		/// <summary> Invokes a given command against a service. </summary>
+		void ServiceInvoke(HostID hostID, std::function<void(ServiceClient)> work);
+
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
 		std::vector<std::future<TransactionID>> StartWorkerWrites(const std::map<ColumnID, ColumnWrites>&writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
 

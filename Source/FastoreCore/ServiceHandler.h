@@ -52,6 +52,7 @@ public:
 
 	//Admin
 	void shutdown();
+	void checkpoint();
 
 	//TProcessorEventHandler
 	void handlerError(void* ctx, const char* fn_name);

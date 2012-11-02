@@ -93,8 +93,8 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 	}
 
 	// Save the new configuration if needed
-	if (configChanged)
-		SaveConfiguration();
+	//if (configChanged)
+		//SaveConfiguration();
 
 	if (_config->__isset.joinedHive)
 	{
@@ -254,7 +254,7 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 	// Start scheduler running... Or should it start on the first callback?
 	_scheduler->start();
 
-	SaveConfiguration();
+	//SaveConfiguration();
 }
 
 void ServiceHandler::join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) 
@@ -263,6 +263,11 @@ void ServiceHandler::join(ServiceState& _return, const HiveState& hiveState, con
 
 	// Your implementation goes here
 	printf("join\n");
+}
+
+void ServiceHandler::checkpoint()
+{
+	SaveConfiguration();
 }
 
 void ServiceHandler::leave() 

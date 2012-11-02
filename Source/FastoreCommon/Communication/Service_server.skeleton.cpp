@@ -77,6 +77,11 @@ class ServiceHandler : virtual public ServiceIf {
     printf("releaseLock\n");
   }
 
+  void checkpoint() {
+    // Your implementation goes here
+    printf("checkpoint\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

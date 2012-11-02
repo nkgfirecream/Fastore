@@ -26,6 +26,7 @@ class ServiceIf {
   virtual void keepLock(const LockID lockID) = 0;
   virtual void escalateLock(const LockID lockID, const LockTimeout timeout) = 0;
   virtual void releaseLock(const LockID lockID) = 0;
+  virtual void checkpoint() = 0;
 };
 
 class ServiceIfFactory {
@@ -87,6 +88,9 @@ class ServiceNull : virtual public ServiceIf {
     return;
   }
   void releaseLock(const LockID /* lockID */) {
+    return;
+  }
+  void checkpoint() {
     return;
   }
 };
@@ -1326,6 +1330,43 @@ class Service_releaseLock_presult {
 
 };
 
+
+class Service_checkpoint_args {
+ public:
+
+  Service_checkpoint_args() {
+  }
+
+  virtual ~Service_checkpoint_args() throw() {}
+
+
+  bool operator == (const Service_checkpoint_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Service_checkpoint_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Service_checkpoint_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Service_checkpoint_pargs {
+ public:
+
+
+  virtual ~Service_checkpoint_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
 class ServiceClient : virtual public ServiceIf {
  public:
   ServiceClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -1379,6 +1420,8 @@ class ServiceClient : virtual public ServiceIf {
   void releaseLock(const LockID lockID);
   void send_releaseLock(const LockID lockID);
   void recv_releaseLock();
+  void checkpoint();
+  void send_checkpoint();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -1405,6 +1448,7 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_keepLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_escalateLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_releaseLock(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_checkpoint(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ServiceProcessor(boost::shared_ptr<ServiceIf> iface) :
     iface_(iface) {
@@ -1419,6 +1463,7 @@ class ServiceProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["keepLock"] = &ServiceProcessor::process_keepLock;
     processMap_["escalateLock"] = &ServiceProcessor::process_escalateLock;
     processMap_["releaseLock"] = &ServiceProcessor::process_releaseLock;
+    processMap_["checkpoint"] = &ServiceProcessor::process_checkpoint;
   }
 
   virtual ~ServiceProcessor() {}
@@ -1548,6 +1593,15 @@ class ServiceMultiface : virtual public ServiceIf {
       ifaces_[i]->releaseLock(lockID);
     }
     ifaces_[i]->releaseLock(lockID);
+  }
+
+  void checkpoint() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->checkpoint();
+    }
+    ifaces_[i]->checkpoint();
   }
 
 };
