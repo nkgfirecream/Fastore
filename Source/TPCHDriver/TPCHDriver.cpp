@@ -315,6 +315,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		std::cout << "Schema detected. Skipping data creation...\n";
 	}
 
+	std::cout << "Running SQLite Analyze...\n";
+	fastoreExecute(_connection, "Analyze");
+
 	std::cout << "Setup complete. Press any key to begin tests.\n";
 	std::getchar();
 

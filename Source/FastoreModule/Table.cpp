@@ -316,15 +316,65 @@ char *sqlite3_safe_malloc( size_t n )
 int module::Table::bestIndex(sqlite3_index_info* info)
 {
 	//TODO: Do some real testing with real data and see what happens.
-	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't.
+	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't (see next line).
 	//WRT disjoint constraints, this is now fixed in the cursor. It checks the constraints,
 	//and if it recognizes it will pull an empty set, simply pull nothing. The reason for this
 	//is that SQLite apparently does not make that optimization, so will revert to pulling every
 	//row and checking the constraint against the row.
 
+	//TODO: In the case of multiples (for example, two >=,>= or whatever) we can support it and figure out which one to use in filter.
+	std::cout << std::endl << "Table: " << _name << std::endl;
+	std::cout << "Number of constraints: " << info->nConstraint << std::endl;
+	for (int i = 0; i < info->nConstraint; ++i)
+	{
+		auto c = info->aConstraint[i];
+		std::cout << "Cons# " << i;// << std::endl;
+		std::cout << "\tUse: " << (c.usable ? "True" : "False");
+		std::cout << "\tCol: " << _columns[c.iColumn].Name;
+		std::cout << "\tOp: ";
+		switch(c.op)
+		{
+			case SQLITE_INDEX_CONSTRAINT_EQ:
+				std::cout << "=";
+				break;
+			case SQLITE_INDEX_CONSTRAINT_GE:
+				std::cout << ">=";
+				break;
+			case SQLITE_INDEX_CONSTRAINT_GT:
+				std::cout << ">";
+				break;
+			case SQLITE_INDEX_CONSTRAINT_LE:
+				std::cout << "<=";
+				break;
+			case SQLITE_INDEX_CONSTRAINT_LT:
+				std::cout << "<";
+				break;
+			case SQLITE_INDEX_CONSTRAINT_MATCH:
+				std::cout << "match";
+				break;
+			default:
+				std::cout << "unknown";
+				break;
+		}
+
+		std::cout << std::endl;
+	}
+
+	std::cout << "Number of orders: " << info->nOrderBy << std::endl;
+	for (int i = 0; i < info->nOrderBy; ++i)
+	{
+		auto o = info->aOrderBy[i];
+		std::cout << "Order# " << i;// << std::endl;
+		std::cout << "\tCol: " << _columns[o.iColumn].Name; //<< std::endl;
+		std::cout << "\tAsc: " << (o.desc ? "False" : "True");// << std::endl;
+		std::cout << std::endl;
+	}
+
+
+
 	//Step 1. Group constraints by columns:
 	//Key is column, Value is list of array indicies pointing to constraints.
-	std::map<int,std::vector<int>> constraintMap;
+	std::map<int,std::vector<int>> constraintByColumn;
 
 	for (int i = 0; i < info->nConstraint; ++i)
 	{
@@ -333,9 +383,9 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 			continue;
 
 		int col = info->aConstraint[i].iColumn;
-		auto iter = constraintMap.find(col);
+		auto iter = constraintByColumn.find(col);
 
-		if (iter != constraintMap.end())
+		if (iter != constraintByColumn.end())
 		{
 			iter->second.push_back(i);
 		}
@@ -343,100 +393,124 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 		{
 			std::vector<int> cons;
 			cons.push_back(i);
-			constraintMap.insert(std::pair<int,std::vector<int>>(col, cons));
+			constraintByColumn.insert(std::pair<int,std::vector<int>>(col, cons));
 		}
 	}
 
 	//Step 2. Weight constraint groups
-	//We want to to weight towards columns that  have a low average number of keys per value, and also have a low total number of keys (it that right? All columns should have ~the same number of keys within a table..).
+	//We want to to weight towards columns that  have a low average number of keys per value, and also have a low total number of rowIds
+	//(is that right? All columns should have ~the same number of rowIds within a table..).
+
 	//Weight -> column
+	//The std::map is guaranteed to be ordered. We want to do this so that we find the least cost easily (it'll be the first key in the map).
 	std::map<int64_t, int> weights;
 
-	//Column -> supported
-	std::map<int, bool> supported;
-	for (auto iter = constraintMap.begin(); iter != constraintMap.end(); ++iter)
+	for (auto column = constraintByColumn.begin(); column != constraintByColumn.end(); ++column)
 	{
 		bool isSupported = true;
 
 		//column
-		int col = iter->first;
+		int colIndex = column->first;
 
 		//cost factor -- strings are a bit more expensive to compare/search than integers.
-		double cost = _columns[col].ValueType.Name == "String" || _columns[col].ValueType.Name == "WString" ? 1.1 : 1;
+		double cost = _columns[colIndex].ValueType.Name == "String" || _columns[colIndex].ValueType.Name == "WString" ? 1.1 : 1;
 
 		//Average ids per value
-		int64_t avg = _stats[col].unique > 0 ? _stats[col].total / _stats[col].unique : 1;
+		double avg = _stats[colIndex].unique > 0 ? double(_stats[colIndex].total) / double(_stats[colIndex].unique) : 1;
 		
-		int64_t size = 100; // = 100% percent of the column for our purposes. Every constraint divides this by approx 2.
-		if (iter->second.size() > 2)
+		double approxPercent = 1; // = 100% percent of the column for our purposes. Every constraint divides this by approx 2.
+		if (column->second.size() > 2)
 			isSupported = false;
 		else
 		{
-			for (size_t i = 0; i < iter->second.size(); ++i)
+			for (size_t i = 0; i < column->second.size(); ++i)
 			{
-				auto constraint = info->aConstraint[iter->second[i]];
+				auto constraint = info->aConstraint[column->second[i]];
 
 				if (constraint.op == SQLITE_INDEX_CONSTRAINT_MATCH)
 					isSupported = false;
 				else if (constraint.op == SQLITE_INDEX_CONSTRAINT_EQ)
-					size = 1;					
+					approxPercent = avg / (_stats[colIndex].total > 0 ? _stats[colIndex].total : 1);					
 				else
-					size = size / 2;
+					approxPercent = approxPercent / 2;
 			}
 		}
-		// Arbitrarily huge number to bubble non-supported constraints to the top. 
-		// That way we only need to check the lowest and see if it's supported. -- consider the overflow case...
-		int64_t total = static_cast<int64_t>(static_cast<double>(size * avg) * cost * (isSupported ? 1 : 1000000000)); 
-
-		weights[total] = col;
-		supported[col] = isSupported;
+		
+		if (isSupported)
+		{
+			//Total cost = percentage of rowIds * number of rowIds * cost per rowId
+			int64_t total = static_cast<int64_t>(static_cast<double>(approxPercent * _stats[colIndex].total) * cost); 
+			weights[total] = colIndex;
+		}
 	}
 
-	//Step 3. If we have a supported constraint, use it
-	bool useConstraint = constraintMap.size() > 0 && supported[weights.begin()->second];
+	//Step 3. If we have a supported constraint, use it and setup the idx string to pass to filter.
+	bool useConstraint = weights.size() > 0;
 	int whichColumn = 0;
-	if (useConstraint)
-		whichColumn = weights.begin()->second;
-
 	char* idxstr = NULL;
 
 	if (useConstraint)
 	{
+		//Which column the constraint is on
+		whichColumn = weights.begin()->second;
+
 		std::string params;
-		auto vector = constraintMap[whichColumn];
-		for (size_t i = 0 ; i < vector.size(); ++i)
+		auto constraintIndexes = constraintByColumn[whichColumn];
+		for (size_t i = 0 ; i < constraintIndexes.size(); ++i)
 		{
-			info->aConstraintUsage[vector[i]].argvIndex = SAFE_CAST(int,i) + 1;
-			info->aConstraintUsage[vector[i]].omit = true;
-			params += info->aConstraint[vector[i]].op;
+			auto constraintIndex = constraintIndexes[i];
+			info->aConstraintUsage[constraintIndex].argvIndex = int(i) + 1;
+			info->aConstraintUsage[constraintIndex].omit = true;
+			params += info->aConstraint[constraintIndex].op;
 		}
 
 		idxstr = sqlite3_safe_malloc(params.size() + 1);
-		memcpy(idxstr, params.c_str(), params.size() + 1);		
+		memcpy(idxstr, params.c_str(), params.size() + 1);
+		info->idxStr = idxstr;
+		info->needToFreeIdxStr = true;
 	}
 
-	//Step 4. Match the index to the constraint if possible, if not, see if order is usable by itself.
+	//Step 4. Match the columns of the order to the constraint column if possible. If not, see if order is usable by itself.
+	//If an order is more than one column, we can't support it
 	bool useOrder = false;
 	if ((info->nOrderBy == 1 && !useConstraint) || (info->nOrderBy == 1 && info->aOrderBy[0].iColumn == whichColumn))
 	{
 		info->orderByConsumed = true;
 		useOrder = true;
+		info->idxNum = (info->aOrderBy[0].desc ?  ~(info->aOrderBy[0].iColumn + 1) : (info->aOrderBy[0].iColumn + 1));
 	}
+	else if (useConstraint)
+		info->idxNum =  whichColumn + 1;
+	else
+		info->idxNum = 0;
 
 	//Step 5. Estimate total cost
-	double cost = 0;
 	if (useConstraint)
-		cost = static_cast<double>(weights.begin()->first);
+		info->estimatedCost = static_cast<double>(weights.begin()->first);
 	else if (useOrder)
-		cost = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
+		info->estimatedCost = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
 	else
-		cost = static_cast<double>(maxColTot()); //If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
+		info->estimatedCost = static_cast<double>(maxColTot()); //If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
 
-	//Step 6. Set remaining outputs.
-	info->estimatedCost = cost;
-	info->idxNum = useOrder ? (info->aOrderBy[0].desc ?  ~(info->aOrderBy[0].iColumn + 1) : (info->aOrderBy[0].iColumn + 1)) : useConstraint ? whichColumn + 1 : 0; //TODO: Else should pick a required column.
-	info->idxStr = idxstr;
-	info->needToFreeIdxStr = true;
+	if (useConstraint)
+	{
+		std::cout << "Constraint(s) supported on column: " << _columns[whichColumn].Name << std::endl;
+	}
+	else
+	{
+		std::cout << "Constraint not supported" << std::endl;
+	}
+
+	if (useOrder)
+	{
+		std::cout << "Order supported on column: " << _columns[whichColumn].Name << std::endl;
+	}
+	else
+	{
+		std::cout << "Order not supported" << std::endl;
+	}
+
+	std::cout << "Estimated cost: " << info->estimatedCost << std::endl << std::endl;
 
 	return SQLITE_OK;
 }
