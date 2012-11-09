@@ -1,0 +1,13 @@
+Executing query: 6 (6.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=111.2 cost=24020.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=24020 and nRow=111.204
+*** Optimizer selects table 0 for loop 0 with cost=24020 and nRow=111.204
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE lineitem (~111 rows)|
+||||

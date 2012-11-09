@@ -1,5 +1,3 @@
--- using default substitutions
-
 create view revenue0 as
 	select
 		l_suppkey as supplier_no,

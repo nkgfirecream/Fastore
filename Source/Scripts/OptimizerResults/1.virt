@@ -1,0 +1,32 @@
+Executing query: 1 (1.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for LINEITEM...
+xBestIndex for LINEITEM
+  constraint[0]: col=10 termid=0 op=8 usabled=1
+  orderby[0]: col=8 desc=0
+  orderby[1]: col=9 desc=0
+
+Table: LINEITEM
+Number of constraints: 1
+Cons# 0	Use: True	Col: L_SHIPDATE	Op: <=
+Number of orders: 2
+Order# 0	Col: L_RETURNFLAG	Asc: True
+Order# 1	Col: L_LINESTATUS	Asc: True
+Constraint(s) supported on column: L_SHIPDATE
+Order not supported
+Estimated cost: 3302
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=11
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=3302
+=== table 0 is best so far with cost=16510 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=16510 and nRow=0
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE lineitem VIRTUAL TABLE INDEX 11: (~0 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

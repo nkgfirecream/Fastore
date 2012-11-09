@@ -1,0 +1,80 @@
+Executing query: 22 (22.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for CUSTOMER...
+xBestIndex for CUSTOMER
+  constraint[0]: col=5 termid=1 op=4 usabled=1
+
+Table: CUSTOMER
+Number of constraints: 1
+Cons# 0	Use: True	Col: C_ACCTBAL	Op: >
+Number of orders: 0
+Constraint(s) supported on column: C_ACCTBAL
+Order not supported
+Estimated cost: 75
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=6
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=75
+=== table 0 is best so far with cost=225 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=225 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for CUSTOMER...
+xBestIndex for CUSTOMER
+  constraint[0]: col=5 termid=0 op=4 usabled=1
+
+Table: CUSTOMER
+Number of constraints: 1
+Cons# 0	Use: True	Col: C_ACCTBAL	Op: >
+Number of orders: 0
+Constraint(s) supported on column: C_ACCTBAL
+Order not supported
+Estimated cost: 75
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=6
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=75
+=== table 0 is best so far with cost=75 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=75 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for ORDERS...
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=0 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 1
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_CUSTKEY
+Order not supported
+Estimated cost: 15
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=15
+=== table 0 is best so far with cost=15 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=15 and nRow=0
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE customer VIRTUAL TABLE INDEX 6: (~0 rows)|
+0|0|0|EXECUTE SCALAR SUBQUERY 1|
+1|0|0|SCAN TABLE customer VIRTUAL TABLE INDEX 6: (~0 rows)|
+1|0|0|EXECUTE LIST SUBQUERY 2|
+0|0|0|EXECUTE LIST SUBQUERY 2|
+0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 2|
+2|0|0|SCAN TABLE orders VIRTUAL TABLE INDEX 2: (~0 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

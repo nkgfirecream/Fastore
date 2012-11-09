@@ -1,0 +1,14 @@
+xecuting query: 1 (1.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=2001.7 cost=96080.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=96080 and nRow=2001.67
+*** Optimizer selects table 0 for loop 0 with cost=96080 and nRow=2001.67
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE lineitem (~2001 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

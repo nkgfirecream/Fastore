@@ -1,0 +1,53 @@
+Executing query: 3 (3.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+CUSTOMER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=15.0 cost=1950.0 used=0x0
+CUSTOMER(sqlite_autoindex_CUSTOMER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=3.0 nRow=1.0 cost=10.0 used=0x2
+best index is: sqlite_autoindex_CUSTOMER_1
+=== trying table 1 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=500.0 cost=24000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=4.0 nRow=1.0 cost=12.0 used=0x4
+best index is: sqlite_autoindex_ORDERS_1
+=== trying table 2 with isOptimal=1 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x4 log10N=1.0 nRow=2001.7 cost=96080.0 used=0x0
+best index is: none
+=== table 2 is best so far with cost=96080 and nRow=2001.67
+*** Optimizer selects table 2 for loop 0 with cost=96080 and nRow=2001.67
+*** Begin search for loop 1 ***
+=== trying table 0 with isOptimal=1 ===
+CUSTOMER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=15.0 cost=600.0 used=0x0
+CUSTOMER(sqlite_autoindex_CUSTOMER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=3.0 nRow=1.0 cost=7.0 used=0x2
+best index is: sqlite_autoindex_CUSTOMER_1
+=== trying table 1 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=50.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=4.0 nRow=1.0 cost=9.0 used=0x4
+best index is: sqlite_autoindex_ORDERS_1
+=== table 1 is best so far with cost=9 and nRow=1
+*** Optimizer selects table 1 for loop 1 with cost=9 and nRow=1
+*** Begin search for loop 2 ***
+=== trying table 0 with isOptimal=1 ===
+CUSTOMER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=2.0 cost=600.0 used=0x0
+CUSTOMER(sqlite_autoindex_CUSTOMER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=3.0 nRow=1.0 cost=7.0 used=0x2
+best index is: sqlite_autoindex_CUSTOMER_1
+=== table 0 is best so far with cost=7 and nRow=1
+*** Optimizer selects table 0 for loop 2 with cost=7 and nRow=1
+*** Optimizer Finished ***
+
+0|0|2|SCAN TABLE lineitem (~2001 rows)|
+0|1|1|SEARCH TABLE orders USING INDEX sqlite_autoindex_ORDERS_1 (O_ORDERKEY=?) (~1 rows)|
+0|2|0|SEARCH TABLE customer USING INDEX sqlite_autoindex_CUSTOMER_1 (C_CUSTKEY=?) (~1 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

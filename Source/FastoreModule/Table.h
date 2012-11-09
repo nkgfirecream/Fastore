@@ -28,6 +28,8 @@ namespace fastore
 			static void EnsureFastoreTypeMaps();
 
 			const static int MAXTABLEOPERATIONS = 10000;
+			const static int ROWSPERQUERY = 1000;
+			const static int QUERYOVERHEAD = 10000;
 
 			boost::shared_ptr<client::Transaction> _transaction;
 			Connection* _connection;

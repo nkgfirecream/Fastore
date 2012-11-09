@@ -1,0 +1,68 @@
+Executing query: 20 (20.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+SUPPLIER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=2.0 cost=70.0 used=0x0
+SUPPLIER(sqlite_autoindex_SUPPLIER_1): nEq=1 nInMul=5 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x51000
+         notReady=0x1 log10N=1.0 nRow=5.0 cost=30.0 used=0x0
+best index is: sqlite_autoindex_SUPPLIER_1
+=== table 0 is best so far with cost=30 and nRow=5
+=== trying table 1 with isOptimal=1 ===
+NATION(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=2.5 cost=250.0 used=0x0
+NATION(sqlite_autoindex_NATION_1): nEq=1 nInMul=1 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=2.0 nRow=1.0 cost=8.0 used=0x1
+best index is: sqlite_autoindex_NATION_1
+*** Optimizer selects table 0 for loop 0 with cost=30 and nRow=5
+*** Begin search for loop 1 ***
+=== trying table 1 with isOptimal=1 ===
+NATION(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=2.0 cost=100.0 used=0x0
+NATION(sqlite_autoindex_NATION_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=2.0 nRow=1.0 cost=5.0 used=0x1
+best index is: sqlite_autoindex_NATION_1
+=== table 1 is best so far with cost=5 and nRow=1
+*** Optimizer selects table 1 for loop 1 with cost=5 and nRow=1
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+PARTSUPP(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=40.0 cost=3200.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=3200 and nRow=40
+*** Optimizer selects table 0 for loop 0 with cost=3200 and nRow=40
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+PART(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100.0 cost=800.0 used=0x0
+PART(sqlite_autoindex_PART_1): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100.0 cost=800.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=800 and nRow=100
+*** Optimizer selects table 0 for loop 0 with cost=800 and nRow=100
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=6.7 cost=24020.0 used=0x0
+best index is: none
+auto-index reduces cost from 24020.0 to 1209.0
+=== table 0 is best so far with cost=1209 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=1209 and nRow=5
+*** Optimizer Finished ***
+
+0|0|0|SEARCH TABLE supplier USING INDEX sqlite_autoindex_SUPPLIER_1 (S_SUPPKEY=?) (~5 rows)|
+0|0|0|EXECUTE LIST SUBQUERY 1|
+1|0|0|SCAN TABLE partsupp (~40 rows)|
+1|0|0|EXECUTE LIST SUBQUERY 2|
+2|0|0|SCAN TABLE part (~100 rows)|
+1|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 3|
+3|0|0|SEARCH TABLE lineitem USING AUTOMATIC COVERING INDEX (L_PARTKEY=? AND L_SUPPKEY=?) (~5 rows)|
+0|1|1|SEARCH TABLE nation USING INDEX sqlite_autoindex_NATION_1 (N_NATIONKEY=?) (~1 rows)|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

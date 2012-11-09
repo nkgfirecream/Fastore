@@ -2,13 +2,13 @@ create table NATION (
 N_NATIONKEY int primary key,
 N_NAME varchar not null,
 N_REGIONKEY int not null,
-N_COMMENT varchar,
+N_COMMENT varchar
 );
 
 create table REGION (
 R_REGIONKEY int primary key,
 R_NAME varchar not null,
-R_COMMENT varchar,
+R_COMMENT varchar
 );
 
 create table PART (
@@ -20,7 +20,7 @@ P_TYPE varchar not null,
 P_SIZE int not null,
 P_CONTAINER varchar not null,
 P_RETAILPRICE float not null,
-P_COMMENT varchar not null,
+P_COMMENT varchar not null
 );
 
 create table SUPPLIER (
@@ -30,7 +30,7 @@ S_ADDRESS varchar not null,
 S_NATIONKEY int not null,
 S_PHONE varchar not null,
 S_ACCTBAL float not null,
-S_COMMENT varchar not null,
+S_COMMENT varchar not null
 );
 
 create table PARTSUPP (
@@ -38,7 +38,7 @@ PS_PARTKEY int not null,
 PS_SUPPKEY int not null,
 PS_AVAILQTY int not null,
 PS_SUPPLYCOST float not null,
-PS_COMMENT varchar not null,
+PS_COMMENT varchar not null
 );
 
 create table CUSTOMER (
@@ -49,7 +49,7 @@ C_NATIONKEY int not null,
 C_PHONE varchar not null,
 C_ACCTBAL float not null,
 C_MKTSEGMENT varchar not null,
-C_COMMENT varchar not null,
+C_COMMENT varchar not null
 );
 
 create table ORDERS (
@@ -61,7 +61,7 @@ O_ORDERDATE date not null,
 O_ORDERPRIORITY varchar not null,
 O_CLERK varchar not null,
 O_SHIPPRIORITY int not null,
-O_COMMENT varchar not null,
+O_COMMENT varchar not null
 );
 
 create table LINEITEM (
@@ -80,5 +80,5 @@ L_COMMITDATE date not null,
 L_RECEIPTDATE date not null,
 L_SHIPINSTRUCT varchar not null,
 L_SHIPMODE varchar not null,
-L_COMMENT varchar not null,
+L_COMMENT varchar not null
 );

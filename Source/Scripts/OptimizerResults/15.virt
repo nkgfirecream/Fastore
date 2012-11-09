@@ -1,0 +1,185 @@
+Executing query: 15 (15.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_master(ipk): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x4011000
+         notReady=0xffffffffffffffff log10N=6.0 nRow=1.0 cost=7.0 used=0x0
+best index is: ipk
+=== table 0 is best so far with cost=7 and nRow=1
+*** Optimizer selects table 0 for loop 0 with cost=7 and nRow=1
+*** Optimizer Finished ***
+create view revenue0 as
+	select
+		l_suppkey as supplier_no,
+		sum(l_extendedprice * (1 - l_discount)) as total_revenue
+	from
+		lineitem
+	where
+		l_shipdate >= date('1996-01-01')
+		and l_shipdate < date('1996-01-01', '+3 month')
+	group by
+		l_suppkey
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_master(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x1022000
+         notReady=0xffffffffffffffff log10N=6.0 nRow=100000.0 cost=1000006.0 used=0x0
+best index is: ipk
+=== table 0 is best so far with cost=1.00001e+06 and nRow=100000
+*** Optimizer selects table 0 for loop 0 with cost=1.00001e+06 and nRow=100000
+*** Optimizer Finished ***
+
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for LINEITEM...
+xBestIndex for LINEITEM
+  constraint[0]: col=10 termid=0 op=32 usabled=1
+  constraint[1]: col=10 termid=1 op=16 usabled=1
+  orderby[0]: col=2 desc=0
+
+Table: LINEITEM
+Number of constraints: 2
+Cons# 0	Use: True	Col: L_SHIPDATE	Op: >=
+Cons# 1	Use: True	Col: L_SHIPDATE	Op: <
+Number of orders: 1
+Order# 0	Col: L_SUPPKEY	Asc: True
+Constraint(s) supported on column: L_SHIPDATE
+Order not supported
+Estimated cost: 1651
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=2 omit=1
+  idxNum=11
+  idxStr= 
+  orderByConsumed=0
+  estimatedCost=1651
+=== table 0 is best so far with cost=8255 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=8255 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+Recomputing index info for SUPPLIER...
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=0 op=2 usabled=1
+  orderby[0]: col=0 desc=0
+
+Table: SUPPLIER
+Number of constraints: 1
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Number of orders: 1
+Order# 0	Col: S_SUPPKEY	Asc: True
+Constraint(s) supported on column: S_SUPPKEY
+Order supported on column: S_SUPPKEY
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=1
+  estimatedCost=1
+=== trying table 1 with isOptimal=1 ===
+revenue0(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=10.0 cost=1000.0 used=0x0
+best index is: none
+=== table 1 is best so far with cost=1000 and nRow=10
+*** Optimizer selects table 1 for loop 0 with cost=1000 and nRow=10
+*** Begin search for loop 1 ***
+=== trying table 0 with isOptimal=1 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=0 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 1
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_SUPPKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== table 0 is best so far with cost=1 and nRow=0
+*** Optimizer selects table 0 for loop 1 with cost=1 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for LINEITEM...
+xBestIndex for LINEITEM
+  constraint[0]: col=10 termid=0 op=32 usabled=1
+  constraint[1]: col=10 termid=1 op=16 usabled=1
+  orderby[0]: col=2 desc=0
+
+Table: LINEITEM
+Number of constraints: 2
+Cons# 0	Use: True	Col: L_SHIPDATE	Op: >=
+Cons# 1	Use: True	Col: L_SHIPDATE	Op: <
+Number of orders: 1
+Order# 0	Col: L_SUPPKEY	Asc: True
+Constraint(s) supported on column: L_SHIPDATE
+Order not supported
+Estimated cost: 1651
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=2 omit=1
+  idxNum=11
+  idxStr= 
+  orderByConsumed=0
+  estimatedCost=1651
+=== table 0 is best so far with cost=8255 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=8255 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+revenue0(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100.0 cost=1000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=1000 and nRow=100
+*** Optimizer selects table 0 for loop 0 with cost=1000 and nRow=100
+*** Optimizer Finished ***
+
+1|0|0|SCAN TABLE lineitem VIRTUAL TABLE INDEX 11:  (~0 rows)|
+1|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|1|SCAN SUBQUERY 1 (~10 rows)|
+0|0|0|EXECUTE SCALAR SUBQUERY 2|
+3|0|0|SCAN TABLE lineitem VIRTUAL TABLE INDEX 11:  (~0 rows)|
+3|0|0|USE TEMP B-TREE FOR GROUP BY|
+2|0|0|SEARCH SUBQUERY 3 (~1 rows)|
+0|1|0|SCAN TABLE supplier VIRTUAL TABLE INDEX 1: (~0 rows)|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||
+
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_stat1(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100000.0 cost=4000000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=4e+06 and nRow=100000
+*** Optimizer selects table 0 for loop 0 with cost=4e+06 and nRow=100000
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_stat3(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100000.0 cost=4000000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=4e+06 and nRow=100000
+*** Optimizer selects table 0 for loop 0 with cost=4e+06 and nRow=100000
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_master(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=50000.0 cost=4000000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=4e+06 and nRow=50000
+*** Optimizer selects table 0 for loop 0 with cost=4e+06 and nRow=50000
+*** Optimizer Finished ***
+drop view revenue0

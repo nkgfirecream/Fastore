@@ -1,0 +1,150 @@
+Executing query: 20 (20.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+Recomputing index info for SUPPLIER...
+xBestIndex for SUPPLIER
+  constraint[0]: col=3 termid=1 op=2 usabled=1
+  orderby[0]: col=1 desc=0
+
+Table: SUPPLIER
+Number of constraints: 1
+Cons# 0	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 1
+Order# 0	Col: S_NAME	Asc: True
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 1 with isOptimal=1 ===
+Recomputing index info for NATION...
+xBestIndex for NATION
+  constraint[0]: col=1 termid=2 op=2 usabled=1
+  constraint[1]: col=0 termid=3 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 2
+Cons# 0	Use: True	Col: N_NAME	Op: =
+Cons# 1	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NAME
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== table 1 is best so far with cost=2 and nRow=0
+*** Optimizer selects table 1 for loop 0 with cost=2 and nRow=0
+*** Begin search for loop 1 ***
+=== trying table 0 with isOptimal=1 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=3 termid=1 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 1
+Cons# 0	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== table 0 is best so far with cost=1 and nRow=0
+*** Optimizer selects table 0 for loop 1 with cost=1 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for PARTSUPP...
+xBestIndex for PARTSUPP
+
+Table: PARTSUPP
+Number of constraints: 0
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 800
+
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=800
+=== table 0 is best so far with cost=800 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=800 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for PART...
+xBestIndex for PART
+
+Table: PART
+Number of constraints: 0
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 200
+
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=200
+=== table 0 is best so far with cost=200 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=200 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+Recomputing index info for LINEITEM...
+xBestIndex for LINEITEM
+  constraint[0]: col=1 termid=0 op=2 usabled=1
+  constraint[1]: col=2 termid=1 op=2 usabled=1
+  constraint[2]: col=10 termid=2 op=32 usabled=1
+  constraint[3]: col=10 termid=3 op=16 usabled=1
+
+Table: LINEITEM
+Number of constraints: 4
+Cons# 0	Use: True	Col: L_PARTKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_SHIPDATE	Op: >=
+Cons# 3	Use: True	Col: L_SHIPDATE	Op: <
+Number of orders: 0
+Constraint(s) supported on column: L_PARTKEY
+Order not supported
+Estimated cost: 30
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=0 omit=0
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=30
+=== table 0 is best so far with cost=30 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=30 and nRow=0
+*** Optimizer Finished ***
+
+0|0|1|SCAN TABLE nation VIRTUAL TABLE INDEX 2: (~0 rows)|
+0|1|0|SCAN TABLE supplier VIRTUAL TABLE INDEX 4: (~0 rows)|
+0|0|0|EXECUTE LIST SUBQUERY 1|
+1|0|0|SCAN TABLE partsupp VIRTUAL TABLE INDEX 0: (~0 rows)|
+1|0|0|EXECUTE LIST SUBQUERY 2|
+2|0|0|SCAN TABLE part VIRTUAL TABLE INDEX 0: (~0 rows)|
+1|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 3|
+3|0|0|SCAN TABLE lineitem VIRTUAL TABLE INDEX 2: (~0 rows)|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

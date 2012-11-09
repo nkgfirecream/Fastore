@@ -1,0 +1,45 @@
+Executing query: 16 (16.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+PARTSUPP(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=400.0 cost=10400.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=10400 and nRow=400
+=== trying table 1 with isOptimal=1 ===
+PART(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=5.0 cost=2600.0 used=0x0
+PART(sqlite_autoindex_PART_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x5033000
+         notReady=0x2 log10N=3.0 nRow=1.0 cost=7.0 used=0x1
+best index is: sqlite_autoindex_PART_1
+*** Optimizer selects table 0 for loop 0 with cost=10400 and nRow=400
+*** Begin search for loop 1 ***
+=== trying table 1 with isOptimal=1 ===
+PART(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=2.0 cost=800.0 used=0x0
+PART(sqlite_autoindex_PART_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=3.0 nRow=1.0 cost=7.0 used=0x1
+best index is: sqlite_autoindex_PART_1
+=== table 1 is best so far with cost=7 and nRow=1
+*** Optimizer selects table 1 for loop 1 with cost=7 and nRow=1
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+SUPPLIER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=5.0 cost=40.0 used=0x0
+SUPPLIER(sqlite_autoindex_SUPPLIER_1): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=5.0 cost=40.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=40 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=40 and nRow=5
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE partsupp (~400 rows)|
+0|0|0|EXECUTE LIST SUBQUERY 1|
+1|0|0|SCAN TABLE supplier (~5 rows)|
+0|1|1|SEARCH TABLE part USING INDEX sqlite_autoindex_PART_1 (P_PARTKEY=?) (~1 rows)|
+0|0|0|EXECUTE LIST SUBQUERY 2|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

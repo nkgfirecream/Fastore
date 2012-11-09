@@ -1,0 +1,31 @@
+Executing query: 12 (12.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=1500.0 cost=24000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=4.0 nRow=1.0 cost=12.0 used=0x2
+best index is: sqlite_autoindex_ORDERS_1
+=== trying table 1 with isOptimal=1 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=16.7 cost=96080.0 used=0x0
+best index is: none
+=== table 1 is best so far with cost=96080 and nRow=16.6806
+*** Optimizer selects table 1 for loop 0 with cost=96080 and nRow=16.6806
+*** Begin search for loop 1 ***
+=== trying table 0 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=150.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=4.0 nRow=1.0 cost=9.0 used=0x2
+best index is: sqlite_autoindex_ORDERS_1
+=== table 0 is best so far with cost=9 and nRow=1
+*** Optimizer selects table 0 for loop 1 with cost=9 and nRow=1
+*** Optimizer Finished ***
+
+0|0|1|SCAN TABLE lineitem (~16 rows)|
+0|0|0|EXECUTE LIST SUBQUERY 1|
+0|1|0|SEARCH TABLE orders USING INDEX sqlite_autoindex_ORDERS_1 (O_ORDERKEY=?) (~1 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

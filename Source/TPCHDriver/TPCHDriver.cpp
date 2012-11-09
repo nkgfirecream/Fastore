@@ -8,6 +8,7 @@
 #include <fstream>
 #include <time.h>
 #include <vector>
+#include <map>
 
 #include "..\FastoreProvider\fastore.h"
 
@@ -78,7 +79,7 @@ const int testSets[NUM_SETS][NUM_QUERIES] =
 	{13,15,	17,	1,	22,	11,	3,	4,	7,	20,	14,	21,	9,	8,	2,	18,	16,	6,	10,	12,	5,	19}
 };
 
-std::string queries[NUM_QUERIES];
+std::map<int,std::string> queries;
 
 ConnectionHandle _connection;
 
@@ -87,7 +88,14 @@ std::string ReadAll(std::string filename)
 	std::ifstream f(filename);
 
 	if (!f.is_open())
-		throw "Error opening filestream!";
+	{
+		f = std::ifstream("..\\" + filename);
+	}
+
+	if (!f.is_open())
+	{
+		throw "Can't locate file to open!";
+	}
 
 	std::string result;
 
@@ -143,6 +151,16 @@ void ImportTable(std::string tablename)
 	path << SCRIPT_PATH << tablename << ".tbl";
 
 	std::ifstream infile(path.str());
+
+	if (!infile.is_open())
+	{
+		infile = std::ifstream("..\\" + path.str());
+	}
+
+	if (!infile.is_open())
+	{
+		throw "Can't locate file to open!";
+	}
 
 	auto result = fastoreExecute(_connection, "begin");
 	int num = 0;
@@ -231,44 +249,72 @@ void CreateTableDefs()
 void LoadQueries()
 {
 	std::cout << "Loading queries...\n";
-	for (int i = 0; i < NUM_QUERIES; ++i)
+	for (int i = 1; i <= NUM_QUERIES; ++i)
 	{
-		queries[i] = LoadQuery(i + 1);
+		queries[i] = LoadQuery(i);
 	}
 }
 
 long long _interval;
 void ThroughputTest()
-{
+{	
 	std::cout << "Running throughput test...\n";
 	long long start = clock();
 
 	for (int set = 1; set <= NUM_STREAMS/*NUM_SETS -- one set per stream*/; ++set)
 	{
 		std::cout << "Executing set: " << set << std::endl;
-#if 0
-		for (int query = 0; query <= NUM_QUERIES; ++query)
+#if 1
+		for (int query = 0; query < NUM_QUERIES; ++query)
 #else
 		for (int query = 2; query <= 2 /*NUM_QUERIES*/; ++query)
 #endif
 		{
-			std::cout << "Executing query: " << query << " (" << (testSets[set][query] + 1) << ".OUT)" << std::endl;
-			auto result = fastorePrepare(_connection, (queries[testSets[set][query]]).c_str());
-			if (result.result != FASTORE_OK)
+			//Some of the tpch queries have multiple statements. Execute them all individually.
+			int whichOut = query + 1;//testSets[set][query];
+			std::cout << "Executing query: " << query + 1 << " (" << whichOut << ".OUT)" << std::endl;
+			std::string queryText = queries[whichOut];
+			std::vector<std::string> statements;
+			std::istringstream ss(queryText);
+			while(!ss.eof())
 			{
-				throw "Error preparing query!";
-			}			
+				std::string field;
+				std::getline(ss, field, ';');
+				if (field.empty() || (field.size() < 7 && field[0] == '\n')) //Seven is an arbitrarily small number to exclude groups of new lines.
+					continue;
+				else
+					statements.push_back(field);
+			}
 
-			NextResult data;
-			do
+			for(int i = 0; i < statements.size(); ++i)
 			{
-				data = fastoreNext(result.statement);
-				if (data.result != FASTORE_OK)
+				auto result = fastorePrepare(_connection, statements[i].c_str());
+				if (result.result != FASTORE_OK)
 				{
-					throw "Error executing query!";
-				}
-			} 
-			while(!data.eof);
+					throw "Error preparing query!";
+				}			
+
+				NextResult data;
+				do
+				{
+					data = fastoreNext(result.statement);
+					if (data.result != FASTORE_OK)
+					{
+						throw "Error executing query!";
+					}
+
+					/*for (int i = 0; i < result.columnCount; ++i)
+					{
+						char buffer[1024];	
+						int32_t size = 1024;
+						fastoreColumnValueAString(result.statement, i, &size, buffer); 
+						std::cout << std::string(buffer, size) << "|";
+					}
+
+					std::cout << std::endl;*/
+				} 
+				while(!data.eof);
+			}
 
 		}
 	}

@@ -1,0 +1,106 @@
+Executing query: 21 (21.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+SUPPLIER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=10.0 cost=70.0 used=0x0
+SUPPLIER(sqlite_autoindex_SUPPLIER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x5033000
+         notReady=0x1 log10N=1.0 nRow=1.0 cost=3.0 used=0x2
+best index is: sqlite_autoindex_SUPPLIER_1
+=== trying table 1 with isOptimal=1 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=750.6 cost=96080.0 used=0x0
+best index is: none
+=== table 1 is best so far with cost=96080 and nRow=750.625
+=== trying table 2 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x4 log10N=1.0 nRow=150.0 cost=24000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x4011000
+         notReady=0x4 log10N=4.0 nRow=1.0 cost=12.0 used=0x2
+best index is: sqlite_autoindex_ORDERS_1
+=== trying table 3 with isOptimal=1 ===
+NATION(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x8 log10N=1.0 nRow=2.5 cost=250.0 used=0x0
+NATION(sqlite_autoindex_NATION_1): nEq=1 nInMul=1 rangeDiv=1 bSort=1 bLookup=1 wsFlags=0x4011000
+         notReady=0x8 log10N=2.0 nRow=1.0 cost=8.0 used=0x1
+best index is: sqlite_autoindex_NATION_1
+*** Optimizer selects table 1 for loop 0 with cost=96080 and nRow=750.625
+*** Begin search for loop 1 ***
+=== trying table 0 with isOptimal=1 ===
+SUPPLIER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=2.0 cost=40.0 used=0x0
+SUPPLIER(sqlite_autoindex_SUPPLIER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=1.0 nRow=1.0 cost=3.0 used=0x2
+best index is: sqlite_autoindex_SUPPLIER_1
+=== table 0 is best so far with cost=3 and nRow=1
+=== trying table 2 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x4 log10N=1.0 nRow=15.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x4 log10N=4.0 nRow=1.0 cost=9.0 used=0x2
+best index is: sqlite_autoindex_ORDERS_1
+=== trying table 3 with isOptimal=1 ===
+NATION(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x8 log10N=1.0 nRow=2.5 cost=100.0 used=0x0
+NATION(sqlite_autoindex_NATION_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x8 log10N=2.0 nRow=1.0 cost=5.0 used=0x1
+best index is: sqlite_autoindex_NATION_1
+*** Optimizer selects table 0 for loop 1 with cost=3 and nRow=1
+*** Begin search for loop 2 ***
+=== trying table 2 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x4 log10N=1.0 nRow=15.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x4 log10N=4.0 nRow=1.0 cost=9.0 used=0x2
+best index is: sqlite_autoindex_ORDERS_1
+=== table 2 is best so far with cost=9 and nRow=1
+=== trying table 3 with isOptimal=1 ===
+NATION(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x8 log10N=1.0 nRow=2.0 cost=100.0 used=0x0
+NATION(sqlite_autoindex_NATION_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x8 log10N=2.0 nRow=1.0 cost=5.0 used=0x1
+best index is: sqlite_autoindex_NATION_1
+=== table 3 is best so far with cost=5 and nRow=1
+*** Optimizer selects table 3 for loop 2 with cost=5 and nRow=1
+*** Begin search for loop 3 ***
+=== trying table 2 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x4 log10N=1.0 nRow=15.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x4 log10N=4.0 nRow=1.0 cost=9.0 used=0x2
+best index is: sqlite_autoindex_ORDERS_1
+=== table 2 is best so far with cost=9 and nRow=1
+*** Optimizer selects table 2 for loop 3 with cost=9 and nRow=1
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=300.3 cost=24020.0 used=0x0
+best index is: none
+auto-index reduces cost from 24020.0 to 72.0
+=== table 0 is best so far with cost=72 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=72 and nRow=5
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=150.1 cost=24020.0 used=0x0
+best index is: none
+auto-index reduces cost from 24020.0 to 72.0
+=== table 0 is best so far with cost=72 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=72 and nRow=5
+*** Optimizer Finished ***
+
+0|0|1|SCAN TABLE lineitem AS l1 (~750 rows)|
+0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 1|
+1|0|0|SEARCH TABLE lineitem AS l2 USING AUTOMATIC COVERING INDEX (L_ORDERKEY=?) (~5 rows)|
+0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 2|
+2|0|0|SEARCH TABLE lineitem AS l3 USING AUTOMATIC COVERING INDEX (L_ORDERKEY=?) (~5 rows)|
+0|1|0|SEARCH TABLE supplier USING INDEX sqlite_autoindex_SUPPLIER_1 (S_SUPPKEY=?) (~1 rows)|
+0|2|3|SEARCH TABLE nation USING INDEX sqlite_autoindex_NATION_1 (N_NATIONKEY=?) (~1 rows)|
+0|3|2|SEARCH TABLE orders USING INDEX sqlite_autoindex_ORDERS_1 (O_ORDERKEY=?) (~1 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

@@ -1,0 +1,1184 @@
+Executing query: 8 (8.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+Recomputing index info for PART...
+xBestIndex for PART
+  constraint[0]: col=0 termid=0 op=2 usabled=1
+  constraint[1]: col=4 termid=9 op=2 usabled=1
+
+Table: PART
+Number of constraints: 2
+Cons# 0	Use: True	Col: P_PARTKEY	Op: =
+Cons# 1	Use: True	Col: P_TYPE	Op: =
+Number of orders: 0
+Constraint(s) supported on column: P_TYPE
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=5
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== table 0 is best so far with cost=2 and nRow=0
+=== trying table 1 with isOptimal=1 ===
+Recomputing index info for SUPPLIER...
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=1
+  constraint[1]: col=3 termid=7 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 2 with isOptimal=1 ===
+Recomputing index info for LINEITEM...
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+Recomputing index info for ORDERS...
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 4 with isOptimal=1 ===
+Recomputing index info for CUSTOMER...
+xBestIndex for CUSTOMER
+  constraint[0]: col=3 termid=4 op=2 usabled=1
+  constraint[1]: col=0 termid=15 op=2 usabled=1
+
+Table: CUSTOMER
+Number of constraints: 2
+Cons# 0	Use: True	Col: C_NATIONKEY	Op: =
+Cons# 1	Use: True	Col: C_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: C_CUSTKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 5 with isOptimal=1 ===
+Recomputing index info for NATION...
+xBestIndex for NATION
+  constraint[0]: col=2 termid=5 op=2 usabled=1
+  constraint[1]: col=0 termid=14 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 2
+Cons# 0	Use: True	Col: N_REGIONKEY	Op: =
+Cons# 1	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 6 with isOptimal=1 ===
+Recomputing index info for NATION...
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 7 with isOptimal=1 ===
+Recomputing index info for REGION...
+xBestIndex for REGION
+  constraint[0]: col=1 termid=6 op=2 usabled=1
+  constraint[1]: col=0 termid=13 op=2 usabled=1
+
+Table: REGION
+Number of constraints: 2
+Cons# 0	Use: True	Col: R_NAME	Op: =
+Cons# 1	Use: True	Col: R_REGIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: R_NAME
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+*** Optimizer selects table 0 for loop 0 with cost=2 and nRow=0
+*** Begin search for loop 1 ***
+=== trying table 1 with isOptimal=1 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=1
+  constraint[1]: col=3 termid=7 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 4 with isOptimal=1 ===
+xBestIndex for CUSTOMER
+  constraint[0]: col=3 termid=4 op=2 usabled=1
+  constraint[1]: col=0 termid=15 op=2 usabled=1
+
+Table: CUSTOMER
+Number of constraints: 2
+Cons# 0	Use: True	Col: C_NATIONKEY	Op: =
+Cons# 1	Use: True	Col: C_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: C_CUSTKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 5 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=2 termid=5 op=2 usabled=1
+  constraint[1]: col=0 termid=14 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 2
+Cons# 0	Use: True	Col: N_REGIONKEY	Op: =
+Cons# 1	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 6 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 7 with isOptimal=1 ===
+xBestIndex for REGION
+  constraint[0]: col=1 termid=6 op=2 usabled=1
+  constraint[1]: col=0 termid=13 op=2 usabled=1
+
+Table: REGION
+Number of constraints: 2
+Cons# 0	Use: True	Col: R_NAME	Op: =
+Cons# 1	Use: True	Col: R_REGIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: R_NAME
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== table 7 is best so far with cost=1 and nRow=0
+*** Optimizer selects table 7 for loop 1 with cost=1 and nRow=0
+*** Begin search for loop 2 ***
+=== trying table 1 with isOptimal=1 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=1
+  constraint[1]: col=3 termid=7 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 4 with isOptimal=1 ===
+xBestIndex for CUSTOMER
+  constraint[0]: col=3 termid=4 op=2 usabled=1
+  constraint[1]: col=0 termid=15 op=2 usabled=1
+
+Table: CUSTOMER
+Number of constraints: 2
+Cons# 0	Use: True	Col: C_NATIONKEY	Op: =
+Cons# 1	Use: True	Col: C_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: C_CUSTKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 5 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=2 termid=5 op=2 usabled=1
+  constraint[1]: col=0 termid=14 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 2
+Cons# 0	Use: True	Col: N_REGIONKEY	Op: =
+Cons# 1	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 6 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 1 with isOptimal=0 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=0
+  constraint[1]: col=3 termid=7 op=2 usabled=0
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: False	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: False	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 10
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=10
+=== table 1 is best so far with cost=10 and nRow=0
+=== trying table 2 with isOptimal=0 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=0
+  constraint[1]: col=2 termid=17 op=2 usabled=0
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: False	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: False	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_PARTKEY
+Order not supported
+Estimated cost: 30
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=1 omit=1
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=30
+=== trying table 3 with isOptimal=0 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=0
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=0
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: False	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: False	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERDATE
+Order not supported
+Estimated cost: 412
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  usage[2]: argvIdx=2 omit=1
+  usage[3]: argvIdx=0 omit=0
+  idxNum=5
+  idxStr= 
+  orderByConsumed=0
+  estimatedCost=412
+=== trying table 4 with isOptimal=0 ===
+xBestIndex for CUSTOMER
+  constraint[0]: col=3 termid=4 op=2 usabled=0
+  constraint[1]: col=0 termid=15 op=2 usabled=0
+
+Table: CUSTOMER
+Number of constraints: 2
+Cons# 0	Use: False	Col: C_NATIONKEY	Op: =
+Cons# 1	Use: False	Col: C_CUSTKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 150
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=150
+=== trying table 5 with isOptimal=0 ===
+xBestIndex for NATION
+  constraint[0]: col=2 termid=5 op=2 usabled=1
+  constraint[1]: col=0 termid=14 op=2 usabled=0
+
+Table: NATION
+Number of constraints: 2
+Cons# 0	Use: True	Col: N_REGIONKEY	Op: =
+Cons# 1	Use: False	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_REGIONKEY
+Order not supported
+Estimated cost: 5
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  idxNum=3
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=5
+=== table 5 is best so far with cost=5 and nRow=0
+=== trying table 6 with isOptimal=0 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=0
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: False	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 25
+
+  usage[0]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=25
+*** Optimizer selects table 5 for loop 2 with cost=5 and nRow=0
+*** Begin search for loop 3 ***
+=== trying table 1 with isOptimal=1 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=1
+  constraint[1]: col=3 termid=7 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 4 with isOptimal=1 ===
+xBestIndex for CUSTOMER
+  constraint[0]: col=3 termid=4 op=2 usabled=1
+  constraint[1]: col=0 termid=15 op=2 usabled=1
+
+Table: CUSTOMER
+Number of constraints: 2
+Cons# 0	Use: True	Col: C_NATIONKEY	Op: =
+Cons# 1	Use: True	Col: C_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: C_CUSTKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 6 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 1 with isOptimal=0 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=0
+  constraint[1]: col=3 termid=7 op=2 usabled=0
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: False	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: False	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 10
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=10
+=== table 1 is best so far with cost=10 and nRow=0
+=== trying table 2 with isOptimal=0 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=0
+  constraint[1]: col=2 termid=17 op=2 usabled=0
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: False	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: False	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_PARTKEY
+Order not supported
+Estimated cost: 30
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=1 omit=1
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=30
+=== trying table 3 with isOptimal=0 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=0
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=0
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: False	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: False	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERDATE
+Order not supported
+Estimated cost: 412
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  usage[2]: argvIdx=2 omit=1
+  usage[3]: argvIdx=0 omit=0
+  idxNum=5
+  idxStr= 
+  orderByConsumed=0
+  estimatedCost=412
+=== trying table 4 with isOptimal=0 ===
+xBestIndex for CUSTOMER
+  constraint[0]: col=3 termid=4 op=2 usabled=1
+  constraint[1]: col=0 termid=15 op=2 usabled=0
+
+Table: CUSTOMER
+Number of constraints: 2
+Cons# 0	Use: True	Col: C_NATIONKEY	Op: =
+Cons# 1	Use: False	Col: C_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: C_NATIONKEY
+Order not supported
+Estimated cost: 6
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=6
+=== table 4 is best so far with cost=6 and nRow=0
+=== trying table 6 with isOptimal=0 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=0
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: False	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 25
+
+  usage[0]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=25
+*** Optimizer selects table 4 for loop 3 with cost=6 and nRow=0
+*** Begin search for loop 4 ***
+=== trying table 1 with isOptimal=1 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=1
+  constraint[1]: col=3 termid=7 op=2 usabled=1
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: True	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: True	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: S_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=1 omit=1
+  idxNum=4
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 6 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 1 with isOptimal=0 ===
+xBestIndex for SUPPLIER
+  constraint[0]: col=0 termid=1 op=2 usabled=0
+  constraint[1]: col=3 termid=7 op=2 usabled=0
+
+Table: SUPPLIER
+Number of constraints: 2
+Cons# 0	Use: False	Col: S_SUPPKEY	Op: =
+Cons# 1	Use: False	Col: S_NATIONKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 10
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=10
+=== table 1 is best so far with cost=10 and nRow=0
+=== trying table 2 with isOptimal=0 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=0
+  constraint[1]: col=2 termid=17 op=2 usabled=0
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: False	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: False	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_PARTKEY
+Order not supported
+Estimated cost: 30
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=1 omit=1
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=30
+=== trying table 3 with isOptimal=0 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=0
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: False	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_CUSTKEY
+Order not supported
+Estimated cost: 15
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=0 omit=0
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=15
+=== trying table 6 with isOptimal=0 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=0
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: False	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint not supported
+Order not supported
+Estimated cost: 25
+
+  usage[0]: argvIdx=0 omit=0
+  idxNum=0
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=25
+*** Optimizer selects table 1 for loop 4 with cost=10 and nRow=0
+*** Begin search for loop 5 ***
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 6 with isOptimal=1 ===
+xBestIndex for NATION
+  constraint[0]: col=0 termid=12 op=2 usabled=1
+
+Table: NATION
+Number of constraints: 1
+Cons# 0	Use: True	Col: N_NATIONKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: N_NATIONKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== table 6 is best so far with cost=1 and nRow=0
+*** Optimizer selects table 6 for loop 5 with cost=1 and nRow=0
+*** Begin search for loop 6 ***
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== trying table 3 with isOptimal=1 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: True	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_ORDERKEY
+Order not supported
+Estimated cost: 1
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=1 omit=1
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=1
+=== trying table 2 with isOptimal=0 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=0
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: False	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_PARTKEY
+Order not supported
+Estimated cost: 30
+
+  usage[0]: argvIdx=0 omit=0
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=1 omit=1
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=30
+=== table 2 is best so far with cost=30 and nRow=0
+=== trying table 3 with isOptimal=0 ===
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=3 op=2 usabled=1
+  constraint[1]: col=4 termid=10 op=32 usabled=1
+  constraint[2]: col=4 termid=11 op=8 usabled=1
+  constraint[3]: col=0 termid=16 op=2 usabled=0
+
+Table: ORDERS
+Number of constraints: 4
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Cons# 1	Use: True	Col: O_ORDERDATE	Op: >=
+Cons# 2	Use: True	Col: O_ORDERDATE	Op: <=
+Cons# 3	Use: False	Col: O_ORDERKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_CUSTKEY
+Order not supported
+Estimated cost: 15
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  usage[3]: argvIdx=0 omit=0
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=15
+=== table 3 is best so far with cost=15 and nRow=0
+*** Optimizer selects table 3 for loop 6 with cost=15 and nRow=0
+*** Begin search for loop 7 ***
+=== trying table 2 with isOptimal=1 ===
+xBestIndex for LINEITEM
+  constraint[0]: col=0 termid=2 op=2 usabled=1
+  constraint[1]: col=2 termid=17 op=2 usabled=1
+  constraint[2]: col=1 termid=18 op=2 usabled=1
+
+Table: LINEITEM
+Number of constraints: 3
+Cons# 0	Use: True	Col: L_ORDERKEY	Op: =
+Cons# 1	Use: True	Col: L_SUPPKEY	Op: =
+Cons# 2	Use: True	Col: L_PARTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: L_ORDERKEY
+Order not supported
+Estimated cost: 4
+
+  usage[0]: argvIdx=1 omit=1
+  usage[1]: argvIdx=0 omit=0
+  usage[2]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=4
+=== table 2 is best so far with cost=4 and nRow=0
+*** Optimizer selects table 2 for loop 7 with cost=4 and nRow=0
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE part VIRTUAL TABLE INDEX 5: (~0 rows)|
+0|1|7|SCAN TABLE region VIRTUAL TABLE INDEX 2: (~0 rows)|
+0|2|5|SCAN TABLE nation AS n1 VIRTUAL TABLE INDEX 3: (~0 rows)|
+0|3|4|SCAN TABLE customer VIRTUAL TABLE INDEX 4: (~0 rows)|
+0|4|1|SCAN TABLE supplier VIRTUAL TABLE INDEX 0: (~0 rows)|
+0|5|6|SCAN TABLE nation AS n2 VIRTUAL TABLE INDEX 1: (~0 rows)|
+0|6|3|SCAN TABLE orders VIRTUAL TABLE INDEX 2: (~0 rows)|
+0|7|2|SCAN TABLE lineitem VIRTUAL TABLE INDEX 1: (~0 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

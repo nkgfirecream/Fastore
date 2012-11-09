@@ -1,0 +1,38 @@
+Executing query: 13 (13.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+CUSTOMER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=150.0 cost=1950.0 used=0x0
+CUSTOMER(sqlite_autoindex_CUSTOMER_1): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x1822000
+         notReady=0x1 log10N=3.0 nRow=150.0 cost=153.0 used=0x0
+best index is: sqlite_autoindex_CUSTOMER_1
+=== table 0 is best so far with cost=153 and nRow=150
+*** Optimizer selects table 0 for loop 0 with cost=153 and nRow=150
+*** Begin search for loop 1 ***
+=== trying table 1 with isOptimal=1 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=75.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=75.0 cost=6000.0 used=0x0
+best index is: none
+auto-index reduces cost from 6000.0 to 88.0
+=== table 1 is best so far with cost=88 and nRow=5
+*** Optimizer selects table 1 for loop 1 with cost=88 and nRow=5
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_subquery_2B0488_(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100.0 cost=1000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=1000 and nRow=100
+*** Optimizer selects table 0 for loop 0 with cost=1000 and nRow=100
+*** Optimizer Finished ***
+
+1|0|0|SCAN TABLE customer USING COVERING INDEX sqlite_autoindex_CUSTOMER_1 (~150 rows)|
+1|1|1|SEARCH TABLE orders USING AUTOMATIC COVERING INDEX (O_CUSTKEY=?) (~5 rows)|
+0|0|0|SCAN SUBQUERY 1 AS c_orders (~100 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

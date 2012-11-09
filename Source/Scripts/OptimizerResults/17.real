@@ -1,0 +1,41 @@
+Executing query: 17 (17.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=6005.0 cost=24020.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=24020 and nRow=6005
+=== trying table 1 with isOptimal=1 ===
+PART(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=2.0 cost=800.0 used=0x0
+PART(sqlite_autoindex_PART_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=3.0 nRow=1.0 cost=7.0 used=0x1
+best index is: sqlite_autoindex_PART_1
+*** Optimizer selects table 0 for loop 0 with cost=24020 and nRow=6005
+*** Begin search for loop 1 ***
+=== trying table 1 with isOptimal=1 ===
+PART(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=2.0 cost=800.0 used=0x0
+PART(sqlite_autoindex_PART_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x2 log10N=3.0 nRow=1.0 cost=7.0 used=0x1
+best index is: sqlite_autoindex_PART_1
+=== table 1 is best so far with cost=7 and nRow=1
+*** Optimizer selects table 1 for loop 1 with cost=7 and nRow=1
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=600.5 cost=24020.0 used=0x0
+best index is: none
+auto-index reduces cost from 24020.0 to 16.0
+=== table 0 is best so far with cost=16 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=16 and nRow=5
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE lineitem (~6005 rows)|
+0|1|1|SEARCH TABLE part USING INDEX sqlite_autoindex_PART_1 (P_PARTKEY=?) (~1 rows)|
+0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 1|
+1|0|0|SEARCH TABLE lineitem USING AUTOMATIC COVERING INDEX (L_PARTKEY=?) (~5 rows)|
+||||

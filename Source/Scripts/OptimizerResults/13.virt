@@ -1,0 +1,63 @@
+Executing query: 13 (13.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+Recomputing index info for CUSTOMER...
+xBestIndex for CUSTOMER
+  constraint[0]: col=0 termid=0 op=2 usabled=0
+  orderby[0]: col=0 desc=0
+
+Table: CUSTOMER
+Number of constraints: 1
+Cons# 0	Use: False	Col: C_CUSTKEY	Op: =
+Number of orders: 1
+Order# 0	Col: C_CUSTKEY	Asc: True
+Constraint not supported
+Order supported on column: C_CUSTKEY
+Estimated cost: 150
+
+  usage[0]: argvIdx=0 omit=0
+  idxNum=1
+  idxStr=
+  orderByConsumed=1
+  estimatedCost=150
+=== table 0 is best so far with cost=150 and nRow=0
+*** Optimizer selects table 0 for loop 0 with cost=150 and nRow=0
+*** Begin search for loop 1 ***
+=== trying table 1 with isOptimal=1 ===
+Recomputing index info for ORDERS...
+xBestIndex for ORDERS
+  constraint[0]: col=1 termid=2 op=2 usabled=1
+
+Table: ORDERS
+Number of constraints: 1
+Cons# 0	Use: True	Col: O_CUSTKEY	Op: =
+Number of orders: 0
+Constraint(s) supported on column: O_CUSTKEY
+Order not supported
+Estimated cost: 15
+
+  usage[0]: argvIdx=1 omit=1
+  idxNum=2
+  idxStr=
+  orderByConsumed=0
+  estimatedCost=15
+=== table 1 is best so far with cost=15 and nRow=0
+*** Optimizer selects table 1 for loop 1 with cost=15 and nRow=0
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_subquery_36B6F8_(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100.0 cost=1000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=1000 and nRow=100
+*** Optimizer selects table 0 for loop 0 with cost=1000 and nRow=100
+*** Optimizer Finished ***
+
+1|0|0|SCAN TABLE customer VIRTUAL TABLE INDEX 1: (~0 rows)|
+1|1|1|SCAN TABLE orders VIRTUAL TABLE INDEX 2: (~0 rows)|
+0|0|0|SCAN SUBQUERY 1 AS c_orders (~100 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||

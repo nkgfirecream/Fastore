@@ -182,6 +182,7 @@ namespace fastore { namespace client
 
 		// Establish connection, retrying if necessary
 		auto retries = MaxConnectionRetries;
+		int timeToSleep = 2000;
 		while (true)
 			try
 			{
@@ -193,6 +194,11 @@ namespace fastore { namespace client
 			{
 				if (retries == 0)
 					throw;
+				else
+				{
+					usleep(timeToSleep);
+					timeToSleep *= 10;					
+				}
 			}
 
 		try

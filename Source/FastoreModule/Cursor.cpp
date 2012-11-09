@@ -5,13 +5,16 @@
 namespace client = fastore::client;
 namespace module = fastore::module;
 
-module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1) { }
+module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1), _lastIdxNum(0), _needsReset(true) { }
 
 int module::Cursor::next()
 {
 	++_index;
 	if (size_t(_index) == _set.Data.size())
+	{
 		getNextSet();
+		_needsReset = true;
+	}
 
 	return SQLITE_OK;
 }
@@ -83,40 +86,63 @@ void module::Cursor::getNextSet()
 
 int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
 {
-	//Clear variables...
-	_index = -1;
-	_set = RangeSet();
+	
+	//idxNum is either colIdx + 1, ~(colIdx + 1) or 0 (0 = full table pull)
+	int colIndex = idxNum > 0 ? idxNum - 1 : (idxNum < 0 ? (~idxNum) - 1 : 0); 
+	std::string idx;
+	if (idxStr != NULL)
+		idx = std::string(idxStr);
 
-	//Set up new range
-	_range = createRange(idxNum, idxStr, argc, argv); 
+	std::vector<std::string> values = getVector(colIndex, argc, argv);
+	if (!_needsReset && _lastIdxNum == idxNum && _lastIdxString == idx && compareVectors(values, _lastValues))
+	{
+		//Exact same request for the same data. Just rewind
+		_index = 0;
+	}
+	else
+	{
+		//Pull new data...
+		_lastIdxNum = idxNum;
+		_lastIdxString = idx;
+		_lastValues = values;		
 
-	//Pull first set.
-	getNextSet();
+
+		//Clear variables...
+		_index = -1;
+		_set = RangeSet();
+
+		//Set up new range
+		//Idxnum > 0 = ascending, < 0 = desc, 0 = no index column (full table pull)
+		bool ascending = idxNum > 0;
+		_range = createRange(ascending, colIndex, _lastIdxString, _lastValues); 
+
+		//Pull first set.
+		getNextSet();
+		_needsReset = false;
+	}
 
 	return SQLITE_OK;
 }
 
 
-client::Range module::Cursor::createRange(int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
+client::Range module::Cursor::createRange(bool ascending, int colIndex, std::string& idxStr, std::vector<std::string>& values)
 {
 	client::Range range;
-	//Idxnum > 0 = ascending, < 0 = desc, 0 = no index column (full table pull)
-	range.Ascending = idxNum >= 0;
 	
-	//idxNum is either colIdx + 1, ~(colIdx + 1) or 0 (0 = full table pull)
+	range.Ascending = ascending;	
 	//TODO: Figure out how to grab all the rowIds when there isn't a key column. 
 	//Should this be masked from SQLite? 
 	//Should the client support a "get all keys" operation and we iterate over them?
 	//Should we force at least one required column?
-	int colIndex = idxNum > 0 ? idxNum - 1 : (idxNum < 0 ? (~idxNum) - 1 : 0); 
+	
 	range.ColumnID = _table->_columns[colIndex].ColumnID;
 
-	if (idxStr != NULL)
+	if (!idxStr.empty())
 	{
 		if (idxStr[0] == SQLITE_INDEX_CONSTRAINT_EQ)
 		{
 			client::RangeBound bound;
-			bound.Bound = convertSqliteValueToString(colIndex, argv[0]);
+			bound.Bound = values[0];
 			bound.Inclusive = true;
 		
 			range.End = bound;
@@ -124,9 +150,9 @@ client::Range module::Cursor::createRange(int idxNum, const char *idxStr, int ar
 		}
 		else
 		{
-			for (int i = 0; i < argc; i++)
+			for (int i = 0; i < values.size(); i++)
 			{
-				client::RangeBound bound = getBound(colIndex, idxStr[i], argv[i]);
+				client::RangeBound bound = getBound(colIndex, idxStr[i], values[i]);
 				if (range.Ascending)
 				{
 					if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[i] == SQLITE_INDEX_CONSTRAINT_GE)
@@ -149,7 +175,7 @@ client::Range module::Cursor::createRange(int idxNum, const char *idxStr, int ar
 }
 
 
-client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg)
+client::RangeBound module::Cursor::getBound(int col, char op, std::string& boundValue)
 {
 	client::RangeBound bound;
 	if (op == SQLITE_INDEX_CONSTRAINT_GE || op == SQLITE_INDEX_CONSTRAINT_LE)
@@ -157,7 +183,7 @@ client::RangeBound module::Cursor::getBound(int col, char op, sqlite3_value* arg
 	else
 		bound.Inclusive = false;
 
-	bound.Bound = convertSqliteValueToString(col, arg);
+	bound.Bound = boundValue;
 
 	return bound;
 }
@@ -186,4 +212,28 @@ std::string module::Cursor::convertSqliteValueToString(int col, sqlite3_value* a
 	return result;
 }
 
+std::vector<std::string> module::Cursor::getVector(int colIndex, int argc, sqlite3_value** args)
+{
+	std::vector<std::string> result(argc);
+	for (int i = 0; i < argc; ++i)
+	{
+		result[i] = convertSqliteValueToString(colIndex, args[i]);
+	}
+
+	return result;
+}
+
+bool module::Cursor::compareVectors(std::vector<std::string> left, std::vector<std::string> right)
+{
+	if (left.size() != right.size())
+		return false;
+
+	for (size_t i = 0; i < left.size(); ++i)
+	{
+		if (left[i] != right[i])
+			return false;
+	}
+
+	return true;
+}
 

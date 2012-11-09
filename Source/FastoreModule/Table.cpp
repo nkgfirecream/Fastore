@@ -323,52 +323,52 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 	//row and checking the constraint against the row.
 
 	//TODO: In the case of multiples (for example, two >=,>= or whatever) we can support it and figure out which one to use in filter.
-	std::cout << std::endl << "Table: " << _name << std::endl;
-	std::cout << "Number of constraints: " << info->nConstraint << std::endl;
-	for (int i = 0; i < info->nConstraint; ++i)
-	{
-		auto c = info->aConstraint[i];
-		std::cout << "Cons# " << i;// << std::endl;
-		std::cout << "\tUse: " << (c.usable ? "True" : "False");
-		std::cout << "\tCol: " << _columns[c.iColumn].Name;
-		std::cout << "\tOp: ";
-		switch(c.op)
-		{
-			case SQLITE_INDEX_CONSTRAINT_EQ:
-				std::cout << "=";
-				break;
-			case SQLITE_INDEX_CONSTRAINT_GE:
-				std::cout << ">=";
-				break;
-			case SQLITE_INDEX_CONSTRAINT_GT:
-				std::cout << ">";
-				break;
-			case SQLITE_INDEX_CONSTRAINT_LE:
-				std::cout << "<=";
-				break;
-			case SQLITE_INDEX_CONSTRAINT_LT:
-				std::cout << "<";
-				break;
-			case SQLITE_INDEX_CONSTRAINT_MATCH:
-				std::cout << "match";
-				break;
-			default:
-				std::cout << "unknown";
-				break;
-		}
+	//std::cout << std::endl << "Table: " << _name << std::endl;
+	//std::cout << "Number of constraints: " << info->nConstraint << std::endl;
+	//for (int i = 0; i < info->nConstraint; ++i)
+	//{
+	//	auto c = info->aConstraint[i];
+	//	std::cout << "Cons# " << i;// << std::endl;
+	//	std::cout << "\tUse: " << (c.usable ? "True" : "False");
+	//	std::cout << "\tCol: " << _columns[c.iColumn].Name;
+	//	std::cout << "\tOp: ";
+	//	switch(c.op)
+	//	{
+	//		case SQLITE_INDEX_CONSTRAINT_EQ:
+	//			std::cout << "=";
+	//			break;
+	//		case SQLITE_INDEX_CONSTRAINT_GE:
+	//			std::cout << ">=";
+	//			break;
+	//		case SQLITE_INDEX_CONSTRAINT_GT:
+	//			std::cout << ">";
+	//			break;
+	//		case SQLITE_INDEX_CONSTRAINT_LE:
+	//			std::cout << "<=";
+	//			break;
+	//		case SQLITE_INDEX_CONSTRAINT_LT:
+	//			std::cout << "<";
+	//			break;
+	//		case SQLITE_INDEX_CONSTRAINT_MATCH:
+	//			std::cout << "match";
+	//			break;
+	//		default:
+	//			std::cout << "unknown";
+	//			break;
+	//	}
 
-		std::cout << std::endl;
-	}
+	//	std::cout << std::endl;
+	//}
 
-	std::cout << "Number of orders: " << info->nOrderBy << std::endl;
-	for (int i = 0; i < info->nOrderBy; ++i)
-	{
-		auto o = info->aOrderBy[i];
-		std::cout << "Order# " << i;// << std::endl;
-		std::cout << "\tCol: " << _columns[o.iColumn].Name; //<< std::endl;
-		std::cout << "\tAsc: " << (o.desc ? "False" : "True");// << std::endl;
-		std::cout << std::endl;
-	}
+	//std::cout << "Number of orders: " << info->nOrderBy << std::endl;
+	//for (int i = 0; i < info->nOrderBy; ++i)
+	//{
+	//	auto o = info->aOrderBy[i];
+	//	std::cout << "Order# " << i;// << std::endl;
+	//	std::cout << "\tCol: " << _columns[o.iColumn].Name; //<< std::endl;
+	//	std::cout << "\tAsc: " << (o.desc ? "False" : "True");// << std::endl;
+	//	std::cout << std::endl;
+	//}
 
 
 
@@ -485,14 +485,19 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 		info->idxNum = 0;
 
 	//Step 5. Estimate total cost
+	double numrows;
 	if (useConstraint)
-		info->estimatedCost = static_cast<double>(weights.begin()->first);
+		numrows = static_cast<double>(weights.begin()->first);
 	else if (useOrder)
-		info->estimatedCost = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
+		numrows = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
 	else
-		info->estimatedCost = static_cast<double>(maxColTot()); //If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
+		numrows = static_cast<double>(maxColTot()); //If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
 
-	if (useConstraint)
+	double numtrips = numrows / ROWSPERQUERY;
+
+	info->estimatedCost = numrows + (numtrips * QUERYOVERHEAD);
+	info->estimatedCost = numrows;
+	/*if (useConstraint)
 	{
 		std::cout << "Constraint(s) supported on column: " << _columns[whichColumn].Name << std::endl;
 	}
@@ -510,7 +515,7 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 		std::cout << "Order not supported" << std::endl;
 	}
 
-	std::cout << "Estimated cost: " << info->estimatedCost << std::endl << std::endl;
+	std::cout << "Estimated cost: " << info->estimatedCost << std::endl << std::endl;*/
 
 	return SQLITE_OK;
 }
@@ -518,9 +523,9 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 client::RangeSet module::Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
 {
 	if (_transaction != NULL)
-		return _transaction->GetRange(_columnIds, range, 500, startId);
+		return _transaction->GetRange(_columnIds, range, ROWSPERQUERY, startId);
 	else
-		return _connection->_database->GetRange(_columnIds, range, 500, startId);
+		return _connection->_database->GetRange(_columnIds, range, ROWSPERQUERY, startId);
 }
 
 int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)

@@ -1,0 +1,28 @@
+Executing query: 4 (4.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=83.3 cost=24000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=83.3 cost=24000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=24000 and nRow=83.3333
+*** Optimizer selects table 0 for loop 0 with cost=24000 and nRow=83.3333
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=300.3 cost=24020.0 used=0x0
+best index is: none
+auto-index reduces cost from 24020.0 to 584.5
+=== table 0 is best so far with cost=584.48 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=584.48 and nRow=5
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE orders (~83 rows)|
+0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 1|
+1|0|0|SEARCH TABLE lineitem USING AUTOMATIC COVERING INDEX (L_ORDERKEY=?) (~5 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

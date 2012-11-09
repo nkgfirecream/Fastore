@@ -1,0 +1,45 @@
+Executing query: 22 (22.OUT)
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+CUSTOMER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=12.5 cost=1950.0 used=0x0
+CUSTOMER(sqlite_autoindex_CUSTOMER_1): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=12.5 cost=1950.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=1950 and nRow=12.5
+*** Optimizer selects table 0 for loop 0 with cost=1950 and nRow=12.5
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+CUSTOMER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=25.0 cost=600.0 used=0x0
+CUSTOMER(sqlite_autoindex_CUSTOMER_1): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=25.0 cost=600.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=600 and nRow=25
+*** Optimizer selects table 0 for loop 0 with cost=600 and nRow=25
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+ORDERS(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=150.0 cost=6000.0 used=0x0
+ORDERS(sqlite_autoindex_ORDERS_1): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=150.0 cost=6000.0 used=0x0
+best index is: none
+auto-index reduces cost from 6000.0 to 968.0
+=== table 0 is best so far with cost=968 and nRow=5
+*** Optimizer selects table 0 for loop 0 with cost=968 and nRow=5
+*** Optimizer Finished ***
+
+0|0|0|SCAN TABLE customer (~12 rows)|
+0|0|0|EXECUTE LIST SUBQUERY 1|
+0|0|0|EXECUTE SCALAR SUBQUERY 1|
+1|0|0|SCAN TABLE customer (~25 rows)|
+1|0|0|EXECUTE LIST SUBQUERY 2|
+0|0|0|EXECUTE CORRELATED SCALAR SUBQUERY 2|
+2|0|0|SEARCH TABLE orders USING AUTOMATIC COVERING INDEX (O_CUSTKEY=?) (~5 rows)|
+0|0|0|USE TEMP B-TREE FOR GROUP BY|
+||||

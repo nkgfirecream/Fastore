@@ -1,0 +1,123 @@
+Executing query: 15 (15.OUT)
+//Query 15 actually has three parts. Create a view, run a query, drop the view.
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_master(ipk): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x4011000
+         notReady=0xffffffffffffffff log10N=6.0 nRow=1.0 cost=7.0 used=0x0
+best index is: ipk
+=== table 0 is best so far with cost=7 and nRow=1
+*** Optimizer selects table 0 for loop 0 with cost=7 and nRow=1
+*** Optimizer Finished ***
+create view revenue0 as
+	select
+		l_suppkey as supplier_no,
+		sum(l_extendedprice * (1 - l_discount)) as total_revenue
+	from
+		lineitem
+	where
+		l_shipdate >= date('1996-01-01')
+		and l_shipdate < date('1996-01-01', '+3 month')
+	group by
+		l_suppkey
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_master(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x1022000
+         notReady=0xffffffffffffffff log10N=6.0 nRow=100000.0 cost=1000006.0 used=0x0
+best index is: ipk
+=== table 0 is best so far with cost=1.00001e+06 and nRow=100000
+*** Optimizer selects table 0 for loop 0 with cost=1.00001e+06 and nRow=100000
+*** Optimizer Finished ***
+
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=667.2 cost=96080.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=96080 and nRow=667.222
+*** Optimizer selects table 0 for loop 0 with cost=96080 and nRow=667.222
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=1 ===
+SUPPLIER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=10.0 cost=70.0 used=0x0
+SUPPLIER(sqlite_autoindex_SUPPLIER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x5033000
+         notReady=0x1 log10N=1.0 nRow=1.0 cost=3.0 used=0x2
+best index is: sqlite_autoindex_SUPPLIER_1
+=== trying table 1 with isOptimal=1 ===
+revenue0(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0x2 log10N=1.0 nRow=10.0 cost=1000.0 used=0x0
+best index is: none
+=== table 1 is best so far with cost=1000 and nRow=10
+*** Optimizer selects table 1 for loop 0 with cost=1000 and nRow=10
+*** Begin search for loop 1 ***
+=== trying table 0 with isOptimal=1 ===
+SUPPLIER(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0x1 log10N=1.0 nRow=2.0 cost=40.0 used=0x0
+SUPPLIER(sqlite_autoindex_SUPPLIER_1): nEq=1 nInMul=1 rangeDiv=1 bSort=0 bLookup=1 wsFlags=0x4011000
+         notReady=0x1 log10N=1.0 nRow=1.0 cost=3.0 used=0x2
+best index is: sqlite_autoindex_SUPPLIER_1
+=== table 0 is best so far with cost=3 and nRow=1
+*** Optimizer selects table 0 for loop 1 with cost=3 and nRow=1
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+LINEITEM(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=667.2 cost=96080.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=96080 and nRow=667.222
+*** Optimizer selects table 0 for loop 0 with cost=96080 and nRow=667.222
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+revenue0(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=1 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100.0 cost=1000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=1000 and nRow=100
+*** Optimizer selects table 0 for loop 0 with cost=1000 and nRow=100
+*** Optimizer Finished ***
+
+1|0|0|SCAN TABLE lineitem (~667 rows)|
+1|0|0|USE TEMP B-TREE FOR GROUP BY|
+0|0|1|SCAN SUBQUERY 1 (~10 rows)|
+0|0|0|EXECUTE SCALAR SUBQUERY 2|
+3|0|0|SCAN TABLE lineitem (~667 rows)|
+3|0|0|USE TEMP B-TREE FOR GROUP BY|
+2|0|0|SEARCH SUBQUERY 3 (~1 rows)|
+0|1|0|SEARCH TABLE supplier USING INDEX sqlite_autoindex_SUPPLIER_1 (S_SUPPKEY=?) (~1 rows)|
+0|0|0|USE TEMP B-TREE FOR ORDER BY|
+||||
+
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_stat1(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100000.0 cost=4000000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=4e+06 and nRow=100000
+*** Optimizer selects table 0 for loop 0 with cost=4e+06 and nRow=100000
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_stat3(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=100000.0 cost=4000000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=4e+06 and nRow=100000
+*** Optimizer selects table 0 for loop 0 with cost=4e+06 and nRow=100000
+*** Optimizer Finished ***
+*** Optimizer Start ***
+*** Begin search for loop 0 ***
+=== trying table 0 with isOptimal=0 ===
+sqlite_master(ipk): nEq=0 nInMul=1 rangeDiv=1 bSort=0 bLookup=0 wsFlags=0x0
+         notReady=0xffffffffffffffff log10N=1.0 nRow=50000.0 cost=4000000.0 used=0x0
+best index is: none
+=== table 0 is best so far with cost=4e+06 and nRow=50000
+*** Optimizer selects table 0 for loop 0 with cost=4e+06 and nRow=50000
+*** Optimizer Finished ***
+drop view revenue0

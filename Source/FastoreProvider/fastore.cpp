@@ -260,6 +260,10 @@ ColumnValueStringResult fastoreColumnValueAString(StatementHandle statement, int
 				*targetMaxBytes = min(*targetMaxBytes, int(value.get().size()));
 				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
 			}
+			else
+			{
+				*targetMaxBytes = 0;
+			}
 		}
 	);
 }
@@ -276,6 +280,10 @@ ColumnValueStringResult fastoreColumnValueWString(StatementHandle statement, int
 			{
 				*targetMaxBytes = min(*targetMaxBytes, int(value.get().size() * sizeof(wchar_t)));
 				memcpy(valueTarget, value.get().data(), *targetMaxBytes);
+			}
+			else
+			{
+				*targetMaxBytes = 0;
 			}
 		}
 	);
