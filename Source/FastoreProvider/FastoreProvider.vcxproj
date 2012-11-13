@@ -98,7 +98,6 @@
     <ClInclude Include="Address.h" />
     <ClInclude Include=".\Statement.h" />
     <ClInclude Include="fastore.h" />
-    <ClInclude Include="LexCompare.h" />
     <ClInclude Include="SQLiteHelpers.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

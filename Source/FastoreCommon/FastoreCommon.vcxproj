@@ -59,6 +59,7 @@
     <ClInclude Include="Type\standardtypes.h" />
     <ClInclude Include="Type\StringTypes.h" />
     <ClInclude Include="Type\tuple.h" />
+    <ClInclude Include="Utility\LexCompare.h" />
     <ClInclude Include="Utility\safe_cast.h" />
     <ClInclude Include="Utility\Stopwatch.h" />
     <ClInclude Include="Utility\utilities.h" />

@@ -31,9 +31,9 @@ namespace fastore
 
 				client::Range createRange(bool ascending, int colIndex, std::string& idxStr, std::vector<std::string>& values);
 				client::RangeBound getBound(int col, char op, std::string& boundValue);
-				std::string convertSqliteValueToString(int col, sqlite3_value* arg);
+				int convertSqliteValueToString(int col, sqlite3_value* arg, std::string& out);
 				bool compareVectors(std::vector<std::string> left, std::vector<std::string> right);
-				std::vector<std::string> getVector(int columnIndex, int count, sqlite3_value **args);
+				int getVector(int columnIndex, int count, sqlite3_value **args, std::vector<std::string>& out);
 		};
 	}
 }

@@ -1,6 +1,7 @@
 #include "Cursor.h"
 //#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Encoder.h"
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 namespace client = fastore::client;
 namespace module = fastore::module;
@@ -31,24 +32,33 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 	if (!value.__isset.value)
 		sqlite3_result_null(pContext);
 
-	auto type = _table->_columns[index].ValueType.Name;
-	//This function is static, and must be intialized. However,
-	//this cursor can't exist without table, so the table static functions
-	//must be initialized at this point. Consider refactoring.
-	int datatype = module::Table::FastoreTypeToSQLiteTypeID(type);
-	switch(datatype)
+	auto declaredType = _table->_declaredTypes[index];
+	
+	//Special handing for dates
+	if (strcasecmp(declaredType.c_str(), "date") == 0 || strcasecmp(declaredType.c_str(), "datetime") == 0)
 	{
-		case SQLITE_TEXT:
-			sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
-			break;
-		case SQLITE_INTEGER:
-			sqlite3_result_int64(pContext, Encoder<int64_t>::Decode(value.value));
-			break;
-		case SQLITE_FLOAT:
-			sqlite3_result_double(pContext, Encoder<double>::Decode(value.value));
-			break;
-		default:
-			return SQLITE_MISMATCH;
+		time_t epoch =  Encoder<int64_t>::Decode(value.value);
+		boost::posix_time::ptime p = boost::posix_time::from_time_t(epoch);
+		auto string = boost::posix_time::to_iso_string(p);
+		sqlite3_result_text(pContext, string.data(), -1, SQLITE_TRANSIENT);
+	}
+	else 
+	{
+		int datatype = _table->declaredTypeToSQLiteTypeID[declaredType];
+		switch(datatype)
+		{
+			case SQLITE_TEXT:
+				sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
+				break;
+			case SQLITE_INTEGER:
+				sqlite3_result_int64(pContext, Encoder<int64_t>::Decode(value.value));
+				break;
+			case SQLITE_FLOAT:
+				sqlite3_result_double(pContext, Encoder<double>::Decode(value.value));
+				break;
+			default:
+				return SQLITE_MISMATCH;
+		}
 	}
 
 	return SQLITE_OK;
@@ -93,7 +103,12 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 	if (idxStr != NULL)
 		idx = std::string(idxStr);
 
-	std::vector<std::string> values = getVector(colIndex, argc, argv);
+	std::vector<std::string> values;
+	int result = getVector(colIndex, argc, argv, values);
+	//In case SQLITE gives us bad values to filter by (for example, a string in a integer column)
+	if (result != SQLITE_OK)
+		return result;
+
 	if (!_needsReset && _lastIdxNum == idxNum && _lastIdxString == idx && compareVectors(values, _lastValues))
 	{
 		//Exact same request for the same data. Just rewind
@@ -188,39 +203,24 @@ client::RangeBound module::Cursor::getBound(int col, char op, std::string& bound
 	return bound;
 }
 
-std::string module::Cursor::convertSqliteValueToString(int col, sqlite3_value* arg)
+int module::Cursor::convertSqliteValueToString(int col, sqlite3_value* arg, std::string& out)
 {
-	std::string type = _table->_columns[col].ValueType.Name;
-	std::string result;
-	int datatype = module::Table::FastoreTypeToSQLiteTypeID(type);
-
-	switch(datatype)
-	{
-		case SQLITE_TEXT:
-			result = std::string((char *)sqlite3_value_text(arg));
-			break;
-		case SQLITE_INTEGER:
-			result = Encoder<int64_t>::Encode(sqlite3_value_int64(arg));
-			break;
-		case SQLITE_FLOAT:
-			result = Encoder<double>::Encode(sqlite3_value_double(arg));
-			break;
-		default:
-			throw "ModuleCursor can't find correct type for RangeBound encoding!";
-	}
-
-	return result;
+	std::string type = _table->_declaredTypes[col];
+	int converted = _table->tryConvertValue(arg, type, out);
+	return converted;
 }
 
-std::vector<std::string> module::Cursor::getVector(int colIndex, int argc, sqlite3_value** args)
+int module::Cursor::getVector(int colIndex, int argc, sqlite3_value** args, std::vector<std::string>& out)
 {
 	std::vector<std::string> result(argc);
 	for (int i = 0; i < argc; ++i)
 	{
-		result[i] = convertSqliteValueToString(colIndex, args[i]);
+		int converted = convertSqliteValueToString(colIndex, args[i], result[i]);
+		if (converted != SQLITE_OK)
+			return converted;
 	}
 
-	return result;
+	return SQLITE_OK;
 }
 
 bool module::Cursor::compareVectors(std::vector<std::string> left, std::vector<std::string> right)

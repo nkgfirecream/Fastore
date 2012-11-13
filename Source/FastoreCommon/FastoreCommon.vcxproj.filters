@@ -170,5 +170,8 @@
     <ClInclude Include="Buffer\ColumnDef.h">
       <Filter>Buffer</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\LexCompare.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

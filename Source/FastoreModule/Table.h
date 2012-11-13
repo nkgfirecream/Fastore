@@ -2,6 +2,7 @@
 #include <sqlite3.h>
 #include "Connection.h"
 #include "../FastoreCommon/Buffer/ColumnDef.h"
+#include "../FastoreCommon/Utility/LexCompare.h"
 #include <map>
 
 namespace client = fastore::client;
@@ -19,12 +20,9 @@ namespace fastore
 
 		private:
 			
-			static std::map<std::string, ScalarType> sqliteTypesToFastoreTypes;
-			static std::map<int, std::string> sqliteTypeIDToFastoreTypes;
-			static std::map<std::string, int> fastoreTypeToSQLiteTypeID;
+			static std::map<std::string, ScalarType, LexCompare> declaredTypeToFastoreType;
+			static std::map<std::string, int, LexCompare>  declaredTypeToSQLiteTypeID;
 
-			static ScalarType SQLiteTypeToFastoreType(const std::string &SQLiteType);
-			static int FastoreTypeToSQLiteTypeID(const std::string &fastoreType);
 			static void EnsureFastoreTypeMaps();
 
 			const static int MAXTABLEOPERATIONS = 10000;
@@ -37,6 +35,9 @@ namespace fastore
 			std::string _ddl;
 			int64_t _id;
 			int _numoperations;
+
+			//These are all structures to manage columns. Can we combine to reduce management?
+			std::vector<std::string> _declaredTypes;
 			std::vector<ColumnDef> _columns;
 			std::vector<communication::ColumnID> _columnIds;
 			std::vector<communication::Statistic> _stats;
@@ -77,6 +78,9 @@ namespace fastore
 			int64_t maxColTot();
 
 			ColumnDef parseColumnDef(std::string text, bool& isDef);
+			int convertValues(sqlite3_value **argv, communication::ColumnIDs& columns, std::vector<std::string>& row);
+			void encodeSQLiteValue(sqlite3_value* pValue, int type, std::string& out);
+			int tryConvertValue(sqlite3_value* pValue, std::string declaredType, std::string& out);
 
 			void createColumn(ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId);
 

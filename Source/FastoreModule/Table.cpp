@@ -6,6 +6,7 @@
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/Transaction.h"
 #include <boost/assign/list_of.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Utilities.h"
 #include <sstream>
 
@@ -13,9 +14,8 @@ namespace module = fastore::module;
 namespace client = fastore::client;
 namespace communication = fastore::communication;
 
-std::map<std::string, ScalarType>  module::Table::sqliteTypesToFastoreTypes;
-std::map<int, std::string>  module::Table::sqliteTypeIDToFastoreTypes;
-std::map<std::string, int> module::Table::fastoreTypeToSQLiteTypeID;
+std::map<std::string, ScalarType, LexCompare>  module::Table::declaredTypeToFastoreType;
+std::map<std::string, int, LexCompare>  module::Table::declaredTypeToSQLiteTypeID;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
 	: _connection(connection), _name(name),  _ddl(ddl), _rowIDIndex(-1), _numoperations(0)
@@ -25,27 +25,22 @@ module::Table::Table(module::Connection* connection, const std::string& name, co
 
 void module::Table::EnsureFastoreTypeMaps()
 {
-	if (sqliteTypesToFastoreTypes.size() == 0)
+	if (declaredTypeToFastoreType.size() == 0)
 	{
-		sqliteTypesToFastoreTypes["varchar"] = standardtypes::String;
-		sqliteTypesToFastoreTypes["int"] = standardtypes::Long;
-		sqliteTypesToFastoreTypes["float"] = standardtypes::Double;
-		sqliteTypesToFastoreTypes["date"] = standardtypes::String;
-		sqliteTypesToFastoreTypes["datetime"] = standardtypes::String;
+		declaredTypeToFastoreType["varchar"] = standardtypes::String;
+		declaredTypeToFastoreType["int"] = standardtypes::Long;
+		declaredTypeToFastoreType["float"] = standardtypes::Double;
+		declaredTypeToFastoreType["date"] = standardtypes::Long;
+		declaredTypeToFastoreType["datetime"] = standardtypes::Long;
 	}
 
-	if (sqliteTypeIDToFastoreTypes.size() == 0)
+	if (declaredTypeToSQLiteTypeID.size() == 0)
 	{
-		sqliteTypeIDToFastoreTypes[SQLITE_INTEGER] = "Long";
-		sqliteTypeIDToFastoreTypes[SQLITE_TEXT] = "String";
-		sqliteTypeIDToFastoreTypes[SQLITE_FLOAT] = "Double";
-	}
-
-	if (fastoreTypeToSQLiteTypeID.size() == 0)
-	{
-		fastoreTypeToSQLiteTypeID["String"] = SQLITE_TEXT;
-		fastoreTypeToSQLiteTypeID["Long"] = SQLITE_INTEGER;
-		fastoreTypeToSQLiteTypeID["Double"] = SQLITE_FLOAT;
+		declaredTypeToSQLiteTypeID["varchar"] = SQLITE_TEXT;
+		declaredTypeToSQLiteTypeID["int"] = SQLITE_INTEGER;
+		declaredTypeToSQLiteTypeID["float"] = SQLITE_FLOAT;
+		declaredTypeToSQLiteTypeID["date"] = SQLITE_INTEGER;
+		declaredTypeToSQLiteTypeID["datetime"] = SQLITE_INTEGER;
 	}
 }
 
@@ -578,80 +573,11 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 	std::string rowid = Encoder<sqlite3_int64>::Encode(rowIdInt);
 
 	std::vector<std::string> row;
-
 	communication::ColumnIDs includedColumns;
-	for (size_t i = 0; i < _columns.size(); ++i)
-	{
-		auto pValue = argv[i+2];
-		if (sqlite3_value_type(pValue) != SQLITE_NULL)
-		{
-			std::string type = _columns[i].ValueType.Name;
-			int datatype = sqlite3_value_type(pValue);
-			int desiredType = FastoreTypeToSQLiteTypeID(type);
 
-			//TODO: Handle conversions
-			//if (datatype != desiredType && datatype != SQLITE_BLOB) //For blobs, just do what we can
-			//{
-			//	switch(desiredType)
-			//	{
-			//		//Conversion to float is:
-			//		case SQLITE_FLOAT:
-			//			{
-			//			//Fine if it can be converted losslessly to a float or int
-			//			int converted = sqlite3_value_numeric_type(pValue);
-			//			if (converted == SQLITE_INTEGER || converted == SQLITE_FLOAT)
-			//				break;
-			//			//Otherwise it's not ok
-			//			else
-			//				return SQLITE_MISMATCH;						
-			//			}
-			//			break;
-
-			//		//Conversion to text is:
-			//		case SQLITE_TEXT:
-			//			//always ok
-			//			break;
-
-			//		//Conversion to int is:
-			//		case SQLITE_INTEGER:
-			//			//fine if it can be converted losslessly
-			//			if (sqlite3_value_numeric_type(pValue) == SQLITE_INTEGER)
-			//				break;
-			//			else
-			//				return SQLITE_MISMATCH;
-			//			break;
-
-			//		default:
-			//			return SQLITE_MISMATCH;
-			//			break;
-			//	}
-			//}
-
-			std::string value;
-
-			switch(desiredType)
-			{
-				case SQLITE_TEXT:
-					value = std::string((const char *)sqlite3_value_text(pValue));
-					break;
-				case SQLITE_INTEGER:
-					value = Encoder<int64_t>::Encode(sqlite3_value_int64(pValue));
-					break;
-				case SQLITE_FLOAT:
-					value = Encoder<double>::Encode(sqlite3_value_double(pValue));
-					break;
-				default:
-					return SQLITE_MISMATCH;
-			}
-
-			row.push_back(value);
-			includedColumns.push_back(_columns[i].ColumnID);
-		}
-		else if (_columns[i].Required)
-		{
-			return SQLITE_CONSTRAINT;
-		}
-	}	
+	int result = convertValues(argv, includedColumns, row);
+	if (result != SQLITE_OK)
+		return result;
 
 	if (_transaction != NULL)
 		_transaction->Include(includedColumns, rowid, row);
@@ -659,6 +585,92 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		_connection->_database->Include(includedColumns, rowid, row);
 
 	return SQLITE_OK;
+}
+
+int module::Table::convertValues(sqlite3_value **argv, communication::ColumnIDs& columns, std::vector<std::string>& row)
+{
+	for (size_t i = 0; i < _columns.size(); ++i)
+	{
+		auto pValue = argv[i+2];
+		if (sqlite3_value_type(pValue) != SQLITE_NULL)
+		{
+			std::string type = _declaredTypes[i];
+			std::string value;
+
+			int result = tryConvertValue(pValue, type, value);
+			if (result != SQLITE_OK)
+				return result;					
+
+			row.push_back(value);
+			columns.push_back(_columns[i].ColumnID);
+		}
+		else if (_columns[i].Required)
+		{
+			return SQLITE_CONSTRAINT;
+		}
+	}	
+
+	return SQLITE_OK;
+}
+
+int module::Table::tryConvertValue(sqlite3_value* pValue, std::string declaredType, std::string& out)
+{
+	static boost::posix_time::ptime start(boost::gregorian::date(1970,1,1));
+	int datatype = sqlite3_value_type(pValue);
+	int desiredType = declaredTypeToSQLiteTypeID[declaredType];
+
+	//If the types match
+	if (datatype == desiredType)
+	{	
+		encodeSQLiteValue(pValue, desiredType, out);
+	}
+	//Try a date time conversion.
+	else if (strcasecmp(declaredType.c_str(), "date") == 0 || strcasecmp(declaredType.c_str(), "datetime") == 0)
+	{
+		std::string timestring = std::string((const char *)sqlite3_value_text(pValue));
+		boost::posix_time::ptime p = boost::posix_time::time_from_string(timestring);					
+		boost::posix_time::time_duration dur = p - start;
+		time_t epoch = dur.total_seconds();
+		out = Encoder<int64_t>::Encode(epoch);
+	}
+	//Try a lossless conversion
+	else if (desiredType == SQLITE_INTEGER || desiredType == SQLITE_FLOAT)
+	{
+		//First, try a lossless conversion if the desired type is Integer or Numeric
+		int result = sqlite3_value_numeric_type(pValue);
+		encodeSQLiteValue(pValue, desiredType, out);
+	}		
+	//If our desired type is text, just dump whatever got into it (including BLOBS).
+	else if(desiredType == SQLITE_TEXT)
+	{
+		out = std::string((const char *)sqlite3_value_text(pValue));
+	}
+	//No other conversion possible. Return mismatch.
+	else
+	{
+		return SQLITE_MISMATCH;
+	}				
+
+	return SQLITE_OK;
+}
+
+void module::Table::encodeSQLiteValue(sqlite3_value* pValue, int type, std::string& out)
+{
+	switch(type)
+	{
+		case SQLITE_TEXT:
+			out = std::string((const char *)sqlite3_value_text(pValue));
+			break;
+		case SQLITE_INTEGER:
+			out = Encoder<int64_t>::Encode(sqlite3_value_int64(pValue));
+			break;
+		case SQLITE_FLOAT:
+			out = Encoder<double>::Encode(sqlite3_value_double(pValue));
+			break;
+		default:
+			throw "Unrecognized type!";
+			break;
+	}
 }
 
 void module::Table::updateStats()
@@ -717,8 +729,9 @@ ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	}
 	else
 	{
-		//More crappy parser-ness. If we don't recongize a type.. say it's not a column defintion.
-		result.ValueType = SQLiteTypeToFastoreType(type);
+		//More crappy parser-ness. If we don't recongize a type, it'll blow up!
+		_declaredTypes.push_back(type);
+		result.ValueType = declaredTypeToFastoreType[type];
 	}
 
 	isDef = true;
@@ -734,27 +747,6 @@ ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	result.RowIDType = standardtypes::Long;
 	return result;
 }
-
-ScalarType module::Table::SQLiteTypeToFastoreType(const std::string &SQLiteType)
-{
-	auto result = sqliteTypesToFastoreTypes.find(SQLiteType);
-	return result->second;			
-}
-
-int module::Table::FastoreTypeToSQLiteTypeID(const std::string &fastoreType)
-{
-	auto result = fastoreTypeToSQLiteTypeID.find(fastoreType);
-	if (result == fastoreTypeToSQLiteTypeID.end())
-	{
-		std::ostringstream message;
-		message << "Unknown type '" << fastoreType << "'.";
-		std::runtime_error(message.str());
-	}
-
-	return result->second;			
-}
-
-
 
 void module::Table::determineRowIDColumn()
 {

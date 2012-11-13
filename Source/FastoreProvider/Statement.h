@@ -6,7 +6,7 @@
 #include <vector>
 #include <map>
 #include "fastore.h"
-#include "LexCompare.h"
+#include "../FastoreCommon/Utility/LexCompare.h"
 #include <boost/optional.hpp>
 
 namespace fastore 

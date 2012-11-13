@@ -3,6 +3,7 @@
 //#include "../FastoreCore/safe_cast.h"
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/ClientException.h"
+#include "../FastoreCommon/Utility/LexCompare.h"
 #include "SQLiteHelpers.h"
 #include <boost/format.hpp>
 using namespace std;
