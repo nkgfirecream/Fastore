@@ -39,7 +39,7 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 	{
 		time_t epoch =  Encoder<int64_t>::Decode(value.value);
 		boost::posix_time::ptime p = boost::posix_time::from_time_t(epoch);
-		auto string = boost::posix_time::to_iso_string(p);
+		auto string = boost::posix_time::to_simple_string(p);
 		sqlite3_result_text(pContext, string.data(), -1, SQLITE_TRANSIENT);
 	}
 	else 
@@ -219,6 +219,8 @@ int module::Cursor::getVector(int colIndex, int argc, sqlite3_value** args, std:
 		if (converted != SQLITE_OK)
 			return converted;
 	}
+
+	out = result;
 
 	return SQLITE_OK;
 }

@@ -9,6 +9,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Utilities.h"
 #include <sstream>
+#include <time.h>
 
 namespace module = fastore::module;
 namespace client = fastore::client;
@@ -613,39 +614,39 @@ int module::Table::convertValues(sqlite3_value **argv, communication::ColumnIDs&
 	return SQLITE_OK;
 }
 
-int module::Table::tryConvertValue(sqlite3_value* pValue, std::string declaredType, std::string& out)
-{
-	static boost::posix_time::ptime start(boost::gregorian::date(1970,1,1));
+int module::Table::tryConvertValue(sqlite3_value* pValue, std::string& declaredType, std::string& out)
+{	
 	int datatype = sqlite3_value_type(pValue);
 	int desiredType = declaredTypeToSQLiteTypeID[declaredType];
 
-	//If the types match
-	if (datatype == desiredType)
+	//If the types match OR the desired type is string, just dump the data as is (this means blobs get dumped into strings as well).
+	if (datatype == desiredType || desiredType == SQLITE_TEXT)
 	{	
 		encodeSQLiteValue(pValue, desiredType, out);
 	}
 	//Try a date time conversion.
 	else if (strcasecmp(declaredType.c_str(), "date") == 0 || strcasecmp(declaredType.c_str(), "datetime") == 0)
 	{
+		static boost::posix_time::ptime start = boost::posix_time::from_time_t(0);
+
 		std::string timestring = std::string((const char *)sqlite3_value_text(pValue));
-		boost::posix_time::ptime p = boost::posix_time::time_from_string(timestring);					
-		boost::posix_time::time_duration dur = p - start;
+		//TODO: The boost library does handle string->date conversions correctly unless are fully formatted (e.g. YYYY-MM-DD HH:MM:SS).
+		if (timestring.find(':') == string::npos)
+			timestring += " 00:00:00";
+		boost::posix_time::ptime t(boost::posix_time::time_from_string(timestring));					
+		boost::posix_time::time_duration dur = t - start;
 		time_t epoch = dur.total_seconds();
 		out = Encoder<int64_t>::Encode(epoch);
 	}
 	//Try a lossless conversion
 	else if (desiredType == SQLITE_INTEGER || desiredType == SQLITE_FLOAT)
 	{
-		//First, try a lossless conversion if the desired type is Integer or Numeric
+		//TODO: This doesn't always seems to handle numbers entered as strings correctly, so investigate that...
 		int result = sqlite3_value_numeric_type(pValue);
+		//if (result != desiredType)
+		// return SQLITE_MISMATCH;
 		encodeSQLiteValue(pValue, desiredType, out);
 	}		
-	//If our desired type is text, just dump whatever got into it (including BLOBS).
-	else if(desiredType == SQLITE_TEXT)
-	{
-		out = std::string((const char *)sqlite3_value_text(pValue));
-	}
-	//No other conversion possible. Return mismatch.
 	else
 	{
 		return SQLITE_MISMATCH;

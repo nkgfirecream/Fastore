@@ -80,7 +80,7 @@ namespace fastore
 			ColumnDef parseColumnDef(std::string text, bool& isDef);
 			int convertValues(sqlite3_value **argv, communication::ColumnIDs& columns, std::vector<std::string>& row);
 			void encodeSQLiteValue(sqlite3_value* pValue, int type, std::string& out);
-			int tryConvertValue(sqlite3_value* pValue, std::string declaredType, std::string& out);
+			int tryConvertValue(sqlite3_value* pValue, std::string& declaredType, std::string& out);
 
 			void createColumn(ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId);
 
