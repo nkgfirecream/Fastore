@@ -320,14 +320,14 @@ int moduleConnect(sqlite3 *db, void *pAux, int argc, const char *const*argv, sql
 }
 
 //TODO: all of these function need more detail about why they fail, and also real attempts to recover.
-int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info)
+int moduleBestIndex(sqlite3_vtab *pVTab, sqlite3_index_info* info, double* numrows, int numIterations)
 {
 	fastore_vtab *v = reinterpret_cast<fastore_vtab *>(pVTab);
 	return ExceptionsToError
 		(
 			[&]()->int
 			{
-				return v->table->bestIndex(info);
+				return v->table->bestIndex(info, numrows, numIterations);
 			},
 			&v->base.zErrMsg
 		);

@@ -1,3 +1,4 @@
+explain query plan
 select
 	*
 from

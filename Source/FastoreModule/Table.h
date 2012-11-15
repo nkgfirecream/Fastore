@@ -68,7 +68,7 @@ namespace fastore
 			int update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid);
 
 			//Determines best index for table
-			int bestIndex(sqlite3_index_info* info);
+			int bestIndex(sqlite3_index_info* info, double* numRows, int numIterations);
 
 		private:
 			void ensureTable();
@@ -81,6 +81,7 @@ namespace fastore
 			int convertValues(sqlite3_value **argv, communication::ColumnIDs& columns, std::vector<std::string>& row);
 			void encodeSQLiteValue(sqlite3_value* pValue, int type, std::string& out);
 			int tryConvertValue(sqlite3_value* pValue, std::string& declaredType, std::string& out);
+			double costPerRow(int columnIndex);
 
 			void createColumn(ColumnDef& column, std::string& combinedName, RangeSet& podIds, std::string& podId);
 

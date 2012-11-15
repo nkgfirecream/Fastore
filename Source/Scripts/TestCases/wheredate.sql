@@ -3,4 +3,5 @@ select
 from
     lineitem
 where
-	l_shipdate <= date( '1998-12-01','-90 day');
+	l_shipdate >= date('1993-12-01')
+limit 100;

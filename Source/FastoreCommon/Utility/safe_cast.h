@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <limits>
 
-#undef max
+//#undef max
 
 #define SAFE_CAST(t,f) ::safe_cast<t>(__FILE__, __LINE__, (f))
 

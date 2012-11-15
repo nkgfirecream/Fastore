@@ -2,4 +2,4 @@ select
 	* 
 from
     lineitem
-limit 10;
+limit 100;

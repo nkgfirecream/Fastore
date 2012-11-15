@@ -10,6 +10,8 @@
 #include "Utilities.h"
 #include <sstream>
 #include <time.h>
+#include <stdlib.h>
+#include <math.h>
 
 namespace module = fastore::module;
 namespace client = fastore::client;
@@ -309,7 +311,7 @@ char *sqlite3_safe_malloc( size_t n )
 	return reinterpret_cast<char*>( sqlite3_malloc(SAFE_CAST(int,n)) );
 }
 
-int module::Table::bestIndex(sqlite3_index_info* info)
+int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, int numIterations)
 {
 	//TODO: Do some real testing with real data and see what happens.
 	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't (see next line).
@@ -399,17 +401,14 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 
 	//Weight -> column
 	//The std::map is guaranteed to be ordered. We want to do this so that we find the least cost easily (it'll be the first key in the map).
-	std::map<int64_t, int> weights;
+	std::map<double, int> weights;
 
 	for (auto column = constraintByColumn.begin(); column != constraintByColumn.end(); ++column)
 	{
 		bool isSupported = true;
 
 		//column
-		int colIndex = column->first;
-
-		//cost factor -- strings are a bit more expensive to compare/search than integers.
-		double cost = _columns[colIndex].ValueType.Name == "String" || _columns[colIndex].ValueType.Name == "WString" ? 1.1 : 1;
+		int colIndex = column->first;		
 
 		//Average ids per value
 		double avg = _stats[colIndex].unique > 0 ? double(_stats[colIndex].total) / double(_stats[colIndex].unique) : 1;
@@ -435,8 +434,9 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 		if (isSupported)
 		{
 			//Total cost = percentage of rowIds * number of rowIds * cost per rowId
-			int64_t total = static_cast<int64_t>(static_cast<double>(approxPercent * _stats[colIndex].total) * cost); 
-			weights[total] = colIndex;
+			double totalRows = approxPercent * _stats[colIndex].total;
+			//double totalCost = totalCost * costPerRow(colIndex); //This is just used to favor
+			weights[totalRows] = colIndex;
 		}
 	}
 
@@ -481,39 +481,48 @@ int module::Table::bestIndex(sqlite3_index_info* info)
 		info->idxNum = 0;
 
 	//Step 5. Estimate total cost
-	double numrows;
 	if (useConstraint)
-		numrows = static_cast<double>(weights.begin()->first);
+	{
+		*numRows = weights.begin()->first;
+	}
 	else if (useOrder)
-		numrows = static_cast<double>(_stats[info->aOrderBy[0].iColumn].total);
-	else
-		numrows = static_cast<double>(maxColTot()); //If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
-
-	double numtrips = numrows / ROWSPERQUERY;
-
-	info->estimatedCost = numrows + (numtrips * QUERYOVERHEAD);
-	info->estimatedCost = numrows;
-	/*if (useConstraint)
 	{
-		std::cout << "Constraint(s) supported on column: " << _columns[whichColumn].Name << std::endl;
+		*numRows = (double)_stats[info->aOrderBy[0].iColumn].total;
 	}
 	else
 	{
-		std::cout << "Constraint not supported" << std::endl;
-	}
+		*numRows = (double)maxColTot();
+	}//If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
 
-	if (useOrder)
-	{
-		std::cout << "Order supported on column: " << _columns[whichColumn].Name << std::endl;
-	}
-	else
-	{
-		std::cout << "Order not supported" << std::endl;
-	}
+	info->estimatedCost = (*numRows) + (numIterations * (double)QUERYOVERHEAD); 
 
-	std::cout << "Estimated cost: " << info->estimatedCost << std::endl << std::endl;*/
+	//if (useConstraint)
+	//{
+	//	std::cout << "Constraint(s) supported on column: " << _columns[whichColumn].Name << std::endl;
+	//}
+	//else
+	//{
+	//	std::cout << "Constraint not supported" << std::endl;
+	//}
+
+	//if (useOrder)
+	//{
+	//	std::cout << "Order supported on column: " << _columns[whichColumn].Name << std::endl;
+	//}
+	//else
+	//{
+	//	std::cout << "Order not supported" << std::endl;
+	//}
+
+	//std::cout << "Estimated cost: " << info->estimatedCost << std::endl;
+	//std::cout << "Estimated #rows: " << *numRows << std::endl << std::endl;
 
 	return SQLITE_OK;
+}
+
+double module::Table::costPerRow(int columnIndex)
+{
+	return _columns[columnIndex].ValueType.Name == "String" || _columns[columnIndex].ValueType.Name == "WString" ? 1.1 : 1;
 }
 
 client::RangeSet module::Table::getRange(client::Range& range, const boost::optional<std::string>& startId)

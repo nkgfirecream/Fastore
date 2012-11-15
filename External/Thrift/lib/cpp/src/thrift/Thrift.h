@@ -76,7 +76,7 @@
   THRIFT_OVERLOAD_IF_DEFN(T, Y) = NULL
 
 #define THRIFT_SAFE_CAST(t,f) \
-	apache::thrift::safe_cast<t>(__FILE__, __LINE__, (f))
+	t(f)
 
 // Microsoft defines max egregiously.
 #undef max
