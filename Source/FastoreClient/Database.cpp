@@ -433,7 +433,7 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 	std::vector<WorkerInfo> results;
 	try
 	{
-		// TODO: is there a better better scheme than writing to every worker?  This method takes column IDs in case one arises.
+		// TODO: only write to the workers for the column(s).
 		std::vector<ColumnID> systemColumns;
 		for (auto iter = _schema.begin(); iter != _schema.end(); ++iter)
 		{
@@ -485,63 +485,7 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 	}
 }
 
-void Database::AttemptRead( ColumnID columnId, 
-						    std::function<void(WorkerClient)> work )
-#if 0
-{
-	std::map<PodID, std::exception> errors;
-	clock_t begin, end;
-
-	// Iterate over pods that can work on a column. 
-	for( auto worker = GetWorker(columnId);
-		 errors.find(worker.first) == errors.end();	// max one error per worker
-		 worker = GetWorker(columnId) )
-	{
-		try
-		{
-			begin = clock();
-			work(worker.second);
-			end = clock();
-
-			// Succeeded: record errors and elapsed time. 
-			TrackErrors(errors);
-			TrackTime(worker.first, end - begin);
-
-			_workers.Release(worker);
-			return;
-		}
-		// work() throws an exception if unavailable. 
-		// Log it and try the next pod. 
-		catch (std::exception &e)
-		{
-			Log << log_err << __func__ << ": error: " << e << log_endl;
-			if( errors.find(worker.first) != errors.end() ) {
-				// should never have more than one 
-				ostringstream oops;
-				oops << __FILE__ << ":" << __LINE__ 
-					 << " (" << __func__ << ") " 
-					 << "two exceptions for PodID" << worker.first;
-				throw logic_error(oops.str());
-			}
-			// If the exception is an entity 
-			// (exception coming from the remote), rethrow
-			// TODO: Figure what this will be since TBase doesn't exist in c++
-
-			errors[worker.first] = e;
-			_workers.Release(worker);	// catch & release ... 
-		}
-	}
-		
-	ostringstream oops;
-	oops << __FILE__ << ":" << __LINE__ 
-		 << " (" << __func__ << ") " 
-		 << "All " << errors.size() << " workers "
-		 << "failed for columnID " << columnId;
-		
-	Log << log_err << oops.str() << log_endl;
-	throw runtime_error( oops.str() );
-}
-#else
+void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> work)
 {
 	std::map<PodID, std::exception> errors;
 	clock_t begin;
@@ -598,7 +542,6 @@ void Database::AttemptRead( ColumnID columnId,
 		_workers.Release(worker);
 	}
 }
-#endif
 
 void Database::AttemptWrite(PodID podId, std::function<void(WorkerClient)> work)
 {
@@ -678,7 +621,7 @@ RangeSet Database::GetRange(const ColumnIDs& columnIds, const Range& range, cons
 	auto result = InternalGetValues(columnIds, range.ColumnID, rowIdQuery);
 
 	// Add the range values into the result
-	return ResultsToRangeSet(result, range.ColumnID, std::find(columnIds.begin(), columnIds.end(), range.ColumnID) - columnIds.begin(), rangeResult);
+	return ResultsToRangeSet(result, std::find(columnIds.begin(), columnIds.end(), range.ColumnID) - columnIds.begin(), rangeResult);
 }
 
 DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const ColumnID exclusionColumnId, const Query& rowIdQuery)
@@ -767,7 +710,7 @@ DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector
 	return result;
 }
 
-RangeSet Database::ResultsToRangeSet(DataSet& set, size_t, size_t rangeColumnIndex, const RangeResult& rangeResult)
+RangeSet Database::ResultsToRangeSet(DataSet& set, size_t rangeColumnIndex, const RangeResult& rangeResult)
 {
 	RangeSet result;
 
@@ -775,13 +718,15 @@ RangeSet Database::ResultsToRangeSet(DataSet& set, size_t, size_t rangeColumnInd
 	result.Eof = rangeResult.eof;
 	result.Limited = rangeResult.limited;
 
-
 	size_t valueRowValue = 0, valueRowRow = 0;
+	auto newGroup = true;
 	for (size_t y = 0; y < set.size(); y++)
 	{
 		set[y].Values[rangeColumnIndex].__set_value(rangeResult.valueRowsList[valueRowValue].value);
 		valueRowRow++;
-		if (valueRowRow >= rangeResult.valueRowsList[valueRowValue].rowIDs.size())
+		set[y].newGroup = newGroup;
+		newGroup = valueRowRow >= rangeResult.valueRowsList[valueRowValue].rowIDs.size();
+		if (newGroup)
 		{
 			valueRowValue++;
 			valueRowRow = 0;
@@ -951,9 +896,12 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 }
 
 std::map<TransactionID, std::vector<Database::WorkerInfo>> 
-Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers, 
-			      std::vector<std::future<TransactionID>>& tasks, 
-				std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers)
+Database::ProcessWriteResults
+(
+	const std::vector<WorkerInfo>& workers, 
+	std::vector<std::future<TransactionID>>& tasks, 
+	std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
+)
 {
 	clock_t start = clock();
 
@@ -1003,9 +951,12 @@ Database::ProcessWriteResults(const std::vector<WorkerInfo>& workers,
 	return workersByTransaction;
 }
 
-bool Database::FinalizeTransaction(const std::vector<WorkerInfo>& workers, 
-								   const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, 
-								   std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers)
+bool Database::FinalizeTransaction
+(
+	const std::vector<WorkerInfo>& workers, 
+	const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, 
+	std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
+)
 {
 	if (workersByTransaction.size() > 0)
 	{

@@ -156,7 +156,7 @@ namespace fastore { namespace client
 
 		DataSet InternalGetValues(const ColumnIDs& columnIds, const ColumnID exclusionColumnId, const Query& rowIdQuery);	
 		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const ReadResults& rowResults);
-		RangeSet ResultsToRangeSet(DataSet& set, size_t rangeColumnId, size_t rangeColumnIndex, const RangeResult& rangeResult);	
+		RangeSet ResultsToRangeSet(DataSet& set, size_t rangeColumnIndex, const RangeResult& rangeResult);	
 		void Apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
 
 		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);

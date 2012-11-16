@@ -10,13 +10,16 @@ namespace fastore { namespace client
 	{
 	public:
 		DataSetRow(size_t columns)
-			: ID(std::string())
+			: ID(std::string()), newGroup(true)
 		{
 			Values = std::vector<fastore::communication::OptionalValue>(columns, fastore::communication::OptionalValue());
 		}
 
 		std::vector<fastore::communication::OptionalValue> Values;
 		std::string ID;
+		
+		// Indicates that the given row represents the beginning of a new value group for whatever ordering
+		bool newGroup;
 
 		fastore::communication::OptionalValue& operator[](size_t index)
 		{
