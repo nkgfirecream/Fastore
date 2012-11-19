@@ -9,6 +9,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{75A6BE6A-214E-432C-89BE-0E075369A1DE}"
 	ProjectSection(SolutionItems) = preProject
 		Comm.thrift = Comm.thrift
+		Performance1.psess = Performance1.psess
 		Server.thrift = Server.thrift
 	EndProjectSection
 EndProject
@@ -257,5 +258,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{04A3E346-A100-4ED8-8CB2-3295DE028C22} = {DC376C21-AAD2-467E-BB51-9A089E507151}
 		{6CE0B6C9-A273-4056-A6E0-7C03DDB2142E} = {DC376C21-AAD2-467E-BB51-9A089E507151}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

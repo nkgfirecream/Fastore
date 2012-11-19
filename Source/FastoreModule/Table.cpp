@@ -445,9 +445,7 @@ int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, double n
 	int whichColumn = 0;
 	char* idxstr = NULL;
 
-
-	std::string params;
-
+	std::stringstream ss;
 	if (useConstraint)
 	{
 		//Which column the constraint is on
@@ -460,13 +458,15 @@ int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, double n
 			auto constraintIndex = constraintIndexes[i];
 			info->aConstraintUsage[constraintIndex].argvIndex = int(i) + 1;
 			info->aConstraintUsage[constraintIndex].omit = true;
-			params += info->aConstraint[constraintIndex].op;
+			ss << info->aConstraint[constraintIndex].op;
 		}		
 	}
 
-	params += ";"; // end oplist with ;
+	ss << ";"; // end oplist with ;
 
-	params += boost::lexical_cast<string>(colUsed); 
+	ss << boost::lexical_cast<string>(colUsed); 
+
+	std::string params = ss.str();
 
 	idxstr = sqlite3_safe_malloc(params.size() + 1);  //op list + Bitmask + null termination.
 	memcpy(idxstr, params.c_str(), params.size() + 1);
@@ -533,12 +533,12 @@ double module::Table::costPerRow(int columnIndex)
 	return _columns[columnIndex].ValueType.Name == "String" || _columns[columnIndex].ValueType.Name == "WString" ? 1.1 : 1;
 }
 
-client::RangeSet module::Table::getRange(client::Range& range, const boost::optional<std::string>& startId)
+client::RangeSet module::Table::getRange(client::Range& range, const ColumnIDs& columnIds, const boost::optional<std::string>& startId)
 {
 	if (_transaction != NULL)
-		return _transaction->GetRange(_columnIds, range, ROWSPERQUERY, startId);
+		return _transaction->GetRange(columnIds, range, ROWSPERQUERY, startId);
 	else
-		return _connection->_database->GetRange(_columnIds, range, ROWSPERQUERY, startId);
+		return _connection->_database->GetRange(columnIds, range, ROWSPERQUERY, startId);
 }
 
 int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)

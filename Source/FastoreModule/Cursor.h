@@ -29,6 +29,8 @@ namespace fastore
 				std::string _idxString;
 				int _idxNum;
 				int _colIndex;
+				ColumnIDs _colUsed;
+				std::map<int,int> _colIndexToDataSetIndex;
 
 				bool _endOfFilter;
 				bool _isEquality;

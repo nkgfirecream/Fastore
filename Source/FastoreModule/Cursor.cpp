@@ -23,7 +23,13 @@ int module::Cursor::next()
 			auto valueType = _table->_columns[_colIndex].ValueType;
 
 			//If the new value doesn't match the filter value, set End Of Filter.
-			if (valueType.Compare(valueType.GetPointer(_set.Data[_index].Values[_colIndex].value), valueType.GetPointer(_values[0])) != 0)
+			if (
+					valueType.Compare
+					(
+						valueType.GetPointer(_set.Data[_index].Values[_colIndexToDataSetIndex[_colIndex]].value),
+						valueType.GetPointer(_values[0])
+					) != 0
+				)
 				_endOfFilter = true;
 		}
 		//Otherwise, just check for a new value
@@ -39,14 +45,14 @@ int module::Cursor::eof()
 	return  _endOfFilter ? 1 : 0;
 }
 
-int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
+int module::Cursor::setColumnResult(sqlite3_context *pContext, int colIndex)
 {	
-	auto value = _set.Data[_index].Values[index];
+	auto value = _set.Data[_index].Values[_colIndexToDataSetIndex[colIndex]];
 
 	if (!value.__isset.value)
 		sqlite3_result_null(pContext);
 
-	auto declaredType = _table->_declaredTypes[index];
+	auto declaredType = _table->_declaredTypes[colIndex];
 	
 	//Special handing for dates
 	if (strcasecmp(declaredType.c_str(), "date") == 0 || strcasecmp(declaredType.c_str(), "datetime") == 0)
@@ -91,7 +97,7 @@ void module::Cursor::getNextSet()
 	if (_set.Data.size() == 0)
 	{
 		boost::optional<std::string> s;
-		_set = _table->getRange(_range, s);
+		_set = _table->getRange(_range, _colUsed, s);
 		if (_set.Data.size() > 0)
 		{
 			_index = 0;
@@ -115,7 +121,7 @@ void module::Cursor::getNextSet()
 		{
 			//Iterating off the first page of data, set the flag.
 			_needsReset = true;
-			_set = _table->getRange(_range, boost::optional<std::string>(_set.Data[_index - 1].ID)); //Assumes index is currently at _set.Data.size() -- which it should be if this is the result of a next call
+			_set = _table->getRange(_range, _colUsed, boost::optional<std::string>(_set.Data[_index - 1].ID)); //Assumes index is currently at _set.Data.size() -- which it should be if this is the result of a next call
 			if (_set.Data.size() > 0)
 			{
 				_index = 0;
@@ -135,7 +141,7 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 	//For equality constraints, try to figure out if we are inside of a loop.
 	//If so, pull extra rows to as a read-ahead cache for query processor.
 	//Fetch rows with >=, even if it's an equality constraint. Then detect if subsequent reads are in order.
-	//If reverse order, change constraint to <= for future fetches. If no order, revert to == for future fetches.
+	//TODO: If reverse order, change constraint to <= for future fetches. If no order, revert to == for future fetches.
 	//(BONUS POINTS!) Make cursor self tune so that it pulls ~number of rows actually read by query processor.
 
 	//idxNum is either colIdx + 1, ~(colIdx + 1) or 0 (0 = full table pull)
@@ -163,7 +169,13 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 			auto valueType = _table->_columns[_colIndex].ValueType;
 
 			//if we are at the right place, set _eofOfFilter, create new range information (using the new values), and return
-			if (valueType.Compare(valueType.GetPointer(_set.Data[_index].Values[_colIndex].value), valueType.GetPointer(values[0])) == 0)
+			if (
+					valueType.Compare
+					(
+						valueType.GetPointer(_set.Data[_index].Values[_colIndexToDataSetIndex[_colIndex]].value), 
+						valueType.GetPointer(values[0])
+					) == 0
+				)
 			{
 				_values = values;
 				_endOfFilter = false;
@@ -203,6 +215,8 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 	//Clear variables...
 	_index = -1;
 	_set =  RangeSet();
+	_colIndexToDataSetIndex.clear();
+	_colUsed.clear();
 
 	//Set up a new cursor
 	_initialUse = false;
@@ -214,6 +228,47 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 
 	//Set up new range -- This has the side effect of setting _range and the _isEquality flag.
 	createRange(); 
+
+
+
+	//Get bitmask from string
+	auto maskStart = idx.find(';');
+	auto bitString = idx.substr(maskStart + 1);
+	std::istringstream bitStream(bitString);
+
+	int64_t bitMask;
+	bitStream >> bitMask;
+	
+
+	//Set up map for all the columns
+	int dataSetIndex = 0;
+	for (int64_t i = 0; (i < 64 && (i < int(_table->_columns.size()))); i++)
+	{
+		auto used = bitMask & (1i64 << i);
+		if (used || _range.ColumnID == _table->_columns[i].ColumnID)
+		{
+			_colIndexToDataSetIndex[int(i)] = dataSetIndex;
+			_colUsed.push_back(_table->_columns[i].ColumnID);
+			++dataSetIndex;
+		}
+	}
+
+	//Map all the rest of the columns if column 64 is used
+	//(this is how SQLite handles it internally. we'll need to change
+	//its source to handle more than 64 columns.
+	auto highbit = bitMask & (1i64 << 63);
+	if (highbit)
+	{
+		for (int64_t i = 64; i < int(_table->_columns.size()); i++)
+		{
+			_colIndexToDataSetIndex[int(i)] = dataSetIndex;
+			_colUsed.push_back(_table->_columns[i].ColumnID);
+			++dataSetIndex;
+		}
+	}
+
+
+
 		
 	//Pull first set.
 	getNextSet();
@@ -233,7 +288,11 @@ int module::Cursor::seekIndex(std::string& value, int columnIndex)
 	while (lo <= hi)
 	{
 		split = (lo + hi) >> 1;
-		result = valueType.Compare(valueType.GetPointer(value), valueType.GetPointer(_set.Data[split].Values[columnIndex].value));
+		result = valueType.Compare
+				(
+					valueType.GetPointer(value), 
+					valueType.GetPointer(_set.Data[split].Values[_colIndexToDataSetIndex[columnIndex]].value)
+				);
 
 		if (result == 0)
 		{
