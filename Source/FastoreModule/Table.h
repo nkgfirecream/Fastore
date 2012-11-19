@@ -68,7 +68,7 @@ namespace fastore
 			int update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid);
 
 			//Determines best index for table
-			int bestIndex(sqlite3_index_info* info, double* numRows, int numIterations);
+			int bestIndex(sqlite3_index_info* info, double* numRows, double numIterations, uint64_t colUsed);
 
 		private:
 			void ensureTable();

@@ -19,18 +19,22 @@ namespace fastore
 
 			private:
 				fastore::module::Table* _table;
-				client::DataSet _set;
+				client::RangeSet _set;
 				client::Range _range;
 
 				int _index;
 				void getNextSet();
 				bool _initialUse;
-				std::vector<std::string> _lastValues;
-				std::string _lastIdxString;
-				int _lastIdxNum;
+				std::vector<std::string> _values;
+				std::string _idxString;
+				int _idxNum;
 				int _colIndex;
 
-				client::Range createRange(bool ascending, int colIndex, std::string& idxStr, std::vector<std::string>& values);
+				bool _endOfFilter;
+				bool _isEquality;
+				bool _needsReset;
+
+				void createRange();
 				client::RangeBound getBound(int col, char op, std::string& boundValue);
 				int convertSqliteValueToString(int col, sqlite3_value* arg, std::string& out);
 				bool compareVectors(std::vector<std::string> left, std::vector<std::string> right);

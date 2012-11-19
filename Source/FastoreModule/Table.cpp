@@ -311,7 +311,7 @@ char *sqlite3_safe_malloc( size_t n )
 	return reinterpret_cast<char*>( sqlite3_malloc(SAFE_CAST(int,n)) );
 }
 
-int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, int numIterations)
+int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, double numIterations, uint64_t colUsed)
 {
 	//TODO: Do some real testing with real data and see what happens.
 	//TODO: Fix disjoint constraints (>= 4 && <= 2). We say we support it, but we don't (see next line).
@@ -445,12 +445,15 @@ int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, int numI
 	int whichColumn = 0;
 	char* idxstr = NULL;
 
+
+	std::string params;
+
 	if (useConstraint)
 	{
 		//Which column the constraint is on
 		whichColumn = weights.begin()->second;
 
-		std::string params;
+		
 		auto constraintIndexes = constraintByColumn[whichColumn];
 		for (size_t i = 0 ; i < constraintIndexes.size(); ++i)
 		{
@@ -458,13 +461,18 @@ int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, int numI
 			info->aConstraintUsage[constraintIndex].argvIndex = int(i) + 1;
 			info->aConstraintUsage[constraintIndex].omit = true;
 			params += info->aConstraint[constraintIndex].op;
-		}
-
-		idxstr = sqlite3_safe_malloc(params.size() + 1);
-		memcpy(idxstr, params.c_str(), params.size() + 1);
-		info->idxStr = idxstr;
-		info->needToFreeIdxStr = true;
+		}		
 	}
+
+	params += ";"; // end oplist with ;
+
+	params += boost::lexical_cast<string>(colUsed); 
+
+	idxstr = sqlite3_safe_malloc(params.size() + 1);  //op list + Bitmask + null termination.
+	memcpy(idxstr, params.c_str(), params.size() + 1);
+	info->idxStr = idxstr;
+	info->needToFreeIdxStr = true;
+
 
 	//Step 4. Match the columns of the order to the constraint column if possible. If not, see if order is usable by itself.
 	//If an order is more than one column, we can't support it

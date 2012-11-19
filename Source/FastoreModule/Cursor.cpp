@@ -6,14 +6,29 @@
 namespace client = fastore::client;
 namespace module = fastore::module;
 
-module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1), _lastIdxNum(0), _initialUse(true) { }
+module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1), _idxNum(0), _initialUse(true), _isEquality(false), _endOfFilter(true), _needsReset(true) { }
 
 int module::Cursor::next()
 {
 	++_index;
-	if (size_t(_index) == _set.size() || (_lastIdxString.size() > 0 && _lastIdxString[0] == SQLITE_INDEX_CONSTRAINT_EQ && _lastValues[0].compare(_set[_index].Values[_colIndex].value) != 0))
+	if (_index == _set.Data.size())
+		getNextSet();
+
+	//Special handling for the for equality case since we are reading ahead.
+	if (_isEquality && !_endOfFilter) //If we have more data
 	{
-		_index = -1;
+		//If we just pulled a fresh set, compare the value to our filter value
+		if (_index == 0) 
+		{
+			auto valueType = _table->_columns[_colIndex].ValueType;
+
+			//If the new value doesn't match the filter value, set End Of Filter.
+			if (valueType.Compare(valueType.GetPointer(_set.Data[_index].Values[_colIndex].value), valueType.GetPointer(_values[0])) != 0)
+				_endOfFilter = true;
+		}
+		//Otherwise, just check for a new value
+		else if (_set.Data[_index].newGroup)
+			_endOfFilter = true;
 	}
 
 	return SQLITE_OK;
@@ -21,12 +36,12 @@ int module::Cursor::next()
 
 int module::Cursor::eof()
 {
-	return (_set.size() == 0 || _index == -1)? 1 : 0;
+	return  _endOfFilter ? 1 : 0;
 }
 
 int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 {	
-	auto value = _set[_index].Values[index];
+	auto value = _set.Data[_index].Values[index];
 
 	if (!value.__isset.value)
 		sqlite3_result_null(pContext);
@@ -65,7 +80,7 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int index)
 
 int module::Cursor::setRowId(sqlite3_int64 *pRowid)
 {
-	*pRowid = (sqlite3_int64)client::Encoder<int64_t>::Decode(_set[_index].ID);
+	*pRowid = (sqlite3_int64)client::Encoder<int64_t>::Decode(_set.Data[_index].ID);
 
 	return SQLITE_OK;
 }
@@ -73,37 +88,46 @@ int module::Cursor::setRowId(sqlite3_int64 *pRowid)
 void module::Cursor::getNextSet()
 {
 	//First pull...
-	if (_set.size() == 0)
+	if (_set.Data.size() == 0)
 	{
 		boost::optional<std::string> s;
-		auto rangeSet = _table->getRange(_range, s);
-		_set = rangeSet.Data;
-		if (_set.size() > 0)
-			_index = 0;
-
-		while(!rangeSet.Eof)
+		_set = _table->getRange(_range, s);
+		if (_set.Data.size() > 0)
 		{
-			s = _set[_set.size() -1].ID;
-			rangeSet = _table->getRange(_range, s);
-			for (int i = 0; i < rangeSet.Data.size(); ++i)
+			_index = 0;
+			_endOfFilter = false;
+		}
+		else
+		{
+			_index = -1;
+			_endOfFilter = true;
+		}
+	}
+	//Continuation.
+	else
+	{
+		if (_set.Eof) //end of Range -- This should be right for either equality conversions or normal calls
+		{
+			_index = -1;
+			_endOfFilter = true;
+		}
+		else
+		{
+			//Iterating off the first page of data, set the flag.
+			_needsReset = true;
+			_set = _table->getRange(_range, boost::optional<std::string>(_set.Data[_index - 1].ID)); //Assumes index is currently at _set.Data.size() -- which it should be if this is the result of a next call
+			if (_set.Data.size() > 0)
 			{
-				_set.push_back(rangeSet.Data[i]);
+				_index = 0;
+				_endOfFilter = false;
+			}
+			else
+			{
+				_index = -1;
+				_endOfFilter = true;
 			}
 		}
-
 	}
-	//Temporarily disabled for caching cursor.
-	//else
-	//{
-	//	if (_set.Eof)
-	//		_index = -1;
-	//	else
-	//	{
-	//		_set = _table->getRange(_range, boost::optional<std::string>(_set.Data[_index - 1].ID)); //Assumes index is currently at _set.Data.size() -- which it should be if this is the result of a next call
-	//		if (_set.Data.size() > 0)
-	//			_index = 0;
-	//	}
-	//}
 }
 
 int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_value **argv)
@@ -119,45 +143,80 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 
 	std::vector<std::string> values;
 	int result = getVector(_colIndex, argc, argv, values);
+
 	//In case SQLITE gives us bad values to filter by (for example, a string in a integer column)
 	if (result != SQLITE_OK)
 		return result;
 
-	if( !_initialUse && _lastIdxNum == idxNum && idxStr[0] == SQLITE_INDEX_CONSTRAINT_EQ && _lastIdxString[0] == SQLITE_INDEX_CONSTRAINT_EQ)
+	std::string idx(idxStr);
+
+	//Check and see if it's possible to reuse the cursor.
+	if (!_initialUse && _idxNum == idxNum && _idxString == idx)
 	{
-		_lastValues = values;
-		_index = seekIndex(values[0], _colIndex); 
+		//If the index and operations are the same, the only thing that varies are the range values...
+		
+		//If we are an equality, try to find the value in the current set.
+		if (_isEquality)
+		{
+			//Attempt to locate the correct value in the current set.
+			//Presumably, this filtered occured after a Next call which iterated off the current value, so check and see if we are already pointing at the right value
+			auto valueType = _table->_columns[_colIndex].ValueType;
+
+			//if we are at the right place, set _eofOfFilter, create new range information (using the new values), and return
+			if (valueType.Compare(valueType.GetPointer(_set.Data[_index].Values[_colIndex].value), valueType.GetPointer(values[0])) == 0)
+			{
+				_values = values;
+				_endOfFilter = false;
+				createRange();
+				return SQLITE_OK;
+			}
+			//Otherwise, try to find the correct value
+			else
+			{
+				_index = seekIndex(values[0], _colIndex);
+				//If we found the value, set new range and return
+				if (_index >= 0)
+				{
+					_values = values;
+					_endOfFilter = false;
+					createRange();
+					return SQLITE_OK;
+				}
+				//Otherwise fall through to  the cursor initialization below.  We need to pull a new set..
+			}
+		}
+		//See if we can reset without pulling new data:
+		//We can if the last time this cursor was filtered the parameters were exactly the same
+		//And we haven't iterated off the first page of data.
+		else if (compareVectors(_values, values) && !_needsReset)
+		{
+			//Rewind to first value and reset flags.
+			_index = _set.Data.size() > 0 ? 0 : -1;
+			_endOfFilter = _index < 0; 
+			_needsReset = false;
+			return SQLITE_OK;
+		}
+		//Otherwise,  fall through to the below and pull new data.
 	}
-	else
-	{	
-		_initialUse = false;
-		std::string idx;
-		if (idxStr != NULL)
-			idx = std::string(idxStr);
+
+
+	//Clear variables...
+	_index = -1;
+	_set =  RangeSet();
+
+	//Set up a new cursor
+	_initialUse = false;
+	_needsReset = false;
+	_idxNum = idxNum;
+	_idxString = idx;
+	_values = values;
 		
 
-		//Pull new data...
-		_lastIdxNum = idxNum;
-		_lastIdxString = idx;
-		_lastValues = values;		
-
-
-		//Clear variables...
-		_index = -1;
-		_set = DataSet();
-
-		//Set up new range
-		//Idxnum > 0 = ascending, < 0 = desc, 0 = no index column (full table pull)
-		bool ascending = idxNum > 0;
-		_range = createRange(ascending, _colIndex, _lastIdxString, _lastValues); 
-
-		//Pull first set.
-		getNextSet();
-
-		if (argc > 0 && idxStr[0] == SQLITE_INDEX_CONSTRAINT_EQ)
-			_index = seekIndex(values[0], _colIndex);
+	//Set up new range -- This has the side effect of setting _range and the _isEquality flag.
+	createRange(); 
 		
-	}
+	//Pull first set.
+	getNextSet();
 
 	return SQLITE_OK;
 }
@@ -165,14 +224,16 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 int module::Cursor::seekIndex(std::string& value, int columnIndex)
 {
 	int lo = 0;
-	int hi = int(_set.size()) - 1;
+	int hi = int(_set.Data.size()) - 1;
 	int split = 0;
 	int result = -1;
+
+	auto valueType = _table->_columns[_colIndex].ValueType;
 
 	while (lo <= hi)
 	{
 		split = (lo + hi) >> 1;
-		result = value.compare(_set[split].Values[columnIndex].value);
+		result = valueType.Compare(valueType.GetPointer(value), valueType.GetPointer(_set.Data[split].Values[columnIndex].value));
 
 		if (result == 0)
 		{
@@ -187,7 +248,7 @@ int module::Cursor::seekIndex(std::string& value, int columnIndex)
 
 	if (result == 0)
 	{
-		while (lo > 0 && value.compare(_set[lo -1].Values[columnIndex].value) == 0)
+		while (lo > 0 && !_set.Data[lo].newGroup)
 			--lo;
 
 		return lo;
@@ -197,44 +258,46 @@ int module::Cursor::seekIndex(std::string& value, int columnIndex)
 }
 
 
-client::Range module::Cursor::createRange(bool ascending, int colIndex, std::string& idxStr, std::vector<std::string>& values)
+void module::Cursor::createRange()
 {
 	client::Range range;
 	
-	range.Ascending = ascending;	
+	range.Ascending = _idxNum >= 0;	
 	//TODO: Figure out how to grab all the rowIds when there isn't a key column. 
 	//Should this be masked from SQLite? 
 	//Should the client support a "get all keys" operation and we iterate over them?
 	//Should we force at least one required column?
 	
-	range.ColumnID = _table->_columns[colIndex].ColumnID;
+	range.ColumnID = _table->_columns[_colIndex].ColumnID;
 
-	if (!idxStr.empty())
+	if (_values.size() > 0)
 	{
-		if (idxStr[0] == SQLITE_INDEX_CONSTRAINT_EQ)
+		if (_idxString[0] == SQLITE_INDEX_CONSTRAINT_EQ)
 		{
+			_isEquality = true;
 			client::RangeBound bound;
-			//bound.Bound = values[0];
-			//bound.Inclusive = true;
-		
+			bound.Bound = _values[0];
+			bound.Inclusive = true;
+			range.Start = bound;
 			//range.End = bound;
-			//range.Start = bound;
+
 		}
 		else
 		{
-			for (int i = 0; i < values.size(); i++)
+			_isEquality = false;
+			for (int i = 0; i < _values.size(); i++)
 			{
-				client::RangeBound bound = getBound(colIndex, idxStr[i], values[i]);
+				client::RangeBound bound = getBound(_colIndex, _idxString[i], _values[i]);
 				if (range.Ascending)
 				{
-					if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[i] == SQLITE_INDEX_CONSTRAINT_GE)
+					if (_idxString[i] == SQLITE_INDEX_CONSTRAINT_GT || _idxString[i] == SQLITE_INDEX_CONSTRAINT_GE)
 						range.Start = bound;
 					else
 						range.End = bound;
 				}
 				else
 				{
-					if (idxStr[i] == SQLITE_INDEX_CONSTRAINT_GT || idxStr[i] == SQLITE_INDEX_CONSTRAINT_GE)
+					if (_idxString[i] == SQLITE_INDEX_CONSTRAINT_GT || _idxString[i] == SQLITE_INDEX_CONSTRAINT_GE)
 						range.End = bound;
 					else
 						range.Start = bound;
@@ -242,8 +305,12 @@ client::Range module::Cursor::createRange(bool ascending, int colIndex, std::str
 			}
 		}
 	}
+	else
+	{
+		_isEquality = false;
+	}
 
-	return range;
+	_range = range;
 }
 
 

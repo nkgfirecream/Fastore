@@ -5036,7 +5036,7 @@ struct sqlite3_module {
   int (*xConnect)(sqlite3*, void *pAux,
                int argc, const char *const*argv,
                sqlite3_vtab **ppVTab, char**);
-  int (*xBestIndex)(sqlite3_vtab *pVTab, sqlite3_index_info*, double* numrows, int numIterations);
+  int (*xBestIndex)(sqlite3_vtab *pVTab, sqlite3_index_info*, double* numrows, double numIterations, sqlite_uint64 colUsed);
   int (*xDisconnect)(sqlite3_vtab *pVTab);
   int (*xDestroy)(sqlite3_vtab *pVTab);
   int (*xOpen)(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor);
