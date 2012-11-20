@@ -26,7 +26,7 @@ namespace fastore { namespace client
 	{
 	public:
 		static const int MaxConnectionRetries = 3;
-		static const int DefaultMaxPooledPerKey = 1;
+		static const int DefaultMaxPooledPerKey = 64;
 
 	private:
 		boost::shared_ptr<boost::mutex> _lock;

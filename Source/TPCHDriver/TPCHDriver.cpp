@@ -267,7 +267,7 @@ void ThroughputTest()
 #if 1
 		for (int query = 0; query < NUM_QUERIES; ++query)
 #else
-		for (int query = 2; query <= 2 /*NUM_QUERIES*/; ++query)
+		for (int query = 20; query <= 20 /*NUM_QUERIES*/; ++query)
 #endif
 		{
 			//Some of the tpch queries have multiple statements. Execute them all individually.
@@ -291,7 +291,8 @@ void ThroughputTest()
 				auto result = fastorePrepare(_connection, statements[i].c_str());
 				if (result.result != FASTORE_OK)
 				{
-					throw "Error preparing query!";
+					std::cout << "Error preparing query!";
+					break;
 				}			
 
 				NextResult data;
@@ -300,7 +301,9 @@ void ThroughputTest()
 					data = fastoreNext(result.statement);
 					if (data.result != FASTORE_OK)
 					{
-						throw "Error executing query!";
+						std::cout << "Error executing query!";
+						i = 20000000; //Arbitrarily large number to break outer loop.
+						break;
 					}
 
 					/*for (int i = 0; i < result.columnCount; ++i)

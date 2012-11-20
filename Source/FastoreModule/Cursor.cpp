@@ -114,8 +114,8 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int colIndex)
 		//Setup julian day from the epoch. This code was copied from sqlite with very little modification. I'm not entirely sure
 		//it's accurate. TODO: Test dates more extensively.
 		dateTime d;
-		d.iJD = (int64_t)((double)epoch*86400000.0 + 0.5); 
-		d.iJD = (d.iJD + 43200)/86400 + 21086676*(int64_t)10000000;
+		d.iJD = (int64_t)((double)epoch * 86400000.0 + 0.5); 
+		d.iJD = (d.iJD + 43200) / 86400 + 21086676 * (int64_t)10000000;
 
 		//fill out the entire date structure completely
 		computeYMD_HMS(&d);
@@ -240,7 +240,7 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 			auto valueType = _table->_columns[_colIndex].ValueType;
 
 			//if we are at the right place, set _eofOfFilter, create new range information (using the new values), and return
-			if (
+			if (_index >= 0 &&
 					valueType.Compare
 					(
 						valueType.GetPointer(_set.Data[_index].Values[_colIndexToDataSetIndex[_colIndex]].value), 

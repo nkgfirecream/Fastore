@@ -497,10 +497,13 @@ int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, double n
 	{
 		*numRows = (double)_stats[info->aOrderBy[0].iColumn].total;
 	}
+	//If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
 	else
 	{
-		*numRows = (double)maxColTot();
-	}//If no ordering, size of whole table -- pick a key column. We simulate this for now by picking the column with the highest total.
+		*numRows = (double)maxColTot() * NOINDEXPENALTY; //If we aren't using an index, random usage, lots of restarts, etc.
+	}
+
+	*numRows += ((double)maxColTot() * .1); //Table size factor. Given two table with an index that returns the same numbers of rows, we want to weight towards the smaller table size.
 
 	info->estimatedCost = (*numRows) + (numIterations * (double)QUERYOVERHEAD); 
 
