@@ -693,6 +693,11 @@ DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector
 	DataSet result (rowIDs.size(), columnIds.size());
 
 	// Populate by column then by row
+	for (size_t y = 0; y < rowIDs.size(); ++y)
+	{
+		result[y].ID = rowIDs[y];
+	}
+
 	for (size_t x = 0; x < columnIds.size(); ++x)
 	{
 		auto columnId = columnIds[x];
@@ -700,8 +705,7 @@ DataSet Database::ResultsToDataSet(const ColumnIDs& columnIds, const std::vector
 		if (iter != rowResults.end())
 		{
 			for (size_t y = 0; y < rowIDs.size(); y++)
-			{
-				result[y].ID = rowIDs[y];
+			{				
 				result[y][x] = iter->second.answer.rowIDValues[y];
 			}
 		}

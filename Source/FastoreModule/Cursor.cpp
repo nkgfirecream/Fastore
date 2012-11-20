@@ -6,6 +6,58 @@
 namespace client = fastore::client;
 namespace module = fastore::module;
 
+
+struct dateTime
+{
+	  int64_t iJD; /* The julian day number times 86400000 */
+	  int Y, M, D;       /* Year, month, and day */
+	  int h, m;          /* Hour and minutes */
+	  int tz;            /* Timezone offset in minutes */
+	  double s;  
+};/* Seconds */
+
+//Compute year, month, day, etc. from the date structure.
+//This assumes that iJD has been set correctly before hand.
+
+static void computeYMD(dateTime *p){
+	int Z, A, B, C, D, E, X1;
+	Z = (int)((p->iJD + 43200000)/86400000);
+	A = (int)((Z - 1867216.25)/36524.25);
+	A = Z + 1 + A - (A/4);
+	B = A + 1524;
+	C = (int)((B - 122.1)/365.25);
+	D = (36525*C)/100;
+	E = (int)((B-D)/30.6001);
+	X1 = (int)(30.6001*E);
+	p->D = B - D - X1;
+	p->M = E<14 ? E-1 : E-13;
+	p->Y = p->M>2 ? C - 4716 : C - 4715;
+}
+
+/*
+** Compute the Hour, Minute, and Seconds from the julian day number.
+*/
+static void computeHMS(dateTime *p){
+  int s;
+  //computeJD(p);
+  s = (int)((p->iJD + 43200000) % 86400000);
+  p->s = s/1000.0;
+  s = (int)p->s;
+  p->s -= s;
+  p->h = s/3600;
+  s -= p->h*3600;
+  p->m = s/60;
+  p->s += s - p->m*60;
+}
+
+/*
+** Compute both YMD and HMS
+*/
+static void computeYMD_HMS(dateTime *p){
+  computeYMD(p);
+  computeHMS(p);
+}
+
 module::Cursor::Cursor(module::Table* table) : _table(table), _index(-1), _idxNum(0), _initialUse(true), _isEquality(false), _endOfFilter(true), _needsReset(true) { }
 
 int module::Cursor::next()
@@ -58,9 +110,28 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int colIndex)
 	if (strcasecmp(declaredType.c_str(), "date") == 0 || strcasecmp(declaredType.c_str(), "datetime") == 0)
 	{
 		time_t epoch =  Encoder<int64_t>::Decode(value.value);
-		boost::posix_time::ptime p = boost::posix_time::from_time_t(epoch);
-		auto string = boost::posix_time::to_simple_string(p);
-		sqlite3_result_text(pContext, string.data(), -1, SQLITE_TRANSIENT);
+		
+		//Setup julian day from the epoch. This code was copied from sqlite with very little modification. I'm not entirely sure
+		//it's accurate. TODO: Test dates more extensively.
+		dateTime d;
+		d.iJD = (int64_t)((double)epoch*86400000.0 + 0.5); 
+		d.iJD = (d.iJD + 43200)/86400 + 21086676*(int64_t)10000000;
+
+		//fill out the entire date structure completely
+		computeYMD_HMS(&d);
+
+		char buf[100];
+
+		if (strcasecmp(declaredType.c_str(), "date") == 0)
+		{
+			sqlite3_snprintf(sizeof(buf), buf, "%04d-%02d-%02d", d.Y, d.M, d.D);
+		}
+		else
+		{
+			sqlite3_snprintf(sizeof(buf), buf, "%04d-%02d-%02d %02d:%02d:%02d", d.Y, d.M, d.D, d.h, d.m, (int)(d.s));
+		}
+
+		sqlite3_result_text(pContext, buf, -1, SQLITE_TRANSIENT);
 	}
 	else 
 	{
