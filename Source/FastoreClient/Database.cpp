@@ -520,7 +520,8 @@ void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> 
 				Log << log_err << __func__ << ": error: " << e << log_endl;
 				errors.insert(std::make_pair(worker.first, e));
 
-				//TODO: Decide criteria for quiting.
+				//TODO: Decide criteria for quiting.				
+				_workers.Release(worker);
 				continue;
 			}
 
@@ -530,6 +531,8 @@ void Database::AttemptRead(ColumnID columnId, std::function<void(WorkerClient)> 
 
 			// Succeeded, track the elapsed time
 			TrackTime(worker.first, end - begin);
+
+			_workers.Release(worker);
 
 			break;
 		}

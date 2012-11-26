@@ -26,7 +26,7 @@ namespace fastore { namespace client
 	{
 	public:
 		static const int MaxConnectionRetries = 3;
-		static const int DefaultMaxPooledPerKey = 64;
+		static const int DefaultMaxPooledPerKey = 8;
 
 	private:
 		boost::shared_ptr<boost::mutex> _lock;
@@ -182,7 +182,7 @@ namespace fastore { namespace client
 
 		// Establish connection, retrying if necessary
 		auto retries = MaxConnectionRetries;
-		int timeToSleep = 2000;
+		int timeToSleep = 100;
 		while (true)
 			try
 			{
@@ -197,7 +197,7 @@ namespace fastore { namespace client
 				else
 				{
 					usleep(timeToSleep);
-					timeToSleep *= 10;					
+					timeToSleep *= 2;					
 				}
 			}
 
