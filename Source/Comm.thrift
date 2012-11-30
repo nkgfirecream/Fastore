@@ -6,6 +6,7 @@ namespace csharp Alphora.Fastore
 typedef i64 TopologyID
 typedef i64 ColumnID
 typedef i64 HostID
+typedef i64 StashID
 typedef i64 PodID
 struct NetworkAddress
 {
@@ -21,10 +22,8 @@ enum RepositoryStatus
 	Unloading = 2,
 	/** Online and servicing requests */
 	Online = 3,
-	/** In the process of checkpointing; can send read and write requests, but performance may be sub-optimal. */
-	Checkpointing = 4,
 	/** The repository is offline due to error during startup or execution. */
-	Offline = 5
+	Offline = 4
 }
 
 enum ServiceStatus
@@ -65,13 +64,21 @@ struct HiveState
 typedef list<ColumnID> ColumnIDs
 typedef list<PodID> PodIDs
 typedef list<HostID> HostIDs
+typedef list<StashID> StashIDs
 
 typedef map<PodID, ColumnIDs> Pods
+typedef map<StashID, ColumnIDs> Stashes
 	
+struct Host
+{
+	1: required Pods pods,
+	2: required Stashes stashes
+}
+
 struct Topology
 {
 	1: required TopologyID topologyID, 
-	2: required map<HostID, Pods> hosts
+	2: required map<HostID, Host> hosts
 }
 
 typedef map<HostID, NetworkAddress> HostAddresses
@@ -117,7 +124,7 @@ exception NotJoined
 
 service Service
 {
-    /* Tells the servive to shutdown gracefully */
+    /* Tells the service to shutdown gracefully */
 	void shutdown(),
 
 	void ping(),
@@ -135,7 +142,7 @@ service Service
 		throws (1:NotJoined notJoined),
 
 	/** Returns the current status of all services in the hive as understood by this service. */
-	OptionalHiveState getHiveState(1: bool forceUpdate = false),
+	OptionalHiveState getHiveState(1:bool forceUpdate = false),
 
 	/** Returns the current status of this service. */
 	OptionalServiceState getState(),
@@ -155,36 +162,29 @@ service Service
 
 	/** Releases the given lock */
 	void releaseLock(1:LockID lockID)
-		throws (1:LockExpired expired, 2:NotJoined notJoined)
+		throws (1:LockExpired expired, 2:NotJoined notJoined),
 
-	oneway void checkpoint();
+
+	/** Requests a checkpoint be immediately scheduled for the given column IDs. */
+	oneway void checkpoint(1:ColumnIDs columnIDs)
 }
 
 // Worker
 
 typedef i64 Revision
 
-struct TransactionID
-{
-	1: required Revision revision,
-	2: required i64 key
-}
+typedef i64 TransactionID
 
-struct Include
+struct Cell
 {
 	1: required binary rowID,
 	2: required binary value
 }
-
-struct Exclude
-{
-	1: required binary rowID
-}
  
 struct ColumnWrites
 {
-	1: optional list<Include> includes,
-	2: optional list<Exclude> excludes
+	1: optional list<Cell> includes,
+	2: optional list<Cell> excludes
 }
 
 typedef map<ColumnID, ColumnWrites> Writes
@@ -208,7 +208,6 @@ struct RangeRequest
 	3: optional RangeBound first,
 	4: optional RangeBound last,
 	5: optional binary rowID
-
 }
 
 struct ValueRows
@@ -254,9 +253,30 @@ struct ReadResult
 
 typedef map<ColumnID, ReadResult> ReadResults
 
-typedef map<Query, Answer> Read
+typedef i64 BloomFilter
 
-typedef map<ColumnID, Read> Reads
+struct RangePredicate
+{
+	1: optional RangeBound first,
+	2: optional RangeBound last
+}
+
+struct PrepareInfo
+{
+	1: optional Revision fromRevision,
+	2: list<RangePredicate> rangePredicates,
+	3: BloomFilter filter
+}
+
+typedef map<ColumnID, PrepareInfo> ColumnPrepares
+
+struct PrepareResult
+{
+	1: required Revision actualRevision,
+	2: required bool validateRequired
+}
+
+typedef map<ColumnID, PrepareResult> PrepareResults
 
 exception NotLatest
 {
@@ -266,6 +286,7 @@ exception NotLatest
 exception AlreadyPending
 {
 	1: TransactionID pendingTransactionID
+	2: ColumnID columnID
 }
 
 exception Conflict
@@ -281,15 +302,29 @@ exception BeyondHistory
 
 service Worker
 {
-	/* Tells the servive to shutdown gracefully */
+	/** Instructs the worker to shutdown gracefully. */
 	void shutdown(),
 
-	/** Retreives current state of the worker and its repositories */
+	/** Starts the initial loading process; no transaction protocol. */
+	void loadBegin(1:ColumnID columnID),
+
+	/** Loads a bulk block of values. */
+	void loadBulkWrite(1:ColumnID columnID, 2:ValueRowsList values),
+
+	/** Loads a set of writes. */
+	void loadWrite(1:ColumnID columnID, 2:ColumnWrites writes),
+
+	/** Ends the initial loading process. */
+	void loadEnd(1:ColumnID columnID, 2:Revision revision),
+
+	
+	/** Retrieves current state of the worker and its repositories. */
 	WorkerState getState(),
 
-	/** Validates that the transaction ID is updated to the latest and then Applies all changes - HIVE TRANSACTED. */
-	Revision prepare(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads) 
-		throws (1:NotLatest notLatest, 2:AlreadyPending alreadyPending),
+
+	/** Attempt to acquire new revisions for all involved columns, and validates that no collisions are possible. - HIVE TRANSACTED. */
+	PrepareResults prepare(1:TransactionID transactionID, 2:ColumnPrepares columns) 
+		throws (1:AlreadyPending alreadyPending),
 	
 	/** Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date), 
 		returns an updated Transaction ID - HIVE TRANSACTED. */
@@ -297,35 +332,68 @@ service Worker
 		throws (1:AlreadyPending alreadyPending),
 
 	/** Informs that the prepare was successful on the majority of workers, the changes should be committed. */
-	oneway void commit(1:TransactionID transactionID),
+	oneway void commit(1:TransactionID transactionID, 2:Writes writes),
 
 	/** Informs that the prepare was unsuccessful on the majority of workers, the changes should be rolled back. */
 	oneway void rollback(1:TransactionID transactionID),
 
-	/** Waits for the given transaction to be flushed to disk */
-	void flush(1:TransactionID transactionID),
 
-
-	/** Determines whether the given set of reads conflict with any intervening revisions. */
-	bool doesConflict(1:Reads reads, 2:Revision source, 3:Revision target)
-		throws (1:BeyondHistory beyondHistory),
-
-	/** Updates the given transaction to the latest by validating reads and writes for conflicts, and returns a new TransactionID. */
-	TransactionID update(1:TransactionID transactionID, 2:Writes writes, 3:Reads reads)
-		throws (1:Conflict conflict),
-	
-	/** Upgrades or downgrades the given reads to match the data as of a given revision. */
-	Reads transgrade(1:Reads reads, 2:Revision source, 3:Revision target)
-		throws (1:BeyondHistory beyondHistory),
-
-	
 	/** Retrieves data and the latest revision number corresponding to a given list of queries. */
 	ReadResults query(1:Queries queries),
-	
+
 	/** Retrieves statistics for a given list of columns based on the latest committed revision. */
 	list<Statistic> getStatistics(1:list<ColumnID> columnIDs),
-
-	/** INCOMPLETE: Checkpoints all repos in worker **/
-	oneway void checkpoint()
 }
 
+struct ColumnRange
+{
+	1:required Revision from, 
+	2:required Revision to
+}
+
+typedef map<ColumnID, ColumnRange> Ranges
+
+struct GetWritesResult
+{
+	/** If writes is not populated the range is out of bounds, consult minFrom or MaxTo to determine the missing extent. */
+	1:optional ColumnWrites writes,
+	2:required Revision minFrom,
+	3:required Revision maxTo
+}
+
+typedef map<ColumnID, GetWritesResult> GetWritesResults
+
+struct StoreStatus
+{
+	1:map<ColumnID, Revision> LastCheckpoints,
+	2:set<ColumnID> beganCheckpoints,
+	3:map<ColumnID, Revision> LatestRevisions
+}
+
+service Store
+{
+	/** Begins the process of checkpointing a given column */
+	void checkpointBegin(1:ColumnID columnID),
+
+	/** Writes a block of values to the checkpoint. */
+	void checkpointWrite(1:ColumnID columnID, 2:ValueRowsList values),
+
+	/** Completes the checkpoint for the given column. */
+	void checkpointEnd(1:ColumnID columnID),
+
+
+	/** Retrieves various details about that store's present status. */
+	StoreStatus getStatus(),
+
+
+	/** Retrieves changes for a given set of column revision ranges. May included changes not yet flushed. */
+	GetWritesResults getWrites(1:Ranges ranges),
+
+
+	/** Commits the given already prepared writes. */
+	oneway void commit(1:TransactionID transactionID, 2:Writes writes),
+
+
+	/** Waits for the given transaction to be flushed to disk. */
+	void flush(1:TransactionID transactionID),
+}
