@@ -106,6 +106,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Endpoint.cpp" />
+    <ClCompile Include="LogStream.cpp" />
+    <ClCompile Include="LogManager.cpp" />
     <ClCompile Include="Repository.cpp" />
     <ClCompile Include=".\Scheduler.cpp" />
     <ClCompile Include="Serialization.cpp" />
@@ -120,6 +122,11 @@
   <ItemGroup>
     <ClInclude Include="Endpoint.h" />
     <ClInclude Include="EndpointConfig.h" />
+    <ClInclude Include="LogConstants.h" />
+    <ClInclude Include="LogManager.h" />
+    <ClInclude Include="LogStream.h" />
+    <ClInclude Include="LogReaderPool.h" />
+    <ClInclude Include="Record.h" />
     <ClInclude Include="Repository.h" />
     <ClInclude Include="Scheduler.h" />
     <ClInclude Include="Serialization.h" />
