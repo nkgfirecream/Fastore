@@ -16,29 +16,29 @@ public:
 private:
 	boost::shared_ptr<boost::mutex> _lock;
 
-	std::map<int, std::queue<std::shared_ptr<LogReader>>> _readers;
+	std::map<int64_t, std::queue<std::shared_ptr<LogReader>>> _readers;
 
 public:
-	LogReaderPool(std::function<std::shared_ptr<LogReader>(int)> create, std::function<bool(std::shared_ptr<LogReader>)> validate, std::function<void(std::shared_ptr<LogReader>)> destroy);
+	LogReaderPool(std::function<std::shared_ptr<LogReader>(int64_t)> create, std::function<bool(std::shared_ptr<LogReader>)> validate, std::function<void(std::shared_ptr<LogReader>)> destroy);
 	~LogReaderPool();
 
 	void Release(std::shared_ptr<LogReader> reader);
 	void Destroy(std::shared_ptr<LogReader> reader);
 
 	//Determine filename and validate.
-	std::function<std::shared_ptr<LogReader>(int)> _create;
+	std::function<std::shared_ptr<LogReader>(int64_t)> _create;
 	std::function<bool(std::shared_ptr<LogReader>&)> _validate;
 	std::function<void(std::shared_ptr<LogReader>&)> _destroy;
 
 	/// <summary> Makes a connection to a service given address information. </summary>
 	/// <remarks> The resulting connection will not yet be in the pool.  Use release to store the connection in the pool. </remarks>
-	std::shared_ptr<LogReader> LogReaderPool::operator[](int lsn);
+	std::shared_ptr<LogReader> LogReaderPool::operator[](int64_t lsn);
 
 private:
-	std::shared_ptr<LogReader> Open(int lsn);
+	std::shared_ptr<LogReader> Open(int64_t lsn);
 };
 
-LogReaderPool::LogReaderPool(std::function<std::shared_ptr<LogReader>(int)> create, std::function<bool(std::shared_ptr<LogReader>)> validate, std::function<void(std::shared_ptr<LogReader>)> destroy)
+LogReaderPool::LogReaderPool(std::function<std::shared_ptr<LogReader>(int64_t)> create, std::function<bool(std::shared_ptr<LogReader>)> validate, std::function<void(std::shared_ptr<LogReader>)> destroy)
 	: 
 	_lock(boost::shared_ptr<boost::mutex>(new boost::mutex())),
 	_create(create),
@@ -48,7 +48,7 @@ LogReaderPool::LogReaderPool(std::function<std::shared_ptr<LogReader>(int)> crea
 
 }
 
-std::shared_ptr<LogReader> LogReaderPool::operator[](int lsn)
+std::shared_ptr<LogReader> LogReaderPool::operator[](int64_t lsn)
 {
 	_lock->lock();
 	bool taken = true;
@@ -104,12 +104,12 @@ void LogReaderPool::Release(std::shared_ptr<LogReader> reader)
 	_lock->lock();
 	{
 		// Find or create the entry
-		int lsn = reader->lsn();
+		int64_t lsn = reader->lsn();
 
 		auto entry = _readers.find(lsn);
 		if (entry == _readers.end())
 		{
-			_readers.insert(std::pair<int, std::queue<std::shared_ptr<LogReader>>>(lsn, std::queue<std::shared_ptr<LogReader>>()));
+			_readers.insert(std::pair<int64_t, std::queue<std::shared_ptr<LogReader>>>(lsn, std::queue<std::shared_ptr<LogReader>>()));
 			entry = _readers.find(lsn);
 		}
 
@@ -130,7 +130,7 @@ void LogReaderPool::Destroy(std::shared_ptr<LogReader> reader)
 	_destroy(reader);
 }
 
-std::shared_ptr<LogReader> LogReaderPool::Open(int lsn)
+std::shared_ptr<LogReader> LogReaderPool::Open(int64_t lsn)
 {
 	return _create(lsn);
 }

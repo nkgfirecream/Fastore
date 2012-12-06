@@ -16,11 +16,11 @@
 // 4 - Header Size
 // 4 - Complete
 // 4 - Size
-// 980 - 0 padded
+// 980 - (reserved -- padded with zeros)
 // 16 - MD4
 
 //Starting at offset 1024
-//Transaction Header
+//Transaction Begin
 // 4 - Type
 // 8 - Transaction ID
 // 8 - Timestamp
@@ -29,7 +29,7 @@
 // | 8 - Revision
 // 16 - MD4
 
-//Transaction Footer
+//Transaction End
 // 4 - Type
 // 8 - Transaction ID
 // 8 - Timestamp
@@ -61,7 +61,7 @@ const static int LogHeaderSize = 1024;
 const static int Version = 0;
 const static char* Signature = "Fastore\0";
 const static int MaxLogSize = 104857600;
-const static char* LogExtension = ".fastlog\0";
+const static char* LogExtension = "fastlog\0";
 
 //These represent the Non-data size of records. We should be able to compute if
 //a record will fit by taking the size of the header, plus the size of the data we want to

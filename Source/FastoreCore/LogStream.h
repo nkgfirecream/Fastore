@@ -12,32 +12,30 @@ class LogStream
 protected:
 	std::fstream _file;
 	std::string _filename;
-	int _lsn;
+	int64_t _lsn;
 	int _complete;
 	int64_t _timeStamp;
 	int64_t _size;
 
 	LogStream();
-	LogStream(int lsn);
+	LogStream(int64_t lsn);
+	~LogStream();
 
-	TransactionBeginRecord* readTransactionBegin();
-	TransactionEndRecord* readTransactionEnd();
-	CheckpointRecord* readCheckpoint();
-	RollbackRecord* readRollBack();
-	RevisionRecord* readRevision(bool headerOnly);
 	void readLogHeader();
 
 public:
 
-	Record* readRecord(int offset, bool headerOnly);
-	Record* readNextRecord(bool headerOnly);
-	
+	TransactionBeginRecord readTransactionBegin();
+	TransactionEndRecord readTransactionEnd();
+	CheckpointRecord readCheckpoint();
+	RollbackRecord readRollBack();
+	RevisionRecord readRevision();
+	RecordType readNextRecordType();
+
 	bool isComplete();
-	int  lsn();
+	int64_t  lsn();
 	int64_t size();
 	int64_t timeStamp();
-	void close();
-
 };
 
 class LogWriter : public LogStream
@@ -48,7 +46,9 @@ public:
 	LogWriter(std::string filename);	
 
 	//Zero file and write new header (create file if it doesn't exist)
-	LogWriter(std::string filename, int lsn);	
+	LogWriter(std::string filename, int64_t lsn);
+
+	~LogWriter();
 
 
 	void writeTransactionBegin(int64_t transactionId, std::vector<std::pair<int64_t, int64_t>>& revisions);
@@ -78,6 +78,11 @@ class LogReader : public LogStream
 public:
 	//Open existing log file.
 	LogReader(std::string filename);
+	~LogReader();
+
+	//Update the reader size limit. This happens after a log file has been flushed
+	//Notify readers that there is more to read.
+	void setSize(int64_t size);
 };
 
 

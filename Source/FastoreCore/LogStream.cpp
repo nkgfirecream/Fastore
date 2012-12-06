@@ -3,7 +3,7 @@
 
 //LogStream
 LogStream::LogStream() : _lsn(0), _complete(0) { }
-LogStream::LogStream(int lsn) : _lsn(lsn), _complete(0) { }
+LogStream::LogStream(int64_t lsn) : _lsn(lsn), _complete(0) { }
 
 void LogStream::readLogHeader()
 {
@@ -49,48 +49,20 @@ void LogStream::readLogHeader()
 	//Now positioned at first entry
 }
 
-Record* LogStream::readRecord(int offset, bool headerOnly)
-{
-	_file.seekg(offset, std::ios_base::beg);
-	return readNextRecord(headerOnly);
-}
-
-//TODO: exceptions/error messages.
-Record* LogStream::readNextRecord(bool headerOnly)
+RecordType LogStream::readNextRecordType()
 {
 	if (!_file.eof() && _file.tellg() <= _size)
 	{
 		int type;
 		_file >> type;
 
-		switch((RecordType)type)
-		{
-			case RecordType::TransactionBegin:
-				return readTransactionBegin();
-				break;
-			case RecordType::TransactionEnd:
-				return readTransactionEnd();
-				break;
-			case RecordType::Revision:
-				return readRevision(headerOnly);
-				break;
-			case RecordType::Checkpoint:
-				return readCheckpoint();
-				break;
-			case RecordType::Rollback:
-				return readRollBack();
-				break;
-			default:
-				//NULL return indicates invalid record.
-				return NULL;
-				break;
-		}
+		return (RecordType)type;
 	}
 
-	return NULL;
+	return RecordType::Null;
 }
 
-TransactionBeginRecord* LogStream::readTransactionBegin()
+TransactionBeginRecord LogStream::readTransactionBegin()
 {
 	int64_t offset =  (int64_t)_file.tellg() - 4;
 
@@ -120,12 +92,17 @@ TransactionBeginRecord* LogStream::readTransactionBegin()
 	//TODO: MD4
 	_file.seekg(16, std::ios_base::cur);
 
-	TransactionBeginRecord* record = new TransactionBeginRecord(timeStamp, _lsn, offset, transactionId, revisions);
+	TransactionBeginRecord record;
+	record.header.timeStamp = timeStamp;
+	record.header.lsn = _lsn;
+	record.header.offset = offset;
+	record.transactionId = transactionId;
+	record.revisions = revisions;
 
 	return record;
 }
 
-TransactionEndRecord* LogStream::readTransactionEnd()
+TransactionEndRecord LogStream::readTransactionEnd()
 {
 	int64_t offset =  (int64_t)_file.tellg() - 4;
 
@@ -138,17 +115,21 @@ TransactionEndRecord* LogStream::readTransactionEnd()
 	//TODO: MD4
 	_file.seekg(16, std::ios_base::cur);
 
-	TransactionEndRecord* record = new TransactionEndRecord(timeStamp, _lsn, offset, transactionId);
+	TransactionEndRecord record;
+	record.header.timeStamp = timeStamp;
+	record.header.lsn = _lsn;
+	record.header.offset = offset;
+	record.transactionId = transactionId;
 
 	return record;
 }
 
-RevisionRecord* LogStream::readRevision(bool headerOnly)
+RevisionRecord LogStream::readRevision()
 {
 	int64_t offset =  (int64_t)_file.tellg() - 4;
 
-	int64_t columnID;
-	_file >> columnID;
+	int64_t columnId;
+	_file >> columnId;
 		
 	int64_t revision;
 	_file >> revision;
@@ -166,12 +147,20 @@ RevisionRecord* LogStream::readRevision(bool headerOnly)
 	//TODO: MD4
 	_file.seekg(16, std::ios_base::cur);
 
-	RevisionRecord*  record = new RevisionRecord(timeStamp, _lsn, offset, headerOnly ? 0 : size, headerOnly ? NULL : buffer);
+	RevisionRecord  record;
+	record.header.timeStamp = timeStamp;
+	record.header.lsn = _lsn;
+	record.header.offset = offset;
+	record.columnId = columnId;
+	record.revision = revision;
+	record.data = std::string(buffer);
+
+	delete buffer;
 
 	return record;
 }
 
-CheckpointRecord* LogStream::readCheckpoint()
+CheckpointRecord LogStream::readCheckpoint()
 {
 	int64_t offset =  (int64_t)_file.tellg() - 4;
 
@@ -187,12 +176,17 @@ CheckpointRecord* LogStream::readCheckpoint()
 	//TODO: MD4
 	_file.seekg(16, std::ios_base::cur);
 
-	CheckpointRecord* record = new CheckpointRecord(timeStamp, _lsn, offset, columnID, revision);
+	CheckpointRecord record;
+	record.header.timeStamp = timeStamp;
+	record.header.lsn = _lsn;
+	record.header.offset = offset;
+	record.columnId = columnID;
+	record.revision = revision;
 
 	return record;
 }
 
-RollbackRecord* LogStream::readRollBack()
+RollbackRecord LogStream::readRollBack()
 {
 	int64_t offset =  (int64_t)_file.tellg() - 4;
 
@@ -205,8 +199,12 @@ RollbackRecord* LogStream::readRollBack()
 	//TODO: MD4
 	_file.seekg(16, std::ios_base::cur);
 
-	RollbackRecord* record = new RollbackRecord(timeStamp, _lsn, offset, transactionId);
-
+	RollbackRecord record;
+	record.header.timeStamp = timeStamp;
+	record.header.lsn = _lsn;
+	record.header.offset = offset;
+	record.transactionId = transactionId;
+	
 	return record;
 }
 	
@@ -215,7 +213,7 @@ bool LogStream::isComplete()
 	return _complete == 1;
 }
 
-int  LogStream::lsn()
+int64_t  LogStream::lsn()
 {
 	return _lsn;
 }
@@ -230,7 +228,7 @@ int64_t LogStream::timeStamp()
 	return _timeStamp;
 }
 
-void LogStream::close()
+LogStream::~LogStream()
 {
 	_file.close();
 }
@@ -244,6 +242,10 @@ LogReader::LogReader(std::string filename)
 	readLogHeader();
 }
 
+void LogReader::setSize(int64_t size)
+{
+	_size = size;
+}
 
 //LogWriter
 LogWriter::LogWriter(std::string filename)
@@ -253,12 +255,13 @@ LogWriter::LogWriter(std::string filename)
 	readLogHeader();
 }
 
-LogWriter::LogWriter(std::string filename, int lsn) : LogStream(lsn)
+LogWriter::LogWriter(std::string filename, int64_t lsn) : LogStream(lsn)
 {
-	_file.open(filename.c_str(), std::ios::binary | std::ios::in | std::ios::out);
+	_file.open(filename.c_str(), std::ios::binary | std::ios::in | std::ios::out | std::ios::trunc);
 
 	zeroFile();
 	writeLogHeader();
+	flush();
 }
 
 void LogWriter::setComplete()
@@ -274,6 +277,7 @@ void LogWriter::flush()
 
 void LogWriter::zeroFile()
 {
+	//Need a better way to do this. This is probably going to be slow. Is it even neccessary?  (collocate entire file when first zeroed vs zeroing time)
 	_file.seekp(0, std::ios_base::beg);
 	for (int i = 0; i < MaxLogSize; ++i)
 	{
@@ -405,9 +409,8 @@ void LogWriter::writeRollback(int64_t transactionId)
 	_size = _file.tellp();
 }
 
-void LogWriter::close()
+LogWriter::~LogWriter()
 {
 	updateLogHeader();
 	flush();
-	LogStream::close();
 }

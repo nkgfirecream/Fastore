@@ -11,17 +11,18 @@
 struct LogFile
 {
 	std::string filename;
-	int lsn;
+	int64_t lsn;
 	bool complete;
 	//bool closed; Need some way to signal the physical file can be resused.
-	int size;
+	int64_t size;
 };
 
+//Values are important for comparisons here.
 enum TransactionState
 {
-	Pending,
-	Complete,
-	Rolledback
+	Begin = 10,
+	End = 20,
+	Rollback = 30
 };
 
 struct TransactionInfo
@@ -33,9 +34,9 @@ struct TransactionInfo
 
 struct RevisionFileInfo
 {
-	int lsn;
+	int64_t lsn;
 	int64_t startingRevision;
-	std::vector<int> offsets;
+	std::vector<int64_t> offsets;
 };
 
 struct ColumnInfo
@@ -66,8 +67,13 @@ private:
 	boost::shared_ptr<boost::mutex> _lock;
 
 	//This structure keeps track of current log files
-	std::map<int, LogFile> _files;
+	std::map<int64_t, LogFile> _files;
+
+	//Index of transaction info (by transaction id)
 	std::map<int64_t, TransactionInfo> _transactions;
+
+	//Index of revision info (by column id)
+	std::map<int64_t, ColumnInfo> _columns;
 
 	//Thread pool that does reads only.
 	boost::asio::io_service _readService;
@@ -81,19 +87,34 @@ private:
 	boost::asio::io_service::work _writeWork;
 
 	LogReaderPool _readerPool;
-	std::unique_ptr<LogReader> _writer;
+	std::unique_ptr<LogWriter> _writer;
 	
 	std::string _config;
 
 	//functions for creating, destroying, and validating readers (Used by reader pool)
-	std::shared_ptr<LogReader> createReader(int lsn);
+	std::shared_ptr<LogReader> createReader(int64_t lsn);
 	void destroyReader(std::shared_ptr<LogReader> reader);
 	bool validateReader(std::shared_ptr<LogReader> reader);
 
 	//The following are internal functions that actually do work. They are called by the various worker threads.
 
-	//These are write functions that can be accessed only from the write thread.
+	//These are write functions that should be accessed only from the write thread.
+	//They either modify shared state or write to disk, and their operations should be serialized.
 	void initalizeLogManager();
+
+	void indexLogFile(std::string filename);
+	void indexRevisionRecord(RevisionRecord& record);
+	void indexCheckpointRecord(CheckpointRecord& record);
+	void indexTransactionBeginRecord(TransactionBeginRecord& record);
+	void indexTransactionEndRecord(TransactionEndRecord&  record);
+	void indexRollbackRecord(RollbackRecord& record);
+
+	//Returns -1 if Lsn is not present, otherwise returns index of RevisionFileInfo
+	size_t revisionFileInfoByLsn(ColumnInfo& info, int64_t lsn);
+
+	//Returns -1 if revision is not present, otherwise returns offset
+	int64_t offsetByRevision(ColumnInfo& info, int64_t revision);
+
 	void internalFlush(int64_t transactionId, Connection* connection);
 	void internalCommit(int64_t transactionId, std::vector<Change> changes);
 	void internalSaveThrough(std::vector<Change>, int64_t revision, int64_t columnId);
