@@ -30,6 +30,16 @@ vector<OptionalValue> IdentityBuffer::GetValues(const vector<std::string>& rowId
 	return values;
 }
 
+OptionalValue IdentityBuffer::GetValue(const std::string &rowId)
+{
+	OptionalValue result;
+	BTree::Path path;
+	_rows->GetPath(_type.GetPointer(rowId), path);
+	if (path.Match)
+		result.__set_value(rowId);
+	return result;
+}
+
 void IdentityBuffer::Apply(const ColumnWrites& writes)
 {
 	auto exstart = writes.excludes.begin();

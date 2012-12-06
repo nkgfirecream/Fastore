@@ -8,8 +8,10 @@
 #include <set>
 #include <algorithm>
 #include <boost/shared_ptr.hpp>
-#include "../FastoreCommon/Communication/Comm_types.h"
+#include <Communication/Comm_types.h>
+#include <Buffer/TreeBuffer.h>
 #include <unordered_set>
+#include <unordered_map>
 
 using namespace fastore::communication;
 
@@ -24,51 +26,57 @@ namespace fastore { namespace client
 	/// </Remarks>
 	class Transaction : public IDataAccess
 	{
-	private:
+	public:
 		class LogColumn
 		{
 		public:
-			LogColumn()
-			{
-				Includes = std::map<std::string, std::string>();
-				Excludes = std::unordered_set<std::string>();	
-			}
-			std::map<std::string, std::string> Includes;
-			std::unordered_set<std::string> Excludes;
+			// Included rows by value
+			TreeBuffer includes;
+			// Excluded row IDs
+			std::unordered_set<std::string> excludes;
+			// Read row IDs
+			std::unordered_set<std::string> reads;
+			// Isolated Revision (0 reserved for unknown)
+			Revision revision;
+			// Row type
+			ScalarType &rowType;
+			// Value type
+			ScalarType &valueType;
+
+			LogColumn(ScalarType& rowType, ScalarType &valueType) 
+				: includes(TreeBuffer(rowType, valueType)), revision(0), rowType(rowType), valueType(valueType) 
+			{ }
 		};
 
 	private:
-		Database& privateDatabase;
-		bool privateReadIsolation;
-		bool privateWriteIsolation;
+		Database& _database;
 		bool _completed;
 		TransactionID _transactionId;
-		void GatherWrites(std::map<ColumnID,  ColumnWrites>& output);
-
 		// Log entries - by column ID then by row ID - null value means exclude
-		std::map<ColumnID, LogColumn> _log;
-		LogColumn& EnsureColumnLog(const ColumnID& columnId);
+		std::unordered_map<ColumnID, LogColumn> _log;
+		bool _readsConflict;
 
+		void gatherWrites(std::map<ColumnID,  ColumnWrites>& output);
+		LogColumn& ensureColumnLog(const ColumnID& columnId);
+		// Build a log entry per column for quick access
+		std::vector<Transaction::LogColumn*> buildLogMap(const ColumnIDs& columnIds, bool &anyMapped);
+		void applyColumnOverrides(LogColumn &colLog, DataSetRow &row, size_t colIndex);
 	public:
 		const Database &getDatabase() const;
 		
-		const bool &getReadIsolation() const;
-	
-		const bool &getWriteIsolation() const;
-
-		Transaction(Database& database, bool readIsolation, bool writeIsolation);
+		Transaction(Database& database, bool readsConflict);
 		~Transaction();
 
-		void Commit(bool flush = false);
-		void Rollback();
+		void commit(bool flush = false);
+		void rollback();
 
-		RangeSet GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId = boost::optional<std::string>());
-		DataSet GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
+		RangeSet getRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId = boost::optional<std::string>());
+		DataSet getValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
 
-		void Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);
+		void include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+		void exclude(const ColumnIDs& columnIds, const std::string& rowId);
 
-		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
-		std::map<HostID, long long> Ping();
+		std::vector<Statistic> getStatistics(const ColumnIDs& columnIds);
+		std::map<HostID, long long> ping();
 	};
 }}

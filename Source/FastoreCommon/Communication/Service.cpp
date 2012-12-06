@@ -290,17 +290,17 @@ uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->addresses.clear();
-            uint32_t _size100;
-            ::apache::thrift::protocol::TType _ktype101;
-            ::apache::thrift::protocol::TType _vtype102;
-            iprot->readMapBegin(_ktype101, _vtype102, _size100);
-            uint32_t _i104;
-            for (_i104 = 0; _i104 < _size100; ++_i104)
+            uint32_t _size143;
+            ::apache::thrift::protocol::TType _ktype144;
+            ::apache::thrift::protocol::TType _vtype145;
+            iprot->readMapBegin(_ktype144, _vtype145, _size143);
+            uint32_t _i147;
+            for (_i147 = 0; _i147 < _size143; ++_i147)
             {
-              HostID _key105;
-              xfer += iprot->readI64(_key105);
-              NetworkAddress& _val106 = this->addresses[_key105];
-              xfer += _val106.read(iprot);
+              HostID _key148;
+              xfer += iprot->readI64(_key148);
+              NetworkAddress& _val149 = this->addresses[_key148];
+              xfer += _val149.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -340,11 +340,11 @@ uint32_t Service_init_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->addresses.size()));
-    std::map<HostID, NetworkAddress> ::const_iterator _iter107;
-    for (_iter107 = this->addresses.begin(); _iter107 != this->addresses.end(); ++_iter107)
+    std::map<HostID, NetworkAddress> ::const_iterator _iter150;
+    for (_iter150 = this->addresses.begin(); _iter150 != this->addresses.end(); ++_iter150)
     {
-      xfer += oprot->writeI64(_iter107->first);
-      xfer += _iter107->second.write(oprot);
+      xfer += oprot->writeI64(_iter150->first);
+      xfer += _iter150->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -370,11 +370,11 @@ uint32_t Service_init_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->addresses)).size()));
-    std::map<HostID, NetworkAddress> ::const_iterator _iter108;
-    for (_iter108 = (*(this->addresses)).begin(); _iter108 != (*(this->addresses)).end(); ++_iter108)
+    std::map<HostID, NetworkAddress> ::const_iterator _iter151;
+    for (_iter151 = (*(this->addresses)).begin(); _iter151 != (*(this->addresses)).end(); ++_iter151)
     {
-      xfer += oprot->writeI64(_iter108->first);
-      xfer += _iter108->second.write(oprot);
+      xfer += oprot->writeI64(_iter151->first);
+      xfer += _iter151->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -1203,9 +1203,9 @@ uint32_t Service_acquireLock_args::read(::apache::thrift::protocol::TProtocol* i
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast109;
-          xfer += iprot->readI32(ecast109);
-          this->mode = (LockMode::type)ecast109;
+          int32_t ecast152;
+          xfer += iprot->readI32(ecast152);
+          this->mode = (LockMode::type)ecast152;
           this->__isset.mode = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -2011,6 +2011,26 @@ uint32_t Service_checkpoint_args::read(::apache::thrift::protocol::TProtocol* ip
     }
     switch (fid)
     {
+      case 1:
+        if (ftype == ::apache::thrift::protocol::T_LIST) {
+          {
+            this->columnIDs.clear();
+            uint32_t _size153;
+            ::apache::thrift::protocol::TType _etype156;
+            iprot->readListBegin(_etype156, _size153);
+            this->columnIDs.resize(_size153);
+            uint32_t _i157;
+            for (_i157 = 0; _i157 < _size153; ++_i157)
+            {
+              xfer += iprot->readI64(this->columnIDs[_i157]);
+            }
+            iprot->readListEnd();
+          }
+          this->__isset.columnIDs = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -2027,6 +2047,18 @@ uint32_t Service_checkpoint_args::write(::apache::thrift::protocol::TProtocol* o
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_checkpoint_args");
 
+  xfer += oprot->writeFieldBegin("columnIDs", ::apache::thrift::protocol::T_LIST, 1);
+  {
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->columnIDs.size()));
+    std::vector<ColumnID> ::const_iterator _iter158;
+    for (_iter158 = this->columnIDs.begin(); _iter158 != this->columnIDs.end(); ++_iter158)
+    {
+      xfer += oprot->writeI64((*_iter158));
+    }
+    xfer += oprot->writeListEnd();
+  }
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -2035,6 +2067,18 @@ uint32_t Service_checkpoint_args::write(::apache::thrift::protocol::TProtocol* o
 uint32_t Service_checkpoint_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("Service_checkpoint_pargs");
+
+  xfer += oprot->writeFieldBegin("columnIDs", ::apache::thrift::protocol::T_LIST, 1);
+  {
+    xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>((*(this->columnIDs)).size()));
+    std::vector<ColumnID> ::const_iterator _iter159;
+    for (_iter159 = (*(this->columnIDs)).begin(); _iter159 != (*(this->columnIDs)).end(); ++_iter159)
+    {
+      xfer += oprot->writeI64((*_iter159));
+    }
+    xfer += oprot->writeListEnd();
+  }
+  xfer += oprot->writeFieldEnd();
 
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
@@ -2688,17 +2732,18 @@ void ServiceClient::recv_releaseLock()
   return;
 }
 
-void ServiceClient::checkpoint()
+void ServiceClient::checkpoint(const ColumnIDs& columnIDs)
 {
-  send_checkpoint();
+  send_checkpoint(columnIDs);
 }
 
-void ServiceClient::send_checkpoint()
+void ServiceClient::send_checkpoint(const ColumnIDs& columnIDs)
 {
   int32_t cseqid = 0;
   oprot_->writeMessageBegin("checkpoint", ::apache::thrift::protocol::T_CALL, cseqid);
 
   Service_checkpoint_pargs args;
+  args.columnIDs = &columnIDs;
   args.write(oprot_);
 
   oprot_->writeMessageEnd();
@@ -3371,7 +3416,7 @@ void ServiceProcessor::process_checkpoint(int32_t, ::apache::thrift::protocol::T
   }
 
   try {
-    iface_->checkpoint();
+    iface_->checkpoint(args.columnIDs);
   } catch (const std::exception& e) {
     if (this->eventHandler_.get() != NULL) {
       this->eventHandler_->handlerError(ctx, "Service.checkpoint");

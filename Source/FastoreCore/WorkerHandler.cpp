@@ -177,6 +177,42 @@ void WorkerHandler::Bootstrap()
 	podColColId.Required = true;
 	CreateRepo(podColColId);
 
+	ColumnDef stashId;
+	stashId.ColumnID = 500;
+	stashId.Name = "Stash.ID";
+	stashId.ValueType = standardtypes::Long;
+	stashId.RowIDType = standardtypes::Long;
+	stashId.BufferType = BufferType_t::Unique;
+	stashId.Required = true;
+	CreateRepo(stashId);	
+
+	ColumnDef stashHostId;
+	stashHostId.ColumnID = 501;
+	stashHostId.Name = "Stash.HostID";
+	stashHostId.ValueType = standardtypes::Long;
+	stashHostId.RowIDType = standardtypes::Long;
+	stashHostId.BufferType = BufferType_t::Multi;
+	stashHostId.Required = true;
+	CreateRepo(stashHostId);	
+
+	ColumnDef stashColStashId;
+	stashColStashId.ColumnID = 600;
+	stashColStashId.Name = "StashColumn.StashID";
+	stashColStashId.ValueType = standardtypes::Long;
+	stashColStashId.RowIDType = standardtypes::Long;
+	stashColStashId.BufferType = BufferType_t::Multi;
+	stashColStashId.Required = true;
+	CreateRepo(stashColStashId);	
+
+	ColumnDef stashColColId;
+	stashColColId.ColumnID = 601;
+	stashColColId.Name = "StashColumn.ColumnID";
+	stashColColId.ValueType = standardtypes::Long;
+	stashColColId.RowIDType = standardtypes::Long;
+	stashColColId.BufferType = BufferType_t::Multi;
+	stashColColId.Required = true;
+	CreateRepo(stashColColId);
+	
 	//This must come after the repos are initialized. Can't add a column to the schema if the schema doesn't exist
 	AddColumnToSchema(id);
 	AddColumnToSchema(name);
@@ -189,7 +225,10 @@ void WorkerHandler::Bootstrap()
 	AddColumnToSchema(podHostId);
 	AddColumnToSchema(podColPodId);
 	AddColumnToSchema(podColColId);
-}
+	AddColumnToSchema(stashId);
+	AddColumnToSchema(stashHostId);
+	AddColumnToSchema(stashColStashId);
+	AddColumnToSchema(stashColColId);}
 
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
@@ -276,8 +315,8 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	std::string columnId;
 	columnId.assign((char*)&def.ColumnID, sizeof(ColumnID));
 
-	std::vector<Include> includes;
-	Include include;
+	std::vector<Cell> includes;
+	Cell include;
 	include.__set_value(columnId);
 	include.__set_rowID(columnId);
 
@@ -394,27 +433,29 @@ void WorkerHandler::CheckState()
 	//if (_state == WorkerState.
 }
 
-Revision WorkerHandler::prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) 
+void WorkerHandler::prepare(PrepareResults& _return, const TransactionID transactionID, const ColumnPrepares& columns) 
 {
 	CheckState();
 
 	// Your implementation goes here
 	printf("Prepare\n");
-
-	return 0;
 }
 
-void WorkerHandler::apply(      TransactionID& _return, 
-						  const TransactionID& transactionID, 
-						  const Writes& writes) 
+void WorkerHandler::apply(PrepareResults& _return, const TransactionID transactionID, const ColumnIDs& columnIDs) 
+{
+	CheckState();
+
+	// Your implementation goes here
+	printf("Apply\n");
+}
+
+void WorkerHandler::commit(const TransactionID transactionID, const Writes& writes) 
 {
 	bool syncSchema = false;
 
-	auto start = writes.begin();
-
-	while(start != writes.end())
+	for (auto write = writes.begin(); write != writes.end(); ++write)
 	{
-		fastore::communication::ColumnID id = start->first;
+		fastore::communication::ColumnID id = write->first;
 
 		// If pod or column table changes, check if we should update.
 		if (id == 400 || id == 401)
@@ -425,63 +466,32 @@ void WorkerHandler::apply(      TransactionID& _return,
 		//before continuing on with the apply, since both the creation of a repo and the first
 		//data may be in the same transaction. If we try to insert without creating it... bad things happen.
 		auto repo = _repositories.find(id);
-		if (repo == _repositories.end())
+		if (repo != _repositories.end())
 		{
-			++start;
-			continue;
+			if (syncSchema && id > 401)
+			{
+				syncSchema = false;
+				SyncToSchema();
+			}
+
+			Wal& wal(*_pwal);
+			const ColumnWrites& colwrites = write->second;
+
+			wal.apply(transactionID, colwrites);
+			repo->second->apply(transactionID, colwrites);
 		}
-
-
-		if (syncSchema && id > 401)
-		{
-			syncSchema = false;
-			SyncToSchema();
-		}
-
-		Wal& wal(*_pwal);
-		const ColumnWrites& colwrites = start->second;
-
-		 wal.apply(transactionID.revision, colwrites);
-		repo->second->apply(transactionID.revision, colwrites);
-		
-		++start;
 	}
 
 	if (syncSchema)
 		SyncToSchema();
 }
 
-void WorkerHandler::commit(const TransactionID& transactionID) {
-// Your implementation goes here
-//printf("Commit\n");
-}
-
-void WorkerHandler::rollback(const TransactionID& transactionID) {
+void WorkerHandler::rollback(const TransactionID transactionID) 
+{
 // Your implementation goes here
 printf("Rollback\n");
 }
 
-void WorkerHandler::flush(const TransactionID& transactionID) {
-// Your implementation goes here
-printf("Flush\n");
-}
-
-bool WorkerHandler::doesConflict(const Reads& reads, const Revision source, const Revision target) {
-// Your implementation goes here
-printf("DoesConflict\n");
-
-return false;
-}
-
-void WorkerHandler::update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
-// Your implementation goes here
-printf("Update\n");
-}
-
-void WorkerHandler::transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
-// Your implementation goes here
-printf("Transgrade\n");
-}
 
 
 void WorkerHandler::query(ReadResults& _return, const Queries& queries)
@@ -540,16 +550,6 @@ void WorkerHandler::getState(WorkerState& _return)
 	_return.__set_repositoryStatus(statuses);
 }
 
-void WorkerHandler::checkpoint()
-{
-	//Save all repos to disk.
-	for (auto begin = _repositories.begin(), end = _repositories.end(); begin != end; ++begin)
-	{
-		begin->second->checkpoint();
-	}
-
-}
-
 void WorkerHandler::handlerError(void* ctx, const char* fn_name)
 {
 	//_currentConnection->park();
@@ -562,6 +562,22 @@ void WorkerHandler::handlerError(void* ctx, const char* fn_name)
 void WorkerHandler::shutdown()
 {
 	_currentConnection->getServer()->shutdown();
+}
+
+void WorkerHandler::loadBegin(const ColumnID columnID)
+{
+}
+
+void WorkerHandler::loadBulkWrite(const ColumnID columnID, const ValueRowsList& values)
+{
+}
+
+void WorkerHandler::loadWrite(const ColumnID columnID, const ColumnWrites& writes)
+{
+}
+
+void WorkerHandler::loadEnd(const ColumnID columnID, const Revision revision)
+{
 }
 
 void* WorkerHandler::getContext(const char* fn_name, void* serverContext)

@@ -215,9 +215,9 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 
 			// Set the state for each of our workers
 			int workerIndex = 0;
-			Log << log_info << __func__ << ": " << host->second.size() 
+			Log << log_info << __func__ << ": " << host->second.pods.size() 
 				<< " pods " << log_endl;
-			for (auto pod = host->second.cbegin(); pod != host->second.cend(); ++pod)
+			for (auto pod = host->second.pods.cbegin(); pod != host->second.pods.cend(); ++pod)
 			{
 				WorkerState workerState;
 				workerState.__set_podID(pod->first);
@@ -265,9 +265,11 @@ void ServiceHandler::join(ServiceState& _return, const HiveState& hiveState, con
 	printf("join\n");
 }
 
-void ServiceHandler::checkpoint()
+void ServiceHandler::checkpoint(const ColumnIDs& columnIDs)
 {
 	SaveConfiguration();
+
+	//TODO: Request stores checkpoint
 }
 
 void ServiceHandler::leave() 

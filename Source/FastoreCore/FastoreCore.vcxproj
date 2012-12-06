@@ -62,6 +62,7 @@
       <PreprocessorDefinitions>WIN64;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <DisableSpecificWarnings>4068</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -93,6 +94,7 @@
       <PreprocessorDefinitions>WIN64;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -132,6 +134,7 @@
     <ClInclude Include="Serialization.h" />
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="StartupConfig.h" />
+    <ClInclude Include="Store.h" />
     <ClInclude Include="TFastoreFileTransport.h" />
     <ClInclude Include="TFastoreServer.h" />
     <ClInclude Include="TransactionID.h" />

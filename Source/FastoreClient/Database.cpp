@@ -2,7 +2,6 @@
 #include "Dictionary.h"
 #include <boost/format.hpp>
 #include "Encoder.h"
-
 #include <future>
 
 //#include "../FastoreCore/safe_cast.h"
@@ -154,9 +153,9 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 	std::map<ColumnID, ColumnWrites> writes;
 
 	// Insert the topology
-	std::vector<fastore::communication::Include> tempVector;
+	std::vector<fastore::communication::Cell> tempVector;
 
-	fastore::communication::Include inc;
+	fastore::communication::Cell inc;
 	inc.__set_rowID(Encoder<TopologyID>::Encode(newTopology.topologyID));
 	inc.__set_value(Encoder<TopologyID>::Encode(newTopology.topologyID));
 
@@ -168,29 +167,32 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 
 	// Insert the hosts and pods
 	ColumnWrites hostWrites;
-	hostWrites.__set_includes(std::vector<fastore::communication::Include>());
+	hostWrites.__set_includes(std::vector<fastore::communication::Cell>());
 
 	ColumnWrites podWrites;
-	podWrites.__set_includes(std::vector<fastore::communication::Include>());
+	podWrites.__set_includes(std::vector<fastore::communication::Cell>());
 
 	ColumnWrites podHostWrites;
-	podHostWrites.__set_includes(std::vector<fastore::communication::Include>());
+	podHostWrites.__set_includes(std::vector<fastore::communication::Cell>());
+
+	ColumnWrites stashWrites;
+
 
 	for (auto h = newTopology.hosts.begin(); h != newTopology.hosts.end(); ++h)
 	{
-		fastore::communication::Include inc;		
+		fastore::communication::Cell inc;		
 		inc.__set_rowID(Encoder<HostID>::Encode(h->first));
 		inc.__set_value(Encoder<HostID>::Encode(h->first));
 		hostWrites.includes.push_back(inc);
 
-		for (auto p = h->second.begin(); p != h->second.end(); ++p)
+		for (auto p = h->second.pods.begin(); p != h->second.pods.end(); ++p)
 		{
-			fastore::communication::Include pwinc;
+			fastore::communication::Cell pwinc;
 			pwinc.__set_rowID(Encoder<PodID>::Encode(p->first));
 			pwinc.__set_value(Encoder<PodID>::Encode(p->first));
 			podWrites.includes.push_back(pwinc);
 
-			fastore::communication::Include phinc;
+			fastore::communication::Cell phinc;
 			phinc.__set_rowID(Encoder<PodID>::Encode(p->first));
 			phinc.__set_value(Encoder<HostID>::Encode(h->first));
 			podHostWrites.includes.push_back(phinc);
@@ -201,25 +203,26 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 	writes.insert(std::make_pair(Dictionary::PodID, podWrites));
 	writes.insert(std::make_pair(Dictionary::PodHostID, podHostWrites));
 
-	Apply(writes, false);
+	apply(writes, false);
 }
 
 Topology Database::CreateTopology(const std::vector<int>& serviceWorkers)
 {
 	Topology newTopology;
-	//TODO: Generate ID. It was based on the hashcode of a guid.
-	newTopology.__set_topologyID(0);
-	newTopology.__set_hosts(std::map<HostID, Pods>());
+	newTopology.__set_topologyID(generateTransactionID());
+	newTopology.__set_hosts(std::map<HostID, Host>());
 	auto podID = 0;
 	for (size_t hostID = 0; hostID < serviceWorkers.size(); hostID++)
 	{
-		auto pods = std::map<PodID, std::vector<ColumnID>>();
+		Host host;
+		host.__set_pods(std::map<PodID, std::vector<ColumnID>>());
+		auto &pods = host.pods;
 		for (int i = 0; i < serviceWorkers[hostID]; i++)
 		{
 			pods.insert(std::make_pair(podID, std::vector<ColumnID>())); // No no columns initially
 			podID++;
 		}
-		newTopology.hosts.insert(std::make_pair(HostID(hostID), pods));
+		newTopology.hosts.insert(std::make_pair(HostID(hostID), host));
 	}
 
 	return newTopology;
@@ -429,13 +432,14 @@ std::pair<PodID, WorkerClient> Database::GetWorkerForSystemColumn()
 
 std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<ColumnID, ColumnWrites>& writes)
 {
+	auto schema = getSchema();
 	_lock->lock();
 	std::vector<WorkerInfo> results;
 	try
 	{
 		// TODO: only write to the workers for the column(s).
 		std::vector<ColumnID> systemColumns;
-		for (auto iter = _schema.begin(); iter != _schema.end(); ++iter)
+		for (auto iter = schema.begin(); iter != schema.end(); ++iter)
 		{
 			if (iter->first <= Dictionary::MaxSystemColumnID)
 				systemColumns.push_back(iter->first);
@@ -451,7 +455,7 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 
 			for (auto repo = ws->second.second.repositoryStatus.begin(); repo != ws->second.second.repositoryStatus.end(); ++repo)
 			{
-				if ((repo->second == RepositoryStatus::Online || repo->second == RepositoryStatus::Checkpointing) && repo->first > Dictionary::MaxSystemColumnID)
+				if (repo->second == RepositoryStatus::Online && repo->first > Dictionary::MaxSystemColumnID)
 					info.Columns.push_back(repo->first);
 			}		
 
@@ -591,12 +595,12 @@ void Database::TrackErrors(std::map<PodID, std::exception> &errors)
 	}
 }
 
-boost::shared_ptr<Transaction> Database::Begin(bool readIsolation, bool writeIsolation)
+boost::shared_ptr<Transaction> Database::begin(bool readsConflict)
 {
-	return boost::shared_ptr<Transaction>(new Transaction(*this, readIsolation, writeIsolation));
+	return boost::shared_ptr<Transaction>(new Transaction(*this, readsConflict));
 }
 
-RangeSet Database::GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
+RangeSet Database::getRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
 {
 	// Create the range query
 	auto query = CreateQuery(range, limit, startId);
@@ -682,7 +686,7 @@ DataSet Database::InternalGetValues(const ColumnIDs& columnIds, const ColumnID e
 	return ResultsToDataSet(columnIds, rowIdQuery.rowIDs, resultsByColumn);
 }
 
-DataSet Database::GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds)
+DataSet Database::getValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds)
 {
 	Query rowIdQuery;
 	rowIdQuery.__set_rowIDs(rowIds);
@@ -761,30 +765,7 @@ Query Database::GetRowsQuery(const RangeResult &rangeResult)
 
 Query Database::CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId)
 {
-	RangeRequest rangeRequest;
-	rangeRequest.__set_ascending(range.Ascending);
-	rangeRequest.__set_limit(limit);
-
-	if (range.Start)
-	{
-		fastore::communication::RangeBound bound;
-		bound.__set_inclusive(range.Start->Inclusive);
-		bound.__set_value(range.Start->Bound);
-
-		rangeRequest.__set_first(bound);
-	}
-
-	if (range.End)
-	{
-		fastore::communication::RangeBound bound;
-		bound.__set_inclusive(range.End->Inclusive);
-		bound.__set_value(range.End->Bound);
-
-		rangeRequest.__set_last(bound);
-	}
-
-	if (startId)
-		rangeRequest.__set_rowID(*startId);
+	auto rangeRequest = rangeToRangeRequest(range, limit);
 
 	Query rangeQuery;
 	rangeQuery.__set_ranges(std::vector<RangeRequest>());
@@ -793,22 +774,35 @@ Query Database::CreateQuery(const Range range, const int limit, const boost::opt
 	return rangeQuery;
 }
 
-void Database::Apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush)
+void Database::apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush)
+{
+	TransactionID transactionID = 0;
+	return apply(transactionID, writes, flush);
+}
+
+ColumnIDs getColumnIDs(const std::map<ColumnID, ColumnWrites>& writes)
+{
+	ColumnIDs result;
+	for (auto w : writes)
+		result.push_back(w.first);
+	return result;
+}
+
+void Database::apply(TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, const bool flush)
 {
 	if (writes.size() > 0)
+	{
+		auto retries = MaxWriteRetries;
 		while (true)
 		{
-			TransactionID transactionID;
-			transactionID.__set_key(0);
-			transactionID.__set_revision(0);
-
 			auto workers = DetermineWorkers(writes);
 
-			auto tasks = StartWorkerWrites(writes, transactionID, workers);
+			auto tasks = StartWorkerWrites(getColumnIDs(writes), transactionID, workers);
 
 			std::map<PodID, boost::shared_ptr<TProtocol>> failedWorkers;
 			auto workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
 
+			// Commit if threshold reached, else rollback and retry
 			if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
 			{
 				// If we've inserted/deleted system table(s), force a schema refresh
@@ -824,31 +818,36 @@ void Database::Apply(const std::map<ColumnID, ColumnWrites>& writes, const bool 
 					FlushWorkers(transactionID, workers);
 				break;
 			}
+
+			// Fail if exceeded number of retries
+			if (--retries <= 0)
+				throw ClientException("Maximum number of retries reached attempting to apply writes.");
 		}
+	}
 }
 
-std::vector<std::future<TransactionID>> Database::StartWorkerWrites(const std::map<ColumnID, ColumnWrites>& writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
+std::vector<std::future<PrepareResults>> Database::StartWorkerWrites(const ColumnIDs &columnIDs, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
 {
-	std::vector<std::future<TransactionID>> tasks;
+	std::vector<std::future<PrepareResults>> tasks;
 	// Apply the modification to every worker, even if no work
 	for (auto worker = workers.begin(); worker != workers.end(); ++worker)
 	{
 		tasks.push_back
 		(
-			std::future<TransactionID>
+			std::future<PrepareResults>
 			(
 				std::async
 				(
 					std::launch::async,
-					[&, worker]()-> TransactionID
+					[&, worker]()-> PrepareResults
 					{
-						TransactionID result;
+						PrepareResults result;
 						AttemptWrite
 						(
 							worker->podID,
 							[&](WorkerClient client)
 							{
-								client.apply(result, transactionID, writes);
+								return client.apply(result, transactionID, columnIDs);
 							}
 						);
 
@@ -902,25 +901,23 @@ void Database::FlushWorkers(const TransactionID& transactionID, const std::vecto
 		flushTasks[i].wait();
 }
 
-std::map<TransactionID, std::vector<Database::WorkerInfo>> 
-Database::ProcessWriteResults
+std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessWriteResults
 (
 	const std::vector<WorkerInfo>& workers, 
-	std::vector<std::future<TransactionID>>& tasks, 
-	std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
+	std::vector<std::future<PrepareResults>>& tasks, 
+	std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
 )
 {
 	clock_t start = clock();
 
-	std::map<TransactionID, std::vector<WorkerInfo>> workersByTransaction;
+	// Group workers by column, then revision
+	std::unordered_map<ColumnID, ColumnWriteResult> results;
 	for (size_t i = 0; i < tasks.size(); i++)
 	{
 		// Attempt to fetch the result for each task
-		TransactionID resultId;
+		PrepareResults prepareResults;
 		try
 		{
-			//tasks[i]->wait();
-			//resultId = tasks[i]->get();
 			clock_t timeToWait = getWriteTimeout() - (clock() - start);
 			auto result = tasks[i].wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
 #if __GNUC_MINOR__ == 6
@@ -929,7 +926,7 @@ Database::ProcessWriteResults
 #else
 			if (result == std::future_status::ready)
 #endif
-				resultId = tasks[i].get();
+				prepareResults = tasks[i].get();
 			else
 			{
 				failedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
@@ -944,18 +941,16 @@ Database::ProcessWriteResults
 			continue;
 		}
 
-		// If successful, group with other workers that returned the same revision
-		auto iter = workersByTransaction.find(resultId);
-		if (iter == workersByTransaction.end())
+		// Successful.  Track workers by column then revision number, and track validation needs for each column
+		for (auto result : prepareResults)
 		{
-			workersByTransaction.insert(std::make_pair(resultId, std::vector<WorkerInfo>()));
-			iter = workersByTransaction.find(resultId);
+			auto &running = results[result.first];
+			running.validateRequired |= result.second.validateRequired;
+			running.workersByRevision[result.second.actualRevision].push_back(workers[i]);
 		}
-	
-		iter->second.push_back(workers[i]);
 	}
 
-	return workersByTransaction;
+	return results;
 }
 
 bool Database::FinalizeTransaction
@@ -979,10 +974,13 @@ bool Database::FinalizeTransaction
 			{
 				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
 				{
-					WorkerInvoke(worker->podID, [&](WorkerClient client)
-					{
-						client.commit(max);
-					}
+					WorkerInvoke
+					(
+						worker->podID, 
+						[&](WorkerClient client)
+						{
+							client.commit(max);
+						}
 					);
 				}
 			}
@@ -991,10 +989,13 @@ bool Database::FinalizeTransaction
 			{
 				if (worker->second != nullptr)
 				{
-					WorkerInvoke(worker->first, [&](WorkerClient client)
-					{
-						client.commit(max);
-					}
+					WorkerInvoke
+					(
+						worker->first, 
+						[&](WorkerClient client)
+						{
+							client.commit(max);
+						}
 					);
 				}
 			}
@@ -1007,10 +1008,13 @@ bool Database::FinalizeTransaction
 			{
 				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
 				{
-					WorkerInvoke(worker->podID, [&](WorkerClient client)
-					{
-						client.rollback(group->first);
-					}
+					WorkerInvoke
+					(
+						worker->podID, 
+						[&](WorkerClient client)
+						{
+							client.rollback(group->first);
+						}
 					);
 				}
 			}
@@ -1055,10 +1059,10 @@ void Database::ServiceInvoke(HostID podID, std::function<void(ServiceClient)> wo
 	}
 }
 
-void Database::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
+void Database::include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
 	auto writes = CreateIncludes(columnIds, rowId, row);
-	Apply(writes, false);
+	apply(writes, false);
 }
 
 std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
@@ -1067,12 +1071,12 @@ std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& colum
 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
-		fastore::communication::Include inc;
+		fastore::communication::Cell inc;
 		inc.__set_rowID(rowId);
 		inc.__set_value(row[i]);
 
 		ColumnWrites wt;
-		wt.__set_includes(std::vector<fastore::communication::Include>());
+		wt.__set_includes(std::vector<fastore::communication::Cell>());
 		wt.includes.push_back(inc);
 		writes.insert(std::make_pair(columnIds[i], wt));
 	}
@@ -1080,29 +1084,30 @@ std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& colum
 	return writes;
 }
 
-void Database::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
+void Database::exclude(const ColumnIDs& columnIds, const std::string& rowId)
 {
-	Apply(CreateExcludes(columnIds, rowId), false);
+	apply(CreateExcludes(columnIds, rowId), false);
 }
 
-std::map<ColumnID, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId)
+std::map<ColumnID, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
 {
 	std::map<ColumnID, ColumnWrites> writes;
 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
-		fastore::communication::Exclude ex;
+		fastore::communication::Cell ex;
 		ex.__set_rowID(rowId);
+		ex.__set_value(row[i]);
 
 		ColumnWrites wt;
-		wt.__set_excludes(std::vector<fastore::communication::Exclude>());
+		wt.__set_excludes(std::vector<fastore::communication::Cell>());
 		wt.excludes.push_back(ex);
 		writes.insert(std::make_pair(columnIds[i], wt));
 	}
 	return writes;
 }
 
-std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
+std::vector<Statistic> Database::getStatistics(const ColumnIDs& columnIds)
 {
 	// Make the request against each column
 	//TODO: Instead of requesting each column individually, combine columns on a single worker.
@@ -1149,7 +1154,7 @@ std::vector<Statistic> Database::GetStatistics(const ColumnIDs& columnIds)
 	return stats; 
 }
 
-Schema Database::GetSchema()
+Schema Database::getSchema()
 {
 	if (_schema.empty())
 		_schema = LoadSchema();
@@ -1165,7 +1170,7 @@ Schema Database::LoadSchema()
 		Range range;
 		range.Ascending = true;
 		range.ColumnID = Dictionary::ColumnID;
-		RangeSet columns = GetRange(Dictionary::ColumnColumns, range, MaxFetchLimit);
+		RangeSet columns = getRange(Dictionary::ColumnColumns, range, MaxFetchLimit);
 
 		for (auto column : columns.Data)
 		{
@@ -1187,7 +1192,7 @@ Schema Database::LoadSchema()
 
 void Database::RefreshSchema()
 {
-	_schema = LoadSchema();
+	_schema.clear();
 }
 
 void Database::BootStrapSchema()
@@ -1208,10 +1213,10 @@ void Database::BootStrapSchema()
 			_schema[def.ColumnID] = def;
 		} );
 
-	RefreshSchema();
+	_schema = LoadSchema();
 }
 
-std::map<HostID, long long> Database::Ping()
+std::map<HostID, long long> Database::ping()
 {
 	HostIDs hostIds;
 
@@ -1271,7 +1276,7 @@ std::map<HostID, long long> Database::Ping()
 	return result;
 }
 
-void Database::Checkpoint()
+void Database::checkpoint()
 {
 	try
 	{
@@ -1291,4 +1296,13 @@ void Database::Checkpoint()
 	{
 		throw;
 	}
+}
+
+TransactionID Database::generateTransactionID()
+{
+	// Lazy create the generator because creation is relatively expensive
+	if (_generator != nullptr)
+		_generator = unique_ptr<TransactionIDGenerator>(new TransactionIDGenerator());
+	
+	return _generator->generate();
 }

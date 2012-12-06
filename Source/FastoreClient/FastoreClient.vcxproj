@@ -26,6 +26,7 @@
     <ClInclude Include="RangeSet.h" />
     <ClInclude Include="ServiceAddress.h" />
     <ClInclude Include="Transaction.h" />
+    <ClInclude Include="TransactionIDGenerator.h" />
     <ClInclude Include="typedefs.h" />
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +97,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0601;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -112,6 +114,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_WIN32_WINNT=0x0601;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

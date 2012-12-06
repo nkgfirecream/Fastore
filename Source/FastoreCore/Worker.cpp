@@ -1,4 +1,3 @@
-// $Id$
 #include "Worker.h"
 
 static string stringof( PodID id ) 
@@ -9,12 +8,15 @@ static string stringof( PodID id )
 }
 
 
-Worker::Worker( const PodID podId, 
-				const string& path, 
-				uint64_t port,
-				const boost::shared_ptr<Scheduler> pscheduler ) 
+Worker::Worker
+( 
+	const PodID podId, 
+	const string& path, 
+	uint64_t port,
+	const boost::shared_ptr<Scheduler> pscheduler 
+) 
 	: _wal(path, stringof(podId), NetworkAddress() ) 
-	,  phandler( new WorkerHandler(podId, path, pscheduler, _wal) )
+	, phandler( new WorkerHandler(podId, path, pscheduler, _wal) )
 	, pprocessor( new WorkerProcessor(phandler) )
 	, config(port)
 	, pendpoint( new Endpoint(config, pprocessor) )
@@ -25,18 +27,21 @@ Worker::Worker( const PodID podId,
 	processor.setEventHandler(phandler);
 }
 
-bool 
-Worker::run() { 
-	try { 
+bool Worker::run() 
+{ 
+	try 
+	{ 
 		pthread = boost::shared_ptr<boost::thread>(
 			new boost::thread(std::mem_fun(&Endpoint::Run), pendpoint.get()) );
 		_status = running;
 	}
-	catch( std::exception& oops ) {
+	catch( std::exception& oops ) 
+	{
 		_status = stopped;
 		clog << oops.what() << '\n';
 	}
-	catch(...) {
+	catch(...) 
+	{
 		_status = stopped;
 		perror("indeterminate error");
 	}

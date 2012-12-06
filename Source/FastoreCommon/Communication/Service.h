@@ -26,7 +26,7 @@ class ServiceIf {
   virtual void keepLock(const LockID lockID) = 0;
   virtual void escalateLock(const LockID lockID, const LockTimeout timeout) = 0;
   virtual void releaseLock(const LockID lockID) = 0;
-  virtual void checkpoint() = 0;
+  virtual void checkpoint(const ColumnIDs& columnIDs) = 0;
 };
 
 class ServiceIfFactory {
@@ -90,7 +90,7 @@ class ServiceNull : virtual public ServiceIf {
   void releaseLock(const LockID /* lockID */) {
     return;
   }
-  void checkpoint() {
+  void checkpoint(const ColumnIDs& /* columnIDs */) {
     return;
   }
 };
@@ -1330,6 +1330,10 @@ class Service_releaseLock_presult {
 
 };
 
+typedef struct _Service_checkpoint_args__isset {
+  _Service_checkpoint_args__isset() : columnIDs(false) {}
+  bool columnIDs;
+} _Service_checkpoint_args__isset;
 
 class Service_checkpoint_args {
  public:
@@ -1339,9 +1343,18 @@ class Service_checkpoint_args {
 
   virtual ~Service_checkpoint_args() throw() {}
 
+  ColumnIDs columnIDs;
 
-  bool operator == (const Service_checkpoint_args & /* rhs */) const
+  _Service_checkpoint_args__isset __isset;
+
+  void __set_columnIDs(const ColumnIDs& val) {
+    columnIDs = val;
+  }
+
+  bool operator == (const Service_checkpoint_args & rhs) const
   {
+    if (!(columnIDs == rhs.columnIDs))
+      return false;
     return true;
   }
   bool operator != (const Service_checkpoint_args &rhs) const {
@@ -1362,6 +1375,7 @@ class Service_checkpoint_pargs {
 
   virtual ~Service_checkpoint_pargs() throw() {}
 
+  const ColumnIDs* columnIDs;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -1420,8 +1434,8 @@ class ServiceClient : virtual public ServiceIf {
   void releaseLock(const LockID lockID);
   void send_releaseLock(const LockID lockID);
   void recv_releaseLock();
-  void checkpoint();
-  void send_checkpoint();
+  void checkpoint(const ColumnIDs& columnIDs);
+  void send_checkpoint(const ColumnIDs& columnIDs);
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -1595,13 +1609,13 @@ class ServiceMultiface : virtual public ServiceIf {
     ifaces_[i]->releaseLock(lockID);
   }
 
-  void checkpoint() {
+  void checkpoint(const ColumnIDs& columnIDs) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->checkpoint();
+      ifaces_[i]->checkpoint(columnIDs);
     }
-    ifaces_[i]->checkpoint();
+    ifaces_[i]->checkpoint(columnIDs);
   }
 
 };

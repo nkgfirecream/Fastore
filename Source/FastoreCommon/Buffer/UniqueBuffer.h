@@ -8,6 +8,7 @@ class UniqueBuffer : public IColumnBuffer
 		UniqueBuffer(const ScalarType& rowType, const ScalarType& valueType);
 
 		vector<OptionalValue> GetValues(const vector<std::string>& rowIds);		
+		OptionalValue GetValue(const std::string &rowId);
 		void Apply(const ColumnWrites& writes);
 		RangeResult GetRows(const RangeRequest& range);
 		Statistic GetStatistic();

@@ -153,12 +153,12 @@ void Repository::load()
 	while(protocol->getTransport()->peek())
 	{
 		ColumnWrites writes;
-		vector<Include> includes;
+		vector<Cell> includes;
 		ValueRows vr;
 		vr.read(protocol.get());
 		for (size_t j = 0; j < vr.rowIDs.size(); j++)
 		{
-			Include inc;
+			Cell inc;
 			inc.__set_value(vr.value);
 			inc.__set_rowID(vr.rowIDs[j]);
 			includes.push_back(inc);
@@ -181,98 +181,6 @@ void Repository::load()
 	// Recover from data revision to last log entry
 	// Set revision 
 	
-	// Update state to online
-	_status = RepositoryStatus::Online;
-}
-
-//TODO: we've discussed letting the service handle the checkpointing.
-void Repository::checkpoint()
-{
-	// Set state to checkpointing
-	_status = RepositoryStatus::Checkpointing;
-
-	// Pick oldest datafile
-	auto datapath = path(GetDataFileName(0));
-
-	if (!exists(datapath.branch_path()))
-	{
-		boost::system::error_code e;
-		boost::filesystem::create_directories(datapath.branch_path(), e);
-		if (e)
-		{
-			string 	what = e.message();
-		}
-	}	
-
-	//Open file
-	boost::shared_ptr<apache::thrift::transport::TFastoreFileTransport> transport( new apache::thrift::transport::TFastoreFileTransport(datapath.string(), false));	
-	boost::shared_ptr<apache::thrift::protocol::TBinaryProtocol> protocol(new apache::thrift::protocol::TBinaryProtocol(transport));
-
-	transport->open();
-	// ...
-	// Write buffer to file
-	// Write column definition
-	//TODO completed bits, time stamp, revision, etc.
-	protocol->writeI64(_def.ColumnID);
-	protocol->writeI32((int)_def.BufferType);
-	protocol->writeString(_def.Name);
-	protocol->writeBool(_def.Required);
-	protocol->writeString(_def.RowIDType.Name);
-	protocol->writeString(_def.ValueType.Name);
-
-	//Write rest of buffer
-	fastore::communication::RangeRequest range;
-
-	range.__set_ascending(true);
-	range.__set_limit(1000);	
-
-	bool firstWrite = true;
-	string lastValue;
-	string lastRowId;
-
-	//TODO: Encasulate logic to either breathe or do this in background...
-	while (true)
-	{
-		if (!firstWrite)
-		{
-			fastore::communication::RangeBound bound;
-			bound.__set_inclusive(true);
-			bound.__set_value(lastValue);
-
-			range.__set_rowID(lastRowId);
-			range.__set_first(bound);
-		}
-		else
-		{
-			firstWrite = false;
-		}		
-
-		RangeResult result = _buffer->GetRows(range);
-	
-		ValueRowsList vrl = result.valueRowsList;
-		for (size_t i = 0; i < vrl.size(); i++)
-		{
-			ValueRows vr = vrl[i];
-			vr.write(protocol.get());
-		}
-
-		if (vrl.size() > 0)
-		{
-			ValueRows lastValueRows = vrl.at(vrl.size() - 1);
-
-			lastValue = lastValueRows.value;
-			lastRowId = lastValueRows.rowIDs.at(lastValueRows.rowIDs.size() - 1);
-		}
-
-		if (result.eof)
-			break;
-	}
-
-	transport->flush();
-	transport->close();
-
-	// Truncate log
-
 	// Update state to online
 	_status = RepositoryStatus::Online;
 }

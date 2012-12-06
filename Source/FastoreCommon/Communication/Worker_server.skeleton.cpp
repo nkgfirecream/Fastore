@@ -27,49 +27,49 @@ class WorkerHandler : virtual public WorkerIf {
     printf("shutdown\n");
   }
 
+  void loadBegin(const ColumnID columnID) {
+    // Your implementation goes here
+    printf("loadBegin\n");
+  }
+
+  void loadBulkWrite(const ColumnID columnID, const ValueRowsList& values) {
+    // Your implementation goes here
+    printf("loadBulkWrite\n");
+  }
+
+  void loadWrite(const ColumnID columnID, const ColumnWrites& writes) {
+    // Your implementation goes here
+    printf("loadWrite\n");
+  }
+
+  void loadEnd(const ColumnID columnID, const Revision revision) {
+    // Your implementation goes here
+    printf("loadEnd\n");
+  }
+
   void getState(WorkerState& _return) {
     // Your implementation goes here
     printf("getState\n");
   }
 
-  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
+  void prepare(PrepareResults& _return, const TransactionID transactionID, const ColumnPrepares& columns) {
     // Your implementation goes here
     printf("prepare\n");
   }
 
-  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
+  void apply(PrepareResults& _return, const TransactionID transactionID, const ColumnIDs& columns) {
     // Your implementation goes here
     printf("apply\n");
   }
 
-  void commit(const TransactionID& transactionID) {
+  void commit(const TransactionID transactionID, const Writes& writes) {
     // Your implementation goes here
     printf("commit\n");
   }
 
-  void rollback(const TransactionID& transactionID) {
+  void rollback(const TransactionID transactionID) {
     // Your implementation goes here
     printf("rollback\n");
-  }
-
-  void flush(const TransactionID& transactionID) {
-    // Your implementation goes here
-    printf("flush\n");
-  }
-
-  bool doesConflict(const Reads& reads, const Revision source, const Revision target) {
-    // Your implementation goes here
-    printf("doesConflict\n");
-  }
-
-  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
-    // Your implementation goes here
-    printf("update\n");
-  }
-
-  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
-    // Your implementation goes here
-    printf("transgrade\n");
   }
 
   void query(ReadResults& _return, const Queries& queries) {
@@ -80,11 +80,6 @@ class WorkerHandler : virtual public WorkerIf {
   void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) {
     // Your implementation goes here
     printf("getStatistics\n");
-  }
-
-  void checkpoint() {
-    // Your implementation goes here
-    printf("checkpoint\n");
   }
 
 };

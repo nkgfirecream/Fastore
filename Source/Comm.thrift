@@ -326,9 +326,8 @@ service Worker
 	PrepareResults prepare(1:TransactionID transactionID, 2:ColumnPrepares columns) 
 		throws (1:AlreadyPending alreadyPending),
 	
-	/** Applies the given writes as of the latest revision (regardless of whether the transaction ID is out of date), 
-		returns an updated Transaction ID - HIVE TRANSACTED. */
-	TransactionID apply(1:TransactionID transactionID, 2:Writes writes)
+	/** Prepares changes at the current revision. - HIVE TRANSACTED. */
+	PrepareResults apply(1:TransactionID transactionID, 2:ColumnIDs columns)
 		throws (1:AlreadyPending alreadyPending),
 
 	/** Informs that the prepare was successful on the majority of workers, the changes should be committed. */

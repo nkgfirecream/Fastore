@@ -84,6 +84,7 @@
     <ClCompile Include="Tree\BTree.cpp">
       <Filter>Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Communication\Store.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Communication\Comm_constants.h">
@@ -173,5 +174,6 @@
     <ClInclude Include="Utility\LexCompare.h">
       <Filter>Utility</Filter>
     </ClInclude>
+    <ClInclude Include="Communication\Store.h" />
   </ItemGroup>
 </Project>

@@ -8,6 +8,7 @@ class IdentityBuffer : public IColumnBuffer
 		IdentityBuffer(const ScalarType& type);
 
 		vector<OptionalValue> GetValues(const vector<std::string>& rowIds);		
+		OptionalValue GetValue(const std::string &rowId);
 		void Apply(const ColumnWrites& writes);
 		RangeResult GetRows(const RangeRequest& range);
 		Statistic GetStatistic();

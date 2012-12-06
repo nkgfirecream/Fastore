@@ -39,6 +39,7 @@ private:
 public:
 	ServiceHandler(const fastore::server::ServiceStartup& startup);
 
+	void shutdown();
 	void ping();
 	void init(fastore::communication::ServiceState& _return, const fastore::communication::Topology& topology, const fastore::communication::HostAddresses& addresses, const fastore::communication::HostID hostID);
 	void join(fastore::communication::ServiceState& _return, const fastore::communication::HiveState& hiveState, const fastore::communication::NetworkAddress& address, const fastore::communication::HostID hostID);
@@ -49,10 +50,7 @@ public:
 	void keepLock(const fastore::communication::LockID lockID);
 	void escalateLock(const fastore::communication::LockID lockID, const fastore::communication::LockTimeout timeout);
 	void releaseLock(const fastore::communication::LockID lockID);
-
-	//Admin
-	void shutdown();
-	void checkpoint();
+	void checkpoint(const fastore::communication::ColumnIDs& columnIDs);
 
 	//TProcessorEventHandler
 	void handlerError(void* ctx, const char* fn_name);

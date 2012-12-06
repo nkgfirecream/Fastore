@@ -1,78 +1,74 @@
 ﻿#include "Transaction.h"
+#include <algorithm>
+#include <boost/format.hpp>
 
 using namespace fastore::client;
+using namespace fastore::communication;
 
 const Database &Transaction::getDatabase() const
 {
-	return privateDatabase;
+	return _database;
 }
 
-const bool &Transaction::getReadIsolation() const
+Transaction::Transaction(Database& database, bool readsConflict)
+	: _database(database), _readsConflict(readsConflict)
 {
-	return privateReadIsolation;
-}
-
-const bool &Transaction::getWriteIsolation() const
-{
-	return privateWriteIsolation;
-}
-
-Transaction::Transaction(Database& database, bool readIsolation, bool writeIsolation)
-	: privateDatabase(database), privateReadIsolation(readIsolation), privateWriteIsolation(writeIsolation)
-{
-	_transactionId.__set_key(0);
-	_transactionId.__set_revision(0);
-	_log = std::map<ColumnID, LogColumn>();
+	_transactionId = database.generateTransactionID();
+	_log = std::unordered_map<ColumnID, LogColumn>();
 }
 
 Transaction::~Transaction()
 {
 	if (!_completed)
-		Rollback();
+		rollback();
 }
 
-void Transaction::Commit(bool flush)
+void Transaction::commit(bool flush)
 {
 	std::map<ColumnID,  ColumnWrites> writes;
-	GatherWrites(writes);
-
-	privateDatabase.Apply(writes, flush);
+	gatherWrites(writes);
+	_database.apply(_transactionId, writes, flush);
 
 	_log.clear();
 	_completed = true;
 }
 
-void Transaction::GatherWrites(std::map<ColumnID,  ColumnWrites>& output)
+void Transaction::gatherWrites(std::map<ColumnID, ColumnWrites>& output)
 {
 	// Gather changes for each column
 	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
 	{
-		if(entry->second.Includes.size() == 0 && entry->second.Excludes.size() == 0)
-		{
+		auto includeTotal = entry->second.includes.GetStatistic().total;
+		// Skip any empty columns
+		if (includeTotal == 0 && entry->second.excludes.size() == 0 && entry->second.reads.size() == 0)
 			continue;
-		}
 
 		output.insert(std::make_pair(entry->first, ColumnWrites()));
 		ColumnWrites& writes = output[entry->first];
 
 		// Process Includes
-		if (entry->second.Includes.size() > 0)
+		if (includeTotal > 0)
 		{
-			writes.__set_includes(std::vector<fastore::communication::Include>(entry->second.Includes.size()));
+			writes.__set_includes(std::vector<fastore::communication::Cell>(includeTotal));
+			RangeRequest range;
+			range.limit = std::numeric_limits<decltype(RangeRequest::limit)>::max();
+			auto rows = entry->second.includes.GetRows(range);
 			int i = 0;
-			for (auto include = entry->second.Includes.begin(); include != entry->second.Includes.end(); ++include, ++i)
-			{
-				writes.includes[i].__set_rowID(include->first);
-				writes.includes[i].__set_value(include->second);
-			}
+			for (auto value = rows.valueRowsList.begin(); value != rows.valueRowsList.end(); ++value)
+				for (auto row = value->rowIDs.begin(); row != value->rowIDs.end(); ++row)
+				{
+					writes.includes[i].__set_rowID(*row);
+					writes.includes[i].__set_value(value->value);
+					++i;
+				}
 		}
 
 		// Process Excludes
-		if (entry->second.Excludes.size() > 0)
+		if (entry->second.excludes.size() > 0)
 		{
-			writes.__set_excludes(std::vector<fastore::communication::Exclude>(entry->second.Excludes.size()));
+			writes.__set_excludes(std::vector<fastore::communication::Cell>(entry->second.excludes.size()));
 			int i = 0;
-			for (auto exclude = entry->second.Excludes.begin(); exclude != entry->second.Excludes.end(); ++exclude, ++i)
+			for (auto exclude = entry->second.excludes.begin(); exclude != entry->second.excludes.end(); ++exclude, ++i)
 			{
 				writes.excludes[i].__set_rowID(*exclude);
 			}
@@ -80,145 +76,279 @@ void Transaction::GatherWrites(std::map<ColumnID,  ColumnWrites>& output)
 	}
 }
 
-void Transaction::Rollback()
+void Transaction::rollback()
 {
 	_log.clear();
 	_completed = true;
 }
 
-RangeSet Transaction::GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
+DataSetRow addRow(std::vector<Transaction::LogColumn*> logMap, RangeResult localRange, size_t rangeColumnID, size_t &valueIndex, size_t &rowIndex)
 {
-	// Get the raw results
-	auto raw = privateDatabase.GetRange(columnIds, range, limit, startId);
+	DataSetRow newRow(logMap.size());
+	newRow.ID = localRange.valueRowsList[valueIndex].rowIDs[rowIndex];
 
-	// Find a per-column change map for each column in the selection
-	std::vector<LogColumn> changeMap(columnIds.size());
-	auto anyMapped = false;
-	for (size_t x = 0; x < columnIds.size(); ++x)
+	// Populate the row's values
+	for (size_t i = 0; i < logMap.size(); i++)
 	{
-		auto col = _log.find(columnIds[x]);
+		if (i == rangeColumnID)
+			newRow.Values[i].__set_value(localRange.valueRowsList[valueIndex].rowIDs[rowIndex]);
+		else
+		{
+			auto colLog = logMap[i];		
+			if (colLog != nullptr)
+				newRow.Values[i] = colLog->includes.GetValue(newRow.ID);
+		}
+	}
+
+	// Advance to the next value/row
+	++rowIndex;
+	if (rowIndex >= localRange.valueRowsList[valueIndex].rowIDs.size())
+	{
+		++valueIndex;
+		rowIndex = 0;
+	}
+
+	return newRow;
+}
+
+std::vector<Transaction::LogColumn*> Transaction::buildLogMap(const ColumnIDs& columnIds, bool &anyMapped)
+{
+	std::vector<Transaction::LogColumn*> result(columnIds.size());
+	anyMapped = false;
+	for (size_t i = 0; i < columnIds.size(); ++i)
+	{
+		auto col = _log.find(columnIds[i]);
 		if (col != _log.end())
 		{
 			anyMapped = true;
-			changeMap[x] = col->second;
+			result[i] = &col->second;
 		}
 	}
+	return result;
+}
 
-	// Return raw if no changes to the requested columns
+void Transaction::applyColumnOverrides(LogColumn &colLog, DataSetRow &row, size_t colIndex)
+{
+	// Look for an exclude that might clear the value
+	auto excluded = colLog.excludes.find(row.ID);
+	if (excluded != colLog.excludes.end())
+	{
+		row.Values[colIndex].value = std::string();
+		row.Values[colIndex].__isset.value = false;
+	}
+
+	// Look for an include that might set/override the value
+	auto included = colLog.includes.GetValue(row.ID);
+	if (included.__isset.value)
+		row.Values[colIndex] = included;
+}
+
+/*
+	getRange implementation notes:
+		* Essentially a merge join of the local and remote results of GetRange.
+		* An inclusion or exclusion of a row ID of the range column ID represents existence of a row in the result
+		* Inclusions and exclusions involving other columns represent clearing or setting of fields in the row
+		* Merge join depends on local and remote GetRanges returning the values and within values, rowIDs in 
+		  sorted order.  (If row IDs aren't also sorted, this logic will be wrong)
+		* The remote rows are used and changed as needed to avoid a copy
+*/
+RangeSet Transaction::getRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId)
+{
+	// Get the remote results
+	auto remote = _database.getRange(columnIds, range, limit, startId);
+
+	// Build a log entry per column for quick access
+	bool anyMapped;
+	auto logMap = buildLogMap(columnIds, anyMapped);
+
+	// Return remote if no overlap between log and selection
 	if (!anyMapped)
-		return raw;
+		return remote;
 
-	// Process excludes from results
-	std::vector<DataSetRow> resultRows; 
-	for (auto row = raw.Data.begin(); row != raw.Data.end(); ++row)
+	RangeSet result;
+	result.Bof = remote.Bof;
+	result.Eof = remote.Eof;
+	result.Limited = remote.Limited;
+
+	auto rangeLog = logMap[range.ColumnID];		
+
+	// Attempt to find any local includes for the range column
+	RangeResult localRange;
+	if (rangeLog != nullptr)
 	{
-		DataSetRow newRow(row->Values.size());
-		newRow.ID = row->ID;
-		newRow.Values = row->Values;
-		auto allNull = true;
+		auto colRange = rangeToRangeRequest(range, limit);
+		localRange = rangeLog->includes.GetRows(colRange);
 
-		for (size_t i = 0; i < row->Values.size(); i++)
+		// Only EOF or BOF if both local and remote agree
+		result.Bof &= localRange.bof;
+		result.Eof &= localRange.eof;
+	}
+
+	// Variables to advance through local range during merge with remote
+	size_t valueIndex = 0;
+	size_t rowIndex = 0;
+
+	// Merge each row of remote with local rows to build result
+	for (auto remoteRow = remote.Data.begin(); remoteRow != remote.Data.end(); ++remoteRow)
+	{	
+		// While there is a locally included row before the present one, insert it							
+		int valueComp, rowComp;
+		while 
+		(
+			rangeLog != nullptr
+				&& valueIndex < localRange.valueRowsList.size() 
+				&& 
+				(
+					// Value precedes the selected one
+					(valueComp = rangeLog->valueType.Compare(localRange.valueRowsList[valueIndex].value.data(), (*remoteRow)[range.ColumnID].value.data())) < 0
+						// Or value equals selected on and the row ID precedes the selected one
+						|| (valueComp == 0 && (rowComp = rangeLog->rowType.Compare(localRange.valueRowsList[valueIndex].rowIDs[rowIndex].data(), remoteRow->ID.data())) <= 0)
+				)
+		)
 		{
-			LogColumn col = changeMap[i];
-			if (!col.Excludes.empty() || !col.Includes.empty())
+			if (valueComp < 0 || rowComp < 0)
 			{
-				if (std::find(col.Excludes.begin(), col.Excludes.end(), row->ID) != col.Excludes.end())
-				{
-					//Set null marker
-					newRow.Values[i] = fastore::communication::OptionalValue();
-				}
-				else
-				{
-					allNull = false;
-					newRow.Values[i] = row->Values[i];
-				}
+				DataSetRow remoteRow = addRow(logMap, localRange, range.ColumnID, valueIndex, rowIndex);
+				result.Data.push_back(remoteRow);
 			}
-			else
-				newRow.Values[i] = row->Values[i];
 		}
 
-		if (!allNull)
-			resultRows.push_back(newRow);
+		// Add rows where there is no local range or the ranged column isn't excluded
+		if (rangeLog == nullptr || rangeLog->excludes.find(remoteRow->ID) != rangeLog->excludes.end())
+		{
+			// Process includes and excludes for the remote row
+			for (size_t i = 0; i < remoteRow->Values.size(); i++)
+			{
+				auto colLog = logMap[i];		
+				if (colLog != nullptr && i != range.ColumnID)
+					applyColumnOverrides(*colLog, *remoteRow, i);
+			}
+
+			result.Data.push_back(*remoteRow);
+		}
 	}
 
-	// TODO: handle includes - probably need to keep a shadow of column buffers to do the merging with
-	// Cases for a given range
-	// 1 - Local exclusions within range
-	// 2 - Local inclusions within range
-	// 3 - Local updates to a row that:
-	//      A - Move a row into the range
-	//      B - Move a row out of the range
-
-	//Update case: a change to a value in a row
-	//This could cause the rows to get out of order if you've updated a row in the range.
-	//foreach (var row in resultRows)
-	//{
-	//    for (size_t i = 0; i < row.Values.Length; i++)
-	//    {
-	//        LogColumn col = changeMap[i];
-	//        if (col != null)
-	//        {
-	//            if (col.Includes.ContainsKey(row.ID))
-	//            {
-	//                row.Values[i] = col.Includes[row.ID];
-	//            }
-	//        }
-	//    }
-	//}
-
-	//Insert case: Include new rows that are not present in our get range.
-
-	// Turn the rows back into a dataset
-	DataSet result(resultRows.size(), columnIds.size());
-	for (size_t i = 0; i < result.size(); i++)
-		result[i] = resultRows[i];
-
-	raw.Data = result;
-
-	return raw;
-}
-
-DataSet Transaction::GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds)
-{
-	// TODO: Filter/augment data for the transaction
-	return privateDatabase.GetValues(columnIds, rowIds);
-}
-
-void Transaction::Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
-{
-  for (size_t i = 0; i < columnIds.size(); ++i)
+	// Append any remaining local includes
+	while 
+	(
+		rangeLog != nullptr
+			&& valueIndex < localRange.valueRowsList.size() 
+	)
 	{
-		LogColumn& column = EnsureColumnLog(columnIds[i]);
-		column.Includes[rowId] = row[i];
+		DataSetRow row = addRow(logMap, localRange, range.ColumnID, valueIndex, rowIndex);
+		result.Data.push_back(row);
 	}
+
+	return result;
 }
 
-void Transaction::Exclude(const ColumnIDs& columnIds, const std::string& rowId)
+DataSet Transaction::getValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds)
 {
-  for (size_t i = 0; i < columnIds.size(); ++i)
+	// Get the remote values
+	auto remote = _database.getValues(columnIds, rowIds);
+
+	// Build a log entry per column for quick access
+	bool anyMapped;
+	auto logMap = buildLogMap(columnIds, anyMapped);
+
+	// Return remote if no overlap between log and selection
+	if (!anyMapped)
+		return remote;
+
+	// Process each row of remote against local changes
+	for (auto remoteRow = remote.begin(); remoteRow != remote.end(); ++remoteRow)
+	{	
+		// Process includes and excludes for the remote row
+		for (size_t i = 0; i < remoteRow->Values.size(); i++)
+		{
+			auto colLog = logMap[i];		
+			if (colLog != nullptr)
+				applyColumnOverrides(*colLog, *remoteRow, i);
+		}
+	}
+
+	return remote;
+}
+
+void Transaction::include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
+{
+	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
-		LogColumn& column = EnsureColumnLog(columnIds[i]);
-		column.Excludes.insert(rowId);
+		// TODO: Introduce non-batch calls into buffers so that this is easier and faster
+		LogColumn& column = ensureColumnLog(columnIds[i]);
+		RangeRequest range;
+		range.first.value = row[i];
+		range.first.inclusive = true;
+		range.rowID = rowId;
+		range.last = range.first;
+		if (column.includes.GetRows(range).valueRowsList.size() == 0)
+		{
+			ColumnWrites writes;
+			fastore::communication::Cell include;
+			include.__set_rowID(rowId);
+			include.__set_value(row[i]);
+			writes.includes.push_back(include);
+			column.includes.Apply(writes);
+		}
 	}
 }
 
-std::vector<Statistic> Transaction::GetStatistics(const ColumnIDs& columnIds)
+void Transaction::exclude(const ColumnIDs& columnIds, const std::string& rowId)
 {
-	return privateDatabase.GetStatistics(columnIds);
+	for (size_t i = 0; i < columnIds.size(); ++i)
+	{
+		LogColumn& column = ensureColumnLog(columnIds[i]);
+		column.excludes.emplace(rowId);
+	}
 }
 
-Transaction::LogColumn& Transaction::EnsureColumnLog(const ColumnID& columnId)
+/*
+	Note: unique statistics within a transaction are only approximate, and total assumes that 
+	all excluded columns are present in the remote.
+*/
+std::vector<Statistic> Transaction::getStatistics(const ColumnIDs& columnIds)
+{
+	auto remote = _database.getStatistics(columnIds);
+
+	// Build a log entry per column for quick access
+	bool anyMapped;
+	auto logMap = buildLogMap(columnIds, anyMapped);
+
+	// Return remote if no overlap between log and selection
+	if (!anyMapped)
+		return remote;
+
+	// Adjust approximately based on local changes
+	for (size_t i = 0; i < logMap.size(); i++)
+	{
+		auto colLog = logMap[i];		
+		if (colLog != nullptr)
+		{
+			auto localStat = colLog->includes.GetStatistic();
+			remote[i].total = std::max<int64_t>(0, remote[i].total + localStat.total - colLog->excludes.size());
+			// TODO: Better estimate of unique based on ratio
+			remote[i].unique = std::max<int64_t>(0, remote[i].unique + localStat.unique - colLog->excludes.size());
+		}
+	}
+
+	return remote;
+}
+
+Transaction::LogColumn& Transaction::ensureColumnLog(const ColumnID& columnId)
 {
 	auto iter = _log.find(columnId);
 	if (iter == _log.end())
 	{
-		_log.insert(std::pair<ColumnID, LogColumn>(columnId, LogColumn()));
+		auto schema = _database.getSchema();
+		auto def = schema.find(columnId);
+		if (def != schema.end())
+		{
+			auto inserted = _log.insert(std::pair<ColumnID, LogColumn>(columnId, LogColumn(def->second.RowIDType, def->second.ValueType)));
+			return inserted.first->second;
+		}
+		else
+			throw ClientException((boost::format("Unable to locate column (%i) in the schema.") % columnId).str());
 	}
-	
-	return _log[columnId];	
-}
-
-std::map<HostID, long long> Transaction::Ping()
-{
-	return privateDatabase.Ping();
+	else
+		return iter->second;
 }

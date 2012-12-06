@@ -21,8 +21,7 @@ struct RepositoryStatus {
     Loading = 1,
     Unloading = 2,
     Online = 3,
-    Checkpointing = 4,
-    Offline = 5
+    Offline = 4
   };
 };
 
@@ -54,6 +53,8 @@ typedef int64_t ColumnID;
 
 typedef int64_t HostID;
 
+typedef int64_t StashID;
+
 typedef int64_t PodID;
 
 typedef int64_t TimeStamp;
@@ -64,7 +65,11 @@ typedef std::vector<PodID>  PodIDs;
 
 typedef std::vector<HostID>  HostIDs;
 
+typedef std::vector<StashID>  StashIDs;
+
 typedef std::map<PodID, ColumnIDs>  Pods;
+
+typedef std::map<StashID, ColumnIDs>  Stashes;
 
 typedef std::map<HostID, class NetworkAddress>  HostAddresses;
 
@@ -76,6 +81,8 @@ typedef int32_t LockTimeout;
 
 typedef int64_t Revision;
 
+typedef int64_t TransactionID;
+
 typedef std::map<ColumnID, class ColumnWrites>  Writes;
 
 typedef std::vector<class ValueRows>  ValueRowsList;
@@ -84,9 +91,15 @@ typedef std::map<ColumnID, class Query>  Queries;
 
 typedef std::map<ColumnID, class ReadResult>  ReadResults;
 
-typedef std::map<class Query, class Answer>  Read;
+typedef int64_t BloomFilter;
 
-typedef std::map<ColumnID, Read>  Reads;
+typedef std::map<ColumnID, class PrepareInfo>  ColumnPrepares;
+
+typedef std::map<ColumnID, class PrepareResult>  PrepareResults;
+
+typedef std::map<ColumnID, class ColumnRange>  Ranges;
+
+typedef std::map<ColumnID, class GetWritesResult>  GetWritesResults;
 
 typedef struct _NetworkAddress__isset {
   _NetworkAddress__isset() : port(false) {}
@@ -302,11 +315,55 @@ class HiveState {
 void swap(HiveState &a, HiveState &b);
 
 
+class Host {
+ public:
+
+  static const char* ascii_fingerprint; // = "9F0802A2C6E78AE110DA07A538916DA0";
+  static const uint8_t binary_fingerprint[16]; // = {0x9F,0x08,0x02,0xA2,0xC6,0xE7,0x8A,0xE1,0x10,0xDA,0x07,0xA5,0x38,0x91,0x6D,0xA0};
+
+  Host() {
+  }
+
+  virtual ~Host() throw() {}
+
+  Pods pods;
+  Stashes stashes;
+
+  void __set_pods(const Pods& val) {
+    pods = val;
+  }
+
+  void __set_stashes(const Stashes& val) {
+    stashes = val;
+  }
+
+  bool operator == (const Host & rhs) const
+  {
+    if (!(pods == rhs.pods))
+      return false;
+    if (!(stashes == rhs.stashes))
+      return false;
+    return true;
+  }
+  bool operator != (const Host &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Host & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(Host &a, Host &b);
+
+
 class Topology {
  public:
 
-  static const char* ascii_fingerprint; // = "D99C034A9599DE1ADFF4DC218564E7B5";
-  static const uint8_t binary_fingerprint[16]; // = {0xD9,0x9C,0x03,0x4A,0x95,0x99,0xDE,0x1A,0xDF,0xF4,0xDC,0x21,0x85,0x64,0xE7,0xB5};
+  static const char* ascii_fingerprint; // = "E480B4FEEBBC45D7112359D5200F0468";
+  static const uint8_t binary_fingerprint[16]; // = {0xE4,0x80,0xB4,0xFE,0xEB,0xBC,0x45,0xD7,0x11,0x23,0x59,0xD5,0x20,0x0F,0x04,0x68};
 
   Topology() : topologyID(0) {
   }
@@ -314,13 +371,13 @@ class Topology {
   virtual ~Topology() throw() {}
 
   TopologyID topologyID;
-  std::map<HostID, Pods>  hosts;
+  std::map<HostID, Host>  hosts;
 
   void __set_topologyID(const TopologyID val) {
     topologyID = val;
   }
 
-  void __set_hosts(const std::map<HostID, Pods> & val) {
+  void __set_hosts(const std::map<HostID, Host> & val) {
     hosts = val;
   }
 
@@ -619,60 +676,16 @@ class NotJoined : public ::apache::thrift::TException {
 void swap(NotJoined &a, NotJoined &b);
 
 
-class TransactionID {
- public:
-
-  static const char* ascii_fingerprint; // = "F33135321253DAEB67B0E79E416CA831";
-  static const uint8_t binary_fingerprint[16]; // = {0xF3,0x31,0x35,0x32,0x12,0x53,0xDA,0xEB,0x67,0xB0,0xE7,0x9E,0x41,0x6C,0xA8,0x31};
-
-  TransactionID() : revision(0), key(0) {
-  }
-
-  virtual ~TransactionID() throw() {}
-
-  Revision revision;
-  int64_t key;
-
-  void __set_revision(const Revision val) {
-    revision = val;
-  }
-
-  void __set_key(const int64_t val) {
-    key = val;
-  }
-
-  bool operator == (const TransactionID & rhs) const
-  {
-    if (!(revision == rhs.revision))
-      return false;
-    if (!(key == rhs.key))
-      return false;
-    return true;
-  }
-  bool operator != (const TransactionID &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const TransactionID & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(TransactionID &a, TransactionID &b);
-
-
-class Include {
+class Cell {
  public:
 
   static const char* ascii_fingerprint; // = "07A9615F837F7D0A952B595DD3020972";
   static const uint8_t binary_fingerprint[16]; // = {0x07,0xA9,0x61,0x5F,0x83,0x7F,0x7D,0x0A,0x95,0x2B,0x59,0x5D,0xD3,0x02,0x09,0x72};
 
-  Include() : rowID(), value() {
+  Cell() : rowID(), value() {
   }
 
-  virtual ~Include() throw() {}
+  virtual ~Cell() throw() {}
 
   std::string rowID;
   std::string value;
@@ -685,7 +698,7 @@ class Include {
     value = val;
   }
 
-  bool operator == (const Include & rhs) const
+  bool operator == (const Cell & rhs) const
   {
     if (!(rowID == rhs.rowID))
       return false;
@@ -693,55 +706,18 @@ class Include {
       return false;
     return true;
   }
-  bool operator != (const Include &rhs) const {
+  bool operator != (const Cell &rhs) const {
     return !(*this == rhs);
   }
 
-  bool operator < (const Include & ) const;
+  bool operator < (const Cell & ) const;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
-void swap(Include &a, Include &b);
-
-
-class Exclude {
- public:
-
-  static const char* ascii_fingerprint; // = "EFB929595D312AC8F305D5A794CFEDA1";
-  static const uint8_t binary_fingerprint[16]; // = {0xEF,0xB9,0x29,0x59,0x5D,0x31,0x2A,0xC8,0xF3,0x05,0xD5,0xA7,0x94,0xCF,0xED,0xA1};
-
-  Exclude() : rowID() {
-  }
-
-  virtual ~Exclude() throw() {}
-
-  std::string rowID;
-
-  void __set_rowID(const std::string& val) {
-    rowID = val;
-  }
-
-  bool operator == (const Exclude & rhs) const
-  {
-    if (!(rowID == rhs.rowID))
-      return false;
-    return true;
-  }
-  bool operator != (const Exclude &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Exclude & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-void swap(Exclude &a, Exclude &b);
+void swap(Cell &a, Cell &b);
 
 typedef struct _ColumnWrites__isset {
   _ColumnWrites__isset() : includes(false), excludes(false) {}
@@ -752,25 +728,25 @@ typedef struct _ColumnWrites__isset {
 class ColumnWrites {
  public:
 
-  static const char* ascii_fingerprint; // = "7B474451502DF848AF475006A25AB746";
-  static const uint8_t binary_fingerprint[16]; // = {0x7B,0x47,0x44,0x51,0x50,0x2D,0xF8,0x48,0xAF,0x47,0x50,0x06,0xA2,0x5A,0xB7,0x46};
+  static const char* ascii_fingerprint; // = "5A97C260CD70CD71BA72B43BB1F9A5E3";
+  static const uint8_t binary_fingerprint[16]; // = {0x5A,0x97,0xC2,0x60,0xCD,0x70,0xCD,0x71,0xBA,0x72,0xB4,0x3B,0xB1,0xF9,0xA5,0xE3};
 
   ColumnWrites() {
   }
 
   virtual ~ColumnWrites() throw() {}
 
-  std::vector<Include>  includes;
-  std::vector<Exclude>  excludes;
+  std::vector<Cell>  includes;
+  std::vector<Cell>  excludes;
 
   _ColumnWrites__isset __isset;
 
-  void __set_includes(const std::vector<Include> & val) {
+  void __set_includes(const std::vector<Cell> & val) {
     includes = val;
     __isset.includes = true;
   }
 
-  void __set_excludes(const std::vector<Exclude> & val) {
+  void __set_excludes(const std::vector<Cell> & val) {
     excludes = val;
     __isset.excludes = true;
   }
@@ -1276,6 +1252,169 @@ class ReadResult {
 
 void swap(ReadResult &a, ReadResult &b);
 
+typedef struct _RangePredicate__isset {
+  _RangePredicate__isset() : first(false), last(false) {}
+  bool first;
+  bool last;
+} _RangePredicate__isset;
+
+class RangePredicate {
+ public:
+
+  static const char* ascii_fingerprint; // = "2CB90755322001A9076140892C8A5F81";
+  static const uint8_t binary_fingerprint[16]; // = {0x2C,0xB9,0x07,0x55,0x32,0x20,0x01,0xA9,0x07,0x61,0x40,0x89,0x2C,0x8A,0x5F,0x81};
+
+  RangePredicate() {
+  }
+
+  virtual ~RangePredicate() throw() {}
+
+  RangeBound first;
+  RangeBound last;
+
+  _RangePredicate__isset __isset;
+
+  void __set_first(const RangeBound& val) {
+    first = val;
+    __isset.first = true;
+  }
+
+  void __set_last(const RangeBound& val) {
+    last = val;
+    __isset.last = true;
+  }
+
+  bool operator == (const RangePredicate & rhs) const
+  {
+    if (__isset.first != rhs.__isset.first)
+      return false;
+    else if (__isset.first && !(first == rhs.first))
+      return false;
+    if (__isset.last != rhs.__isset.last)
+      return false;
+    else if (__isset.last && !(last == rhs.last))
+      return false;
+    return true;
+  }
+  bool operator != (const RangePredicate &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const RangePredicate & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(RangePredicate &a, RangePredicate &b);
+
+typedef struct _PrepareInfo__isset {
+  _PrepareInfo__isset() : fromRevision(false), rangePredicates(false), filter(false) {}
+  bool fromRevision;
+  bool rangePredicates;
+  bool filter;
+} _PrepareInfo__isset;
+
+class PrepareInfo {
+ public:
+
+  static const char* ascii_fingerprint; // = "1FD419B0C7C0D66084E5E1AF4EB2D9A4";
+  static const uint8_t binary_fingerprint[16]; // = {0x1F,0xD4,0x19,0xB0,0xC7,0xC0,0xD6,0x60,0x84,0xE5,0xE1,0xAF,0x4E,0xB2,0xD9,0xA4};
+
+  PrepareInfo() : fromRevision(0), filter(0) {
+  }
+
+  virtual ~PrepareInfo() throw() {}
+
+  Revision fromRevision;
+  std::vector<RangePredicate>  rangePredicates;
+  BloomFilter filter;
+
+  _PrepareInfo__isset __isset;
+
+  void __set_fromRevision(const Revision val) {
+    fromRevision = val;
+    __isset.fromRevision = true;
+  }
+
+  void __set_rangePredicates(const std::vector<RangePredicate> & val) {
+    rangePredicates = val;
+  }
+
+  void __set_filter(const BloomFilter val) {
+    filter = val;
+  }
+
+  bool operator == (const PrepareInfo & rhs) const
+  {
+    if (__isset.fromRevision != rhs.__isset.fromRevision)
+      return false;
+    else if (__isset.fromRevision && !(fromRevision == rhs.fromRevision))
+      return false;
+    if (!(rangePredicates == rhs.rangePredicates))
+      return false;
+    if (!(filter == rhs.filter))
+      return false;
+    return true;
+  }
+  bool operator != (const PrepareInfo &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const PrepareInfo & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(PrepareInfo &a, PrepareInfo &b);
+
+
+class PrepareResult {
+ public:
+
+  static const char* ascii_fingerprint; // = "25038F937443AC9A2A06CEE5209E41BF";
+  static const uint8_t binary_fingerprint[16]; // = {0x25,0x03,0x8F,0x93,0x74,0x43,0xAC,0x9A,0x2A,0x06,0xCE,0xE5,0x20,0x9E,0x41,0xBF};
+
+  PrepareResult() : actualRevision(0), validateRequired(0) {
+  }
+
+  virtual ~PrepareResult() throw() {}
+
+  Revision actualRevision;
+  bool validateRequired;
+
+  void __set_actualRevision(const Revision val) {
+    actualRevision = val;
+  }
+
+  void __set_validateRequired(const bool val) {
+    validateRequired = val;
+  }
+
+  bool operator == (const PrepareResult & rhs) const
+  {
+    if (!(actualRevision == rhs.actualRevision))
+      return false;
+    if (!(validateRequired == rhs.validateRequired))
+      return false;
+    return true;
+  }
+  bool operator != (const PrepareResult &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const PrepareResult & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(PrepareResult &a, PrepareResult &b);
+
 typedef struct _NotLatest__isset {
   _NotLatest__isset() : latest(false) {}
   bool latest;
@@ -1320,32 +1459,40 @@ class NotLatest : public ::apache::thrift::TException {
 void swap(NotLatest &a, NotLatest &b);
 
 typedef struct _AlreadyPending__isset {
-  _AlreadyPending__isset() : pendingTransactionID(false) {}
+  _AlreadyPending__isset() : pendingTransactionID(false), columnID(false) {}
   bool pendingTransactionID;
+  bool columnID;
 } _AlreadyPending__isset;
 
 class AlreadyPending : public ::apache::thrift::TException {
  public:
 
-  static const char* ascii_fingerprint; // = "9CFE4A6581B5B8EB11F5BBBCEFA07940";
-  static const uint8_t binary_fingerprint[16]; // = {0x9C,0xFE,0x4A,0x65,0x81,0xB5,0xB8,0xEB,0x11,0xF5,0xBB,0xBC,0xEF,0xA0,0x79,0x40};
+  static const char* ascii_fingerprint; // = "F33135321253DAEB67B0E79E416CA831";
+  static const uint8_t binary_fingerprint[16]; // = {0xF3,0x31,0x35,0x32,0x12,0x53,0xDA,0xEB,0x67,0xB0,0xE7,0x9E,0x41,0x6C,0xA8,0x31};
 
-  AlreadyPending() {
+  AlreadyPending() : pendingTransactionID(0), columnID(0) {
   }
 
   virtual ~AlreadyPending() throw() {}
 
   TransactionID pendingTransactionID;
+  ColumnID columnID;
 
   _AlreadyPending__isset __isset;
 
-  void __set_pendingTransactionID(const TransactionID& val) {
+  void __set_pendingTransactionID(const TransactionID val) {
     pendingTransactionID = val;
+  }
+
+  void __set_columnID(const ColumnID val) {
+    columnID = val;
   }
 
   bool operator == (const AlreadyPending & rhs) const
   {
     if (!(pendingTransactionID == rhs.pendingTransactionID))
+      return false;
+    if (!(columnID == rhs.columnID))
       return false;
     return true;
   }
@@ -1455,6 +1602,169 @@ class BeyondHistory : public ::apache::thrift::TException {
 };
 
 void swap(BeyondHistory &a, BeyondHistory &b);
+
+
+class ColumnRange {
+ public:
+
+  static const char* ascii_fingerprint; // = "F33135321253DAEB67B0E79E416CA831";
+  static const uint8_t binary_fingerprint[16]; // = {0xF3,0x31,0x35,0x32,0x12,0x53,0xDA,0xEB,0x67,0xB0,0xE7,0x9E,0x41,0x6C,0xA8,0x31};
+
+  ColumnRange() : from(0), to(0) {
+  }
+
+  virtual ~ColumnRange() throw() {}
+
+  Revision from;
+  Revision to;
+
+  void __set_from(const Revision val) {
+    from = val;
+  }
+
+  void __set_to(const Revision val) {
+    to = val;
+  }
+
+  bool operator == (const ColumnRange & rhs) const
+  {
+    if (!(from == rhs.from))
+      return false;
+    if (!(to == rhs.to))
+      return false;
+    return true;
+  }
+  bool operator != (const ColumnRange &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ColumnRange & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(ColumnRange &a, ColumnRange &b);
+
+typedef struct _GetWritesResult__isset {
+  _GetWritesResult__isset() : writes(false) {}
+  bool writes;
+} _GetWritesResult__isset;
+
+class GetWritesResult {
+ public:
+
+  static const char* ascii_fingerprint; // = "F578B019C405B80D4EC8B7E62DE4AAEF";
+  static const uint8_t binary_fingerprint[16]; // = {0xF5,0x78,0xB0,0x19,0xC4,0x05,0xB8,0x0D,0x4E,0xC8,0xB7,0xE6,0x2D,0xE4,0xAA,0xEF};
+
+  GetWritesResult() : minFrom(0), maxTo(0) {
+  }
+
+  virtual ~GetWritesResult() throw() {}
+
+  ColumnWrites writes;
+  Revision minFrom;
+  Revision maxTo;
+
+  _GetWritesResult__isset __isset;
+
+  void __set_writes(const ColumnWrites& val) {
+    writes = val;
+    __isset.writes = true;
+  }
+
+  void __set_minFrom(const Revision val) {
+    minFrom = val;
+  }
+
+  void __set_maxTo(const Revision val) {
+    maxTo = val;
+  }
+
+  bool operator == (const GetWritesResult & rhs) const
+  {
+    if (__isset.writes != rhs.__isset.writes)
+      return false;
+    else if (__isset.writes && !(writes == rhs.writes))
+      return false;
+    if (!(minFrom == rhs.minFrom))
+      return false;
+    if (!(maxTo == rhs.maxTo))
+      return false;
+    return true;
+  }
+  bool operator != (const GetWritesResult &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const GetWritesResult & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(GetWritesResult &a, GetWritesResult &b);
+
+typedef struct _StoreStatus__isset {
+  _StoreStatus__isset() : LastCheckpoints(false), beganCheckpoints(false), LatestRevisions(false) {}
+  bool LastCheckpoints;
+  bool beganCheckpoints;
+  bool LatestRevisions;
+} _StoreStatus__isset;
+
+class StoreStatus {
+ public:
+
+  static const char* ascii_fingerprint; // = "9C2AEBD7AD53067E75E4507762FC4213";
+  static const uint8_t binary_fingerprint[16]; // = {0x9C,0x2A,0xEB,0xD7,0xAD,0x53,0x06,0x7E,0x75,0xE4,0x50,0x77,0x62,0xFC,0x42,0x13};
+
+  StoreStatus() {
+  }
+
+  virtual ~StoreStatus() throw() {}
+
+  std::map<ColumnID, Revision>  LastCheckpoints;
+  std::set<ColumnID>  beganCheckpoints;
+  std::map<ColumnID, Revision>  LatestRevisions;
+
+  _StoreStatus__isset __isset;
+
+  void __set_LastCheckpoints(const std::map<ColumnID, Revision> & val) {
+    LastCheckpoints = val;
+  }
+
+  void __set_beganCheckpoints(const std::set<ColumnID> & val) {
+    beganCheckpoints = val;
+  }
+
+  void __set_LatestRevisions(const std::map<ColumnID, Revision> & val) {
+    LatestRevisions = val;
+  }
+
+  bool operator == (const StoreStatus & rhs) const
+  {
+    if (!(LastCheckpoints == rhs.LastCheckpoints))
+      return false;
+    if (!(beganCheckpoints == rhs.beganCheckpoints))
+      return false;
+    if (!(LatestRevisions == rhs.LatestRevisions))
+      return false;
+    return true;
+  }
+  bool operator != (const StoreStatus &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const StoreStatus & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(StoreStatus &a, StoreStatus &b);
 
 }} // namespace
 

@@ -19,6 +19,7 @@
 #include "../FastoreCommon/Communication/Worker.h"
 #include "typedefs.h"
 #include <future>
+#include "TransactionIDGenerator.h"
 
 using namespace fastore::communication;
 using namespace apache::thrift::protocol;
@@ -34,32 +35,33 @@ namespace fastore { namespace client
 		friend class Transaction;
 			
 	public:
-		/// <summary> The maximum number of rows to attempt to fetch at one time. </summary>
+		// The maximum number of rows to attempt to fetch at one time.
 		static const int MaxFetchLimit = 500;
-		/// <summary> The default timeout for write operations. </summary>
+		// The default timeout for write operations.
 		static const int DefaultWriteTimeout = 1000;
+		// Maximum number of times to retry write operations.
+		static const int MaxWriteRetries = 10;
 
 	private:
-		static Topology CreateTopology(const std::vector<int>& serviceWorkers);
-		static Query GetRowsQuery(const RangeResult& rangeResult);
-		static Query CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId);
-
-		class PodMap
+		struct PodMap
 		{
-		public:
 			std::vector<PodID> Pods;
 			int Next;
 		};
 
-		class WorkerInfo
+		struct WorkerInfo
 		{
-		public:
 			PodID podID;
 			ColumnIDs Columns;
 		};
 
+		struct ColumnWriteResult
+		{
+			bool validateRequired;
+			std::map<Revision, std::vector<WorkerInfo>> workersByRevision;
+		};
 
-	private:
+		
 		boost::shared_ptr<boost::mutex> _lock;
 
 		// Connection pool of services by host ID
@@ -84,37 +86,15 @@ namespace fastore { namespace client
 		Schema _schema;
 
 		int _writeTimeout;
-	
-	public:
-	
 
-		Database(std::vector<ServiceAddress> addresses);
-		~Database();
+		static std::unique_ptr<TransactionIDGenerator> _generator;
 
-		boost::shared_ptr<Transaction> Begin(bool readIsolation, bool writeIsolation);
+		static Topology CreateTopology(const std::vector<int>& serviceWorkers);
+		static Query GetRowsQuery(const RangeResult& rangeResult);
+		static Query CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId);
 
-		/// <summary> Given a set of column IDs and range criteria, retrieve a set of values. </summary>
-		RangeSet GetRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId = boost::optional<std::string>());
-		DataSet GetValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
-
-		void Include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-		void Exclude(const ColumnIDs& columnIds, const std::string& rowId);	
-		
-		std::vector<Statistic> GetStatistics(const ColumnIDs& columnIds);
-		std::map<HostID, long long> Ping();
-
-		void Checkpoint();
-		Schema GetSchema();		
-
-				/// <summary> ApplyTimeout specifies the maximum time in milliseconds to wait for workers to respond to an apply request. </summary>
-		/// <remarks> The default is 1000 (1 second). </remarks>
-		const int& getWriteTimeout() const;
-		void setWriteTimeout(const int &value);
-
-	private:
 		NetworkAddress& GetServiceAddress(HostID hostID);
 
-	
 		void RefreshSchema();
 
 		HiveState GetHiveState();
@@ -157,14 +137,17 @@ namespace fastore { namespace client
 		DataSet InternalGetValues(const ColumnIDs& columnIds, const ColumnID exclusionColumnId, const Query& rowIdQuery);	
 		DataSet ResultsToDataSet(const ColumnIDs& columnIds, const std::vector<std::string>& rowIDs, const ReadResults& rowResults);
 		RangeSet ResultsToRangeSet(DataSet& set, size_t rangeColumnIndex, const RangeResult& rangeResult);	
-		void Apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
+		void apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
+		void apply(TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
 
 		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
 
-		std::map<TransactionID, std::vector<WorkerInfo>> 
-				ProcessWriteResults(const std::vector<WorkerInfo>& workers, 
-									std::vector<std::future<TransactionID>>& tasks, 
-									std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers);
+		std::unordered_map<ColumnID, ColumnWriteResult> ProcessWriteResults
+		(
+			const std::vector<WorkerInfo>& workers, 
+			std::vector<std::future<PrepareResults>>& tasks, 
+			std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
+		);
 
 		bool FinalizeTransaction(const std::vector<WorkerInfo>& workers, const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers);
 
@@ -175,12 +158,38 @@ namespace fastore { namespace client
 		void ServiceInvoke(HostID hostID, std::function<void(ServiceClient)> work);
 
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
-		std::vector<std::future<TransactionID>> StartWorkerWrites(const std::map<ColumnID, ColumnWrites>&writes, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
+		std::vector<std::future<PrepareResults>> StartWorkerWrites(const ColumnIDs& columnIDs, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
 
 		std::map<ColumnID, ColumnWrites> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
-		std::map<ColumnID, ColumnWrites> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId);
+		std::map<ColumnID, ColumnWrites> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
 
 		Schema LoadSchema();
 		void BootStrapSchema();
+			
+	public:
+		Database(std::vector<ServiceAddress> addresses);
+		~Database();
+
+		boost::shared_ptr<Transaction> begin(bool readsConflict);
+
+		/// <summary> Given a set of column IDs and range criteria, retrieve a set of values. </summary>
+		RangeSet getRange(const ColumnIDs& columnIds, const Range& range, const int limit, const boost::optional<std::string> &startId = boost::optional<std::string>());
+		DataSet getValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
+
+		void include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+		void exclude(const ColumnIDs& columnIds, const std::string& rowId);	
+		
+		std::vector<Statistic> getStatistics(const ColumnIDs& columnIds);
+		std::map<HostID, long long> ping();
+
+		void checkpoint();
+		Schema getSchema();		
+
+				/// <summary> ApplyTimeout specifies the maximum time in milliseconds to wait for workers to respond to an apply request. </summary>
+		/// <remarks> The default is 1000 (1 second). </remarks>
+		const int& getWriteTimeout() const;
+		void setWriteTimeout(const int &value);
+
+		static TransactionID generateTransactionID();
 	};
 }}

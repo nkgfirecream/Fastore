@@ -8,7 +8,7 @@ extern "C" {
 const char * getprogname();
 
 const char * fastore_vfs_message(void);
-void initializeFastoreModule(sqlite3* db, int argc, void* argv);
+bool initializeFastoreModule(sqlite3* db, int argc, void* argv);
 
 #ifdef __cplusplus 
 }

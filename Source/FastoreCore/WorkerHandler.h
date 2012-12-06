@@ -1,6 +1,6 @@
 #pragma once
-#include "../FastoreCommon/Communication/Worker.h"
-#include "../FastoreCommon/Communication/Comm_types.h"
+#include <Communication/Worker.h>
+#include <Communication/Comm_types.h>
 #include "Wal/Wal.h"
 #include <thrift/TProcessor.h>
 #include <unordered_map>
@@ -15,8 +15,7 @@ class WorkerHandler
 private: 
 	fastore::communication::PodID _podId;
 	std::string _path;
-	std::unordered_map<fastore::communication::ColumnID, 
-					   boost::shared_ptr<Repository>> _repositories;
+	std::unordered_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
 	boost::shared_ptr<Scheduler> _scheduler;
 
 	//Not a shared pointer because we don't own the connection.
@@ -33,51 +32,45 @@ private:
 	ColumnDef GetDefFromSchema(ColumnID id);
 	
 public:
-	WorkerHandler(const PodID podId, 
-				  const string path, 
-				  const boost::shared_ptr<Scheduler>, 
-				        Wal& wal);
+	WorkerHandler
+	(
+		const PodID podId, 
+		const string path, 
+		const boost::shared_ptr<Scheduler>, 
+		Wal& wal
+	);
 	~WorkerHandler();
-
-	Revision prepare(const fastore::communication::TransactionID& transID, 
-					 const fastore::communication::Writes& writes, 
-					 const fastore::communication::Reads& reads);
-
-	void apply(      fastore::communication::TransactionID& _return, 
-			   const fastore::communication::TransactionID& transactionID, 
-			   const fastore::communication::Writes& writes);
-
-	void commit(const fastore::communication::TransactionID& transactionID);
-
-	void rollback(const fastore::communication::TransactionID& transactionID);
-
-	void flush(const fastore::communication::TransactionID& transactionID);
-
-	bool doesConflict(const fastore::communication::Reads& reads, 
-					  const fastore::communication::Revision source, 
-					  const fastore::communication::Revision target);
-
-	void update(      fastore::communication::TransactionID& _return, 
-				const fastore::communication::TransactionID& transactionID, 
-				const fastore::communication::Writes& writes, 
-				const fastore::communication::Reads& reads);
-
-	void transgrade(      fastore::communication::Reads& _return, 
-					const fastore::communication::Reads& reads, 
-					const fastore::communication::Revision source, 
-					const fastore::communication::Revision target);
-
-	void query(      fastore::communication::ReadResults& _return, 
-			   const fastore::communication::Queries& queries);
-
-	void getStatistics(      std::vector<Statistic> & _return, 
-					   const std::vector<ColumnID> & columnIDs);
-
-	void getState(WorkerState& _return);	
 
 	//Admin
 	void shutdown();
-	void checkpoint();
+	void loadBegin(const ColumnID columnID);
+	void loadBulkWrite(const ColumnID columnID, const ValueRowsList& values);
+	void loadWrite(const ColumnID columnID, const ColumnWrites& writes);
+	void loadEnd(const ColumnID columnID, const Revision revision);
+
+	void getState(WorkerState& _return) override;	
+
+	void prepare
+	(	
+		fastore::communication::PrepareResults& _return, 
+		const fastore::communication::TransactionID transactionID, 
+		const fastore::communication::ColumnPrepares& columns
+	);
+
+	void apply
+	(
+		fastore::communication::PrepareResults& _return, 
+		const fastore::communication::TransactionID transactionID, 
+		const ColumnIDs& columnIDs
+	);
+
+	void commit(const fastore::communication::TransactionID transactionID, const fastore::communication::Writes& writes);
+
+	void rollback(const fastore::communication::TransactionID transactionID);
+
+	void query(fastore::communication::ReadResults& _return, const fastore::communication::Queries& queries);
+
+	void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
 
 	//TProcessorEventHandler
 	void handlerError(void* ctx, const char* fn_name);

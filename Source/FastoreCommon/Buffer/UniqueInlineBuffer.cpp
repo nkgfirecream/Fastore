@@ -18,18 +18,22 @@ Statistic UniqueInlineBuffer::GetStatistic()
 vector<OptionalValue> UniqueInlineBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());
-	for (unsigned int i = 0; i < rowIds.size(); i++)
-	{
-		auto result = GetValue(_rowType.GetPointer(rowIds[i]));
-		if (result != NULL)
-		{
-			std::string value;
-			_valueType.CopyOut(result, value);
-			values[i].__set_value(value);
-		}
-	}
+	for (unsigned int i = 0; i < rowIds.size(); ++i)
+		values[i] = GetValue(rowIds[i]);
 
 	return values;
+}
+
+OptionalValue UniqueInlineBuffer::GetValue(const std::string &rowId)
+{
+	OptionalValue result;
+	auto value = GetValue(_rowType.GetPointer(rowId));
+	if (value != NULL)
+	{
+		_valueType.CopyOut(value, result.value);
+		result.__isset.value = true;
+	}
+	return result;
 }
 
 void* UniqueInlineBuffer::GetValue(void* rowId)

@@ -77,7 +77,7 @@ class ServiceHandler : virtual public ServiceIf {
     printf("releaseLock\n");
   }
 
-  void checkpoint() {
+  void checkpoint(const ColumnIDs& columnIDs) {
     // Your implementation goes here
     printf("checkpoint\n");
   }

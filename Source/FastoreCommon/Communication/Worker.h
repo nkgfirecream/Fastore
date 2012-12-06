@@ -16,18 +16,17 @@ class WorkerIf {
  public:
   virtual ~WorkerIf() {}
   virtual void shutdown() = 0;
+  virtual void loadBegin(const ColumnID columnID) = 0;
+  virtual void loadBulkWrite(const ColumnID columnID, const ValueRowsList& values) = 0;
+  virtual void loadWrite(const ColumnID columnID, const ColumnWrites& writes) = 0;
+  virtual void loadEnd(const ColumnID columnID, const Revision revision) = 0;
   virtual void getState(WorkerState& _return) = 0;
-  virtual Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
-  virtual void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) = 0;
-  virtual void commit(const TransactionID& transactionID) = 0;
-  virtual void rollback(const TransactionID& transactionID) = 0;
-  virtual void flush(const TransactionID& transactionID) = 0;
-  virtual bool doesConflict(const Reads& reads, const Revision source, const Revision target) = 0;
-  virtual void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) = 0;
-  virtual void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) = 0;
+  virtual void prepare(PrepareResults& _return, const TransactionID transactionID, const ColumnPrepares& columns) = 0;
+  virtual void apply(PrepareResults& _return, const TransactionID transactionID, const ColumnIDs& columns) = 0;
+  virtual void commit(const TransactionID transactionID, const Writes& writes) = 0;
+  virtual void rollback(const TransactionID transactionID) = 0;
   virtual void query(ReadResults& _return, const Queries& queries) = 0;
   virtual void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs) = 0;
-  virtual void checkpoint() = 0;
 };
 
 class WorkerIfFactory {
@@ -60,42 +59,37 @@ class WorkerNull : virtual public WorkerIf {
   void shutdown() {
     return;
   }
+  void loadBegin(const ColumnID /* columnID */) {
+    return;
+  }
+  void loadBulkWrite(const ColumnID /* columnID */, const ValueRowsList& /* values */) {
+    return;
+  }
+  void loadWrite(const ColumnID /* columnID */, const ColumnWrites& /* writes */) {
+    return;
+  }
+  void loadEnd(const ColumnID /* columnID */, const Revision /* revision */) {
+    return;
+  }
   void getState(WorkerState& /* _return */) {
     return;
   }
-  Revision prepare(const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
-    Revision _return = 0;
-    return _return;
-  }
-  void apply(TransactionID& /* _return */, const TransactionID& /* transactionID */, const Writes& /* writes */) {
+  void prepare(PrepareResults& /* _return */, const TransactionID /* transactionID */, const ColumnPrepares& /* columns */) {
     return;
   }
-  void commit(const TransactionID& /* transactionID */) {
+  void apply(PrepareResults& /* _return */, const TransactionID /* transactionID */, const ColumnIDs& /* columns */) {
     return;
   }
-  void rollback(const TransactionID& /* transactionID */) {
+  void commit(const TransactionID /* transactionID */, const Writes& /* writes */) {
     return;
   }
-  void flush(const TransactionID& /* transactionID */) {
-    return;
-  }
-  bool doesConflict(const Reads& /* reads */, const Revision /* source */, const Revision /* target */) {
-    bool _return = false;
-    return _return;
-  }
-  void update(TransactionID& /* _return */, const TransactionID& /* transactionID */, const Writes& /* writes */, const Reads& /* reads */) {
-    return;
-  }
-  void transgrade(Reads& /* _return */, const Reads& /* reads */, const Revision /* source */, const Revision /* target */) {
+  void rollback(const TransactionID /* transactionID */) {
     return;
   }
   void query(ReadResults& /* _return */, const Queries& /* queries */) {
     return;
   }
   void getStatistics(std::vector<Statistic> & /* _return */, const std::vector<ColumnID> & /* columnIDs */) {
-    return;
-  }
-  void checkpoint() {
     return;
   }
 };
@@ -168,6 +162,385 @@ class Worker_shutdown_presult {
 
 
   virtual ~Worker_shutdown_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _Worker_loadBegin_args__isset {
+  _Worker_loadBegin_args__isset() : columnID(false) {}
+  bool columnID;
+} _Worker_loadBegin_args__isset;
+
+class Worker_loadBegin_args {
+ public:
+
+  Worker_loadBegin_args() : columnID(0) {
+  }
+
+  virtual ~Worker_loadBegin_args() throw() {}
+
+  ColumnID columnID;
+
+  _Worker_loadBegin_args__isset __isset;
+
+  void __set_columnID(const ColumnID val) {
+    columnID = val;
+  }
+
+  bool operator == (const Worker_loadBegin_args & rhs) const
+  {
+    if (!(columnID == rhs.columnID))
+      return false;
+    return true;
+  }
+  bool operator != (const Worker_loadBegin_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadBegin_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadBegin_pargs {
+ public:
+
+
+  virtual ~Worker_loadBegin_pargs() throw() {}
+
+  const ColumnID* columnID;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadBegin_result {
+ public:
+
+  Worker_loadBegin_result() {
+  }
+
+  virtual ~Worker_loadBegin_result() throw() {}
+
+
+  bool operator == (const Worker_loadBegin_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_loadBegin_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadBegin_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadBegin_presult {
+ public:
+
+
+  virtual ~Worker_loadBegin_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _Worker_loadBulkWrite_args__isset {
+  _Worker_loadBulkWrite_args__isset() : columnID(false), values(false) {}
+  bool columnID;
+  bool values;
+} _Worker_loadBulkWrite_args__isset;
+
+class Worker_loadBulkWrite_args {
+ public:
+
+  Worker_loadBulkWrite_args() : columnID(0) {
+  }
+
+  virtual ~Worker_loadBulkWrite_args() throw() {}
+
+  ColumnID columnID;
+  ValueRowsList values;
+
+  _Worker_loadBulkWrite_args__isset __isset;
+
+  void __set_columnID(const ColumnID val) {
+    columnID = val;
+  }
+
+  void __set_values(const ValueRowsList& val) {
+    values = val;
+  }
+
+  bool operator == (const Worker_loadBulkWrite_args & rhs) const
+  {
+    if (!(columnID == rhs.columnID))
+      return false;
+    if (!(values == rhs.values))
+      return false;
+    return true;
+  }
+  bool operator != (const Worker_loadBulkWrite_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadBulkWrite_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadBulkWrite_pargs {
+ public:
+
+
+  virtual ~Worker_loadBulkWrite_pargs() throw() {}
+
+  const ColumnID* columnID;
+  const ValueRowsList* values;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadBulkWrite_result {
+ public:
+
+  Worker_loadBulkWrite_result() {
+  }
+
+  virtual ~Worker_loadBulkWrite_result() throw() {}
+
+
+  bool operator == (const Worker_loadBulkWrite_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_loadBulkWrite_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadBulkWrite_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadBulkWrite_presult {
+ public:
+
+
+  virtual ~Worker_loadBulkWrite_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _Worker_loadWrite_args__isset {
+  _Worker_loadWrite_args__isset() : columnID(false), writes(false) {}
+  bool columnID;
+  bool writes;
+} _Worker_loadWrite_args__isset;
+
+class Worker_loadWrite_args {
+ public:
+
+  Worker_loadWrite_args() : columnID(0) {
+  }
+
+  virtual ~Worker_loadWrite_args() throw() {}
+
+  ColumnID columnID;
+  ColumnWrites writes;
+
+  _Worker_loadWrite_args__isset __isset;
+
+  void __set_columnID(const ColumnID val) {
+    columnID = val;
+  }
+
+  void __set_writes(const ColumnWrites& val) {
+    writes = val;
+  }
+
+  bool operator == (const Worker_loadWrite_args & rhs) const
+  {
+    if (!(columnID == rhs.columnID))
+      return false;
+    if (!(writes == rhs.writes))
+      return false;
+    return true;
+  }
+  bool operator != (const Worker_loadWrite_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadWrite_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadWrite_pargs {
+ public:
+
+
+  virtual ~Worker_loadWrite_pargs() throw() {}
+
+  const ColumnID* columnID;
+  const ColumnWrites* writes;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadWrite_result {
+ public:
+
+  Worker_loadWrite_result() {
+  }
+
+  virtual ~Worker_loadWrite_result() throw() {}
+
+
+  bool operator == (const Worker_loadWrite_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_loadWrite_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadWrite_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadWrite_presult {
+ public:
+
+
+  virtual ~Worker_loadWrite_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _Worker_loadEnd_args__isset {
+  _Worker_loadEnd_args__isset() : columnID(false), revision(false) {}
+  bool columnID;
+  bool revision;
+} _Worker_loadEnd_args__isset;
+
+class Worker_loadEnd_args {
+ public:
+
+  Worker_loadEnd_args() : columnID(0), revision(0) {
+  }
+
+  virtual ~Worker_loadEnd_args() throw() {}
+
+  ColumnID columnID;
+  Revision revision;
+
+  _Worker_loadEnd_args__isset __isset;
+
+  void __set_columnID(const ColumnID val) {
+    columnID = val;
+  }
+
+  void __set_revision(const Revision val) {
+    revision = val;
+  }
+
+  bool operator == (const Worker_loadEnd_args & rhs) const
+  {
+    if (!(columnID == rhs.columnID))
+      return false;
+    if (!(revision == rhs.revision))
+      return false;
+    return true;
+  }
+  bool operator != (const Worker_loadEnd_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadEnd_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadEnd_pargs {
+ public:
+
+
+  virtual ~Worker_loadEnd_pargs() throw() {}
+
+  const ColumnID* columnID;
+  const Revision* revision;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadEnd_result {
+ public:
+
+  Worker_loadEnd_result() {
+  }
+
+  virtual ~Worker_loadEnd_result() throw() {}
+
+
+  bool operator == (const Worker_loadEnd_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Worker_loadEnd_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Worker_loadEnd_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Worker_loadEnd_presult {
+ public:
+
+
+  virtual ~Worker_loadEnd_presult() throw() {}
 
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
@@ -269,45 +642,37 @@ class Worker_getState_presult {
 };
 
 typedef struct _Worker_prepare_args__isset {
-  _Worker_prepare_args__isset() : transactionID(false), writes(false), reads(false) {}
+  _Worker_prepare_args__isset() : transactionID(false), columns(false) {}
   bool transactionID;
-  bool writes;
-  bool reads;
+  bool columns;
 } _Worker_prepare_args__isset;
 
 class Worker_prepare_args {
  public:
 
-  Worker_prepare_args() {
+  Worker_prepare_args() : transactionID(0) {
   }
 
   virtual ~Worker_prepare_args() throw() {}
 
   TransactionID transactionID;
-  Writes writes;
-  Reads reads;
+  ColumnPrepares columns;
 
   _Worker_prepare_args__isset __isset;
 
-  void __set_transactionID(const TransactionID& val) {
+  void __set_transactionID(const TransactionID val) {
     transactionID = val;
   }
 
-  void __set_writes(const Writes& val) {
-    writes = val;
-  }
-
-  void __set_reads(const Reads& val) {
-    reads = val;
+  void __set_columns(const ColumnPrepares& val) {
+    columns = val;
   }
 
   bool operator == (const Worker_prepare_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
-    if (!(writes == rhs.writes))
-      return false;
-    if (!(reads == rhs.reads))
+    if (!(columns == rhs.columns))
       return false;
     return true;
   }
@@ -330,40 +695,33 @@ class Worker_prepare_pargs {
   virtual ~Worker_prepare_pargs() throw() {}
 
   const TransactionID* transactionID;
-  const Writes* writes;
-  const Reads* reads;
+  const ColumnPrepares* columns;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
 };
 
 typedef struct _Worker_prepare_result__isset {
-  _Worker_prepare_result__isset() : success(false), notLatest(false), alreadyPending(false) {}
+  _Worker_prepare_result__isset() : success(false), alreadyPending(false) {}
   bool success;
-  bool notLatest;
   bool alreadyPending;
 } _Worker_prepare_result__isset;
 
 class Worker_prepare_result {
  public:
 
-  Worker_prepare_result() : success(0) {
+  Worker_prepare_result() {
   }
 
   virtual ~Worker_prepare_result() throw() {}
 
-  Revision success;
-  NotLatest notLatest;
+  PrepareResults success;
   AlreadyPending alreadyPending;
 
   _Worker_prepare_result__isset __isset;
 
-  void __set_success(const Revision val) {
+  void __set_success(const PrepareResults& val) {
     success = val;
-  }
-
-  void __set_notLatest(const NotLatest& val) {
-    notLatest = val;
   }
 
   void __set_alreadyPending(const AlreadyPending& val) {
@@ -373,8 +731,6 @@ class Worker_prepare_result {
   bool operator == (const Worker_prepare_result & rhs) const
   {
     if (!(success == rhs.success))
-      return false;
-    if (!(notLatest == rhs.notLatest))
       return false;
     if (!(alreadyPending == rhs.alreadyPending))
       return false;
@@ -392,9 +748,8 @@ class Worker_prepare_result {
 };
 
 typedef struct _Worker_prepare_presult__isset {
-  _Worker_prepare_presult__isset() : success(false), notLatest(false), alreadyPending(false) {}
+  _Worker_prepare_presult__isset() : success(false), alreadyPending(false) {}
   bool success;
-  bool notLatest;
   bool alreadyPending;
 } _Worker_prepare_presult__isset;
 
@@ -404,8 +759,7 @@ class Worker_prepare_presult {
 
   virtual ~Worker_prepare_presult() throw() {}
 
-  Revision* success;
-  NotLatest notLatest;
+  PrepareResults* success;
   AlreadyPending alreadyPending;
 
   _Worker_prepare_presult__isset __isset;
@@ -415,37 +769,37 @@ class Worker_prepare_presult {
 };
 
 typedef struct _Worker_apply_args__isset {
-  _Worker_apply_args__isset() : transactionID(false), writes(false) {}
+  _Worker_apply_args__isset() : transactionID(false), columns(false) {}
   bool transactionID;
-  bool writes;
+  bool columns;
 } _Worker_apply_args__isset;
 
 class Worker_apply_args {
  public:
 
-  Worker_apply_args() {
+  Worker_apply_args() : transactionID(0) {
   }
 
   virtual ~Worker_apply_args() throw() {}
 
   TransactionID transactionID;
-  Writes writes;
+  ColumnIDs columns;
 
   _Worker_apply_args__isset __isset;
 
-  void __set_transactionID(const TransactionID& val) {
+  void __set_transactionID(const TransactionID val) {
     transactionID = val;
   }
 
-  void __set_writes(const Writes& val) {
-    writes = val;
+  void __set_columns(const ColumnIDs& val) {
+    columns = val;
   }
 
   bool operator == (const Worker_apply_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
       return false;
-    if (!(writes == rhs.writes))
+    if (!(columns == rhs.columns))
       return false;
     return true;
   }
@@ -468,7 +822,7 @@ class Worker_apply_pargs {
   virtual ~Worker_apply_pargs() throw() {}
 
   const TransactionID* transactionID;
-  const Writes* writes;
+  const ColumnIDs* columns;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -488,12 +842,12 @@ class Worker_apply_result {
 
   virtual ~Worker_apply_result() throw() {}
 
-  TransactionID success;
+  PrepareResults success;
   AlreadyPending alreadyPending;
 
   _Worker_apply_result__isset __isset;
 
-  void __set_success(const TransactionID& val) {
+  void __set_success(const PrepareResults& val) {
     success = val;
   }
 
@@ -532,7 +886,7 @@ class Worker_apply_presult {
 
   virtual ~Worker_apply_presult() throw() {}
 
-  TransactionID* success;
+  PrepareResults* success;
   AlreadyPending alreadyPending;
 
   _Worker_apply_presult__isset __isset;
@@ -542,29 +896,37 @@ class Worker_apply_presult {
 };
 
 typedef struct _Worker_commit_args__isset {
-  _Worker_commit_args__isset() : transactionID(false) {}
+  _Worker_commit_args__isset() : transactionID(false), writes(false) {}
   bool transactionID;
+  bool writes;
 } _Worker_commit_args__isset;
 
 class Worker_commit_args {
  public:
 
-  Worker_commit_args() {
+  Worker_commit_args() : transactionID(0) {
   }
 
   virtual ~Worker_commit_args() throw() {}
 
   TransactionID transactionID;
+  Writes writes;
 
   _Worker_commit_args__isset __isset;
 
-  void __set_transactionID(const TransactionID& val) {
+  void __set_transactionID(const TransactionID val) {
     transactionID = val;
+  }
+
+  void __set_writes(const Writes& val) {
+    writes = val;
   }
 
   bool operator == (const Worker_commit_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
+      return false;
+    if (!(writes == rhs.writes))
       return false;
     return true;
   }
@@ -587,6 +949,7 @@ class Worker_commit_pargs {
   virtual ~Worker_commit_pargs() throw() {}
 
   const TransactionID* transactionID;
+  const Writes* writes;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
 
@@ -600,7 +963,7 @@ typedef struct _Worker_rollback_args__isset {
 class Worker_rollback_args {
  public:
 
-  Worker_rollback_args() {
+  Worker_rollback_args() : transactionID(0) {
   }
 
   virtual ~Worker_rollback_args() throw() {}
@@ -609,7 +972,7 @@ class Worker_rollback_args {
 
   _Worker_rollback_args__isset __isset;
 
-  void __set_transactionID(const TransactionID& val) {
+  void __set_transactionID(const TransactionID val) {
     transactionID = val;
   }
 
@@ -640,502 +1003,6 @@ class Worker_rollback_pargs {
   const TransactionID* transactionID;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_flush_args__isset {
-  _Worker_flush_args__isset() : transactionID(false) {}
-  bool transactionID;
-} _Worker_flush_args__isset;
-
-class Worker_flush_args {
- public:
-
-  Worker_flush_args() {
-  }
-
-  virtual ~Worker_flush_args() throw() {}
-
-  TransactionID transactionID;
-
-  _Worker_flush_args__isset __isset;
-
-  void __set_transactionID(const TransactionID& val) {
-    transactionID = val;
-  }
-
-  bool operator == (const Worker_flush_args & rhs) const
-  {
-    if (!(transactionID == rhs.transactionID))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_flush_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_flush_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_flush_pargs {
- public:
-
-
-  virtual ~Worker_flush_pargs() throw() {}
-
-  const TransactionID* transactionID;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_flush_result {
- public:
-
-  Worker_flush_result() {
-  }
-
-  virtual ~Worker_flush_result() throw() {}
-
-
-  bool operator == (const Worker_flush_result & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const Worker_flush_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_flush_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_flush_presult {
- public:
-
-
-  virtual ~Worker_flush_presult() throw() {}
-
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
-typedef struct _Worker_doesConflict_args__isset {
-  _Worker_doesConflict_args__isset() : reads(false), source(false), target(false) {}
-  bool reads;
-  bool source;
-  bool target;
-} _Worker_doesConflict_args__isset;
-
-class Worker_doesConflict_args {
- public:
-
-  Worker_doesConflict_args() : source(0), target(0) {
-  }
-
-  virtual ~Worker_doesConflict_args() throw() {}
-
-  Reads reads;
-  Revision source;
-  Revision target;
-
-  _Worker_doesConflict_args__isset __isset;
-
-  void __set_reads(const Reads& val) {
-    reads = val;
-  }
-
-  void __set_source(const Revision val) {
-    source = val;
-  }
-
-  void __set_target(const Revision val) {
-    target = val;
-  }
-
-  bool operator == (const Worker_doesConflict_args & rhs) const
-  {
-    if (!(reads == rhs.reads))
-      return false;
-    if (!(source == rhs.source))
-      return false;
-    if (!(target == rhs.target))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_doesConflict_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_doesConflict_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_doesConflict_pargs {
- public:
-
-
-  virtual ~Worker_doesConflict_pargs() throw() {}
-
-  const Reads* reads;
-  const Revision* source;
-  const Revision* target;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_doesConflict_result__isset {
-  _Worker_doesConflict_result__isset() : success(false), beyondHistory(false) {}
-  bool success;
-  bool beyondHistory;
-} _Worker_doesConflict_result__isset;
-
-class Worker_doesConflict_result {
- public:
-
-  Worker_doesConflict_result() : success(0) {
-  }
-
-  virtual ~Worker_doesConflict_result() throw() {}
-
-  bool success;
-  BeyondHistory beyondHistory;
-
-  _Worker_doesConflict_result__isset __isset;
-
-  void __set_success(const bool val) {
-    success = val;
-  }
-
-  void __set_beyondHistory(const BeyondHistory& val) {
-    beyondHistory = val;
-  }
-
-  bool operator == (const Worker_doesConflict_result & rhs) const
-  {
-    if (!(success == rhs.success))
-      return false;
-    if (!(beyondHistory == rhs.beyondHistory))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_doesConflict_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_doesConflict_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_doesConflict_presult__isset {
-  _Worker_doesConflict_presult__isset() : success(false), beyondHistory(false) {}
-  bool success;
-  bool beyondHistory;
-} _Worker_doesConflict_presult__isset;
-
-class Worker_doesConflict_presult {
- public:
-
-
-  virtual ~Worker_doesConflict_presult() throw() {}
-
-  bool* success;
-  BeyondHistory beyondHistory;
-
-  _Worker_doesConflict_presult__isset __isset;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
-typedef struct _Worker_update_args__isset {
-  _Worker_update_args__isset() : transactionID(false), writes(false), reads(false) {}
-  bool transactionID;
-  bool writes;
-  bool reads;
-} _Worker_update_args__isset;
-
-class Worker_update_args {
- public:
-
-  Worker_update_args() {
-  }
-
-  virtual ~Worker_update_args() throw() {}
-
-  TransactionID transactionID;
-  Writes writes;
-  Reads reads;
-
-  _Worker_update_args__isset __isset;
-
-  void __set_transactionID(const TransactionID& val) {
-    transactionID = val;
-  }
-
-  void __set_writes(const Writes& val) {
-    writes = val;
-  }
-
-  void __set_reads(const Reads& val) {
-    reads = val;
-  }
-
-  bool operator == (const Worker_update_args & rhs) const
-  {
-    if (!(transactionID == rhs.transactionID))
-      return false;
-    if (!(writes == rhs.writes))
-      return false;
-    if (!(reads == rhs.reads))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_update_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_update_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_update_pargs {
- public:
-
-
-  virtual ~Worker_update_pargs() throw() {}
-
-  const TransactionID* transactionID;
-  const Writes* writes;
-  const Reads* reads;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_update_result__isset {
-  _Worker_update_result__isset() : success(false), conflict(false) {}
-  bool success;
-  bool conflict;
-} _Worker_update_result__isset;
-
-class Worker_update_result {
- public:
-
-  Worker_update_result() {
-  }
-
-  virtual ~Worker_update_result() throw() {}
-
-  TransactionID success;
-  Conflict conflict;
-
-  _Worker_update_result__isset __isset;
-
-  void __set_success(const TransactionID& val) {
-    success = val;
-  }
-
-  void __set_conflict(const Conflict& val) {
-    conflict = val;
-  }
-
-  bool operator == (const Worker_update_result & rhs) const
-  {
-    if (!(success == rhs.success))
-      return false;
-    if (!(conflict == rhs.conflict))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_update_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_update_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_update_presult__isset {
-  _Worker_update_presult__isset() : success(false), conflict(false) {}
-  bool success;
-  bool conflict;
-} _Worker_update_presult__isset;
-
-class Worker_update_presult {
- public:
-
-
-  virtual ~Worker_update_presult() throw() {}
-
-  TransactionID* success;
-  Conflict conflict;
-
-  _Worker_update_presult__isset __isset;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-
-};
-
-typedef struct _Worker_transgrade_args__isset {
-  _Worker_transgrade_args__isset() : reads(false), source(false), target(false) {}
-  bool reads;
-  bool source;
-  bool target;
-} _Worker_transgrade_args__isset;
-
-class Worker_transgrade_args {
- public:
-
-  Worker_transgrade_args() : source(0), target(0) {
-  }
-
-  virtual ~Worker_transgrade_args() throw() {}
-
-  Reads reads;
-  Revision source;
-  Revision target;
-
-  _Worker_transgrade_args__isset __isset;
-
-  void __set_reads(const Reads& val) {
-    reads = val;
-  }
-
-  void __set_source(const Revision val) {
-    source = val;
-  }
-
-  void __set_target(const Revision val) {
-    target = val;
-  }
-
-  bool operator == (const Worker_transgrade_args & rhs) const
-  {
-    if (!(reads == rhs.reads))
-      return false;
-    if (!(source == rhs.source))
-      return false;
-    if (!(target == rhs.target))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_transgrade_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_transgrade_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_transgrade_pargs {
- public:
-
-
-  virtual ~Worker_transgrade_pargs() throw() {}
-
-  const Reads* reads;
-  const Revision* source;
-  const Revision* target;
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_transgrade_result__isset {
-  _Worker_transgrade_result__isset() : success(false), beyondHistory(false) {}
-  bool success;
-  bool beyondHistory;
-} _Worker_transgrade_result__isset;
-
-class Worker_transgrade_result {
- public:
-
-  Worker_transgrade_result() {
-  }
-
-  virtual ~Worker_transgrade_result() throw() {}
-
-  Reads success;
-  BeyondHistory beyondHistory;
-
-  _Worker_transgrade_result__isset __isset;
-
-  void __set_success(const Reads& val) {
-    success = val;
-  }
-
-  void __set_beyondHistory(const BeyondHistory& val) {
-    beyondHistory = val;
-  }
-
-  bool operator == (const Worker_transgrade_result & rhs) const
-  {
-    if (!(success == rhs.success))
-      return false;
-    if (!(beyondHistory == rhs.beyondHistory))
-      return false;
-    return true;
-  }
-  bool operator != (const Worker_transgrade_result &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_transgrade_result & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-typedef struct _Worker_transgrade_presult__isset {
-  _Worker_transgrade_presult__isset() : success(false), beyondHistory(false) {}
-  bool success;
-  bool beyondHistory;
-} _Worker_transgrade_presult__isset;
-
-class Worker_transgrade_presult {
- public:
-
-
-  virtual ~Worker_transgrade_presult() throw() {}
-
-  Reads* success;
-  BeyondHistory beyondHistory;
-
-  _Worker_transgrade_presult__isset __isset;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
 };
 
@@ -1355,43 +1222,6 @@ class Worker_getStatistics_presult {
 
 };
 
-
-class Worker_checkpoint_args {
- public:
-
-  Worker_checkpoint_args() {
-  }
-
-  virtual ~Worker_checkpoint_args() throw() {}
-
-
-  bool operator == (const Worker_checkpoint_args & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const Worker_checkpoint_args &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const Worker_checkpoint_args & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
-
-class Worker_checkpoint_pargs {
- public:
-
-
-  virtual ~Worker_checkpoint_pargs() throw() {}
-
-
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-};
-
 class WorkerClient : virtual public WorkerIf {
  public:
   WorkerClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -1415,39 +1245,37 @@ class WorkerClient : virtual public WorkerIf {
   void shutdown();
   void send_shutdown();
   void recv_shutdown();
+  void loadBegin(const ColumnID columnID);
+  void send_loadBegin(const ColumnID columnID);
+  void recv_loadBegin();
+  void loadBulkWrite(const ColumnID columnID, const ValueRowsList& values);
+  void send_loadBulkWrite(const ColumnID columnID, const ValueRowsList& values);
+  void recv_loadBulkWrite();
+  void loadWrite(const ColumnID columnID, const ColumnWrites& writes);
+  void send_loadWrite(const ColumnID columnID, const ColumnWrites& writes);
+  void recv_loadWrite();
+  void loadEnd(const ColumnID columnID, const Revision revision);
+  void send_loadEnd(const ColumnID columnID, const Revision revision);
+  void recv_loadEnd();
   void getState(WorkerState& _return);
   void send_getState();
   void recv_getState(WorkerState& _return);
-  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void send_prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  Revision recv_prepare();
-  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes);
-  void send_apply(const TransactionID& transactionID, const Writes& writes);
-  void recv_apply(TransactionID& _return);
-  void commit(const TransactionID& transactionID);
-  void send_commit(const TransactionID& transactionID);
-  void rollback(const TransactionID& transactionID);
-  void send_rollback(const TransactionID& transactionID);
-  void flush(const TransactionID& transactionID);
-  void send_flush(const TransactionID& transactionID);
-  void recv_flush();
-  bool doesConflict(const Reads& reads, const Revision source, const Revision target);
-  void send_doesConflict(const Reads& reads, const Revision source, const Revision target);
-  bool recv_doesConflict();
-  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void send_update(const TransactionID& transactionID, const Writes& writes, const Reads& reads);
-  void recv_update(TransactionID& _return);
-  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target);
-  void send_transgrade(const Reads& reads, const Revision source, const Revision target);
-  void recv_transgrade(Reads& _return);
+  void prepare(PrepareResults& _return, const TransactionID transactionID, const ColumnPrepares& columns);
+  void send_prepare(const TransactionID transactionID, const ColumnPrepares& columns);
+  void recv_prepare(PrepareResults& _return);
+  void apply(PrepareResults& _return, const TransactionID transactionID, const ColumnIDs& columns);
+  void send_apply(const TransactionID transactionID, const ColumnIDs& columns);
+  void recv_apply(PrepareResults& _return);
+  void commit(const TransactionID transactionID, const Writes& writes);
+  void send_commit(const TransactionID transactionID, const Writes& writes);
+  void rollback(const TransactionID transactionID);
+  void send_rollback(const TransactionID transactionID);
   void query(ReadResults& _return, const Queries& queries);
   void send_query(const Queries& queries);
   void recv_query(ReadResults& _return);
   void getStatistics(std::vector<Statistic> & _return, const std::vector<ColumnID> & columnIDs);
   void send_getStatistics(const std::vector<ColumnID> & columnIDs);
   void recv_getStatistics(std::vector<Statistic> & _return);
-  void checkpoint();
-  void send_checkpoint();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -1464,34 +1292,32 @@ class WorkerProcessor : public ::apache::thrift::TDispatchProcessor {
   typedef std::map<std::string, ProcessFunction> ProcessMap;
   ProcessMap processMap_;
   void process_shutdown(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_loadBegin(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_loadBulkWrite(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_loadWrite(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_loadEnd(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getState(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_prepare(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_apply(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_commit(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_rollback(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_flush(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_doesConflict(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_update(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_transgrade(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_query(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_getStatistics(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
-  void process_checkpoint(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   WorkerProcessor(boost::shared_ptr<WorkerIf> iface) :
     iface_(iface) {
     processMap_["shutdown"] = &WorkerProcessor::process_shutdown;
+    processMap_["loadBegin"] = &WorkerProcessor::process_loadBegin;
+    processMap_["loadBulkWrite"] = &WorkerProcessor::process_loadBulkWrite;
+    processMap_["loadWrite"] = &WorkerProcessor::process_loadWrite;
+    processMap_["loadEnd"] = &WorkerProcessor::process_loadEnd;
     processMap_["getState"] = &WorkerProcessor::process_getState;
     processMap_["prepare"] = &WorkerProcessor::process_prepare;
     processMap_["apply"] = &WorkerProcessor::process_apply;
     processMap_["commit"] = &WorkerProcessor::process_commit;
     processMap_["rollback"] = &WorkerProcessor::process_rollback;
-    processMap_["flush"] = &WorkerProcessor::process_flush;
-    processMap_["doesConflict"] = &WorkerProcessor::process_doesConflict;
-    processMap_["update"] = &WorkerProcessor::process_update;
-    processMap_["transgrade"] = &WorkerProcessor::process_transgrade;
     processMap_["query"] = &WorkerProcessor::process_query;
     processMap_["getStatistics"] = &WorkerProcessor::process_getStatistics;
-    processMap_["checkpoint"] = &WorkerProcessor::process_checkpoint;
   }
 
   virtual ~WorkerProcessor() {}
@@ -1529,6 +1355,42 @@ class WorkerMultiface : virtual public WorkerIf {
     ifaces_[i]->shutdown();
   }
 
+  void loadBegin(const ColumnID columnID) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->loadBegin(columnID);
+    }
+    ifaces_[i]->loadBegin(columnID);
+  }
+
+  void loadBulkWrite(const ColumnID columnID, const ValueRowsList& values) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->loadBulkWrite(columnID, values);
+    }
+    ifaces_[i]->loadBulkWrite(columnID, values);
+  }
+
+  void loadWrite(const ColumnID columnID, const ColumnWrites& writes) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->loadWrite(columnID, writes);
+    }
+    ifaces_[i]->loadWrite(columnID, writes);
+  }
+
+  void loadEnd(const ColumnID columnID, const Revision revision) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->loadEnd(columnID, revision);
+    }
+    ifaces_[i]->loadEnd(columnID, revision);
+  }
+
   void getState(WorkerState& _return) {
     size_t sz = ifaces_.size();
     size_t i = 0;
@@ -1539,79 +1401,42 @@ class WorkerMultiface : virtual public WorkerIf {
     return;
   }
 
-  Revision prepare(const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
+  void prepare(PrepareResults& _return, const TransactionID transactionID, const ColumnPrepares& columns) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->prepare(transactionID, writes, reads);
+      ifaces_[i]->prepare(_return, transactionID, columns);
     }
-    return ifaces_[i]->prepare(transactionID, writes, reads);
-  }
-
-  void apply(TransactionID& _return, const TransactionID& transactionID, const Writes& writes) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->apply(_return, transactionID, writes);
-    }
-    ifaces_[i]->apply(_return, transactionID, writes);
+    ifaces_[i]->prepare(_return, transactionID, columns);
     return;
   }
 
-  void commit(const TransactionID& transactionID) {
+  void apply(PrepareResults& _return, const TransactionID transactionID, const ColumnIDs& columns) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->commit(transactionID);
+      ifaces_[i]->apply(_return, transactionID, columns);
     }
-    ifaces_[i]->commit(transactionID);
+    ifaces_[i]->apply(_return, transactionID, columns);
+    return;
   }
 
-  void rollback(const TransactionID& transactionID) {
+  void commit(const TransactionID transactionID, const Writes& writes) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->commit(transactionID, writes);
+    }
+    ifaces_[i]->commit(transactionID, writes);
+  }
+
+  void rollback(const TransactionID transactionID) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
       ifaces_[i]->rollback(transactionID);
     }
     ifaces_[i]->rollback(transactionID);
-  }
-
-  void flush(const TransactionID& transactionID) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->flush(transactionID);
-    }
-    ifaces_[i]->flush(transactionID);
-  }
-
-  bool doesConflict(const Reads& reads, const Revision source, const Revision target) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->doesConflict(reads, source, target);
-    }
-    return ifaces_[i]->doesConflict(reads, source, target);
-  }
-
-  void update(TransactionID& _return, const TransactionID& transactionID, const Writes& writes, const Reads& reads) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->update(_return, transactionID, writes, reads);
-    }
-    ifaces_[i]->update(_return, transactionID, writes, reads);
-    return;
-  }
-
-  void transgrade(Reads& _return, const Reads& reads, const Revision source, const Revision target) {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->transgrade(_return, reads, source, target);
-    }
-    ifaces_[i]->transgrade(_return, reads, source, target);
-    return;
   }
 
   void query(ReadResults& _return, const Queries& queries) {
@@ -1632,15 +1457,6 @@ class WorkerMultiface : virtual public WorkerIf {
     }
     ifaces_[i]->getStatistics(_return, columnIDs);
     return;
-  }
-
-  void checkpoint() {
-    size_t sz = ifaces_.size();
-    size_t i = 0;
-    for (; i < (sz - 1); ++i) {
-      ifaces_[i]->checkpoint();
-    }
-    ifaces_[i]->checkpoint();
   }
 
 };

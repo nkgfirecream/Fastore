@@ -145,7 +145,7 @@ bool BufferDeserializer::readNextChunk()
 
 	int totalWritesMade = 0;
 	ColumnWrites writes;
-	vector<Include> includes;
+	vector<Cell> includes;
 
 	//We can't stop mid structure... So we may go over the chunk size, but never more than 2x the chunksize
 	while (totalWritesMade < BufferChunkSize && _transport->peek())
@@ -154,7 +154,7 @@ bool BufferDeserializer::readNextChunk()
 		vr.read(_protocol.get());
 		for (size_t j = 0; j < vr.rowIDs.size(); j++)
 		{
-			Include inc;
+			Cell inc;
 			inc.__set_value(vr.value);
 			inc.__set_rowID(vr.rowIDs.at(j));
 			includes.push_back(inc);

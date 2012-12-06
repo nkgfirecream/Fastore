@@ -57,9 +57,6 @@ public:
 	//Frees buffer, erases physical files
 	void drop();
 
-	//Saves to disk
-	void checkpoint();
-
 	//Query column
 	Answer query(const Query& query);
 

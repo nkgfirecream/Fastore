@@ -71,26 +71,26 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 	{
 		try
 		{
-			auto transaction = _database->Begin(true, true);
+			auto transaction = _database->begin(true);
 			try
 			{
 				std::string generatorIdstring = Encoder<int64_t>::Encode(generatorId);
-				auto values = transaction->GetValues(Dictionary::GeneratorColumns, list_of<std::string>(generatorIdstring));
+				auto values = transaction->getValues(Dictionary::GeneratorColumns, list_of<std::string>(generatorIdstring));
 				
 				int64_t result = minId ? *minId : 0;
 
 				//If we have an entry increment, otherwise leave at default.
 				if (values.size() > 0 && values[0].Values[0].__isset.value )
 				{	
-					transaction->Exclude(Dictionary::GeneratorColumns, generatorIdstring);
+					transaction->exclude(Dictionary::GeneratorColumns, generatorIdstring);
 					int64_t tempresult = Encoder<int64_t>::Decode(values[0].Values[0].value);
 					if (result < tempresult)
 						result = tempresult;
 				}
 
-				transaction->Include(Dictionary::GeneratorColumns, generatorIdstring, list_of<std::string>(Encoder<int64_t>::Encode(result + size)));
+				transaction->include(Dictionary::GeneratorColumns, generatorIdstring, list_of<std::string>(Encoder<int64_t>::Encode(result + size)));
 
-				transaction->Commit();
+				transaction->commit();
 				return result;
 			}		
 			catch (ClientException& e)
@@ -135,52 +135,44 @@ void Generator::EnsureGeneratorTable()
 	if (_podIDs.empty())
 		DefaultPods();
 
-	auto transaction = _database->Begin(true, true);
-	try
+	auto transaction = _database->begin(true);
+	// Add the generator column
+	transaction->include
+	(
+		Dictionary::ColumnColumns,
+		Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
+		list_of<std::string> 
+			(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
+			("Generator.Generator")
+			("Long")
+			("Long")
+			(Encoder<BufferType_t>::Encode(BufferType_t::Multi))
+			(Encoder<bool>::Encode(true))
+	);
+
+	// Add the association with each pod
+	for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
 	{
-		// Add the generator column
-		transaction->Include
+		transaction->include
 		(
-			Dictionary::ColumnColumns,
+			Dictionary::PodColumnColumns, 
 			Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
 			list_of<std::string> 
+				(Encoder<PodID>::Encode(*podID))
 				(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
-				("Generator.Generator")
-				("Long")
-				("Long")
-				(Encoder<BufferType_t>::Encode(BufferType_t::Multi))
-				(Encoder<bool>::Encode(true))
 		);
-
-		// Add the association with each pod
-		for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
-		{
-			transaction->Include
-			(
-				Dictionary::PodColumnColumns, 
-				Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
-				list_of<std::string> 
-					(Encoder<PodID>::Encode(*podID))
-					(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
-			);
-		}
-
-		// Seed the column table to the first user ID
-		transaction->Include
-		(
-			Dictionary::GeneratorColumns, 
-			Encoder<ColumnID>::Encode(Dictionary::ColumnID),
-			list_of<std::string> 
-				(Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID + 1))
-		);
-
-		transaction->Commit();
 	}
-	// no point in catching only to rethrow
-	catch(std::exception)
-	{
-		throw;
-	}
+
+	// Seed the column table to the first user ID
+	transaction->include
+	(
+		Dictionary::GeneratorColumns, 
+		Encoder<ColumnID>::Encode(Dictionary::ColumnID),
+		list_of<std::string> 
+			(Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID + 1))
+	);
+
+	transaction->commit();
 }
 
 void Generator::DefaultPods()
@@ -189,7 +181,7 @@ void Generator::DefaultPods()
 	Range podRange = Range();
 	podRange.Ascending = true;
 	podRange.ColumnID = Dictionary::PodID;
-	RangeSet podIds = _database->GetRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
+	RangeSet podIds = _database->getRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
 	if (podIds.Data.size() == 0 || !podIds.Data[0].Values[0].__isset.value)

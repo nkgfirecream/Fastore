@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <boost/shared_ptr.hpp>
-#include "../FastoreCommon/Communication/Comm_types.h"
+#include <Communication/Comm_types.h>
 
 namespace fastore { namespace client
 {
@@ -10,10 +10,8 @@ namespace fastore { namespace client
 	{
 	public:
 		DataSetRow(size_t columns)
-			: ID(std::string()), newGroup(true)
-		{
-			Values = std::vector<fastore::communication::OptionalValue>(columns, fastore::communication::OptionalValue());
-		}
+			: ID(std::string()), newGroup(true), Values(std::vector<fastore::communication::OptionalValue>(columns, fastore::communication::OptionalValue()))
+		{ }
 
 		std::vector<fastore::communication::OptionalValue> Values;
 		std::string ID;
@@ -30,7 +28,6 @@ namespace fastore { namespace client
 
 	class DataSet : public std::vector<DataSetRow>
 	{
-
 	private:
 		size_t _columnCount;
 
