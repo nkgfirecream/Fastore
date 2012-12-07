@@ -398,7 +398,7 @@ void LogWriter::writeCheckpoint(int64_t columnId, int64_t revision)
 void LogWriter::writeRollback(int64_t transactionId)
 {
 	_file.seekp(_size, std::ios_base::beg);
-	_file << (int)RecordType::Rollback;
+	_file << (int)RecordType::TransactionRollback;
 
 	_file << transactionId;
 	_file << (int64_t)time(0);

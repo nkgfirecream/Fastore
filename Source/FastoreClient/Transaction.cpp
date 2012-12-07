@@ -38,7 +38,7 @@ void Transaction::gatherWrites(std::map<ColumnID, ColumnWrites>& output)
 	// Gather changes for each column
 	for (auto entry = _log.begin(); entry != _log.end(); ++entry)
 	{
-		auto includeTotal = entry->second.includes.GetStatistic().total;
+		auto includeTotal = entry->second.includes->GetStatistic().total;
 		// Skip any empty columns
 		if (includeTotal == 0 && entry->second.excludes.size() == 0 && entry->second.reads.size() == 0)
 			continue;
@@ -52,7 +52,7 @@ void Transaction::gatherWrites(std::map<ColumnID, ColumnWrites>& output)
 			writes.__set_includes(std::vector<fastore::communication::Cell>(includeTotal));
 			RangeRequest range;
 			range.limit = std::numeric_limits<decltype(RangeRequest::limit)>::max();
-			auto rows = entry->second.includes.GetRows(range);
+			auto rows = entry->second.includes->GetRows(range);
 			int i = 0;
 			for (auto value = rows.valueRowsList.begin(); value != rows.valueRowsList.end(); ++value)
 				for (auto row = value->rowIDs.begin(); row != value->rowIDs.end(); ++row)
@@ -96,7 +96,7 @@ DataSetRow addRow(std::vector<Transaction::LogColumn*> logMap, RangeResult local
 		{
 			auto colLog = logMap[i];		
 			if (colLog != nullptr)
-				newRow.Values[i] = colLog->includes.GetValue(newRow.ID);
+				newRow.Values[i] = colLog->includes->GetValue(newRow.ID);
 		}
 	}
 
@@ -138,7 +138,7 @@ void Transaction::applyColumnOverrides(LogColumn &colLog, DataSetRow &row, size_
 	}
 
 	// Look for an include that might set/override the value
-	auto included = colLog.includes.GetValue(row.ID);
+	auto included = colLog.includes->GetValue(row.ID);
 	if (included.__isset.value)
 		row.Values[colIndex] = included;
 }
@@ -177,7 +177,7 @@ RangeSet Transaction::getRange(const ColumnIDs& columnIds, const Range& range, c
 	if (rangeLog != nullptr)
 	{
 		auto colRange = rangeToRangeRequest(range, limit);
-		localRange = rangeLog->includes.GetRows(colRange);
+		localRange = rangeLog->includes->GetRows(colRange);
 
 		// Only EOF or BOF if both local and remote agree
 		result.Bof &= localRange.bof;
@@ -281,14 +281,14 @@ void Transaction::include(const ColumnIDs& columnIds, const std::string& rowId, 
 		range.first.inclusive = true;
 		range.rowID = rowId;
 		range.last = range.first;
-		if (column.includes.GetRows(range).valueRowsList.size() == 0)
+		if (column.includes->GetRows(range).valueRowsList.size() == 0)
 		{
 			ColumnWrites writes;
 			fastore::communication::Cell include;
 			include.__set_rowID(rowId);
 			include.__set_value(row[i]);
 			writes.includes.push_back(include);
-			column.includes.Apply(writes);
+			column.includes->Apply(writes);
 		}
 	}
 }
@@ -324,7 +324,7 @@ std::vector<Statistic> Transaction::getStatistics(const ColumnIDs& columnIds)
 		auto colLog = logMap[i];		
 		if (colLog != nullptr)
 		{
-			auto localStat = colLog->includes.GetStatistic();
+			auto localStat = colLog->includes->GetStatistic();
 			remote[i].total = std::max<int64_t>(0, remote[i].total + localStat.total - colLog->excludes.size());
 			// TODO: Better estimate of unique based on ratio
 			remote[i].unique = std::max<int64_t>(0, remote[i].unique + localStat.unique - colLog->excludes.size());

@@ -799,7 +799,7 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 
 			auto tasks = StartWorkerWrites(getColumnIDs(writes), transactionID, workers);
 
-			std::map<PodID, boost::shared_ptr<TProtocol>> failedWorkers;
+			std::unordered_map<PodID, boost::shared_ptr<TProtocol>>failedWorkers;
 			auto workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
 
 			// Commit if threshold reached, else rollback and retry
@@ -815,7 +815,7 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 				}
 
 				if (flush)
-					FlushWorkers(transactionID, workers);
+					//FlushWorkers(transactionID, workers); -- TODO: Flush service
 				break;
 			}
 
@@ -861,45 +861,46 @@ std::vector<std::future<PrepareResults>> Database::StartWorkerWrites(const Colum
 	return tasks;
 }
 
-void Database::FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers)
-{
-	std::vector<std::future<void>> flushTasks;
-	for (auto w = workers.begin(); w != workers.end(); ++w)
-	{
-		flushTasks.push_back
-		(
-			std::future<void>
-			(
-				std::async
-				(
-					std::launch::async,
-					[&]()
-					{
-						auto worker = _workers[w->podID];
-						bool flushed = false;
-						try
-						{
-							worker.flush(transactionID);
-							flushed = true;
-							_workers.Release(std::make_pair(w->podID, worker));
-						}
-						catch(const std::exception&)
-						{
-							//TODO: track exception errors;
-							if(!flushed)
-								_workers.Release(std::make_pair(w->podID, worker));
-						}
-					}
-				)
-			)
-		);
-	}
-
-	// Wait for critical number of workers to flush
-	auto neededCount =  workers.size() / 2 > 1 ? workers.size() / 2 : 1;
-	for (size_t i = 0; i < flushTasks.size() && i < neededCount; i++)
-		flushTasks[i].wait();
-}
+//void Database::FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers)
+//{
+//	std::vector<std::future<void>> flushTasks;
+//	for (auto w = workers.begin(); w != workers.end(); ++w)
+//	{
+//		flushTasks.push_back
+//		(
+//			std::future<void>
+//			(
+//				std::async
+//				(
+//					std::launch::async,
+//					[&]()
+//					{
+//						auto worker = _workers[w->podID];
+//						bool flushed = false;
+//						try
+//						{
+//							//TODO: service
+//							//worker.flush(transactionID);
+//							flushed = true;
+//							_workers.Release(std::make_pair(w->podID, worker));
+//						}
+//						catch(const std::exception&)
+//						{
+//							//TODO: track exception errors;
+//							if(!flushed)
+//								_workers.Release(std::make_pair(w->podID, worker));
+//						}
+//					}
+//				)
+//			)
+//		);
+//	}
+//
+//	// Wait for critical number of workers to flush
+//	auto neededCount =  workers.size() / 2 > 1 ? workers.size() / 2 : 1;
+//	for (size_t i = 0; i < flushTasks.size() && i < neededCount; i++)
+//		flushTasks[i].wait();
+//}
 
 std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessWriteResults
 (
@@ -956,8 +957,8 @@ std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessWrite
 bool Database::FinalizeTransaction
 (
 	const std::vector<WorkerInfo>& workers, 
-	const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, 
-	std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
+	const std::unordered_map<ColumnID, ColumnWriteResult>& workersByTransaction, 
+	std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
 )
 {
 	if (workersByTransaction.size() > 0)
@@ -967,58 +968,58 @@ bool Database::FinalizeTransaction
 
 		auto successes = last->second;
 
-		if (successes.size() > workers.size() / 2)
-		{
-			// Transaction successful, commit all reached workers
-			for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
-			{
-				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
-				{
-					WorkerInvoke
-					(
-						worker->podID, 
-						[&](WorkerClient client)
-						{
-							client.commit(max);
-						}
-					);
-				}
-			}
-			// Also send out a commit to workers that timed-out
-			for (auto worker = failedWorkers.begin(); worker != failedWorkers.end(); ++worker)
-			{
-				if (worker->second != nullptr)
-				{
-					WorkerInvoke
-					(
-						worker->first, 
-						[&](WorkerClient client)
-						{
-							client.commit(max);
-						}
-					);
-				}
-			}
-			return true;
-		}
-		else
-		{
-			// Failure, roll-back successful prepares
-			for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
-			{
-				for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
-				{
-					WorkerInvoke
-					(
-						worker->podID, 
-						[&](WorkerClient client)
-						{
-							client.rollback(group->first);
-						}
-					);
-				}
-			}
-		}
+		//if (successes.size() > workers.size() / 2)
+		//{
+		//	// Transaction successful, commit all reached workers
+		//	for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
+		//	{
+		//		for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
+		//		{
+		//			WorkerInvoke
+		//			(
+		//				worker->podID, 
+		//				[&](WorkerClient client)
+		//				{
+		//					client.commit(max);
+		//				}
+		//			);
+		//		}
+		//	}
+		//	// Also send out a commit to workers that timed-out
+		//	for (auto worker = failedWorkers.begin(); worker != failedWorkers.end(); ++worker)
+		//	{
+		//		if (worker->second != nullptr)
+		//		{
+		//			WorkerInvoke
+		//			(
+		//				worker->first, 
+		//				[&](WorkerClient client)
+		//				{
+		//					client.commit(max);
+		//				}
+		//			);
+		//		}
+		//	}
+		//	return true;
+		//}
+		//else
+		//{
+		//	// Failure, roll-back successful prepares
+		//	for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
+		//	{
+		//		for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
+		//		{
+		//			WorkerInvoke
+		//			(
+		//				worker->podID, 
+		//				[&](WorkerClient client)
+		//				{
+		//					client.rollback(group->first);
+		//				}
+		//			);
+		//		}
+		//	}
+		//}
 	}
 	return false;
 }
@@ -1065,7 +1066,7 @@ void Database::include(const ColumnIDs& columnIds, const std::string& rowId, con
 	apply(writes, false);
 }
 
-std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
+std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
 	std::map<ColumnID, ColumnWrites> writes;
 
@@ -1084,12 +1085,12 @@ std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& colum
 	return writes;
 }
 
-void Database::exclude(const ColumnIDs& columnIds, const std::string& rowId)
+void Database::exclude(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
-	apply(CreateExcludes(columnIds, rowId), false);
+	apply(CreateExcludes(columnIds, rowId, row), false);
 }
 
-std::map<ColumnID, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row)
+std::map<ColumnID, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>&  row)
 {
 	std::map<ColumnID, ColumnWrites> writes;
 
@@ -1283,13 +1284,8 @@ void Database::checkpoint()
 		for (auto iter = _hiveState.services.begin(), end = _hiveState.services.end(); iter != end; ++ iter)
 		{
 			communication::HostID hostId = iter->first;
-			ServiceInvoke(hostId, [](fastore::communication::ServiceClient client)-> void { client.checkpoint(); });
-		}
-
-		for (auto iter = _workerStates.begin(), end = _workerStates.end(); iter != end; ++iter)
-		{
-			communication::PodID podId = iter->first;
-			WorkerInvoke(podId, [](fastore::communication::WorkerClient client)-> void { client.checkpoint(); });
+			//TODO: needs all columns for all workers on the service
+			//ServiceInvoke(hostId, [](fastore::communication::ServiceClient client)-> void { client.checkpoint(i; });
 		}
 	}
 	catch(...)

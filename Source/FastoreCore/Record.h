@@ -7,7 +7,7 @@ enum RecordType
 	TransactionBegin = 100,
 	TransactionEnd = 101,
 	Revision = 200,
-	Rollback = 300,
+	TransactionRollback = 300,
 	Checkpoint = 400
 };
 

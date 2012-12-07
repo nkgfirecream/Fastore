@@ -165,7 +165,7 @@ void LogManager::indexLogFile(std::string filename)
 		case RecordType::TransactionEnd:
 			indexTransactionEndRecord(writer.readTransactionEnd());
 			break;
-		case RecordType::Rollback:
+		case RecordType::TransactionRollback:
 			indexRollbackRecord(writer.readRollBack());
 			break;		
 		default:
@@ -196,10 +196,10 @@ int64_t LogManager::offsetByRevision(ColumnInfo& info, int64_t revision)
 	{
 		int64_t starting = info.revisions[i].startingRevision;
 		int64_t diff = revision - starting;
-			if (diff < int64_t(info.revisions[i].offsets.size()) && diff >=0)
-				return info.revisions[i].offsets[diff];
-			else
-				continue;
+		if (diff < int64_t(info.revisions[i].offsets.size()) && diff >=0)
+			return info.revisions[i].offsets[diff];
+		else
+			continue;
 	}
 
 	return -1;
@@ -223,16 +223,16 @@ void LogManager::indexRevisionRecord(RevisionRecord& record)
 	//TODO: Consider some sort of cache or alternative search algorithm if perfomance is bad.
 	int64_t index = revisionFileInfoByLsn(info, record.header.lsn);
 
-	if(index == -1)
+	if(index != -1)
+	{
+		info.revisions[index].offsets.push_back(record.header.offset);
+	}
+	else
 	{
 		RevisionFileInfo fileInfo;
 		fileInfo.lsn = record.header.lsn;
 		fileInfo.startingRevision = record.revision;
-		fileInfo.offsets.push_back(record.header.offset);
-	}
-	else
-	{
-		info.revisions[index].offsets.push_back(record.header.offset);
+		fileInfo.offsets.push_back(record.header.offset);		
 	}
 }
 

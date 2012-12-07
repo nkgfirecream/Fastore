@@ -31,7 +31,7 @@ namespace fastore { namespace client
 		{
 		public:
 			// Included rows by value
-			TreeBuffer includes;
+			std::shared_ptr<TreeBuffer> includes;
 			// Excluded row IDs
 			std::unordered_set<std::string> excludes;
 			// Read row IDs
@@ -44,7 +44,7 @@ namespace fastore { namespace client
 			ScalarType &valueType;
 
 			LogColumn(ScalarType& rowType, ScalarType &valueType) 
-				: includes(TreeBuffer(rowType, valueType)), revision(0), rowType(rowType), valueType(valueType) 
+				: includes(new TreeBuffer(rowType, valueType)), revision(0), rowType(rowType), valueType(valueType) 
 			{ }
 		};
 

@@ -37,7 +37,7 @@
 #include <string.h>
 
 #include <sqlite3.h>
-#include "../AMTModule/CModule.h"
+#include "../FastoreModule/CModule.h"
 
 #ifndef _WIN32
 # include <err.h>
@@ -1573,7 +1573,11 @@ static void open_db(struct callback_data *p){
       exit(1);
     }
 
-	initializeAmtModule(p->db, 1, fAddress);
+	initializeFastoreModule(p->db, 1, fAddress);
+
+	if( (msg = fastore_vfs_message()) != NULL ) {
+		fprintf(stderr, "internal error: %s\n", msg);
+	}
 
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
     sqlite3_enable_load_extension(p->db, 1);
@@ -2959,7 +2963,7 @@ static void main_init(struct callback_data *data) {
   data->showHeader = 0;
   sqlite3_config(SQLITE_CONFIG_URI, 1);
   sqlite3_config(SQLITE_CONFIG_LOG, shellLog, data);
-  sqlite3_snprintf(sizeof(mainPrompt), mainPrompt,"AQL> ");
+  sqlite3_snprintf(sizeof(mainPrompt), mainPrompt,"fastore> ");
   sqlite3_snprintf(sizeof(continuePrompt), continuePrompt,"   ...> ");
   sqlite3_config(SQLITE_CONFIG_SINGLETHREAD);
 }
@@ -2973,7 +2977,7 @@ int main(int argc, char **argv){
   int rc = 0;
 
   if( strcmp(sqlite3_sourceid(),SQLITE_SOURCE_ID)!=0 ){
-    fprintf(stderr, "AQL header and source version mismatch\n%s\n%s\n",
+    fprintf(stderr, "Fastore header and source version mismatch\n%s\n%s\n",
             sqlite3_sourceid(), SQLITE_SOURCE_ID);
     exit(1);
   }
@@ -3223,7 +3227,7 @@ int main(int argc, char **argv){
       char *zHistory = 0;
       int nHistory;
       printf(
-        "AQL version %s %.19s\n" /*extra-version-info*/
+        "Fastore version %s %.19s\n" /*extra-version-info*/
         "Enter \".help\" for instructions\n"
         "Enter SQL statements terminated with a \";\"\n",
         sqlite3_libversion(), sqlite3_sourceid()

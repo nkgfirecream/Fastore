@@ -9,6 +9,7 @@
 #include "../FastoreCommon/Buffer/ColumnDef.h"
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vector>
 #include <cmath>
 #include <stdexcept>
@@ -140,16 +141,16 @@ namespace fastore { namespace client
 		void apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
 		void apply(TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
 
-		void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
+		//void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
 
-		std::unordered_map<ColumnID, ColumnWriteResult> ProcessWriteResults
+		std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessWriteResults
 		(
 			const std::vector<WorkerInfo>& workers, 
 			std::vector<std::future<PrepareResults>>& tasks, 
-			std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
+			std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
 		);
 
-		bool FinalizeTransaction(const std::vector<WorkerInfo>& workers, const std::map<TransactionID, std::vector<WorkerInfo>>& workersByTransaction, std::map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers);
+		bool FinalizeTransaction(const std::vector<WorkerInfo>& workers, const std::unordered_map<ColumnID, ColumnWriteResult>& workersByTransaction, std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers);
 
 		/// <summary> Invokes a given command against a worker. </summary>
 		void WorkerInvoke(PodID podID, std::function<void(WorkerClient)> work);
@@ -160,8 +161,8 @@ namespace fastore { namespace client
 		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
 		std::vector<std::future<PrepareResults>> StartWorkerWrites(const ColumnIDs& columnIDs, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
 
-		std::map<ColumnID, ColumnWrites> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
-		std::map<ColumnID, ColumnWrites> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, std::vector<std::string> row);
+		std::map<ColumnID, ColumnWrites> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+		std::map<ColumnID, ColumnWrites> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
 
 		Schema LoadSchema();
 		void BootStrapSchema();
@@ -177,7 +178,10 @@ namespace fastore { namespace client
 		DataSet getValues(const ColumnIDs& columnIds, const std::vector<std::string>& rowIds);
 
 		void include(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
-		void exclude(const ColumnIDs& columnIds, const std::string& rowId);	
+		void exclude(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
+
+		//TODO: Needs to pull row values manually if outside of transaction
+		void exclude(const ColumnIDs& columnIds, const std::string& rowId);
 		
 		std::vector<Statistic> getStatistics(const ColumnIDs& columnIds);
 		std::map<HostID, long long> ping();
