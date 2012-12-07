@@ -22,12 +22,12 @@ public:
 		UniqueBuffer buf(standardtypes::Int, standardtypes::Int);
 
 		ColumnWrites cw;
-		std::vector<Include> includes;
+		std::vector<Cell> includes;
 
 		//Insert values 0 - 9998 (inclusive) in increments of 2 into buffer
 		for (int i = 0; i < 10000; i += 2)
 		{
-			Include inc;
+			Cell inc;
 			//TODO: Create thrift strings
 			string rowId;
 			rowId.assign((const char*)&i, sizeof(int));

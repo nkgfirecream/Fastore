@@ -15,7 +15,7 @@ public:
 		{
 			createTableWithData();
 
-			std::vector<Statistic> statsVect = _database->GetStatistics(_columns);
+			std::vector<Statistic> statsVect = _database->getStatistics(_columns);
 			//6 columns
 			Assert::AreEqual<size_t>(statsVect.size(), 6);
 			//7 rows
@@ -29,7 +29,7 @@ public:
 			Range range;
 			range.ColumnID = 1000;
 			range.Ascending = true;
-            RangeSet rangeData = _database->GetRange(_columns, range, 50);
+            RangeSet rangeData = _database->getRange(_columns, range, 50);
 			DataSet data = rangeData.Data;
 
             //Assert::AreEqual<int>(data.getColumnCount, 1);

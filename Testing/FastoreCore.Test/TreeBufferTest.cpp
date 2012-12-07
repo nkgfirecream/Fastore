@@ -42,31 +42,31 @@ public:
 		delete buf;
 	 }
 
-	TEST_METHOD(TreeInlineBufferRangeTests)
-	{
-		//Tree buffer -- has multiple values per key.
-		TreeInlineBuffer* buf = new TreeInlineBuffer(standardtypes::Long, standardtypes::Long);
-		OneToOneRangeTest(buf);
-		delete buf;
+	//TEST_METHOD(TreeInlineBufferRangeTests)
+	//{
+	//	//Tree buffer -- has multiple values per key.
+	//	TreeInlineBuffer* buf = new TreeInlineBuffer(standardtypes::Long, standardtypes::Long);
+	//	OneToOneRangeTest(buf);
+	//	delete buf;
 
-		//TODO: Only partially implemented.
-		buf = new TreeInlineBuffer(standardtypes::Long, standardtypes::Long);
-		OneToManyRangeTest(buf);
-		delete buf;
-	 }
+	//	//TODO: Only partially implemented.
+	//	buf = new TreeInlineBuffer(standardtypes::Long, standardtypes::Long);
+	//	OneToManyRangeTest(buf);
+	//	delete buf;
+	// }
 
-	TEST_METHOD(MultiBimapBufferRangeTests)
-	{
-		//Tree buffer -- has multiple values per key.
-		IColumnBuffer* buf = new MultiBimapBuffer<int64_t>();
-		OneToOneRangeTest(buf);
-		delete buf;
+	//TEST_METHOD(MultiBimapBufferRangeTests)
+	//{
+	//	//Tree buffer -- has multiple values per key.
+	//	IColumnBuffer* buf = new MultiBimapBuffer<int64_t>();
+	//	OneToOneRangeTest(buf);
+	//	delete buf;
 
-		//TODO: Only partially implemented.
-		buf = new  MultiBimapBuffer<int64_t>();
-		OneToManyRangeTest(buf);
-		delete buf;
-	 }
+	//	//TODO: Only partially implemented.
+	//	buf = new  MultiBimapBuffer<int64_t>();
+	//	OneToManyRangeTest(buf);
+	//	delete buf;
+	// }
 
 	//TEST_METHOD(TreeBufferIncludeExclude)
 	//{

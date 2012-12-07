@@ -7,12 +7,12 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 void OneToOneRangeTest(IColumnBuffer* buf)
 {
 	ColumnWrites cw;
-	std::vector<Include> includes;
+	std::vector<Cell> includes;
 
 	//Insert values 0 - 98 (inclusive) in increments of 2 into buffer
 	for (int64_t i = 0; i < 100; i += 2)
 	{
-		Include inc;
+		Cell inc;
 		//TODO: Create thrift strings
 		string rowId;
 		AssignString(rowId, i);
@@ -328,7 +328,7 @@ void OneToOneRangeTest(IColumnBuffer* buf)
 void OneToManyRangeTest(IColumnBuffer* buf)
 {
 	ColumnWrites cw;
-	std::vector<Include> includes;
+	std::vector<Cell> includes;
 
 	//Insert 2 consecutive values from 0 - 98 (inclusive) in increments of 2 into buffer
 	//e.g.  [
@@ -340,7 +340,7 @@ void OneToManyRangeTest(IColumnBuffer* buf)
 	//		]
 
 	for(int64_t i = 0; i < 100; i += 2){
-		Include inc;
+		Cell inc;
 		string rowId1;
 		string rowId2;
 		string value;
