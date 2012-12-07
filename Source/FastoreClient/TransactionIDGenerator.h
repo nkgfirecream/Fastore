@@ -21,6 +21,10 @@ namespace fastore { namespace client
 		{
 			return _generator.operator()();
 		}
+
+		~TransactionIDGenerator()
+		{
+		}
 	};
 
 }}

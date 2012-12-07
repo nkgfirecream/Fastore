@@ -273,14 +273,12 @@ HiveState Database::GetHiveState()
 	newHive.__set_topologyID(0);
 	newHive.__set_services(std::map<HostID, ServiceState>());
 
-	//Using shared_ptr because the copy constructor of future is private, preventing its direct use in a
-	//vector.
-	std::vector<boost::shared_ptr<std::future<std::pair<HostID, ServiceState>>>> tasks;
+	std::vector<std::future<std::pair<HostID, ServiceState>>> tasks;
 	for (auto service : _hiveState.services)
 	{
-		auto task = boost::shared_ptr<std::future<std::pair<HostID, ServiceState>>>
+		tasks.push_back
 		(
-			new std::future<std::pair<HostID, ServiceState>>
+			std::future<std::pair<HostID, ServiceState>>
 			(
 				std::async
 				(
@@ -299,13 +297,13 @@ HiveState Database::GetHiveState()
 			)
 		);
 
-		tasks.push_back(task);
+
 	}
 
-	for (auto task : tasks)
+	for (size_t i = 0; i < tasks.size(); ++i)
 	{
-		task->wait();
-		auto statePair = task->get();
+		tasks[i].wait();
+		auto statePair = tasks[i].get();
 		newHive.services.insert(statePair);
 	}
 
@@ -1088,6 +1086,13 @@ std::map<ColumnID, ColumnWrites> Database::CreateIncludes(const ColumnIDs& colum
 void Database::exclude(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row)
 {
 	apply(CreateExcludes(columnIds, rowId, row), false);
+}
+
+void Database::exclude(const ColumnIDs& columnIds, const std::string& rowId)
+{
+
+	//Pull full row information, and then exclude it.
+	//apply(CreateExcludes(columnIds, rowId, row), false);
 }
 
 std::map<ColumnID, ColumnWrites> Database::CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>&  row)

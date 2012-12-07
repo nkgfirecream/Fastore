@@ -59,6 +59,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4068</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -73,6 +74,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <ShowIncludes>false</ShowIncludes>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>

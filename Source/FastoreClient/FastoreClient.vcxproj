@@ -39,6 +39,7 @@
     <ClCompile Include="Dictionary.cpp" />
     <ClCompile Include="Generator.cpp" />
     <ClCompile Include="IDGenerator.cpp" />
+    <ClCompile Include="Range.cpp" />
     <ClCompile Include="ServiceAddress.cpp" />
     <ClCompile Include="Transaction.cpp">
       <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ShowIncludes>

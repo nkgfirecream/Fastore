@@ -43,7 +43,7 @@ const char * fastore_vfs_message(void)
 	return msg;
 }
 
-bool initializeFastoreModule(sqlite3* db, int argc, void* argv)
+void initializeFastoreModule(sqlite3* db, int argc, void* argv)
 {
 	if( argc < 1 || argv == NULL ) {
 		assert(argc > 0);
@@ -73,20 +73,20 @@ bool initializeFastoreModule(sqlite3* db, int argc, void* argv)
 
 		intializeFastoreModule(db, mas);
 		//Log << log_info << __func__ << " Module initialized" << log_endl;
-		return true;
+		return;
 	}
 	catch( const std::string& errorMessage ) {
 		cerr << getprogname() << ": error:: " << errorMessage << endl;
-		return false;
+		return;
 	}
 	catch( const std::exception& oops ) {
 		errorMessage = oops.what();
 		cerr << getprogname() << ": error: " << errorMessage << endl;
-		return false;
+		return;
 	}
 	catch( ... ) {
 		errorMessage = "exceptional exception";
 		cerr << getprogname() << ": error: " << errorMessage << endl;
-		return false;
+		return;
 	}
 }

@@ -49,7 +49,7 @@ void module::Table::EnsureFastoreTypeMaps()
 
 int module::Table::begin()
 {
-	_transaction = _connection->_database->Begin(true, true);
+	_transaction = _connection->_database->begin(true);
 	return SQLITE_OK;
 }
 
@@ -63,7 +63,7 @@ int module::Table::commit()
 {
 	if (_transaction != NULL)
 	{
-		_transaction->Commit();
+		_transaction->commit();
 		_transaction.reset();
 	}
 	return SQLITE_OK;
@@ -73,7 +73,7 @@ int module::Table::rollback()
 {
 	if (_transaction != NULL)
 	{
-		_transaction->Rollback();
+		_transaction->rollback();
 		_transaction.reset();
 	}
 	return SQLITE_OK;
@@ -103,7 +103,7 @@ void module::Table::ensureTable()
 	tableQuery.End = bound;
 	tableQuery.Start = bound;
 
-	auto result = _connection->_database->GetRange(module::Dictionary::TableColumns, tableQuery, 1);
+	auto result = _connection->_database->getRange(module::Dictionary::TableColumns, tableQuery, 1);
 	
 	if (result.Data.size() > 0)
 	{
@@ -113,8 +113,8 @@ void module::Table::ensureTable()
 	else
 	{
 		_id = _connection->_generator->Generate(module::Dictionary::TableID, module::Dictionary::MaxModuleColumnID + 1);
-		auto transaction =  _connection->_database->Begin(true, true);
-		transaction->Include
+		auto transaction =  _connection->_database->begin(true);
+		transaction->include
 		(
 			module::Dictionary::TableColumns,
 			client::Encoder<communication::ColumnID>::Encode(_id),
@@ -123,7 +123,7 @@ void module::Table::ensureTable()
 			(_name)
 			(_ddl)
 		);
-		transaction->Commit();
+		transaction->commit();
 	}	
 }
 
@@ -151,7 +151,7 @@ void module::Table::ensureColumns()
 	podidv.push_back(client::Dictionary::PodID);
 
 	////TODO: Gather pods - we may have more than 2000
-    auto podIds = _connection->_database->GetRange(podidv, podQuery, 2000);
+    auto podIds = _connection->_database->getRange(podidv, podQuery, 2000);
     if (podIds.Data.size() == 0)
         throw "FastoreModule can't create a new table. The hive has no pods. The hive must be initialized first."; //TODO: Map this to an error code?
 
@@ -176,7 +176,7 @@ void module::Table::ensureColumns()
 		bound.Inclusive = true;
 		query.Start = bound;
 		query.End = bound;
-		auto result = _connection->_database->GetRange(client::Dictionary::ColumnColumns, query, 1);
+		auto result = _connection->_database->getRange(client::Dictionary::ColumnColumns, query, 1);
 
 		if (result.Data.size() > 0)
 		{
@@ -220,11 +220,11 @@ int module::Table::drop()
         repoQuery.Start = bound;
         repoQuery.End = bound;
 
-		auto repoIds = _connection->_database->GetRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::PodColumnColumnID), repoQuery, 2000);
+		auto repoIds = _connection->_database->getRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::PodColumnColumnID), repoQuery, 2000);
 
 		for (size_t i = 0; i < repoIds.Data.size(); i++)
         {
-            _connection->_database->Exclude(client::Dictionary::PodColumnColumns, repoIds.Data[i].ID);
+            _connection->_database->exclude(client::Dictionary::PodColumnColumns, repoIds.Data[i].ID);
         }
 
 		Range query;
@@ -232,11 +232,11 @@ int module::Table::drop()
         query.Start = bound;
         query.End = bound;
 
-        auto columnExists = _connection->_database->GetRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::ColumnID), query, 2000);
+        auto columnExists = _connection->_database->getRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::ColumnID), query, 2000);
 
         if (columnExists.Data.size() > 0)
         {
-            _connection->_database->Exclude(client::Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
+            _connection->_database->exclude(client::Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
         }
 	}
 
@@ -250,15 +250,15 @@ int module::Table::drop()
 	tableColumnQuery.Start = bound;
 	tableColumnQuery.End = bound;
 
-	auto tableColumnsResult = _connection->_database->GetRange(module::Dictionary::TableColumnColumns, tableColumnQuery, 2000);
+	auto tableColumnsResult = _connection->_database->getRange(module::Dictionary::TableColumnColumns, tableColumnQuery, 2000);
 
 	for (size_t i = 0; i < tableColumnsResult.Data.size(); i++)
 	{
-		 _connection->_database->Exclude(module::Dictionary::TableColumnColumns, tableColumnsResult.Data[i].ID);
+		 _connection->_database->exclude(module::Dictionary::TableColumnColumns, tableColumnsResult.Data[i].ID);
 	}
 
 	//Drop Table Table entry
-	_connection->_database->Exclude(module::Dictionary::TableColumns, client::Encoder<communication::ColumnID>::Encode(_id));
+	_connection->_database->exclude(module::Dictionary::TableColumns, client::Encoder<communication::ColumnID>::Encode(_id));
 
 	return SQLITE_OK;
 }
@@ -274,8 +274,8 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 
 	//TODO: Make workers smart enough to create/instantiate a column within one transaction.
 	//(They currently don't check for actions to perform until the end of the transaction, which means they may miss part of it currently)
-	auto transaction =  _connection->_database->Begin(true, true);
-	transaction->Include
+	auto transaction =  _connection->_database->begin(true);
+	transaction->include
 	(
 		client::Dictionary::ColumnColumns,
 		client::Encoder<communication::ColumnID>::Encode(column.ColumnID),
@@ -287,7 +287,7 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 		(client::Encoder<BufferType_t>::Encode(column.BufferType))
 		(client::Encoder<bool>::Encode(column.Required))
 	);
-	transaction->Include
+	transaction->include
 	(
 		client::Dictionary::PodColumnColumns,
 		client::Encoder<int64_t>::Encode(_connection->_generator->Generate(client::Dictionary::PodColumnPodID)),
@@ -295,7 +295,7 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 		(podId)
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
-	transaction->Include
+	transaction->include
 	(
 		module::Dictionary::TableColumnColumns,
 		client::Encoder<communication::ColumnID>::Encode(_connection->_generator->Generate(module::Dictionary::TableColumnTableID)),
@@ -303,7 +303,7 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 		(Encoder<communication::ColumnID>::Encode(_id))
 		(Encoder<communication::ColumnID>::Encode(column.ColumnID))
 	);
-	transaction->Commit();		
+	transaction->commit();		
 }
 
 char *sqlite3_safe_malloc( size_t n )
@@ -539,9 +539,9 @@ double module::Table::costPerRow(int columnIndex)
 client::RangeSet module::Table::getRange(client::Range& range, const ColumnIDs& columnIds, const boost::optional<std::string>& startId)
 {
 	if (_transaction != NULL)
-		return _transaction->GetRange(columnIds, range, ROWSPERQUERY, startId);
+		return _transaction->getRange(columnIds, range, ROWSPERQUERY, startId);
 	else
-		return _connection->_database->GetRange(columnIds, range, ROWSPERQUERY, startId);
+		return _connection->_database->getRange(columnIds, range, ROWSPERQUERY, startId);
 }
 
 int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
@@ -560,9 +560,9 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		sqlite3_int64 oldRowIdInt = sqlite3_value_int64(argv[0]);
 		std::string oldRowId = Encoder<sqlite3_int64>::Encode(oldRowIdInt);
 		if (_transaction != NULL)
-			_transaction->Exclude(_columnIds, oldRowId);
+			_transaction->exclude(_columnIds, oldRowId);
 		else
-			_connection->_database->Exclude(_columnIds, oldRowId);
+			_connection->_database->exclude(_columnIds, oldRowId);
 	}
 
 	//delete only, return
@@ -601,9 +601,9 @@ int module::Table::update(int argc, sqlite3_value **argv, sqlite3_int64 *pRowid)
 		return result;
 
 	if (_transaction != NULL)
-		_transaction->Include(includedColumns, rowid, row);
+		_transaction->include(includedColumns, rowid, row);
 	else
-		_connection->_database->Include(includedColumns, rowid, row);
+		_connection->_database->include(includedColumns, rowid, row);
 
 	return SQLITE_OK;
 }
@@ -697,9 +697,9 @@ void module::Table::encodeSQLiteValue(sqlite3_value* pValue, int type, std::stri
 void module::Table::updateStats()
 {
 	if (_transaction != NULL)
-		_stats = _transaction->GetStatistics(_columnIds);
+		_stats = _transaction->getStatistics(_columnIds);
 	else
-		_stats = _connection->_database->GetStatistics(_columnIds);
+		_stats = _connection->_database->getStatistics(_columnIds);
 }
 
 void module::Table::parseDDL()

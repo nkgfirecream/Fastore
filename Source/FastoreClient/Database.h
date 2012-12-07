@@ -61,7 +61,6 @@ namespace fastore { namespace client
 			bool validateRequired;
 			std::map<Revision, std::vector<WorkerInfo>> workersByRevision;
 		};
-
 		
 		boost::shared_ptr<boost::mutex> _lock;
 
@@ -88,11 +87,11 @@ namespace fastore { namespace client
 
 		int _writeTimeout;
 
-		static std::unique_ptr<TransactionIDGenerator> _generator;
+		std::unique_ptr<TransactionIDGenerator> _generator;
 
-		static Topology CreateTopology(const std::vector<int>& serviceWorkers);
-		static Query GetRowsQuery(const RangeResult& rangeResult);
-		static Query CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId);
+		Topology CreateTopology(const std::vector<int>& serviceWorkers);
+		Query GetRowsQuery(const RangeResult& rangeResult);
+		Query CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId);
 
 		NetworkAddress& GetServiceAddress(HostID hostID);
 
@@ -194,6 +193,6 @@ namespace fastore { namespace client
 		const int& getWriteTimeout() const;
 		void setWriteTimeout(const int &value);
 
-		static TransactionID generateTransactionID();
+		TransactionID generateTransactionID();
 	};
 }}

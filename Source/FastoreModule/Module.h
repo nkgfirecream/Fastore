@@ -40,7 +40,7 @@ void createVirtualTables(module::Connection* connection, sqlite3* sqliteConnecti
 
 	while (true)
 	{
-		client::RangeSet result = connection->_database->GetRange(module::Dictionary::TableColumns, tableRange, 500, startId);
+		client::RangeSet result = connection->_database->getRange(module::Dictionary::TableColumns, tableRange, 500, startId);
 
 		for(size_t i = 0; i < result.Data.size(); i++)
 		{
@@ -75,7 +75,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 	podidv.push_back(client::Dictionary::PodID);
 
 	//TODO: Gather pods - we may have more than 2000 
-    auto podIds = connection->_database->GetRange(podidv, podQuery, 2000);
+    auto podIds = connection->_database->getRange(podidv, podQuery, 2000);
     if (podIds.Data.size() == 0)
 	{
         throw std::logic_error( "FastoreModule can't create a new table. "
@@ -102,7 +102,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 		query.End = bound;
 
 		//Just pull one row. If any exist we should verify it's the correct one.
-		auto result = connection->_database->GetRange(client::Dictionary::ColumnColumns, query, 1);
+		auto result = connection->_database->getRange(client::Dictionary::ColumnColumns, query, 1);
 
  		if (result.Data.size() == 0)
 		{
@@ -112,8 +112,8 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 
 			//TODO: Make workers smart enough to create/instantiate a column within one transaction.
 			//(They currently don't check for actions to perform until the end of the transaction, which means they may miss part of it currently)
-			auto transaction = connection->_database->Begin(true, true);
-			transaction->Include
+			auto transaction = connection->_database->begin(true);
+			transaction->include
 			(
 				Dictionary::ColumnColumns,
 				client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID),
@@ -127,7 +127,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 			);
 
 			int64_t surrogateId = connection->_generator->Generate(Dictionary::PodColumnPodID);
-			transaction->Include
+			transaction->include
 			(
 				Dictionary::PodColumnColumns,
 				client::Encoder<int64_t>::Encode(surrogateId),
@@ -135,7 +135,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 				(podId)
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
 			);
-			transaction->Commit();		
+			transaction->commit();		
 		}
 		
 		//TODO: if column does exist, compare values to see if it's the same definition
@@ -601,7 +601,7 @@ int moduleRollbackTo(sqlite3_vtab *pVTab, int savePoint)
 void moduleCheckpoint(sqlite3_context* context, int argc, sqlite3_value** argv)
 {
 	module::Connection* conn = (module::Connection*)sqlite3_user_data(context);
-	conn->_database->Checkpoint();
+	conn->_database->checkpoint();
 }
 
 void moduleTrace(void* userdata, const char* msg)

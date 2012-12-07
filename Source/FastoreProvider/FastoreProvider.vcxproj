@@ -62,6 +62,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;FASTORE_EXPORT;WIN32;_DEBUG;_WINDOWS;_USRDLL;FASTOREPROVIDER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4068</DisableSpecificWarnings>
       <CompileAsManaged>false</CompileAsManaged>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -81,6 +82,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>FASTORE_EXPORT;WIN32;NDEBUG;_WINDOWS;_USRDLL;FASTOREPROVIDER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>$(BOOST);$(THRIFT);$(SQLITE);$(SolutionDir)FastoreCommon</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
