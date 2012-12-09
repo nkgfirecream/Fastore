@@ -43,12 +43,18 @@ struct WorkerState
 	3: required i64 port
 }
 
+struct StoreState
+{
+	2: required i64 port
+}
+
 struct ServiceState
 {
 	1: required ServiceStatus status,
 	2: required TimeStamp timeStamp,
 	3: required NetworkAddress address,
-	4: required list<WorkerState> workers
+	4: required list<WorkerState> workers,
+	5: required StoreState store
 }
 
 struct HiveState

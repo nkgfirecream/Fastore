@@ -1,6 +1,6 @@
 #pragma once
-#include "../FastoreCommon/Communication/Service.h"
-#include "../FastoreCommon/Communication/Server_types.h"
+#include <Communication/Service.h>
+#include <Communication/Server_types.h>
 #include "Endpoint.h"
 #include <thrift/server/TServer.h>
 #include <thrift/transport/TFDTransport.h>
@@ -10,6 +10,7 @@
 #include "Scheduler.h"
 #include "TFastoreServer.h"
 #include "Worker.h"
+#include "Store.h"
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
@@ -20,9 +21,9 @@ private:
 
 	boost::filesystem::path _configPath;
 	boost::shared_ptr<fastore::server::ServiceConfig> _config;
-	std::list<boost::shared_ptr<Endpoint>> _endpoints;
-	std::list<boost::thread> _workerThreads;
 	std::list<Worker> _workers;
+	std::unique_ptr<Store> _store;
+
 	boost::shared_ptr<fastore::communication::HiveState> _hiveState;	
 	boost::shared_ptr<Scheduler> _scheduler;
 
@@ -30,7 +31,8 @@ private:
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;
 
 
-	void InitializeWorkers(const std::vector<fastore::communication::WorkerState>& workers);
+	void initializeWorkers(const std::vector<fastore::communication::WorkerState>& workers);
+	void initializeStore(const StoreState& store);
 	void SaveConfiguration();
 	void EnsureWorkerPaths(size_t numWorkers);
 	int GetRecommendedWorkerCount();

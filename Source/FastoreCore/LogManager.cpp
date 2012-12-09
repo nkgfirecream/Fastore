@@ -153,7 +153,7 @@ void LogManager::indexLogFile(std::string filename)
 	{
 		switch(recordType)
 		{
-		case RecordType::Revision:
+		case RecordType::ColumnRevision:
 			indexRevisionRecord(writer.readRevision());
 			break;
 		case RecordType::Checkpoint:

@@ -206,11 +206,48 @@ class WorkerState {
 void swap(WorkerState &a, WorkerState &b);
 
 
+class StoreState {
+ public:
+
+  static const char* ascii_fingerprint; // = "7CBAC864381682B525334E49955F454B";
+  static const uint8_t binary_fingerprint[16]; // = {0x7C,0xBA,0xC8,0x64,0x38,0x16,0x82,0xB5,0x25,0x33,0x4E,0x49,0x95,0x5F,0x45,0x4B};
+
+  StoreState() : port(0) {
+  }
+
+  virtual ~StoreState() throw() {}
+
+  int64_t port;
+
+  void __set_port(const int64_t val) {
+    port = val;
+  }
+
+  bool operator == (const StoreState & rhs) const
+  {
+    if (!(port == rhs.port))
+      return false;
+    return true;
+  }
+  bool operator != (const StoreState &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const StoreState & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+void swap(StoreState &a, StoreState &b);
+
+
 class ServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "A1199E740B9B4CA22D6FBE74944130AF";
-  static const uint8_t binary_fingerprint[16]; // = {0xA1,0x19,0x9E,0x74,0x0B,0x9B,0x4C,0xA2,0x2D,0x6F,0xBE,0x74,0x94,0x41,0x30,0xAF};
+  static const char* ascii_fingerprint; // = "22DFD263770874688BBD55D6EFC009FB";
+  static const uint8_t binary_fingerprint[16]; // = {0x22,0xDF,0xD2,0x63,0x77,0x08,0x74,0x68,0x8B,0xBD,0x55,0xD6,0xEF,0xC0,0x09,0xFB};
 
   ServiceState() : status((ServiceStatus::type)0), timeStamp(0) {
   }
@@ -221,6 +258,7 @@ class ServiceState {
   TimeStamp timeStamp;
   NetworkAddress address;
   std::vector<WorkerState>  workers;
+  StoreState store;
 
   void __set_status(const ServiceStatus::type val) {
     status = val;
@@ -238,6 +276,10 @@ class ServiceState {
     workers = val;
   }
 
+  void __set_store(const StoreState& val) {
+    store = val;
+  }
+
   bool operator == (const ServiceState & rhs) const
   {
     if (!(status == rhs.status))
@@ -247,6 +289,8 @@ class ServiceState {
     if (!(address == rhs.address))
       return false;
     if (!(workers == rhs.workers))
+      return false;
+    if (!(store == rhs.store))
       return false;
     return true;
   }
@@ -267,8 +311,8 @@ void swap(ServiceState &a, ServiceState &b);
 class HiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "A1CC6D56385C7C1FE3F049C8D742F1FF";
-  static const uint8_t binary_fingerprint[16]; // = {0xA1,0xCC,0x6D,0x56,0x38,0x5C,0x7C,0x1F,0xE3,0xF0,0x49,0xC8,0xD7,0x42,0xF1,0xFF};
+  static const char* ascii_fingerprint; // = "BB3582C0A185E4721ADCA578C639A347";
+  static const uint8_t binary_fingerprint[16]; // = {0xBB,0x35,0x82,0xC0,0xA1,0x85,0xE4,0x72,0x1A,0xDC,0xA5,0x78,0xC6,0x39,0xA3,0x47};
 
   HiveState() : topologyID(0), reportingHostID(0) {
   }
@@ -411,8 +455,8 @@ typedef struct _OptionalHiveState__isset {
 class OptionalHiveState {
  public:
 
-  static const char* ascii_fingerprint; // = "4D5C48147F5DC789C640DAB00E9C8BC3";
-  static const uint8_t binary_fingerprint[16]; // = {0x4D,0x5C,0x48,0x14,0x7F,0x5D,0xC7,0x89,0xC6,0x40,0xDA,0xB0,0x0E,0x9C,0x8B,0xC3};
+  static const char* ascii_fingerprint; // = "F39E57A1453E80B11077DE5E4697CC7F";
+  static const uint8_t binary_fingerprint[16]; // = {0xF3,0x9E,0x57,0xA1,0x45,0x3E,0x80,0xB1,0x10,0x77,0xDE,0x5E,0x46,0x97,0xCC,0x7F};
 
   OptionalHiveState() : potentialWorkers(0) {
   }
@@ -468,8 +512,8 @@ typedef struct _OptionalServiceState__isset {
 class OptionalServiceState {
  public:
 
-  static const char* ascii_fingerprint; // = "9207B221A88F594F4277871EFF583B03";
-  static const uint8_t binary_fingerprint[16]; // = {0x92,0x07,0xB2,0x21,0xA8,0x8F,0x59,0x4F,0x42,0x77,0x87,0x1E,0xFF,0x58,0x3B,0x03};
+  static const char* ascii_fingerprint; // = "7E48042D7D1BAEC85B56AC2751AD1D62";
+  static const uint8_t binary_fingerprint[16]; // = {0x7E,0x48,0x04,0x2D,0x7D,0x1B,0xAE,0xC8,0x5B,0x56,0xAC,0x27,0x51,0xAD,0x1D,0x62};
 
   OptionalServiceState() : potentialWorkers(0) {
   }

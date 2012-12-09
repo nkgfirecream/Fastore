@@ -15,9 +15,10 @@
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
 #include <thrift/protocol/TProtocol.h>
-#include "../FastoreCommon/Communication/Comm_types.h"
-#include "../FastoreCommon/Communication/Service.h"
-#include "../FastoreCommon/Communication/Worker.h"
+#include <Communication/Comm_types.h>
+#include <Communication/Service.h>
+#include <Communication/Worker.h>
+#include <Communication/Store.h>
 #include "typedefs.h"
 #include <future>
 #include "TransactionIDGenerator.h"
@@ -67,6 +68,9 @@ namespace fastore { namespace client
 		// Connection pool of services by host ID
 		ConnectionPool<HostID, ServiceClient> _services;
 
+		// Connection pool of stores by host ID
+		ConnectionPool<HostID, StoreClient> _stores;
+
 		// Connected workers by pod ID
 		ConnectionPool<PodID, WorkerClient> _workers;
 
@@ -94,6 +98,8 @@ namespace fastore { namespace client
 		Query CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId);
 
 		NetworkAddress& GetServiceAddress(HostID hostID);
+
+		NetworkAddress GetStoreAddress(HostID hostID);
 
 		void RefreshSchema();
 

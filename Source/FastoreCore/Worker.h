@@ -1,8 +1,9 @@
+#pragma once
 #include <functional>
 #include <boost/thread.hpp>
 #include "Endpoint.h"
 #include "WorkerHandler.h"
-#include "../FastoreCommon/Communication/Server_types.h"
+#include <Communication/Server_types.h>
 
 class Worker
 {

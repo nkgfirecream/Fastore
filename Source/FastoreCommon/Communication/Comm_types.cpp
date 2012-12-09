@@ -249,8 +249,72 @@ void swap(WorkerState &a, WorkerState &b) {
   swap(a.port, b.port);
 }
 
-const char* ServiceState::ascii_fingerprint = "A1199E740B9B4CA22D6FBE74944130AF";
-const uint8_t ServiceState::binary_fingerprint[16] = {0xA1,0x19,0x9E,0x74,0x0B,0x9B,0x4C,0xA2,0x2D,0x6F,0xBE,0x74,0x94,0x41,0x30,0xAF};
+const char* StoreState::ascii_fingerprint = "7CBAC864381682B525334E49955F454B";
+const uint8_t StoreState::binary_fingerprint[16] = {0x7C,0xBA,0xC8,0x64,0x38,0x16,0x82,0xB5,0x25,0x33,0x4E,0x49,0x95,0x5F,0x45,0x4B};
+
+uint32_t StoreState::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+  bool isset_port = false;
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      case 2:
+        if (ftype == ::apache::thrift::protocol::T_I64) {
+          xfer += iprot->readI64(this->port);
+          isset_port = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  if (!isset_port)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  return xfer;
+}
+
+uint32_t StoreState::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("StoreState");
+
+  xfer += oprot->writeFieldBegin("port", ::apache::thrift::protocol::T_I64, 2);
+  xfer += oprot->writeI64(this->port);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+void swap(StoreState &a, StoreState &b) {
+  using ::std::swap;
+  swap(a.port, b.port);
+}
+
+const char* ServiceState::ascii_fingerprint = "22DFD263770874688BBD55D6EFC009FB";
+const uint8_t ServiceState::binary_fingerprint[16] = {0x22,0xDF,0xD2,0x63,0x77,0x08,0x74,0x68,0x8B,0xBD,0x55,0xD6,0xEF,0xC0,0x09,0xFB};
 
 uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -267,6 +331,7 @@ uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
   bool isset_timeStamp = false;
   bool isset_address = false;
   bool isset_workers = false;
+  bool isset_store = false;
 
   while (true)
   {
@@ -322,6 +387,14 @@ uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 5:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->store.read(iprot);
+          isset_store = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -338,6 +411,8 @@ uint32_t ServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
   if (!isset_address)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   if (!isset_workers)
+    throw TProtocolException(TProtocolException::INVALID_DATA);
+  if (!isset_store)
     throw TProtocolException(TProtocolException::INVALID_DATA);
   return xfer;
 }
@@ -370,6 +445,10 @@ uint32_t ServiceState::write(::apache::thrift::protocol::TProtocol* oprot) const
   }
   xfer += oprot->writeFieldEnd();
 
+  xfer += oprot->writeFieldBegin("store", ::apache::thrift::protocol::T_STRUCT, 5);
+  xfer += this->store.write(oprot);
+  xfer += oprot->writeFieldEnd();
+
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -381,10 +460,11 @@ void swap(ServiceState &a, ServiceState &b) {
   swap(a.timeStamp, b.timeStamp);
   swap(a.address, b.address);
   swap(a.workers, b.workers);
+  swap(a.store, b.store);
 }
 
-const char* HiveState::ascii_fingerprint = "A1CC6D56385C7C1FE3F049C8D742F1FF";
-const uint8_t HiveState::binary_fingerprint[16] = {0xA1,0xCC,0x6D,0x56,0x38,0x5C,0x7C,0x1F,0xE3,0xF0,0x49,0xC8,0xD7,0x42,0xF1,0xFF};
+const char* HiveState::ascii_fingerprint = "BB3582C0A185E4721ADCA578C639A347";
+const uint8_t HiveState::binary_fingerprint[16] = {0xBB,0x35,0x82,0xC0,0xA1,0x85,0xE4,0x72,0x1A,0xDC,0xA5,0x78,0xC6,0x39,0xA3,0x47};
 
 uint32_t HiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -775,8 +855,8 @@ void swap(Topology &a, Topology &b) {
   swap(a.hosts, b.hosts);
 }
 
-const char* OptionalHiveState::ascii_fingerprint = "4D5C48147F5DC789C640DAB00E9C8BC3";
-const uint8_t OptionalHiveState::binary_fingerprint[16] = {0x4D,0x5C,0x48,0x14,0x7F,0x5D,0xC7,0x89,0xC6,0x40,0xDA,0xB0,0x0E,0x9C,0x8B,0xC3};
+const char* OptionalHiveState::ascii_fingerprint = "F39E57A1453E80B11077DE5E4697CC7F";
+const uint8_t OptionalHiveState::binary_fingerprint[16] = {0xF3,0x9E,0x57,0xA1,0x45,0x3E,0x80,0xB1,0x10,0x77,0xDE,0x5E,0x46,0x97,0xCC,0x7F};
 
 uint32_t OptionalHiveState::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -852,8 +932,8 @@ void swap(OptionalHiveState &a, OptionalHiveState &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* OptionalServiceState::ascii_fingerprint = "9207B221A88F594F4277871EFF583B03";
-const uint8_t OptionalServiceState::binary_fingerprint[16] = {0x92,0x07,0xB2,0x21,0xA8,0x8F,0x59,0x4F,0x42,0x77,0x87,0x1E,0xFF,0x58,0x3B,0x03};
+const char* OptionalServiceState::ascii_fingerprint = "7E48042D7D1BAEC85B56AC2751AD1D62";
+const uint8_t OptionalServiceState::binary_fingerprint[16] = {0x7E,0x48,0x04,0x2D,0x7D,0x1B,0xAE,0xC8,0x5B,0x56,0xAC,0x27,0x51,0xAD,0x1D,0x62};
 
 uint32_t OptionalServiceState::read(::apache::thrift::protocol::TProtocol* iprot) {
 

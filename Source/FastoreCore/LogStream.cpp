@@ -363,7 +363,7 @@ void LogWriter::writeTransactionEnd(int64_t transactionId)
 void LogWriter::writeRevision(int64_t columnId, int64_t revision, char* buffer, int bufferlength)
 {
 	_file.seekp(_size, std::ios_base::beg);
-	_file << (int)RecordType::Revision;
+	_file << (int)RecordType::ColumnRevision;
 
 	_file << columnId;
 	_file << revision;

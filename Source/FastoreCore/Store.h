@@ -1,22 +1,28 @@
 #pragma once
-
 #include <Communication/Store.h>
-#include <Communication/Comm_types.h>
+#include "Endpoint.h"
+#include "StoreHandler.h"
 
-class StoreHandler : virtual public fastore::communication::StoreIf, virtual public apache::thrift::TProcessorEventHandler 
+class Store
 {
 public:
-	StoreHandler();
+	enum status_t { idle, running, stopped }; 
+private:
+	boost::shared_ptr<StoreHandler>  phandler;
+	//boost::shared_ptr<StoreProcessor> pprocessor;
+	const EndpointConfig config;
+	boost::shared_ptr<Endpoint> pendpoint;
+	status_t _status;
+	boost::shared_ptr<boost::thread>  pthread;
 
-	void checkpointBegin(const ColumnID columnID);
-	void checkpointWrite(const ColumnID columnID, const ValueRowsList& values);
-	void checkpointEnd(const ColumnID columnID);
+public:
+	Store
+	(
+		std::string path,
+		uint64_t port,
+		const boost::shared_ptr<Scheduler> pscheduler 
+	);
 
-	void getStatus(StoreStatus& _return);
-
-	void getWrites(GetWritesResults& _return, const Ranges& ranges);
-
-	void commit(const TransactionID transactionID, const Writes& writes);
-
-	void flush(const TransactionID transactionID);
+	bool run();
+	status_t status() const { return _status; }
 };

@@ -8,9 +8,9 @@
 #include "Scheduler.h"
 #include "TFastoreServer.h"
 
-class WorkerHandler 
-	: virtual public fastore::communication::WorkerIf 
-	, virtual public apache::thrift::TProcessorEventHandler
+class WorkerHandler :
+	virtual public fastore::communication::WorkerIf,
+	virtual public apache::thrift::TProcessorEventHandler
 {
 private: 
 	fastore::communication::PodID _podId;

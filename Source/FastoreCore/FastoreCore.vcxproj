@@ -114,6 +114,8 @@
     <ClCompile Include=".\Scheduler.cpp" />
     <ClCompile Include="Serialization.cpp" />
     <ClCompile Include="ServiceHandler.cpp" />
+    <ClCompile Include="Store.cpp" />
+    <ClCompile Include="StoreHandler.cpp" />
     <ClCompile Include="TFastoreFileTransport.cpp" />
     <ClCompile Include="TFastoreServer.cpp" />
     <ClCompile Include="Storage\fastfile.cpp" />
@@ -135,6 +137,7 @@
     <ClInclude Include="ServiceHandler.h" />
     <ClInclude Include="StartupConfig.h" />
     <ClInclude Include="Store.h" />
+    <ClInclude Include="StoreHandler.h" />
     <ClInclude Include="TFastoreFileTransport.h" />
     <ClInclude Include="TFastoreServer.h" />
     <ClInclude Include="TransactionID.h" />

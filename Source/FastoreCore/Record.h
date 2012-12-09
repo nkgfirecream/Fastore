@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 #include <vector>
 
@@ -6,7 +7,7 @@ enum RecordType
 	Null = 0,
 	TransactionBegin = 100,
 	TransactionEnd = 101,
-	Revision = 200,
+	ColumnRevision = 200,
 	TransactionRollback = 300,
 	Checkpoint = 400
 };

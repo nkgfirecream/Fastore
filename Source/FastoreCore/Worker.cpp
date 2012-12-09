@@ -47,16 +47,3 @@ bool Worker::run()
 	}
 	return _status == running;
 }
-
-
-#if 0
-void foo() {
-	std::list<Worker> workers;
-	std::vector<WorkerState> worker_states(3);
-	std::vector<fastore::server::Path>  workerPaths(3);
-
-	boost::shared_ptr<Scheduler> p;
-
-	std::transform( worker_states.begin(), worker_states.end(), workerPaths.begin(), std::back_inserter(workers), Worker::InitWith(p) );
-}
-#endif

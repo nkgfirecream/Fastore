@@ -38,6 +38,13 @@ Database::Database(std::vector<ServiceAddress> addresses)
 		[](ServiceClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
 		[](ServiceClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
 	),
+	_stores
+	(
+		[](boost::shared_ptr<TProtocol> proto) { return StoreClient(proto); }, 
+		[&](HostID i) { return this->GetStoreAddress(i); }, 
+		[](StoreClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
+		[](StoreClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
+	),
 	_workers
 	(
 		[](boost::shared_ptr<TProtocol> proto) { return WorkerClient(proto); }, 
@@ -256,6 +263,32 @@ NetworkAddress& Database::GetServiceAddress(HostID hostID)
 		{
 			_lock->unlock();
 			return result->second.address;
+		}				
+	}
+	catch(const std::exception& e)
+	{
+		_lock->unlock();
+		throw e;
+	}
+}
+
+NetworkAddress Database::GetStoreAddress(HostID hostID)
+{
+	_lock->lock();
+	try
+	{
+		auto result = _hiveState.services.find(hostID);
+		if (result == _hiveState.services.end())
+		{
+			throw ClientException(boost::str(boost::format("No service is currently associated with host ID ({0}) so store is not available.") % hostID));
+		}
+		else
+		{
+			NetworkAddress address;
+			address.__set_name(result->second.address.name);
+			address.__set_port(result->second.store.port);
+			_lock->unlock();
+			return address;
 		}				
 	}
 	catch(const std::exception& e)

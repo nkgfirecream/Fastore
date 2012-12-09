@@ -106,8 +106,11 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		cout << "Number of Pods: " << numPods 
 			 << "	Recommended workers: " << GetRecommendedWorkerCount() << " (these should be the same)\r\n";
 	
+		// Initialize store
+		initializeStore(thisService->second.store);
+		
 		// Initialize the workers, if joined
-		InitializeWorkers(thisService->second.workers);
+		initializeWorkers(thisService->second.workers);
 	}
 	else
 	{
@@ -156,7 +159,7 @@ void ServiceHandler::SaveConfiguration()
 	_configFile->close();
 }
 
-void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
+void ServiceHandler::initializeWorkers(const vector<WorkerState>& states)
 {
 	// Ensure that there enough configured paths for each worker
 	EnsureWorkerPaths((int)states.size());
@@ -169,6 +172,11 @@ void ServiceHandler::InitializeWorkers(const vector<WorkerState>& states)
 					_config->workerPaths.begin(), 
 					std::back_inserter(_workers), 
 					Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
+}
+
+void ServiceHandler::initializeStore(const StoreState& store)
+{
+	_store = std::unique_ptr<Store>(new Store(_config->path, store.port, _scheduler));
 }
 
 void ServiceHandler::ping()
@@ -204,6 +212,13 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 		ServiceState state;
 		state.__set_address(hostAddress->second);
 
+
+		// Start store at service port + 1
+		StoreState storeState;	
+		storeState.__set_port(hostAddress->second.port + 1);
+
+		state.__set_store(storeState);
+
 		//Log << log_info << __func__ << ": host " << host->first 
 		//	<< " has address " << hostAddress->second << log_endl;
 
@@ -214,7 +229,7 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 			state.__set_timeStamp((TimeStamp)time(nullptr));
 
 			// Set the state for each of our workers
-			int workerIndex = 0;
+			int workerIndex = 1;  // Reserve port address + 1 for store
 			Log << log_info << __func__ << ": " << host->second.pods.size() 
 				<< " pods " << log_endl;
 			for (auto pod = host->second.pods.cbegin(); pod != host->second.pods.cend(); ++pod)
@@ -248,8 +263,11 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 
 	_scheduler = boost::shared_ptr<Scheduler>(new Scheduler(_config->address));
 
+	// Initialize store
+	initializeStore(_return.store);
+
 	// Initialize workers
-	InitializeWorkers(_return.workers);
+	initializeWorkers(_return.workers);	
 
 	// Start scheduler running... Or should it start on the first callback?
 	_scheduler->start();
@@ -432,10 +450,28 @@ void ServiceHandler::shutdown()
 			}
 		}
 
-		for (auto iter = _workerThreads.begin(); iter != _workerThreads.end(); ++iter)
+
+		//Shutdown store thead
+		try
 		{
-			iter->join();
+			boost::shared_ptr<TSocket> socket(new TSocket(_config->address.name, int(currentState->second.store.port)));
+			boost::shared_ptr<TTransport> transport(new TFramedTransport(socket));
+			boost::shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+
+			StoreClient client(protocol);
+			transport->open();
+			//client.shutdown();
+			transport->close();
 		}
+		catch(...)
+		{
+	
+		}
+
+		//for (auto iter = _workers.begin(); iter != _workers.end(); ++iter)
+		//{
+
+		//}
 	}
 
 	_currentConnection->getServer()->shutdown();
