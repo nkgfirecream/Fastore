@@ -161,17 +161,18 @@ void ServiceHandler::SaveConfiguration()
 
 void ServiceHandler::initializeWorkers(const vector<WorkerState>& states)
 {
+	//TODO: Decide whether we actually need the worker paths now.
 	// Ensure that there enough configured paths for each worker
-	EnsureWorkerPaths((int)states.size());
+	//EnsureWorkerPaths((int)states.size());
 	///	const static char *func = __func__;
 
 	// Constructor starts each Worker running.  
 	// If Worker::endpoint::run throws an exception, 
 	// it's caught and logged by Worker::run().  
-	std::transform( states.begin(), states.end(), 
-					_config->workerPaths.begin(), 
-					std::back_inserter(_workers), 
-					Worker::InitWith( boost::shared_ptr<Scheduler>() ) );
+	for(auto begin = states.begin(), end = states.end(); begin != end; ++begin)
+	{
+		_workers.push_back(Worker(begin->podID, begin->port));
+	}
 }
 
 void ServiceHandler::initializeStore(const StoreState& store)

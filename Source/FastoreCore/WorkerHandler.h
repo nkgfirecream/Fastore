@@ -14,13 +14,10 @@ class WorkerHandler :
 {
 private: 
 	fastore::communication::PodID _podId;
-	std::string _path;
 	std::unordered_map<fastore::communication::ColumnID, boost::shared_ptr<Repository>> _repositories;
-	boost::shared_ptr<Scheduler> _scheduler;
 
 	//Not a shared pointer because we don't own the connection.
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;
-	Wal *_pwal;
 
 	void CheckState();
 	void Bootstrap();
@@ -32,13 +29,8 @@ private:
 	ColumnDef GetDefFromSchema(ColumnID id);
 	
 public:
-	WorkerHandler
-	(
-		const PodID podId, 
-		const string path, 
-		const boost::shared_ptr<Scheduler>, 
-		Wal& wal
-	);
+	WorkerHandler(const PodID podId);
+
 	~WorkerHandler();
 
 	//Admin

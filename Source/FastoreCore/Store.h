@@ -9,7 +9,7 @@ public:
 	enum status_t { idle, running, stopped }; 
 private:
 	boost::shared_ptr<StoreHandler>  phandler;
-	//boost::shared_ptr<StoreProcessor> pprocessor;
+	boost::shared_ptr<fastore::communication::StoreProcessor> pprocessor;
 	const EndpointConfig config;
 	boost::shared_ptr<Endpoint> pendpoint;
 	status_t _status;

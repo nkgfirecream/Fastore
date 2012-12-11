@@ -20,46 +20,41 @@ using namespace std;
 
 const int MaxSystemColumnID = 9999;
 
-WorkerHandler::
-WorkerHandler(const PodID podId, 
-			  const string path, 
-			  const boost::shared_ptr<Scheduler> scheduler, 
-			        Wal& wal) 
+WorkerHandler::WorkerHandler(const PodID podId) 
   : _podId(podId)
-  , _path(path)
-  , _scheduler(scheduler)
-  , _pwal(&wal)
 {
 	//* Attempt to open data file
 	//* Check data directory for improper shut down - see Recovery
-	boost::filesystem::path fpath (_path);
-	//If existing data, load it.
-	if (boost::filesystem::exists(fpath))
-	{
-		boost::filesystem::directory_iterator iter(fpath), end;
-		while(iter != end)
-		{
-			auto fnpath = iter->path();
-			std::string fn = fnpath.filename().string();
+	//boost::filesystem::path fpath (_path);
+	////If existing data, load it.
+	//if (boost::filesystem::exists(fpath))
+	//{
+	//	boost::filesystem::directory_iterator iter(fpath), end;
+	//	while(iter != end)
+	//	{
+	//		auto fnpath = iter->path();
+	//		std::string fn = fnpath.filename().string();
 
-			std::stringstream ss(fn);
-			std::string id;
-			std::getline(ss, id, '_');
-			
-			int64_t columnid = _atoi64(id.c_str());
+	//		std::stringstream ss(fn);
+	//		std::string id;
+	//		std::getline(ss, id, '_');
+	//		
+	//		int64_t columnid = _atoi64(id.c_str());
 
-			boost::shared_ptr<Repository> repo(new Repository(columnid, _path));
-			_repositories[columnid] = repo;
-			++iter;
-		}
-	}
-	else
-	{
-		//* If (new instance), bootstrap
-		Bootstrap();
-	}
+	//		boost::shared_ptr<Repository> repo(new Repository(columnid, _path));
+	//		_repositories[columnid] = repo;
+	//		++iter;
+	//	}
+	//}
+	//else
+	//{
+	//	//* If (new instance), bootstrap
+	//	
+	//}
 
 	//* Read rest of topology columns into memory; play log files for the same
+
+	Bootstrap();
 }
 
 WorkerHandler::~WorkerHandler()
@@ -232,7 +227,7 @@ void WorkerHandler::Bootstrap()
 
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
-	boost::shared_ptr<Repository> repo(new Repository(def, _path));
+	boost::shared_ptr<Repository> repo(new Repository(def));
 	_repositories[def.ColumnID] = repo;
 }
 
@@ -474,10 +469,7 @@ void WorkerHandler::commit(const TransactionID transactionID, const Writes& writ
 				SyncToSchema();
 			}
 
-			Wal& wal(*_pwal);
 			const ColumnWrites& colwrites = write->second;
-
-			wal.apply(transactionID, colwrites);
 			repo->second->apply(transactionID, colwrites);
 		}
 	}

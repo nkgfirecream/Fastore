@@ -108,6 +108,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Endpoint.cpp" />
+    <ClCompile Include="LogReaderPool.cpp" />
     <ClCompile Include="LogStream.cpp" />
     <ClCompile Include="LogManager.cpp" />
     <ClCompile Include="Repository.cpp" />

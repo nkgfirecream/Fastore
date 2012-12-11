@@ -11,43 +11,43 @@ StoreHandler::StoreHandler(std::string path)
 
 }
 
-void StoreHandler::checkpointBegin(const ColumnID columnID) 
+void StoreHandler::checkpointBegin(const fastore::communication::ColumnID columnID) 
 {
+	//TODO: Create checkpoint file, write header, prepare for more data
 printf("checkpointBegin\n");	
 }
 
-void StoreHandler::checkpointWrite(const ColumnID columnID, const ValueRowsList& values) 
+void StoreHandler::checkpointWrite(const fastore::communication::ColumnID columnID, const fastore::communication::ValueRowsList& values) 
 {
-// Your implementation goes here
+
+	//TODO: Write data to file.
 printf("checkpointWrite\n");
 }
 
-void StoreHandler::checkpointEnd(const ColumnID columnID) 
+void StoreHandler::checkpointEnd(const fastore::communication::ColumnID columnID) 
 {
-// Your implementation goes here
+	//TODO: Close checkpoint file, writer marker to log.
 printf("checkpointEnd\n");
 }
 
-void StoreHandler::getStatus(StoreStatus& _return) 
+void StoreHandler::getStatus(fastore::communication::StoreStatus& _return) 
 {
 // Your implementation goes here
 printf("getStatus\n");
 }
 
-void StoreHandler::getWrites(GetWritesResults& _return, const Ranges& ranges) 
+void StoreHandler::getWrites(fastore::communication::GetWritesResults& _return, const fastore::communication::Ranges& ranges) 
 {
 // Your implementation goes here
 printf("getWrites\n");
 }
 
-void StoreHandler::commit(const TransactionID transactionID, const Writes& writes) 
+void StoreHandler::commit(const fastore::communication::TransactionID transactionID, const fastore::communication::Writes& writes) 
 {
-// Your implementation goes here
-printf("commit\n");
+	//_logManager->commit(transactionID, writes);
 }
 
-void StoreHandler::flush(const TransactionID transactionID) 
+void StoreHandler::flush(const fastore::communication::TransactionID transactionID) 
 {
-// Your implementation goes here
-printf("flush\n");
+	//_logManager->flush(transactionID);
 }

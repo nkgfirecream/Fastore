@@ -12,17 +12,17 @@ class StoreHandler :
 public:
 	StoreHandler(std::string path);
 
-	void checkpointBegin(const ColumnID columnID);
-	void checkpointWrite(const ColumnID columnID, const ValueRowsList& values);
-	void checkpointEnd(const ColumnID columnID);
+	void checkpointBegin(const fastore::communication::ColumnID columnID);
+	void checkpointWrite(const fastore::communication::ColumnID columnID, const fastore::communication::ValueRowsList& values);
+	void checkpointEnd(const fastore::communication::ColumnID columnID);
 
-	void getStatus(StoreStatus& _return);
+	void getStatus(fastore::communication::StoreStatus& _return);
 
-	void getWrites(GetWritesResults& _return, const Ranges& ranges);
+	void getWrites(fastore::communication::GetWritesResults& _return, const fastore::communication::Ranges& ranges);
 
-	void commit(const TransactionID transactionID, const Writes& writes);
+	void commit(const fastore::communication::TransactionID transactionID, const fastore::communication::Writes& writes);
 
-	void flush(const TransactionID transactionID);
+	void flush(const fastore::communication::TransactionID transactionID);
 
 private:
 	std::unique_ptr<LogManager> _logManager;

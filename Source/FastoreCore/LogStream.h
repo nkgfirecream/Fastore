@@ -78,7 +78,6 @@ class LogReader : public LogStream
 public:
 	//Open existing log file.
 	LogReader(std::string filename);
-	~LogReader();
 
 	//Update the reader size limit. This happens after a log file has been flushed
 	//Notify readers that there is more to read.
