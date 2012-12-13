@@ -1,12 +1,16 @@
 #include "LogManager.h"
+#include "LogConstants.h"
 #include <boost\filesystem.hpp>
+#include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/transport/TBufferTransports.h>
+#include <Communication/Store.h>
 
-LogManager::LogManager(std::string config) :
+LogManager::LogManager(std::string path) :
 	_readService(MAXTHREADS),
 	_readWork(_readService),
 	_writeService(1),
 	_writeWork(_writeService),
-	_config(config),
+	_path(path),
 	_lock(boost::shared_ptr<boost::mutex>(new boost::mutex())),
 	_readerPool
 	(
@@ -84,7 +88,7 @@ void LogManager::initalizeLogManager()
 	std::vector<std::string> filenames;
 
 	boost::filesystem::directory_iterator end;
-	for ( boost::filesystem::directory_iterator item (_config); item != end; ++item)
+	for ( boost::filesystem::directory_iterator item (_path); item != end; ++item)
 	{
 		if (!boost::filesystem::is_regular_file(item->status()))
 			continue;
@@ -111,19 +115,7 @@ void LogManager::initalizeLogManager()
 	else
 	{
 		//Create a new file
-		LogFile file;
-		file.lsn = 0;
-		file.complete = false;
-		file.size = 0;
-
-		std::stringstream ss;
-		ss << _config << file.lsn << "." << LogExtension;
-
-		file.filename = ss.str();
-
-		_files[file.lsn] = file;
-
-		_writer = std::unique_ptr<LogWriter>(new LogWriter(file.filename, file.lsn));
+		createLogFile();
 	}
 	
 	//Any modifications to shared structures past this point need to be protected.
@@ -190,19 +182,23 @@ size_t LogManager::revisionFileInfoByLsn(ColumnInfo& info, int64_t lsn)
 	return -1;
 }
 
-int64_t LogManager::offsetByRevision(ColumnInfo& info, int64_t revision)
+void LogManager::offsetByRevision(ColumnInfo& info, int64_t revision, int64_t& outLsn, int64_t& outOffset)
 {
 	for (size_t i = 0; i < info.revisions.size(); i++)
 	{
 		int64_t starting = info.revisions[i].startingRevision;
 		int64_t diff = revision - starting;
 		if (diff < int64_t(info.revisions[i].offsets.size()) && diff >=0)
-			return info.revisions[i].offsets[diff];
+		{
+			outOffset = info.revisions[i].offsets[diff];
+			outLsn = info.revisions[i].lsn;
+			return;
+		}
 		else
 			continue;
 	}
 
-	return -1;
+	outLsn = -1;
 }
 
 void LogManager::indexRevisionRecord(RevisionRecord& record)
@@ -246,17 +242,17 @@ void LogManager::indexCheckpointRecord(CheckpointRecord& record)
 void LogManager::indexTransactionBeginRecord(TransactionBeginRecord& record)
 {	
 	auto entry = _transactions.find(record.transactionId);
-	if (entry != _transactions.end() && entry->second.columns.size() == 0)
+	if (entry != _transactions.end() && entry->second.revisions.size() == 0)
 	{
 		//Add revision infomation if it's not present in the index, but don't update the state.
 		//The state must be >= begin if it's present at all.
-		entry->second.columns = record.revisions;
+		entry->second.revisions = record.revisions;
 	}
 	else
 	{
 		TransactionInfo info;
 		info.state = TransactionState::Begin;
-		info.columns = record.revisions;
+		info.revisions = record.revisions;
 		info.transactionId = record.transactionId;
 		_transactions.insert(std::make_pair(info.transactionId, info));
 	}
@@ -303,73 +299,317 @@ void LogManager::indexRollbackRecord(RollbackRecord& record)
 	}
 }
 
-void LogManager::flush(int64_t transactionId, Connection* connection)
+//Public methods
+void LogManager::flush(const fastore::communication::TransactionID transactionID, apache::thrift::server::TFastoreServer::TConnection* connection)
 {
-	//connection->park();
-	_writeService.post(boost::bind(&LogManager::internalFlush, this, transactionId, connection));
+	_lock->lock();	
+	auto entry = _transactions.find(transactionID);
+	if (entry != _transactions.end() && entry->second.state == TransactionState::End)
+	{
+		if (_pendingTransactions.find(transactionID) != _pendingTransactions.end())
+		{
+			//Transaction is complete, but not yet flushed. Park the connection and post flush work.
+			connection->park();
+			_writeService.post(boost::bind(&LogManager::internalFlush, this, transactionID, connection));
+			_lock->unlock();
+		}
+		else
+		{
+			//Transaction has already completed and flushed. Return without waiting.
+			_lock->unlock();
+			return;
+		}
+	}
+	else if (entry != _transactions.end() && entry->second.state != TransactionState::End)
+	{
+		_lock->unlock();
+		throw std::exception("Attempt to flush a transaction that has not ended");
+	}
+	else
+	{
+		_lock->unlock();
+		throw std::exception("Attempt to flush a transaction for which there is no record.");
+	}	
+}
+void LogManager::commit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> & revisions, const fastore::communication::Writes& writes)
+{
+	_writeService.post(boost::bind(&LogManager::internalCommit, this, transactionID, revisions, writes));
 }
 
-void LogManager::commit(int64_t transactionId, std::vector<Change> changes)
+void LogManager::getWrites(const fastore::communication::Ranges& ranges, apache::thrift::server::TFastoreServer::TConnection* connection)
 {
-	_writeService.post(boost::bind(&LogManager::internalCommit, this, transactionId, changes));
+	connection->park();
+	_readService.post(boost::bind(&LogManager::internalGetWrites, this, ranges, connection));
 }
 
-void LogManager::saveThrough(std::vector<Change> changes, int64_t revision, int64_t columnId)
+//Internal methods
+void LogManager::internalFlush(const fastore::communication::TransactionID transactionID, apache::thrift::server::TFastoreServer::TConnection* connection)
 {
-	_writeService.post(boost::bind(&LogManager::internalSaveThrough, this, changes, revision, columnId));
+	_lock->lock();
+	_writer->flush();
+
+	auto file = _files[_writer->lsn()];
+	file.size = _writer->size();
+
+	_pendingTransactions.clear();
+	_lock->unlock();
+
+	connection->transition();
 }
 
-void LogManager::getThrough(int64_t columnId, int64_t revision,  Connection* connection)
+void LogManager::internalCommit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions, const fastore::communication::Writes writes)
 {
-	//connection->park();
-	_readService.post(boost::bind(&LogManager::internalGetThrough, this, columnId, revision, connection));
+	writeTransactionBegin(transactionID, revisions);
+
+	for(auto write : writes)
+	{
+		auto entry = revisions.find(write.first);
+		if (entry == revisions.end())
+		{
+			throw std::exception("No revision associated with columns writes.");
+		}
+
+		writeRevision(write.first, entry->second, write.second);
+	}
+	writeTransactionEnd(transactionID);
 }
 
-void LogManager::getChanges(int64_t fromRevision, int64_t toRevision, std::vector<Read> reads,  Connection* connection)
+void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, apache::thrift::server::TFastoreServer::TConnection* connection)
 {
-	//connection->park();
-	_readService.post(boost::bind(&LogManager::internalGetChanges, this, fromRevision, toRevision, reads, connection));
+	fastore::communication::GetWritesResults results;
+
+	//Get ranges and post to result.
+	for (auto range : ranges)
+	{
+		auto columnId = range.first;
+		auto revFrom = range.second.from;
+		auto revTo = range.second.to;
+
+		//Adjust revision to what we actually have.		
+		try
+		{
+			_lock->lock();
+			auto colInfo = _columns[columnId];
+			
+			auto haveMin = colInfo.revisions[0].startingRevision;
+			auto haveMax = colInfo.revisions[colInfo.revisions.size() - 1].startingRevision + int64_t(colInfo.revisions[colInfo.revisions.size() - 1].offsets.size()) - 1;
+
+			if (haveMin > revFrom)
+				revFrom = haveMin;
+
+			if (haveMax < revTo)
+				revTo = haveMax;
+
+			if (revTo < revFrom)
+				throw std::exception("End revision is after start revision");
+
+			_lock->unlock();
+
+			auto columnWrites = getRange(columnId, revFrom, revTo);
+			results[columnId] = columnWrites;
+		}
+		catch(...)
+		{
+			_lock->unlock();
+			//Set entry to null
+			continue;
+		}
+	}
+
+	//Clean any garbage the processor may have written.
+	//TODO: Figure out how to protect this since the processor is operating on a different thread.
+	auto transport = connection->getOutputProtocol()->getOutputTransport();
+	apache::thrift::transport::TMemoryBuffer* memTransport = dynamic_cast<apache::thrift::transport::TMemoryBuffer*>(transport.get());
+	memTransport->resetBuffer();
+
+	fastore::communication::Store_getWrites_result wireResult;
+	wireResult.__set_success(results);
+
+	wireResult.write(connection->getOutputProtocol().get());
+
+	connection->transition();
 }
 
-void LogManager::internalFlush(int64_t transactionId, Connection* connection)
+fastore::communication::GetWritesResult LogManager::getRange(fastore::communication::ColumnID columnId, fastore::communication::Revision from, fastore::communication::Revision to)
 {
+	fastore::communication::GetWritesResult result;
 
+	result.__set_minFrom(from);
+	result.__set_maxTo(to);
 
+	std::map<fastore::communication::Revision, fastore::communication::ColumnWrites> revisions;
 
-	//Post result to connection buffer...
-	//connection->postToBuffer();
-	//Unpark connection
-	//connection->unpark();
+	for (fastore::communication::Revision rev = from; rev <= to; ++to)
+	{
+		int64_t lsn;
+		int64_t offset;
+		_lock->lock();
+		offsetByRevision(_columns[columnId], rev, lsn, offset);
+		_lock->unlock();
+
+		if (lsn != -1)
+		{
+			auto reader = _readerPool[lsn];
+			reader->seekReadToOffset(offset + 4);
+			auto record = reader->readRevision();
+			//Convert buffer to structure
+			fastore::communication::ColumnWrites writes;
+			
+			//Constructing a buffer like this is read-only
+			boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> readBuffer(new apache::thrift::transport::TMemoryBuffer((uint8_t*)record.data.data(), record.data.size()));
+			apache::thrift::protocol::TBinaryProtocol readProtocol(readBuffer);
+			writes.read(&readProtocol);
+			revisions[rev] = writes;
+		}
+		else
+		{
+			throw std::exception("Missing column revision!");
+		}
+	}
+
+	if (revisions.size() > 0)
+		result.__set_writes(revisions);
+
+	return result;
 }
 
-void LogManager::internalCommit(int64_t transactionId, std::vector<Change> changes)
+void LogManager::writeTransactionBegin(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions)
 {
+	TransactionInfo info;
+	info.revisions = revisions;
+	info.state = TransactionState::Begin;
+	info.transactionId = transactionID;
 
+	//Calculate total size of this record (to see if it will fit in a log file)
+	//This the size of the header (constant size) plus two int64s for every entry in revisions
+	int64_t size = TransactionBeginSize + ((sizeof(fastore::communication::ColumnID) + sizeof(fastore::communication::Revision)) * revisions.size());
+
+	prepLog(size);
+	_writer->writeTransactionBegin(transactionID, revisions);
+
+	_lock->lock();
+	_transactions[transactionID] = info;
+	_pendingTransactions.insert(transactionID);	
+	_lock->unlock();	
 }
 
-void LogManager::internalSaveThrough(std::vector<Change>, int64_t revision, int64_t columnId)
+void LogManager::writeRevision(const fastore::communication::ColumnID columnId, const fastore::communication::Revision revision, const fastore::communication::ColumnWrites& writes)
 {
+	//Write structure to buffer
+	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> writeBuffer(new apache::thrift::transport::TMemoryBuffer());
+	apache::thrift::protocol::TBinaryProtocol writeProtocol(writeBuffer);
 
+	writes.write(&writeProtocol);
+
+	uint8_t* buf;
+	uint32_t size;
+	writeBuffer->getBuffer(&buf, &size);
+
+	auto totalSize = size + RevisionSize;
+
+	prepLog(totalSize);
+
+	int64_t offset = _writer->size();
+	int64_t lsn = _writer->lsn();
+	_writer->writeRevision(columnId, revision, (char *)buf, size);
+
+	_lock->lock();
+	auto column = _columns[columnId];
+	if (column.revisions.size() > 0 && column.revisions[column.revisions.size() - 1].lsn == lsn)
+	{
+		column.revisions[column.revisions.size() - 1].offsets.push_back(offset);
+	}
+	else
+	{
+		RevisionFileInfo info;
+		info.lsn = lsn;
+		info.offsets.push_back(offset);
+		info.startingRevision = revision;
+		column.revisions.push_back(info);
+	}
+	_lock->unlock();
 }
 
-
-void LogManager::internalGetThrough(int64_t columnId, int64_t revision,  Connection* connection)
+void LogManager::writeTransactionEnd(const fastore::communication::TransactionID transactionID)
 {
+	prepLog(TransactionEndSize);
 
+	_writer->writeTransactionEnd(transactionID);
 
-	//Post result to connection buffer...
-	//connection->postToBuffer();
-	//Unpark connection
-	//connection->unpark();
+	_lock->lock();
+	_transactions[transactionID].state = TransactionState::End;
+	_lock->unlock();	
 }
 
-void LogManager::internalGetChanges(int64_t fromRevision, int64_t toRevision, std::vector<Read> reads,  Connection* connection)
+void LogManager::prepLog(int64_t size)
 {
+	if (_writer == NULL)
+		createLogFile();
 
-
-	//Post result to connection buffer...
-	//connection->postToBuffer();
-	//Unpark connection
-	//connection->unpark();
+	if (_writer->size() + size > MaxLogSize)
+	{
+		completeCurrentLog();
+		createLogFile();
+	}
 }
 
+void LogManager::completeCurrentLog()
+{
+	_writer->setComplete();
+
+	_lock->lock();
+	auto file = _files[_writer->lsn()];
+	file.complete = true;
+	file.size = _writer->size();
+	_lock->unlock();
+
+	_writer.reset();
+}
+
+void LogManager::createLogFile()
+{
+	_lock->lock();
+
+	int64_t newLsn;
+	size_t oldLsn = reuseFileOldLsn(newLsn);
+
+	LogFile file;
+	file.lsn = newLsn;
+	file.complete = false;
+	file.size = 0;
+
+	if (oldLsn >= 0)
+	{
+		auto oldFile = _files[oldLsn];
+		file.filename = oldFile.filename;
+		_files.erase(oldLsn);
+
+	}
+	else
+	{
+		std::stringstream ss;
+		ss << _path << file.lsn << "." << LogExtension;
+		file.filename = ss.str();
+	}
+
+	
+	_files[newLsn] = file;
+	_writer = std::unique_ptr<LogWriter>(new LogWriter(file.filename, file.lsn));
+
+	_lock->unlock();
+}
+
+//Must be called while shared structures are proctected.
+int64_t LogManager::reuseFileOldLsn(int64_t& outNewLsn)
+{
+	//TODO: Determine which logfile if any can be reused.
+	//If none can, create a new file.
+
+	//A file can be reused if every column it contains has a checkpoint record in a subsequent file.
+	
+	//For now always just use a new log file.
+	auto entry = _files.end();
+	outNewLsn = entry->first + 1;
+
+	return -1;
+}

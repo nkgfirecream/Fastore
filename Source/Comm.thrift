@@ -361,7 +361,7 @@ typedef map<ColumnID, ColumnRange> Ranges
 struct GetWritesResult
 {
 	/** If writes is not populated the range is out of bounds, consult minFrom or MaxTo to determine the missing extent. */
-	1:optional ColumnWrites writes,
+	1:optional map<Revision, ColumnWrites> writes,
 	2:required Revision minFrom,
 	3:required Revision maxTo
 }
@@ -396,7 +396,7 @@ service Store
 
 
 	/** Commits the given already prepared writes. */
-	oneway void commit(1:TransactionID transactionID, 2:Writes writes),
+	oneway void commit(1:TransactionID transactionID, 2:map<ColumnID,Revision> revisions, 3:Writes writes),
 
 
 	/** Waits for the given transaction to be flushed to disk. */

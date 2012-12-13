@@ -67,8 +67,8 @@ const static char* LogExtension = "fastlog\0";
 //a record will fit by taking the size of the header, plus the size of the data we want to
 //stick into a record.
 //TODO: Consider fixed-size record headers.
-const static int TransactionHeaderSize = 48;
-const static int TransactionFooterSize = 26;
+const static int TransactionBeginSize = 48;
+const static int TransactionEndSize = 26;
 const static int RevisionSize = 48;
 const static int CheckpointSize = 44;
 const static int RollbackSize = 36;

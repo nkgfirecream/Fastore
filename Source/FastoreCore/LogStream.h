@@ -51,7 +51,7 @@ public:
 	~LogWriter();
 
 
-	void writeTransactionBegin(int64_t transactionId, std::vector<std::pair<int64_t, int64_t>>& revisions);
+	void writeTransactionBegin(int64_t transactionId, const std::map<fastore::communication::ColumnID, fastore::communication::TransactionID>& revisions);
 	void writeTransactionEnd(int64_t transactionId);
 
 	void writeRevision(int64_t columnId, int64_t revision, char* buffer, int bufferlength);
@@ -82,6 +82,7 @@ public:
 	//Update the reader size limit. This happens after a log file has been flushed
 	//Notify readers that there is more to read.
 	void setSize(int64_t size);
+	void seekReadToOffset(int64_t offset);
 };
 
 

@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
-#include <vector>
+#include <map>
+#include <Communication/Comm_types.h>
 
 enum RecordType
 {
@@ -23,7 +24,7 @@ struct TransactionBeginRecord
 {
 	RecordHeader header;
 	int64_t transactionId;
-	std::vector<std::pair<int64_t,int64_t>> revisions;
+	std::map<fastore::communication::ColumnID, fastore::communication::TransactionID> revisions;
 };
 
 struct TransactionEndRecord

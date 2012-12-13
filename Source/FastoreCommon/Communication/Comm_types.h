@@ -1699,21 +1699,21 @@ typedef struct _GetWritesResult__isset {
 class GetWritesResult {
  public:
 
-  static const char* ascii_fingerprint; // = "F578B019C405B80D4EC8B7E62DE4AAEF";
-  static const uint8_t binary_fingerprint[16]; // = {0xF5,0x78,0xB0,0x19,0xC4,0x05,0xB8,0x0D,0x4E,0xC8,0xB7,0xE6,0x2D,0xE4,0xAA,0xEF};
+  static const char* ascii_fingerprint; // = "EE757E4FE2DC3ABF65FE95B08EED0605";
+  static const uint8_t binary_fingerprint[16]; // = {0xEE,0x75,0x7E,0x4F,0xE2,0xDC,0x3A,0xBF,0x65,0xFE,0x95,0xB0,0x8E,0xED,0x06,0x05};
 
   GetWritesResult() : minFrom(0), maxTo(0) {
   }
 
   virtual ~GetWritesResult() throw() {}
 
-  ColumnWrites writes;
+  std::map<Revision, ColumnWrites>  writes;
   Revision minFrom;
   Revision maxTo;
 
   _GetWritesResult__isset __isset;
 
-  void __set_writes(const ColumnWrites& val) {
+  void __set_writes(const std::map<Revision, ColumnWrites> & val) {
     writes = val;
     __isset.writes = true;
   }

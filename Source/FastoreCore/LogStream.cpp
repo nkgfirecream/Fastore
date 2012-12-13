@@ -1,5 +1,6 @@
 #include "LogStream.h"
 #include <time.h>
+#include <Communication/Comm_types.h>
 
 //LogStream
 LogStream::LogStream() : _lsn(0), _complete(0) { }
@@ -76,7 +77,7 @@ TransactionBeginRecord LogStream::readTransactionBegin()
 	int size;
 	_file >> size;
 
-	std::vector<std::pair<int64_t, int64_t>> revisions(size);
+	std::map<fastore::communication::ColumnID, fastore::communication::TransactionID> revisions;
 
 	for(int i = 0; i < size; ++i)
 	{
@@ -86,7 +87,7 @@ TransactionBeginRecord LogStream::readTransactionBegin()
 		int64_t revision;
 		_file >> revision;
 
-		revisions[i] = std::make_pair(columnID, revision);
+		revisions[columnID] = revision;
 	}
 
 	//TODO: MD4
@@ -247,6 +248,18 @@ void LogReader::setSize(int64_t size)
 	_size = size;
 }
 
+void LogReader::seekReadToOffset(int64_t offset)
+{
+	if (offset <= _size)
+	{
+		_file.seekg(offset);
+	}
+	else
+	{
+		throw std::exception("Attempt to seek log reader past file!");
+	}
+}
+
 //LogWriter
 LogWriter::LogWriter(std::string filename)
 {
@@ -324,7 +337,7 @@ void LogWriter::updateLogHeader()
 	_file.seekp(_size, std::ios_base::cur);
 }
 
-void LogWriter::writeTransactionBegin(int64_t transactionId, std::vector<std::pair<int64_t, int64_t>>& revisions)
+void LogWriter::writeTransactionBegin(int64_t transactionId, const std::map<fastore::communication::ColumnID, fastore::communication::TransactionID>& revisions)
 {
 	_file.seekp(_size, std::ios_base::beg);
 	_file << (int)RecordType::TransactionBegin;
@@ -334,10 +347,10 @@ void LogWriter::writeTransactionBegin(int64_t transactionId, std::vector<std::pa
 
 	_file << revisions.size();
 
-	for (int i = 0; i < revisions.size(); ++i)
+	for (auto begin = revisions.begin(), end = revisions.end(); begin != end; ++begin)
 	{
-		_file << revisions[i].first;
-		_file << revisions[i].second;
+		_file << begin->first;
+		_file << begin->second;
 	}
 
 	//TODO: Write Md4

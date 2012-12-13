@@ -47,7 +47,7 @@ class StoreHandler : virtual public StoreIf {
     printf("getWrites\n");
   }
 
-  void commit(const TransactionID transactionID, const Writes& writes) {
+  void commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes) {
     // Your implementation goes here
     printf("commit\n");
   }

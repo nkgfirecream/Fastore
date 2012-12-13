@@ -290,17 +290,17 @@ uint32_t Service_init_args::read(::apache::thrift::protocol::TProtocol* iprot) {
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->addresses.clear();
-            uint32_t _size143;
-            ::apache::thrift::protocol::TType _ktype144;
-            ::apache::thrift::protocol::TType _vtype145;
-            iprot->readMapBegin(_ktype144, _vtype145, _size143);
-            uint32_t _i147;
-            for (_i147 = 0; _i147 < _size143; ++_i147)
+            uint32_t _size151;
+            ::apache::thrift::protocol::TType _ktype152;
+            ::apache::thrift::protocol::TType _vtype153;
+            iprot->readMapBegin(_ktype152, _vtype153, _size151);
+            uint32_t _i155;
+            for (_i155 = 0; _i155 < _size151; ++_i155)
             {
-              HostID _key148;
-              xfer += iprot->readI64(_key148);
-              NetworkAddress& _val149 = this->addresses[_key148];
-              xfer += _val149.read(iprot);
+              HostID _key156;
+              xfer += iprot->readI64(_key156);
+              NetworkAddress& _val157 = this->addresses[_key156];
+              xfer += _val157.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -340,11 +340,11 @@ uint32_t Service_init_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->addresses.size()));
-    std::map<HostID, NetworkAddress> ::const_iterator _iter150;
-    for (_iter150 = this->addresses.begin(); _iter150 != this->addresses.end(); ++_iter150)
+    std::map<HostID, NetworkAddress> ::const_iterator _iter158;
+    for (_iter158 = this->addresses.begin(); _iter158 != this->addresses.end(); ++_iter158)
     {
-      xfer += oprot->writeI64(_iter150->first);
-      xfer += _iter150->second.write(oprot);
+      xfer += oprot->writeI64(_iter158->first);
+      xfer += _iter158->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -370,11 +370,11 @@ uint32_t Service_init_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   xfer += oprot->writeFieldBegin("addresses", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->addresses)).size()));
-    std::map<HostID, NetworkAddress> ::const_iterator _iter151;
-    for (_iter151 = (*(this->addresses)).begin(); _iter151 != (*(this->addresses)).end(); ++_iter151)
+    std::map<HostID, NetworkAddress> ::const_iterator _iter159;
+    for (_iter159 = (*(this->addresses)).begin(); _iter159 != (*(this->addresses)).end(); ++_iter159)
     {
-      xfer += oprot->writeI64(_iter151->first);
-      xfer += _iter151->second.write(oprot);
+      xfer += oprot->writeI64(_iter159->first);
+      xfer += _iter159->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -1203,9 +1203,9 @@ uint32_t Service_acquireLock_args::read(::apache::thrift::protocol::TProtocol* i
         break;
       case 2:
         if (ftype == ::apache::thrift::protocol::T_I32) {
-          int32_t ecast152;
-          xfer += iprot->readI32(ecast152);
-          this->mode = (LockMode::type)ecast152;
+          int32_t ecast160;
+          xfer += iprot->readI32(ecast160);
+          this->mode = (LockMode::type)ecast160;
           this->__isset.mode = true;
         } else {
           xfer += iprot->skip(ftype);
@@ -2015,14 +2015,14 @@ uint32_t Service_checkpoint_args::read(::apache::thrift::protocol::TProtocol* ip
         if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->columnIDs.clear();
-            uint32_t _size153;
-            ::apache::thrift::protocol::TType _etype156;
-            iprot->readListBegin(_etype156, _size153);
-            this->columnIDs.resize(_size153);
-            uint32_t _i157;
-            for (_i157 = 0; _i157 < _size153; ++_i157)
+            uint32_t _size161;
+            ::apache::thrift::protocol::TType _etype164;
+            iprot->readListBegin(_etype164, _size161);
+            this->columnIDs.resize(_size161);
+            uint32_t _i165;
+            for (_i165 = 0; _i165 < _size161; ++_i165)
             {
-              xfer += iprot->readI64(this->columnIDs[_i157]);
+              xfer += iprot->readI64(this->columnIDs[_i165]);
             }
             iprot->readListEnd();
           }
@@ -2050,10 +2050,10 @@ uint32_t Service_checkpoint_args::write(::apache::thrift::protocol::TProtocol* o
   xfer += oprot->writeFieldBegin("columnIDs", ::apache::thrift::protocol::T_LIST, 1);
   {
     xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->columnIDs.size()));
-    std::vector<ColumnID> ::const_iterator _iter158;
-    for (_iter158 = this->columnIDs.begin(); _iter158 != this->columnIDs.end(); ++_iter158)
+    std::vector<ColumnID> ::const_iterator _iter166;
+    for (_iter166 = this->columnIDs.begin(); _iter166 != this->columnIDs.end(); ++_iter166)
     {
-      xfer += oprot->writeI64((*_iter158));
+      xfer += oprot->writeI64((*_iter166));
     }
     xfer += oprot->writeListEnd();
   }
@@ -2071,10 +2071,10 @@ uint32_t Service_checkpoint_pargs::write(::apache::thrift::protocol::TProtocol* 
   xfer += oprot->writeFieldBegin("columnIDs", ::apache::thrift::protocol::T_LIST, 1);
   {
     xfer += oprot->writeListBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>((*(this->columnIDs)).size()));
-    std::vector<ColumnID> ::const_iterator _iter159;
-    for (_iter159 = (*(this->columnIDs)).begin(); _iter159 != (*(this->columnIDs)).end(); ++_iter159)
+    std::vector<ColumnID> ::const_iterator _iter167;
+    for (_iter167 = (*(this->columnIDs)).begin(); _iter167 != (*(this->columnIDs)).end(); ++_iter167)
     {
-      xfer += oprot->writeI64((*_iter159));
+      xfer += oprot->writeI64((*_iter167));
     }
     xfer += oprot->writeListEnd();
   }

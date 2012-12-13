@@ -38,16 +38,21 @@ printf("getStatus\n");
 
 void StoreHandler::getWrites(fastore::communication::GetWritesResults& _return, const fastore::communication::Ranges& ranges) 
 {
-// Your implementation goes here
-printf("getWrites\n");
+	_logManager->getWrites(ranges, _currentConnection);
 }
 
-void StoreHandler::commit(const fastore::communication::TransactionID transactionID, const fastore::communication::Writes& writes) 
+void StoreHandler::commit(const TransactionID transactionID, const std::map<ColumnID, Revision>& revisions, const Writes& writes)
 {
-	//_logManager->commit(transactionID, writes);
+	_logManager->commit(transactionID, revisions, writes);
 }
 
 void StoreHandler::flush(const fastore::communication::TransactionID transactionID) 
 {
-	//_logManager->flush(transactionID);
+	_logManager->flush(transactionID, _currentConnection);
+}
+
+void* StoreHandler::getContext(const char* fn_name, void* serverContext)
+{
+	_currentConnection = (apache::thrift::server::TFastoreServer::TConnection*)serverContext;
+	return NULL;
 }

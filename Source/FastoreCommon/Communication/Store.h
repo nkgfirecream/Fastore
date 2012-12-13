@@ -20,7 +20,7 @@ class StoreIf {
   virtual void checkpointEnd(const ColumnID columnID) = 0;
   virtual void getStatus(StoreStatus& _return) = 0;
   virtual void getWrites(GetWritesResults& _return, const Ranges& ranges) = 0;
-  virtual void commit(const TransactionID transactionID, const Writes& writes) = 0;
+  virtual void commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes) = 0;
   virtual void flush(const TransactionID transactionID) = 0;
 };
 
@@ -66,7 +66,7 @@ class StoreNull : virtual public StoreIf {
   void getWrites(GetWritesResults& /* _return */, const Ranges& /* ranges */) {
     return;
   }
-  void commit(const TransactionID /* transactionID */, const Writes& /* writes */) {
+  void commit(const TransactionID /* transactionID */, const std::map<ColumnID, Revision> & /* revisions */, const Writes& /* writes */) {
     return;
   }
   void flush(const TransactionID /* transactionID */) {
@@ -550,8 +550,9 @@ class Store_getWrites_presult {
 };
 
 typedef struct _Store_commit_args__isset {
-  _Store_commit_args__isset() : transactionID(false), writes(false) {}
+  _Store_commit_args__isset() : transactionID(false), revisions(false), writes(false) {}
   bool transactionID;
+  bool revisions;
   bool writes;
 } _Store_commit_args__isset;
 
@@ -564,12 +565,17 @@ class Store_commit_args {
   virtual ~Store_commit_args() throw() {}
 
   TransactionID transactionID;
+  std::map<ColumnID, Revision>  revisions;
   Writes writes;
 
   _Store_commit_args__isset __isset;
 
   void __set_transactionID(const TransactionID val) {
     transactionID = val;
+  }
+
+  void __set_revisions(const std::map<ColumnID, Revision> & val) {
+    revisions = val;
   }
 
   void __set_writes(const Writes& val) {
@@ -579,6 +585,8 @@ class Store_commit_args {
   bool operator == (const Store_commit_args & rhs) const
   {
     if (!(transactionID == rhs.transactionID))
+      return false;
+    if (!(revisions == rhs.revisions))
       return false;
     if (!(writes == rhs.writes))
       return false;
@@ -603,6 +611,7 @@ class Store_commit_pargs {
   virtual ~Store_commit_pargs() throw() {}
 
   const TransactionID* transactionID;
+  const std::map<ColumnID, Revision> * revisions;
   const Writes* writes;
 
   uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
@@ -732,8 +741,8 @@ class StoreClient : virtual public StoreIf {
   void getWrites(GetWritesResults& _return, const Ranges& ranges);
   void send_getWrites(const Ranges& ranges);
   void recv_getWrites(GetWritesResults& _return);
-  void commit(const TransactionID transactionID, const Writes& writes);
-  void send_commit(const TransactionID transactionID, const Writes& writes);
+  void commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes);
+  void send_commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes);
   void flush(const TransactionID transactionID);
   void send_flush(const TransactionID transactionID);
   void recv_flush();
@@ -844,13 +853,13 @@ class StoreMultiface : virtual public StoreIf {
     return;
   }
 
-  void commit(const TransactionID transactionID, const Writes& writes) {
+  void commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes) {
     size_t sz = ifaces_.size();
     size_t i = 0;
     for (; i < (sz - 1); ++i) {
-      ifaces_[i]->commit(transactionID, writes);
+      ifaces_[i]->commit(transactionID, revisions, writes);
     }
-    ifaces_[i]->commit(transactionID, writes);
+    ifaces_[i]->commit(transactionID, revisions, writes);
   }
 
   void flush(const TransactionID transactionID) {

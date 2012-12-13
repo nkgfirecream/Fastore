@@ -901,6 +901,14 @@ public:
 		return server_;
 	}
 
+	//Be careful with this. It writes directly to the output buffer.
+	//This should only used in combination with connection parking (i.e the Processor ended up writing nothing)
+	//Be sure to reset the transport before writing to eliminate any garbage that may be in the buffer.
+	boost::shared_ptr<TProtocol> getOutputProtocol()
+	{
+		return outputProtocol_;
+	}
+
 	/// Close this connection and free or reset its resources.
 	void close();
 
