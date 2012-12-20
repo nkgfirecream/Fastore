@@ -5,8 +5,8 @@
 #include <future>
 
 //#include "../FastoreCore/safe_cast.h"
-#include "../FastoreCommon/Log/Syslog.h"
-#include "../FastoreCommon/Type/Standardtypes.h"
+#include <Log/Syslog.h>
+#include <Type/Standardtypes.h>
 
 using namespace std;
 using namespace fastore::client;
@@ -461,14 +461,16 @@ std::pair<PodID, WorkerClient> Database::GetWorkerForSystemColumn()
 	return std::make_pair(podID, _workers[podID]);
 }
 
-std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<ColumnID, ColumnWrites>& writes)
+fastore::client::Database::WorkerColumnBimap Database::DetermineWorkers(const std::map<ColumnID, ColumnWrites>& writes)
 {
 	auto schema = getSchema();
 	_lock->lock();
-	std::vector<WorkerInfo> results;
+	WorkerColumnBimap results;
 	try
 	{
-		// TODO: only write to the workers for the column(s).
+		// Find all the system columns. Each worker has a copy, but they don't list them
+		// in their state. (TODO: They probably should, it's just a bootstrapping issue.
+		// we have to assume they have them so we can pull schema infomation)
 		std::vector<ColumnID> systemColumns;
 		for (auto iter = schema.begin(); iter != schema.end(); ++iter)
 		{
@@ -478,35 +480,74 @@ std::vector<Database::WorkerInfo> Database::DetermineWorkers(const std::map<Colu
 
 		for (auto ws = _workerStates.begin(); ws != _workerStates.end(); ++ws)
 		{
-			WorkerInfo info;
-			info.podID = ws->first;
+			std::vector<ColumnID> ids;
 
 			//Union with system columns.
-			info.Columns.insert(info.Columns.begin(), systemColumns.begin(), systemColumns.end());	
+			ids.insert(ids.begin(), systemColumns.begin(), systemColumns.end());	
 
 			for (auto repo = ws->second.second.repositoryStatus.begin(); repo != ws->second.second.repositoryStatus.end(); ++repo)
 			{
-				if (repo->second == RepositoryStatus::Online && repo->first > Dictionary::MaxSystemColumnID)
-					info.Columns.push_back(repo->first);
+				if (repo->second == RepositoryStatus::Online && repo->first > Dictionary::MaxSystemColumnID)  //The > Dictionary::MaxSystemColumnID ensures we don't accidentally add the system columns twice
+					ids.push_back(repo->first);
 			}		
 
-			//TODO: fix this nasty double for loop. Sort columns ids and do a search
-			for (auto iter = writes.begin(); iter != writes.end(); ++iter)
-			{
-				bool broke = false;
-				for (size_t i = 0; i < info.Columns.size(); ++i)
-				{
-					if (info.Columns[i] == iter->first)
-					{
-						broke = true;
-						results.push_back(info);
-						break;
-					}
-				}
+			//Sort the columns in workerInfo so we can do a merge.
+			std::sort(ids.begin(), ids.end());
 
-				if (broke)
+			auto writesBegin = writes.begin();
+			auto writesEnd = writes.end();
+
+			auto colBegin = ids.begin();
+			auto colEnd = ids.end();
+
+			//Add all the pairs to the bimap
+			while(true)
+			{
+				if (writesBegin == writesEnd || colBegin == colEnd)
 					break;
-			}			
+
+				auto infoCol = *colBegin;
+				auto writeCol = writesBegin->first;
+
+				if (infoCol == writeCol)
+				{
+					results.insert(WorkerColumnPair(ws->first, writeCol));
+					++colBegin;
+				}
+				else if (infoCol < writeCol)
+					++colBegin;
+				else
+					++writesBegin;
+			}
+		}
+
+		// Release lock during ensures
+		_lock->unlock();
+		return results;
+	}
+	catch(const std::exception& e)
+	{
+		_lock->unlock();
+		throw e;
+	}
+}
+
+fastore::client::Database::StoreWorkerBimap Database::DetermineStores(const WorkerColumnBimap& workers)
+{
+	//TODO: instead of simply returning all the stores, map stores to workers so that only the stores
+	//actually serving workers involved in the transactions get the full data set. All other stores
+	//should see only the transaction record.
+	_lock->lock();
+	StoreWorkerBimap results;
+	try
+	{
+		for (auto begin = _hiveState.services.begin(), end = _hiveState.services.end(); begin != end; ++begin)
+		{
+
+			for (auto wb = begin->second.workers.begin(), we = begin->second.workers.end(); wb != we; ++wb)
+			{
+				results.insert(StoreWorkerPair(begin->first, wb->podID));
+			}
 		}
 
 		// Release lock during ensures
@@ -827,27 +868,36 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 		while (true)
 		{
 			auto workers = DetermineWorkers(writes);
+			auto stores = DetermineStores(workers);
 
-			auto tasks = StartWorkerWrites(getColumnIDs(writes), transactionID, workers);
+			auto tasks = Apply(getColumnIDs(writes), transactionID, workers);
 
-			std::unordered_map<PodID, boost::shared_ptr<TProtocol>>failedWorkers;
-			auto workersByTransaction = ProcessWriteResults(workers, tasks, failedWorkers);
+			auto revisionsByColumn = ProcessPrepareResults(workers, tasks);
 
 			// Commit if threshold reached, else rollback and retry
-			if (FinalizeTransaction(workers, workersByTransaction, failedWorkers))
+			if (CanFinalizeTransaction(revisionsByColumn))
 			{
-				// If we've inserted/deleted system table(s), force a schema refresh
-				// Supposedly std::map sorts by std::less<T>, so in theory begin is
-				// our smallest value. We should test this.
-				if (writes.begin()->first <= Dictionary::MaxSystemColumnID)
+				//TODO: Handle failed commit. Should be rare since we just prepared.
+				Commit(transactionID, writes, workers, stores);
+
+				bool shouldRefreshSchema = writes.begin()->first <= Dictionary::MaxSystemColumnID;
+
+				if (flush || shouldRefreshSchema)
+					Flush(transactionID, stores);
+			
+				if (shouldRefreshSchema)
 				{
 					RefreshSchema();
 					RefreshHiveState();
 				}
-
-				if (flush)
-					//FlushWorkers(transactionID, workers); -- TODO: Flush service
+		
 				break;
+			}
+			else
+			{
+				//TODO: Attempt resolution and update.
+				//Rollback();
+				continue;
 			}
 
 			// Fail if exceeded number of retries
@@ -857,33 +907,137 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 	}
 }
 
-std::vector<std::future<PrepareResults>> Database::StartWorkerWrites(const ColumnIDs &columnIDs, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers)
+void Database::Commit(const TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, WorkerColumnBimap& workers, StoreWorkerBimap& stores)
 {
-	std::vector<std::future<PrepareResults>> tasks;
-	// Apply the modification to every worker, even if no work
-	for (auto worker = workers.begin(); worker != workers.end(); ++worker)
+	std::vector<std::future<void>> tasks;
+	for (auto worker = workers.left.begin(); worker != workers.left.end(); ++worker)
 	{
 		tasks.push_back
 		(
-			std::future<PrepareResults>
+			std::future<void>
 			(
 				std::async
 				(
 					std::launch::async,
-					[&, worker]()-> PrepareResults
+					[&, worker]()-> void
 					{
-						PrepareResults result;
 						AttemptWrite
 						(
-							worker->podID,
+							worker->first,
 							[&](WorkerClient client)
 							{
-								return client.apply(result, transactionID, columnIDs);
+								return client.commit(transactionID, writes);
 							}
 						);
-
-						return result;
 					}
+				)
+			)
+		);
+	}
+
+	for (auto store = stores.left.begin(); store != stores.left.end(); ++store)
+	{
+		tasks.push_back
+		(
+			std::future<void>
+			(
+				std::async
+				(
+					std::launch::async,
+					[&, store]()-> void
+					{
+						auto client = _stores[store->first];
+						bool flushed = false;
+						try
+						{
+							//TODO: convert writes to revisions... Column should take the same.
+							//client.commit(transactionID, writes);
+							_stores.Release(std::make_pair(store->first, client));
+						}
+						catch(const std::exception&)
+						{
+							//TODO: track exception errors. Failed flush is bad.
+							if(!flushed)
+								_stores.Release(std::make_pair(store->first, client));
+						}
+					}
+				)
+			)
+		);
+	}
+
+	for (size_t i = 0; i < tasks.size(); ++i)
+	{
+		tasks[i].wait();
+	}
+}
+
+//std::vector<std::future<PrepareResults>> Database::Prepare(const ColumnIDs &columnIDs, const TransactionID &transactionID, const fastore::client::Database::WorkerColumnBimap& workers)
+//{
+//	std::vector<std::future<PrepareResults>> tasks;
+//	// Apply the modification to every worker, even if no work
+//	for (auto worker = workers.left.begin(); worker != workers.left.end(); ++worker)
+//	{
+//		tasks.push_back
+//		(
+//			std::future<PrepareResults>
+//			(
+//				std::async
+//				(
+//					std::launch::async,
+//					[&, worker]()-> PrepareResults
+//					{
+//						PrepareResults result;
+//						AttemptWrite
+//						(
+//							worker->first,
+//							[&](WorkerClient client)
+//							{
+//								return client.prepare(result, transactionID, columnIDs);
+//							}
+//						);
+//
+//						return result;
+//					}
+//				)
+//			)
+//		);
+//	}
+//
+//	return tasks;
+//}
+
+std::map<PodID, std::future<PrepareResults>> Database::Apply(const ColumnIDs &columnIDs, const TransactionID &transactionID, const fastore::client::Database::WorkerColumnBimap& workers)
+{
+	std::map<PodID, std::future<PrepareResults>> tasks;
+	// Apply the modification to every worker, even if no work
+	for (auto worker =  workers.left.begin(); worker != workers.left.end(); ++worker)
+	{
+		tasks.insert
+		(
+			std::make_pair
+			(
+				worker->first,
+				std::future<PrepareResults>
+				(
+					std::async
+					(
+						std::launch::async,
+						[&, worker]()-> PrepareResults
+						{
+							PrepareResults result;
+							AttemptWrite
+							(
+								worker->first,
+								[&](WorkerClient client)
+								{
+									return client.apply(result, transactionID, columnIDs);
+								}
+							);
+
+							return result;
+						}
+					)
 				)
 			)
 		);
@@ -892,167 +1046,114 @@ std::vector<std::future<PrepareResults>> Database::StartWorkerWrites(const Colum
 	return tasks;
 }
 
-//void Database::FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers)
-//{
-//	std::vector<std::future<void>> flushTasks;
-//	for (auto w = workers.begin(); w != workers.end(); ++w)
-//	{
-//		flushTasks.push_back
-//		(
-//			std::future<void>
-//			(
-//				std::async
-//				(
-//					std::launch::async,
-//					[&]()
-//					{
-//						auto worker = _workers[w->podID];
-//						bool flushed = false;
-//						try
-//						{
-//							//TODO: service
-//							//worker.flush(transactionID);
-//							flushed = true;
-//							_workers.Release(std::make_pair(w->podID, worker));
-//						}
-//						catch(const std::exception&)
-//						{
-//							//TODO: track exception errors;
-//							if(!flushed)
-//								_workers.Release(std::make_pair(w->podID, worker));
-//						}
-//					}
-//				)
-//			)
-//		);
-//	}
-//
-//	// Wait for critical number of workers to flush
-//	auto neededCount =  workers.size() / 2 > 1 ? workers.size() / 2 : 1;
-//	for (size_t i = 0; i < flushTasks.size() && i < neededCount; i++)
-//		flushTasks[i].wait();
-//}
+void Database::Flush(const TransactionID& transactionID, const fastore::client::Database::StoreWorkerBimap& stores)
+{
+	std::vector<std::future<void>> flushTasks;
+	for (auto s = stores.left.begin(); s != stores.left.end(); ++s)
+	{
+		flushTasks.push_back
+		(
+			std::future<void>
+			(
+				std::async
+				(
+					std::launch::async,
+					[&]()
+					{
+						auto store = _stores[s->first];
+						bool flushed = false;
+						try
+						{
+							store.flush(transactionID);
+							flushed = true;
+							_stores.Release(std::make_pair(s->first, store));
+						}
+						catch(const std::exception&)
+						{
+							//TODO: track exception errors. Failed flush is bad.
+							if(!flushed)
+								_stores.Release(std::make_pair(s->first, store));
+						}
+					}
+				)
+			)
+		);
+	}
 
-std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessWriteResults
-(
-	const std::vector<WorkerInfo>& workers, 
-	std::vector<std::future<PrepareResults>>& tasks, 
-	std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
-)
+	// Wait for critical number of stores to flush
+	// This is a bit more complicated. If the stores aren't receiving every write we need to make
+	// sure that at least two stores for every column has flushed.
+	auto neededCount =  stores.size() / 2 > 1 ? stores.size() / 2 : 1;
+	for (size_t i = 0; i < flushTasks.size() && i < neededCount; i++)
+		flushTasks[i].wait();
+}
+
+std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessPrepareResults(const WorkerColumnBimap& workers, std::map<PodID, std::future<PrepareResults>>& tasks)
 {
 	clock_t start = clock();
 
 	// Group workers by column, then revision
-	std::unordered_map<ColumnID, ColumnWriteResult> results;
-	for (size_t i = 0; i < tasks.size(); i++)
+	std::unordered_map<ColumnID, ColumnWriteResult> columnWriteResults;
+
+	for (auto task = tasks.begin(); task != tasks.end(); ++task)
 	{
 		// Attempt to fetch the result for each task
 		PrepareResults prepareResults;
 		try
 		{
 			clock_t timeToWait = getWriteTimeout() - (clock() - start);
-			auto result = tasks[i].wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
+			auto taskStatus = task->second.wait_for(std::chrono::milliseconds(timeToWait > 0 ? timeToWait : 0));
 #if __GNUC_MINOR__ == 6
 			// ignore what wait_for returns until GNU and Microsoft agree
-			if (result)
+			if (taskStatus)
 #else
-			if (result == std::future_status::ready)
+			if (taskStatus == std::future_status::ready)
 #endif
-				prepareResults = tasks[i].get();
+				prepareResults = task->second.get();
 			else
 			{
-				failedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
+				//Fail worker for every column it has
+				//Find the list of columns the worker has
+				//auto columns = worker->
+				//for (auto colBegin = columns-
+
+				//outFailedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(worker->first, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 				continue;
 			}
 		}
 		catch (std::exception&)
 		{
-			failedWorkers.insert(std::make_pair(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
-			///			failedWorkers.insert(std::pair<int, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(i, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
+			//outFailedWorkers.insert(std::make_pair(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
 			// else: Other errors were managed by AttemptWrite
 			continue;
 		}
 
 		// Successful.  Track workers by column then revision number, and track validation needs for each column
-		for (auto result : prepareResults)
+		for (auto prepareResult : prepareResults)
 		{
-			auto &running = results[result.first];
-			running.validateRequired |= result.second.validateRequired;
-			running.workersByRevision[result.second.actualRevision].push_back(workers[i]);
+			auto &running = columnWriteResults[prepareResult.first];
+			running.validateRequired |= prepareResult.second.validateRequired;
+			running.workersByRevision[prepareResult.second.actualRevision].push_back(task->first);
 		}
 	}
 
-	return results;
+	return columnWriteResults;
 }
 
-bool Database::FinalizeTransaction
-(
-	const std::vector<WorkerInfo>& workers, 
-	const std::unordered_map<ColumnID, ColumnWriteResult>& workersByTransaction, 
-	std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
-)
+bool Database::CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnWriteResult>& columnWriteResultsByColumn)
 {
-	if (workersByTransaction.size() > 0)
+	for (auto begin = columnWriteResultsByColumn.begin(), end = columnWriteResultsByColumn.end(); begin != end; ++begin)
 	{
-		auto last = (--workersByTransaction.end());
-		auto max = last->first;
+		//TODO: Correct validation.
+		auto writeResult = begin->second;
 
-		auto successes = last->second;
-
-		//if (successes.size() > workers.size() / 2)
-		//{
-		//	// Transaction successful, commit all reached workers
-		//	for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
-		//	{
-		//		for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
-		//		{
-		//			WorkerInvoke
-		//			(
-		//				worker->podID, 
-		//				[&](WorkerClient client)
-		//				{
-		//					client.commit(max);
-		//				}
-		//			);
-		//		}
-		//	}
-		//	// Also send out a commit to workers that timed-out
-		//	for (auto worker = failedWorkers.begin(); worker != failedWorkers.end(); ++worker)
-		//	{
-		//		if (worker->second != nullptr)
-		//		{
-		//			WorkerInvoke
-		//			(
-		//				worker->first, 
-		//				[&](WorkerClient client)
-		//				{
-		//					client.commit(max);
-		//				}
-		//			);
-		//		}
-		//	}
-		//	return true;
-		//}
-		//else
-		//{
-		//	// Failure, roll-back successful prepares
-		//	for (auto group = workersByTransaction.begin(); group != workersByTransaction.end(); ++group)
-		//	{
-		//		for (auto worker = group->second.begin(); worker != group->second.end(); ++worker)
-		//		{
-		//			WorkerInvoke
-		//			(
-		//				worker->podID, 
-		//				[&](WorkerClient client)
-		//				{
-		//					client.rollback(group->first);
-		//				}
-		//			);
-		//		}
-		//	}
-		//}
+		if(writeResult.validateRequired || writeResult.failedWorkers.size() > 0)
+		{
+			return false;
+		}
 	}
-	return false;
+
+	return true;
 }
 
 void Database::WorkerInvoke(PodID podID, std::function<void(WorkerClient)> work)

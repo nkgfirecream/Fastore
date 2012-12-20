@@ -161,6 +161,7 @@ void LogManager::indexLogFile(std::string filename)
 			indexRollbackRecord(writer.readRollBack());
 			break;		
 		default:
+			//TODO: This should be a case where we mark the log file as corrupted or incomplete past this point.
 			throw new std::exception(("Unknown Record Type encountered while indexing log file: " + filename).c_str()); 
 		}
 

@@ -6,7 +6,7 @@
 #include "ClientException.h"
 #include "Transaction.h"
 #include "DataSet.h"
-#include "../FastoreCommon/Buffer/ColumnDef.h"
+#include <Buffer/ColumnDef.h>
 #include <string>
 #include <map>
 #include <unordered_map>
@@ -22,6 +22,8 @@
 #include "typedefs.h"
 #include <future>
 #include "TransactionIDGenerator.h"
+#include <boost/bimap.hpp>
+#include <boost/bimap/multiset_of.hpp>
 
 using namespace fastore::communication;
 using namespace apache::thrift::protocol;
@@ -51,16 +53,29 @@ namespace fastore { namespace client
 			int Next;
 		};
 
-		struct WorkerInfo
+		typedef boost::bimap<boost::bimaps::multiset_of<PodID>, boost::bimaps::multiset_of<ColumnID>, boost::bimaps::set_of_relation<>> WorkerColumnBimap;
+		typedef WorkerColumnBimap::value_type WorkerColumnPair;
+
+		typedef boost::bimap<boost::bimaps::set_of<HostID>, boost::bimaps::multiset_of<PodID>, boost::bimaps::set_of_relation<>> StoreWorkerBimap;
+		typedef StoreWorkerBimap::value_type StoreWorkerPair;
+
+		/*struct WorkerInfo
 		{
 			PodID podID;
-			ColumnIDs Columns;
+			ColumnIDs columns;
 		};
+
+		struct StoreInfo
+		{
+			HostID hostId;
+			std::vector<PodID> pods;
+		};*/
 
 		struct ColumnWriteResult
 		{
 			bool validateRequired;
-			std::map<Revision, std::vector<WorkerInfo>> workersByRevision;
+			std::map<Revision, std::vector<PodID>> workersByRevision;
+			std::vector<PodID> failedWorkers;
 		};
 		
 		boost::shared_ptr<boost::mutex> _lock;
@@ -122,7 +137,8 @@ namespace fastore { namespace client
 
 		/// <summary> Determine the workers to write-to for the given column IDs. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
-		std::vector<WorkerInfo> DetermineWorkers(const std::map<ColumnID, ColumnWrites>& writes);
+		WorkerColumnBimap DetermineWorkers(const std::map<ColumnID, ColumnWrites>& writes);
+		StoreWorkerBimap DetermineStores(const WorkerColumnBimap& workers);
 
 		/// <summary> Performs a read operation against a worker and manages errors and retries. </summary>
 		/// <remarks> This method is thread-safe. </remarks>
@@ -146,26 +162,34 @@ namespace fastore { namespace client
 		void apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
 		void apply(TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, const bool flush);
 
-		//void FlushWorkers(const TransactionID& transactionID, const std::vector<WorkerInfo>& workers);
-
-		std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessWriteResults
-		(
-			const std::vector<WorkerInfo>& workers, 
-			std::vector<std::future<PrepareResults>>& tasks, 
-			std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers
-		);
-
-		bool FinalizeTransaction(const std::vector<WorkerInfo>& workers, const std::unordered_map<ColumnID, ColumnWriteResult>& workersByTransaction, std::unordered_map<PodID, boost::shared_ptr<TProtocol>>& failedWorkers);
-
 		/// <summary> Invokes a given command against a worker. </summary>
 		void WorkerInvoke(PodID podID, std::function<void(WorkerClient)> work);
 
 		/// <summary> Invokes a given command against a service. </summary>
 		void ServiceInvoke(HostID hostID, std::function<void(ServiceClient)> work);
 
-		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
-		std::vector<std::future<PrepareResults>> StartWorkerWrites(const ColumnIDs& columnIDs, const TransactionID &transactionID, const std::vector<WorkerInfo>& workers);
+		/// <summary> Tests each worker to see if it can prepare.
+		//std::vector<std::future<PrepareResults>> Prepare(const ColumnIDs& columnIDs, const TransactionID &transactionID, const WorkerColumnBimap& workers);
 
+		/// <summary> Apply the writes to each worker, even if there are no modifications for that worker. </summary>
+		std::map<PodID, std::future<PrepareResults>> Apply(const ColumnIDs& columnIDs, const TransactionID &transactionID, const WorkerColumnBimap& workers);
+
+		/// <summary> Waits for all the tasks started by prepare to finish
+		std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessPrepareResults(const WorkerColumnBimap& workers, std::map<PodID, std::future<PrepareResults>>& tasks);
+
+		/// <summary> Checks to see if all columns have a majority of their respective workers
+		bool CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnWriteResult>& columnWriteResultsByColumn);
+
+		/// <summary> Writes data to columns and stores
+		void Commit(const TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, WorkerColumnBimap& workers, StoreWorkerBimap& stores);
+
+		/// <summary> Rollsback a prepared transaction
+		//void Rollback();
+
+		/// <summary> Checks to see if the given transaction has made it to disk
+		void Flush(const TransactionID& transactionID, const StoreWorkerBimap& stores);
+		
+		
 		std::map<ColumnID, ColumnWrites> CreateIncludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
 		std::map<ColumnID, ColumnWrites> CreateExcludes(const ColumnIDs& columnIds, const std::string& rowId, const std::vector<std::string>& row);
 
