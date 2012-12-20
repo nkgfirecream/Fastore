@@ -609,8 +609,11 @@ int64_t LogManager::reuseFileOldLsn(int64_t& outNewLsn)
 	//A file can be reused if every column it contains has a checkpoint record in a subsequent file.
 	
 	//For now always just use a new log file.
-	auto entry = _files.end();
-	outNewLsn = entry->first + 1;
+	auto entry = _files.rbegin();
+	if (entry != _files.rend())
+		outNewLsn = entry->first + 1;
+	else
+		outNewLsn = 0;
 
 	return -1;
 }

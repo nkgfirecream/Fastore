@@ -875,10 +875,11 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 			auto revisionsByColumn = ProcessPrepareResults(workers, tasks);
 
 			// Commit if threshold reached, else rollback and retry
-			if (CanFinalizeTransaction(revisionsByColumn))
+			std::map<ColumnID,Revision> revisions;
+			if (CanFinalizeTransaction(revisionsByColumn, revisions))
 			{
 				//TODO: Handle failed commit. Should be rare since we just prepared.
-				Commit(transactionID, writes, workers, stores);
+				Commit(transactionID, writes, revisions, workers, stores);
 
 				bool shouldRefreshSchema = writes.begin()->first <= Dictionary::MaxSystemColumnID;
 
@@ -907,7 +908,7 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 	}
 }
 
-void Database::Commit(const TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, WorkerColumnBimap& workers, StoreWorkerBimap& stores)
+void Database::Commit(const TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, std::map<ColumnID,Revision>& revisions, WorkerColumnBimap& workers, StoreWorkerBimap& stores)
 {
 	std::vector<std::future<void>> tasks;
 	for (auto worker = workers.left.begin(); worker != workers.left.end(); ++worker)
@@ -951,7 +952,7 @@ void Database::Commit(const TransactionID transactionID, const std::map<ColumnID
 						try
 						{
 							//TODO: convert writes to revisions... Column should take the same.
-							//client.commit(transactionID, writes);
+							client.commit(transactionID, revisions, writes);
 							_stores.Release(std::make_pair(store->first, client));
 						}
 						catch(const std::exception&)
@@ -1023,7 +1024,7 @@ std::map<PodID, std::future<PrepareResults>> Database::Apply(const ColumnIDs &co
 					std::async
 					(
 						std::launch::async,
-						[&, worker]()-> PrepareResults
+						[&, worker, columnIDs]()-> PrepareResults
 						{
 							PrepareResults result;
 							AttemptWrite
@@ -1058,7 +1059,7 @@ void Database::Flush(const TransactionID& transactionID, const fastore::client::
 				std::async
 				(
 					std::launch::async,
-					[&]()
+					[&,s]()
 					{
 						auto store = _stores[s->first];
 						bool flushed = false;
@@ -1112,19 +1113,19 @@ std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessPrepa
 				prepareResults = task->second.get();
 			else
 			{
-				//Fail worker for every column it has
-				//Find the list of columns the worker has
-				//auto columns = worker->
-				//for (auto colBegin = columns-
-
-				//outFailedWorkers.insert(std::pair<PodID, boost::shared_ptr<apache::thrift::protocol::TProtocol>>(worker->first, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
-				continue;
+				//Should be caught immediately below
+				throw std::exception("Worker not ready yet and timeout has expired");
 			}
 		}
 		catch (std::exception&)
 		{
-			//outFailedWorkers.insert(std::make_pair(workers[i].podID, boost::shared_ptr<apache::thrift::protocol::TProtocol>()));
-			// else: Other errors were managed by AttemptWrite
+			//Find all the columns associated with this worker and add the worker to their failed list.
+			auto workerColumns = workers.left.find(task->first);
+			while (workerColumns->first == task->first)
+			{
+				auto &writeResult = columnWriteResults[workerColumns->second];
+				writeResult.failedWorkers.push_back(task->first);
+			}
 			continue;
 		}
 
@@ -1140,17 +1141,27 @@ std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessPrepa
 	return columnWriteResults;
 }
 
-bool Database::CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnWriteResult>& columnWriteResultsByColumn)
+bool Database::CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnWriteResult>& columnWriteResultsByColumn, std::map<ColumnID,Revision>& outRevisions)
 {
 	for (auto begin = columnWriteResultsByColumn.begin(), end = columnWriteResultsByColumn.end(); begin != end; ++begin)
 	{
 		//TODO: Correct validation.
 		auto writeResult = begin->second;
 
-		if(writeResult.validateRequired || writeResult.failedWorkers.size() > 0)
+		//Total workers involved for this column:
+		size_t totalWorkers = writeResult.failedWorkers.size();
+		for (auto beginWorkerByRevision = writeResult.workersByRevision.begin(); beginWorkerByRevision != writeResult.workersByRevision.end(); ++beginWorkerByRevision)
 		{
-			return false;
+			totalWorkers += beginWorkerByRevision->second.size();
 		}
+
+		if (writeResult.validateRequired || 
+			writeResult.workersByRevision.size() == 0 ||
+			(writeResult.failedWorkers.size() >= totalWorkers / 2) ||
+			(writeResult.workersByRevision.rbegin()->second.size() < totalWorkers / 2))
+			return false;
+		else
+			outRevisions[begin->first] = writeResult.workersByRevision.rbegin()->first + 1;
 	}
 
 	return true;
@@ -1436,7 +1447,7 @@ void Database::checkpoint()
 TransactionID Database::generateTransactionID()
 {
 	// Lazy create the generator because creation is relatively expensive
-	if (_generator != nullptr)
+	if (_generator == nullptr)
 		_generator = unique_ptr<TransactionIDGenerator>(new TransactionIDGenerator());
 	
 	return _generator->generate();

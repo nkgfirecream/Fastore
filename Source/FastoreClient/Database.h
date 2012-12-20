@@ -178,10 +178,10 @@ namespace fastore { namespace client
 		std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessPrepareResults(const WorkerColumnBimap& workers, std::map<PodID, std::future<PrepareResults>>& tasks);
 
 		/// <summary> Checks to see if all columns have a majority of their respective workers
-		bool CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnWriteResult>& columnWriteResultsByColumn);
+		bool CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnWriteResult>& columnWriteResultsByColumn, std::map<ColumnID,Revision>& outRevisions);
 
 		/// <summary> Writes data to columns and stores
-		void Commit(const TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, WorkerColumnBimap& workers, StoreWorkerBimap& stores);
+		void Commit(const TransactionID transactionID, const std::map<ColumnID, ColumnWrites>& writes, std::map<ColumnID,Revision>& revisions, WorkerColumnBimap& workers, StoreWorkerBimap& stores);
 
 		/// <summary> Rollsback a prepared transaction
 		//void Rollback();
