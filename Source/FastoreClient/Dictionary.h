@@ -12,39 +12,9 @@ namespace fastore { namespace client
 	class Dictionary
 	{	
 	private:
-		static const fastore::communication::ColumnID _ColumnColumns[];
-		static const fastore::communication::ColumnID _TopologyColumns[];
-		static const fastore::communication::ColumnID _HostColumns[];		
-		static const fastore::communication::ColumnID _TablePodColumns[];		
-		static const fastore::communication::ColumnID _PodColumnColumns[];
 		static const fastore::communication::ColumnID _GeneratorColumns[];
 
 	public:
-		static const fastore::communication::ColumnID MaxSystemColumnID;
-		static const fastore::communication::ColumnID MaxClientColumnID;
-
-		static const fastore::communication::ColumnID ColumnID;
-		static const fastore::communication::ColumnID ColumnName;
-		static const fastore::communication::ColumnID ColumnValueType;
-		static const fastore::communication::ColumnID ColumnRowIDType;
-		static const fastore::communication::ColumnID ColumnBufferType;	
-		static const fastore::communication::ColumnID ColumnRequired;
-		static const ColumnIDs ColumnColumns;
-
-		static const fastore::communication::ColumnID TopologyID;
-		static const ColumnIDs TopologyColumns;
-
-		static const fastore::communication::ColumnID HostID;
-		static const ColumnIDs HostColumns;
-
-		static const fastore::communication::ColumnID PodID;
-		static const fastore::communication::ColumnID PodHostID;
-		static const ColumnIDs TablePodColumns;
-
-		static const fastore::communication::ColumnID PodColumnPodID;
-		static const fastore::communication::ColumnID PodColumnColumnID;
-		static const ColumnIDs PodColumnColumns;
-
 		static const fastore::communication::ColumnID GeneratorNextValue;	
 		static const ColumnIDs GeneratorColumns;
 

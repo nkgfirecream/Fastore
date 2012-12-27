@@ -1,5 +1,6 @@
 ﻿#include "Database.h"
 #include "Dictionary.h"
+#include <Schema/Dictionary.h>
 #include <boost/format.hpp>
 #include "Encoder.h"
 #include <future>
@@ -170,7 +171,7 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 
 	ColumnWrites topoWrites;
 	topoWrites.__set_includes(tempVector);
-	writes.insert(std::make_pair(Dictionary::TopologyID, topoWrites));
+	writes.insert(std::make_pair(fastore::common::Dictionary::TopologyID, topoWrites));
 
 	// Insert the hosts and pods
 	ColumnWrites hostWrites;
@@ -206,9 +207,9 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 		}
 	}
 
-	writes.insert(std::make_pair(Dictionary::HostID, hostWrites));
-	writes.insert(std::make_pair(Dictionary::PodID, podWrites));
-	writes.insert(std::make_pair(Dictionary::PodHostID, podHostWrites));
+	writes.insert(std::make_pair(fastore::common::Dictionary::HostID, hostWrites));
+	writes.insert(std::make_pair(fastore::common::Dictionary::PodID, podWrites));
+	writes.insert(std::make_pair(fastore::common::Dictionary::PodHostID, podHostWrites));
 
 	apply(writes, false);
 }
@@ -408,7 +409,7 @@ NetworkAddress Database::GetWorkerAddress(PodID podID)
 
 std::pair<PodID, WorkerClient> Database::GetWorker(ColumnID columnID)
 {
-	if (columnID <= Dictionary::MaxSystemColumnID)
+	if (columnID <= fastore::common::Dictionary::MaxSystemColumnID)
 		return GetWorkerForSystemColumn();
 	else
 		return GetWorkerForColumn(columnID);
@@ -474,7 +475,7 @@ fastore::client::Database::WorkerColumnBimap Database::DetermineWorkers(const st
 		std::vector<ColumnID> systemColumns;
 		for (auto iter = schema.begin(); iter != schema.end(); ++iter)
 		{
-			if (iter->first <= Dictionary::MaxSystemColumnID)
+			if (iter->first <= fastore::common::Dictionary::MaxSystemColumnID)
 				systemColumns.push_back(iter->first);
 		}
 
@@ -487,7 +488,7 @@ fastore::client::Database::WorkerColumnBimap Database::DetermineWorkers(const st
 
 			for (auto repo = ws->second.second.repositoryStatus.begin(); repo != ws->second.second.repositoryStatus.end(); ++repo)
 			{
-				if (repo->second == RepositoryStatus::Online && repo->first > Dictionary::MaxSystemColumnID)  //The > Dictionary::MaxSystemColumnID ensures we don't accidentally add the system columns twice
+				if (repo->second == RepositoryStatus::Online && repo->first > fastore::common::Dictionary::MaxSystemColumnID)  //The > Dictionary::MaxSystemColumnID ensures we don't accidentally add the system columns twice
 					ids.push_back(repo->first);
 			}		
 
@@ -881,7 +882,7 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 				//TODO: Handle failed commit. Should be rare since we just prepared.
 				Commit(transactionID, writes, revisions, workers, stores);
 
-				bool shouldRefreshSchema = writes.begin()->first <= Dictionary::MaxSystemColumnID;
+				bool shouldRefreshSchema = writes.begin()->first <= fastore::common::Dictionary::MaxSystemColumnID;
 
 				if (flush || shouldRefreshSchema)
 					Flush(transactionID, stores);
@@ -1066,7 +1067,7 @@ void Database::Flush(const TransactionID& transactionID, const fastore::client::
 						bool flushed = false;
 						try
 						{
-							store.flush(transactionID);
+							//store.flush(transactionID);
 							flushed = true;
 							_stores.Release(std::make_pair(s->first, store));
 						}
@@ -1322,18 +1323,20 @@ Schema Database::LoadSchema()
 	{
 		Range range;
 		range.Ascending = true;
-		range.ColumnID = Dictionary::ColumnID;
-		RangeSet columns = getRange(Dictionary::ColumnColumns, range, MaxFetchLimit);
+		range.ColumnID = fastore::common::Dictionary::ColumnID;
+		RangeSet columns = getRange(fastore::common::Dictionary::ColumnColumns, range, MaxFetchLimit);
 
 		for (auto column : columns.Data)
 		{
-			ColumnDef def;
-			def.ColumnID = Encoder<ColumnID>::Decode(column.ID);
-			def.Name = Encoder<std::string>::Decode(column.Values[1].value);
-			def.ValueType = standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[2].value));
-			def.RowIDType = standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[3].value));
-			def.BufferType = Encoder<BufferType_t>::Decode(column.Values[4].value);
-			def.Required = Encoder<bool>::Decode(column.Values[5].value);
+			ColumnDef def =
+				{
+					Encoder<ColumnID>::Decode(column.ID),
+					Encoder<std::string>::Decode(column.Values[1].value),
+					standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[2].value)),
+					standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[3].value)),
+					Encoder<BufferType_t>::Decode(column.Values[4].value),
+					Encoder<bool>::Decode(column.Values[5].value)
+				};
 
 			schema.insert(std::make_pair(def.ColumnID, def));
 		}
@@ -1352,12 +1355,12 @@ void Database::BootStrapSchema()
 {
 	static const ColumnDef defaults[] =  
 	{ 
-		{ Dictionary::ColumnID, "Column.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
-		{ Dictionary::ColumnName, "Column.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
-		{ Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool, standardtypes::Long, BufferType_t::Multi, true }
+		{ fastore::common::Dictionary::ColumnID, "Column.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
+		{ fastore::common::Dictionary::ColumnName, "Column.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
+		{ fastore::common::Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
+		{ fastore::common::Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
+		{ fastore::common::Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int, standardtypes::Long, BufferType_t::Multi, true },
+		{ fastore::common::Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool, standardtypes::Long, BufferType_t::Multi, true }
 	};	
 
 	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 

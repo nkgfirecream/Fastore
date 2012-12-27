@@ -275,7 +275,7 @@ void Transaction::include(const ColumnIDs& columnIds, const std::string& rowId, 
 	for (size_t i = 0; i < columnIds.size(); ++i)
 	{
 		// TODO: Introduce non-batch calls into buffers so that this is easier and faster
-		LogColumn& column = ensureColumnLog(columnIds[i]);
+		LogColumn column = ensureColumnLog(columnIds[i]);
 		RangeRequest range;
 		range.first.value = row[i];
 		range.first.inclusive = true;
@@ -334,7 +334,7 @@ std::vector<Statistic> Transaction::getStatistics(const ColumnIDs& columnIds)
 	return remote;
 }
 
-Transaction::LogColumn& Transaction::ensureColumnLog(const ColumnID& columnId)
+Transaction::LogColumn Transaction::ensureColumnLog(const ColumnID& columnId)
 {
 	auto iter = _log.find(columnId);
 	if (iter == _log.end())
@@ -343,7 +343,7 @@ Transaction::LogColumn& Transaction::ensureColumnLog(const ColumnID& columnId)
 		auto def = schema.find(columnId);
 		if (def != schema.end())
 		{
-			auto inserted = _log.insert(std::pair<ColumnID, LogColumn>(columnId, LogColumn(def->second.RowIDType, def->second.ValueType)));
+			auto inserted = _log.insert(std::make_pair(columnId, LogColumn(def->second.RowIDType, def->second.ValueType)));
 			return inserted.first->second;
 		}
 		else

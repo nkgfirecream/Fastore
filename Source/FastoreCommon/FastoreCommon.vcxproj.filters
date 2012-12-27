@@ -19,6 +19,9 @@
     <Filter Include="Tree">
       <UniqueIdentifier>{8b6a0345-654f-47a5-94b6-165eca601925}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Schema">
+      <UniqueIdentifier>{f108da41-43d5-4f98-baa3-a7485f4213e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Communication\Comm_constants.cpp">
@@ -86,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="Communication\Store.cpp">
       <Filter>Communication</Filter>
+    </ClCompile>
+    <ClCompile Include="Schema\Dictionary.cpp">
+      <Filter>Schema</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +184,9 @@
     </ClInclude>
     <ClInclude Include="Communication\Store.h">
       <Filter>Communication</Filter>
+    </ClInclude>
+    <ClInclude Include="Schema\Dictionary.h">
+      <Filter>Schema</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

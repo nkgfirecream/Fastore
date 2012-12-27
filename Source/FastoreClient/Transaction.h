@@ -39,12 +39,12 @@ namespace fastore { namespace client
 			// Isolated Revision (0 reserved for unknown)
 			Revision revision;
 			// Row type
-			ScalarType &rowType;
+			const ScalarType& rowType;
 			// Value type
-			ScalarType &valueType;
+			const ScalarType& valueType;
 
-			LogColumn(ScalarType& rowType, ScalarType &valueType) 
-				: includes(new TreeBuffer(rowType, valueType)), revision(0), rowType(rowType), valueType(valueType) 
+			LogColumn(const ScalarType& pRowType, const ScalarType& pValueType) 
+				: revision(0), rowType(pRowType), valueType(pValueType), includes(new TreeBuffer(pRowType, pValueType)) 
 			{ }
 		};
 
@@ -57,7 +57,7 @@ namespace fastore { namespace client
 		bool _readsConflict;
 
 		void gatherWrites(std::map<ColumnID,  ColumnWrites>& output);
-		LogColumn& ensureColumnLog(const ColumnID& columnId);
+		LogColumn ensureColumnLog(const ColumnID& columnId);
 		// Build a log entry per column for quick access
 		std::vector<Transaction::LogColumn*> buildLogMap(const ColumnIDs& columnIds, bool &anyMapped);
 		void applyColumnOverrides(LogColumn &colLog, DataSetRow &row, size_t colIndex);

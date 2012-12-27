@@ -25,6 +25,7 @@
     <ClCompile Include="Communication\Store.cpp" />
     <ClCompile Include="Communication\Worker.cpp" />
     <ClCompile Include="Log\Syslog.cpp" />
+    <ClCompile Include="Schema\Dictionary.cpp" />
     <ClCompile Include="Tree\BTree.cpp" />
     <ClCompile Include="Type\BaseTypes.cpp" />
     <ClCompile Include="Type\InternalTypes.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="Communication\Store.h" />
     <ClInclude Include="Communication\Worker.h" />
     <ClInclude Include="Log\Syslog.h" />
+    <ClInclude Include="Schema\Dictionary.h" />
     <ClInclude Include="Tree\BTree.h" />
     <ClInclude Include="Tree\TreeEntry.h" />
     <ClInclude Include="Type\BaseTypes.h" />

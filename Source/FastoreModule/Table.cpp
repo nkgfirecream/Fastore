@@ -5,6 +5,7 @@
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
 #include "../FastoreClient/Transaction.h"
+#include <Schema/Dictionary.h>
 #include <boost/assign/list_of.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Utilities.h"
@@ -144,11 +145,11 @@ void module::Table::ensureColumns()
 
 	 // Pull a list of candidate pods
 	 Range podQuery;
-	podQuery.ColumnID = client::Dictionary::PodID;
+	podQuery.ColumnID = fastore::common::Dictionary::PodID;
 	podQuery.Ascending = true;
 
 	std::vector<ColumnID> podidv;
-	podidv.push_back(client::Dictionary::PodID);
+	podidv.push_back(fastore::common::Dictionary::PodID);
 
 	////TODO: Gather pods - we may have more than 2000
     auto podIds = _connection->_database->getRange(podidv, podQuery, 2000);
@@ -168,7 +169,7 @@ void module::Table::ensureColumns()
 
 		// Attempt to find the column by name
 		Range query;
-		query.ColumnID = client::Dictionary::ColumnName;
+		query.ColumnID = fastore::common::Dictionary::ColumnName;
 		query.Ascending = true;
 
 		client::RangeBound bound;
@@ -176,7 +177,7 @@ void module::Table::ensureColumns()
 		bound.Inclusive = true;
 		query.Start = bound;
 		query.End = bound;
-		auto result = _connection->_database->getRange(client::Dictionary::ColumnColumns, query, 1);
+		auto result = _connection->_database->getRange(fastore::common::Dictionary::ColumnColumns, query, 1);
 
 		if (result.Data.size() > 0)
 		{
@@ -189,7 +190,7 @@ void module::Table::ensureColumns()
 			//TODO: Determine the storage pod - default, but let the user override -- we'll need to extend the sql to support this.
 			auto podId = podIds.Data.at(nextPod++ % podIds.Data.size()).Values[0].value;
 
-			int columnId = (int)_connection->_generator->Generate(client::Dictionary::ColumnID, module::Dictionary::MaxModuleColumnID + 1);			
+			int columnId = (int)_connection->_generator->Generate(fastore::common::Dictionary::ColumnID, module::Dictionary::MaxModuleColumnID + 1);			
 			_columnIds.push_back(columnId);
 			_columns[i].ColumnID = columnId;
 			createColumn(_columns[i], combinedName, podIds, podId);
@@ -212,7 +213,7 @@ int module::Table::drop()
 	{
         // Pull a list of the current repos so we can drop them all.
         Range repoQuery;
-        repoQuery.ColumnID = client::Dictionary::PodColumnColumnID;
+        repoQuery.ColumnID = fastore::common::Dictionary::PodColumnColumnID;
         repoQuery.Ascending = true;
 		client::RangeBound bound;
 		bound.Inclusive = true;
@@ -220,23 +221,23 @@ int module::Table::drop()
         repoQuery.Start = bound;
         repoQuery.End = bound;
 
-		auto repoIds = _connection->_database->getRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::PodColumnColumnID), repoQuery, 2000);
+		auto repoIds = _connection->_database->getRange(boost::assign::list_of<communication::ColumnID>(fastore::common::Dictionary::PodColumnColumnID), repoQuery, 2000);
 
 		for (size_t i = 0; i < repoIds.Data.size(); i++)
         {
-            _connection->_database->exclude(client::Dictionary::PodColumnColumns, repoIds.Data[i].ID);
+            _connection->_database->exclude(fastore::common::Dictionary::PodColumnColumns, repoIds.Data[i].ID);
         }
 
 		Range query;
-        query.ColumnID = client::Dictionary::ColumnID;
+        query.ColumnID = fastore::common::Dictionary::ColumnID;
         query.Start = bound;
         query.End = bound;
 
-        auto columnExists = _connection->_database->getRange(boost::assign::list_of<communication::ColumnID>(client::Dictionary::ColumnID), query, 2000);
+        auto columnExists = _connection->_database->getRange(boost::assign::list_of<communication::ColumnID>(fastore::common::Dictionary::ColumnID), query, 2000);
 
         if (columnExists.Data.size() > 0)
         {
-            _connection->_database->exclude(client::Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
+            _connection->_database->exclude(fastore::common::Dictionary::ColumnColumns,  client::Encoder<communication::ColumnID>::Encode(col));
         }
 	}
 
@@ -277,7 +278,7 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 	auto transaction =  _connection->_database->begin(true);
 	transaction->include
 	(
-		client::Dictionary::ColumnColumns,
+		fastore::common::Dictionary::ColumnColumns,
 		client::Encoder<communication::ColumnID>::Encode(column.ColumnID),
 		boost::assign::list_of<std::string>
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
@@ -289,8 +290,8 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 	);
 	transaction->include
 	(
-		client::Dictionary::PodColumnColumns,
-		client::Encoder<int64_t>::Encode(_connection->_generator->Generate(client::Dictionary::PodColumnPodID)),
+		fastore::common::Dictionary::PodColumnColumns,
+		client::Encoder<int64_t>::Encode(_connection->_generator->Generate(fastore::common::Dictionary::PodColumnPodID)),
 		boost::assign::list_of<std::string>
 		(podId)
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
@@ -731,42 +732,41 @@ void module::Table::parseDDL()
 
 ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 {
-	ColumnDef result;
+	std::string name;
 	std::istringstream reader(text, std::istringstream::in);
-	if (!std::getline(reader, result.Name, ' ')) 
+	if (!std::getline(reader, name, ' ')) 
 		std::runtime_error("Missing column name");
 
-	if (result.Name == "")
+	if (name == "")
 	{
 		isDef = false;
-		return result;
+		return ColumnDef();
 	}
 
 	std::string type;
 	if (!std::getline(reader, type, ' '))
 	{
 		isDef = false;
-		return result;
+		return  ColumnDef();
 	}
 	else
 	{
 		//More crappy parser-ness. If we don't recongize a type, it'll blow up!
 		_declaredTypes.push_back(type);
-		result.ValueType = declaredTypeToFastoreType[type];
 	}
 
 	isDef = true;
 	auto stringText = std::string(text);
 	//TODO: When should we use an identity buffer? Primary key?
-	result.BufferType =	insensitiveStrPos(stringText, std::string("primary")) >= 0 ? 
+	BufferType_t bType =	insensitiveStrPos(stringText, std::string("primary")) >= 0 ? 
 	    BufferType_t::Identity : 
 	    	insensitiveStrPos(stringText, std::string("unique")) >= 0 ? 
 	    		BufferType_t::Unique : BufferType_t::Multi;
-	result.Required = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
+	bool req = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
 	                  insensitiveStrPos(stringText, std::string("primary key")) >= 0;
 
-	result.RowIDType = standardtypes::Long;
-	return result;
+	ColumnDef c = {0, name, standardtypes::GetTypeFromName(type), standardtypes::GetTypeFromName(std::string("Long")), bType, req};
+	return c;
 }
 
 void module::Table::determineRowIDColumn()

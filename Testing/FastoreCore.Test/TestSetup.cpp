@@ -18,12 +18,12 @@ void TestSetup::createTableWithData()
 	_columns = list_of<ColumnID>(10000)(10001)(10002)(10003)(10004)(10005);
 
 	//create schema
-	_database->include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[0]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[0]))("ID")("Int")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Identity))(Encoder<bool>::Encode(true)));
-	_database->include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[1]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[1]))("Given")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
-    _database->include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[2]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[2]))("Surname")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
-    _database->include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[3]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[3]))("Gender")("Bool")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
-    _database->include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[4]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[4]))("BirthDate")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
-    _database->include(Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[5]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[5]))("BirthPlace")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+	_database->include(fastore::common::Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[0]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[0]))("ID")("Int")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Identity))(Encoder<bool>::Encode(true)));
+	_database->include(fastore::common::Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[1]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[1]))("Given")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->include(fastore::common::Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[2]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[2]))("Surname")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->include(fastore::common::Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[3]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[3]))("Gender")("Bool")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->include(fastore::common::Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[4]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[4]))("BirthDate")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
+    _database->include(fastore::common::Dictionary::ColumnColumns, Encoder<ColumnID>::Encode(_columns[5]), list_of<std::string>(Encoder<ColumnID>::Encode(_columns[5]))("BirthPlace")("String")("Int")(Encoder<BufferType_t>::Encode(BufferType_t::Multi))(Encoder<bool>::Encode(true)));
 
 	//add data
 	boost::shared_ptr<Transaction> dataaccess = _database->begin(true);

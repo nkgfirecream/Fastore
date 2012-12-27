@@ -7,6 +7,7 @@
 #include "../FastoreCommon/Type/Standardtypes.h"
 #include "../FastoreClient/Dictionary.h"
 #include "../FastoreClient/Encoder.h"
+#include <Schema/Dictionary.h>
 #include <boost/assign/list_of.hpp>
 #include "Cursor.h"
 #include "Table.h"
@@ -68,11 +69,11 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 
 	 // Pull a list of candidate pods
     Range podQuery;
-    podQuery.ColumnID = client::Dictionary::PodID;
+    podQuery.ColumnID = fastore::common::Dictionary::PodID;
     podQuery.Ascending = true;
 
 	std::vector<ColumnID> podidv;
-	podidv.push_back(client::Dictionary::PodID);
+	podidv.push_back(fastore::common::Dictionary::PodID);
 
 	//TODO: Gather pods - we may have more than 2000 
     auto podIds = connection->_database->getRange(podidv, podQuery, 2000);
@@ -93,7 +94,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 	{
 		// Attempt to find the column by name
 		Range query;
-		query.ColumnID = client::Dictionary::ColumnName;
+		query.ColumnID = fastore::common::Dictionary::ColumnName;
 
 		client::RangeBound bound;
 		bound.Bound = defs[i].Name;
@@ -102,7 +103,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 		query.End = bound;
 
 		//Just pull one row. If any exist we should verify it's the correct one.
-		auto result = connection->_database->getRange(client::Dictionary::ColumnColumns, query, 1);
+		auto result = connection->_database->getRange(fastore::common::Dictionary::ColumnColumns, query, 1);
 
  		if (result.Data.size() == 0)
 		{
@@ -115,7 +116,7 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 			auto transaction = connection->_database->begin(true);
 			transaction->include
 			(
-				Dictionary::ColumnColumns,
+				fastore::common::Dictionary::ColumnColumns,
 				client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID),
 				boost::assign::list_of<std::string>
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
@@ -126,10 +127,10 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 				(client::Encoder<bool>::Encode(defs[i].Required))
 			);
 
-			int64_t surrogateId = connection->_generator->Generate(Dictionary::PodColumnPodID);
+			int64_t surrogateId = connection->_generator->Generate(fastore::common::Dictionary::PodColumnPodID);
 			transaction->include
 			(
-				Dictionary::PodColumnColumns,
+				fastore::common::Dictionary::PodColumnColumns,
 				client::Encoder<int64_t>::Encode(surrogateId),
 				boost::assign::list_of<std::string>
 				(podId)

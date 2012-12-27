@@ -4,6 +4,7 @@
 #include "..\FastoreClient\Client.h"
 #include "..\FastoreClient\Dictionary.h"
 #include "..\FastoreClient\Encoder.h"
+#include "..\FastoreCommon\Schema\Dictionary.h"
 #include <vector>
 #include <boost\assign\list_of.hpp>
 

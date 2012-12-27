@@ -1,6 +1,7 @@
 ﻿#include "Generator.h"
 #include "Encoder.h"
 #include "Dictionary.h"
+#include <Schema/Dictionary.h>
 #include "boost/assign/std/vector.hpp"
 #include "boost/assign/list_of.hpp"
 
@@ -139,7 +140,7 @@ void Generator::EnsureGeneratorTable()
 	// Add the generator column
 	transaction->include
 	(
-		Dictionary::ColumnColumns,
+		fastore::common::Dictionary::ColumnColumns,
 		Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
 		list_of<std::string> 
 			(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
@@ -155,7 +156,7 @@ void Generator::EnsureGeneratorTable()
 	{
 		transaction->include
 		(
-			Dictionary::PodColumnColumns, 
+			fastore::common::Dictionary::PodColumnColumns, 
 			Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
 			list_of<std::string> 
 				(Encoder<PodID>::Encode(*podID))
@@ -167,9 +168,9 @@ void Generator::EnsureGeneratorTable()
 	transaction->include
 	(
 		Dictionary::GeneratorColumns, 
-		Encoder<ColumnID>::Encode(Dictionary::ColumnID),
+		Encoder<ColumnID>::Encode(fastore::common::Dictionary::ColumnID),
 		list_of<std::string> 
-			(Encoder<ColumnID>::Encode(Dictionary::MaxClientColumnID + 1))
+			(Encoder<ColumnID>::Encode(fastore::common::Dictionary::MaxClientColumnID + 1))
 	);
 
 	transaction->commit();
@@ -180,8 +181,8 @@ void Generator::DefaultPods()
 	// Find a worker to put the generator table on
 	Range podRange = Range();
 	podRange.Ascending = true;
-	podRange.ColumnID = Dictionary::PodID;
-	RangeSet podIds = _database->getRange(list_of<ColumnID>(Dictionary::PodID), podRange, 1);
+	podRange.ColumnID = fastore::common::Dictionary::PodID;
+	RangeSet podIds = _database->getRange(list_of<ColumnID>(fastore::common::Dictionary::PodID), podRange, 1);
 
 	// Validate that there is at least one worker into which to place the generator
 	if (podIds.Data.size() == 0 || !podIds.Data[0].Values[0].__isset.value)

@@ -10,12 +10,15 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 
+#include <Schema/Dictionary.h>
+
 using namespace ::apache::thrift;
 using namespace ::apache::thrift::protocol;
 using namespace ::apache::thrift::transport;
 using namespace ::apache::thrift::server;
 using boost::shared_ptr;
 using namespace ::fastore::communication;
+using namespace ::fastore::common;
 using namespace std;
 
 const int MaxSystemColumnID = 9999;
@@ -64,166 +67,39 @@ WorkerHandler::~WorkerHandler()
 
 void WorkerHandler::Bootstrap()
 {
-	ColumnDef id;
-	id.ColumnID = 0;
-	id.Name = "Column.ID";
-	id.ValueType = standardtypes::Long;
-	id.RowIDType = standardtypes::Long;
-	id.BufferType = BufferType_t::Identity;
-	id.Required = true;
-	CreateRepo(id);	
+	static const ColumnDef defaults[] =  
+	{ 
+		{ Dictionary::ColumnID, "Column.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
+		{ Dictionary::ColumnName, "Column.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
+		{ Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::TopologyID, "Topology.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true },
+		{ Dictionary::HostID, "Host.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true },
+		{ Dictionary::PodID, "Pod.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Unique, true },
+		{ Dictionary::PodHostID, "Pod.HostID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::PodColumnPodID, "PodColumn.PodID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::PodColumnColumnID, "PodColumn.ColumnID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::StashID, "Stash.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Unique, true },
+		{ Dictionary::StashHostID, "Stash.HostID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::StashColumnStashID, "StashColumn.StashID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
+		{ Dictionary::StashColumnColumnID, "StashColumn.ColumnID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true }
+	};	
 
-	ColumnDef name;
-	name.ColumnID = 1;
-	name.Name = "Column.Name";
-	name.ValueType = standardtypes::String;
-	name.RowIDType = standardtypes::Long;
-	name.BufferType = BufferType_t::Unique;
-	name.Required = true;
-	CreateRepo(name);
-
-	ColumnDef vt;
-	vt.ColumnID = 2;
-	vt.Name = "Column.ValueType";
-	vt.ValueType = standardtypes::String;
-	vt.RowIDType = standardtypes::Long;
-	vt.BufferType = BufferType_t::Multi;
-	vt.Required = true;
-	CreateRepo(vt);	
-
-	ColumnDef idt;
-	idt.ColumnID = 3;
-	idt.Name = "Column.RowIDType";
-	idt.ValueType = standardtypes::String;
-	idt.RowIDType = standardtypes::Long;
-	idt.BufferType = BufferType_t::Multi;
-	idt.Required = true;
-	CreateRepo(idt);	
-
-	ColumnDef unique;
-	unique.ColumnID = 4;
-	unique.Name = "Column.BufferType";
-	unique.ValueType = standardtypes::Int;
-	unique.RowIDType = standardtypes::Long;
-	unique.BufferType = BufferType_t::Multi;
-	unique.Required = true;
-	CreateRepo(unique);	
-
-	ColumnDef required;
-	required.ColumnID = 5;
-	required.Name = "Column.Required";
-	required.ValueType = standardtypes::Bool;
-	required.RowIDType = standardtypes::Long;
-	required.BufferType = BufferType_t::Multi;
-	required.Required = true;
-	CreateRepo(required);
-
-	ColumnDef topo;
-	topo.ColumnID = 100;
-	topo.Name = "Topology.ID";
-	topo.ValueType = standardtypes::Long;
-	topo.RowIDType = standardtypes::Long;
-	topo.BufferType = BufferType_t::Identity;
-	topo.Required = true;
-	CreateRepo(topo);
-
-	ColumnDef hostId;
-	hostId.ColumnID = 200;
-	hostId.Name = "Host.ID";
-	hostId.ValueType = standardtypes::Long;
-	hostId.RowIDType = standardtypes::Long;
-	hostId.BufferType = BufferType_t::Identity;
-	hostId.Required = true;
-	CreateRepo(hostId);	
-
-	ColumnDef podId;
-	podId.ColumnID = 300;
-	podId.Name = "Pod.ID";
-	podId.ValueType = standardtypes::Long;
-	podId.RowIDType = standardtypes::Long;
-	podId.BufferType = BufferType_t::Unique;
-	podId.Required = true;
-	CreateRepo(podId);	
-
-	ColumnDef podHostId;
-	podHostId.ColumnID = 301;
-	podHostId.Name = "Pod.HostID";
-	podHostId.ValueType = standardtypes::Long;
-	podHostId.RowIDType = standardtypes::Long;
-	podHostId.BufferType = BufferType_t::Multi;
-	podHostId.Required = true;
-	CreateRepo(podHostId);	
-
-	ColumnDef podColPodId;
-	podColPodId.ColumnID = 400;
-	podColPodId.Name = "PodColumn.PodID";
-	podColPodId.ValueType = standardtypes::Long;
-	podColPodId.RowIDType = standardtypes::Long;
-	podColPodId.BufferType = BufferType_t::Multi;
-	podColPodId.Required = true;
-	CreateRepo(podColPodId);	
-
-	ColumnDef podColColId;
-	podColColId.ColumnID = 401;
-	podColColId.Name = "PodColumn.ColumnID";
-	podColColId.ValueType = standardtypes::Long;
-	podColColId.RowIDType = standardtypes::Long;
-	podColColId.BufferType = BufferType_t::Multi;
-	podColColId.Required = true;
-	CreateRepo(podColColId);
-
-	ColumnDef stashId;
-	stashId.ColumnID = 500;
-	stashId.Name = "Stash.ID";
-	stashId.ValueType = standardtypes::Long;
-	stashId.RowIDType = standardtypes::Long;
-	stashId.BufferType = BufferType_t::Unique;
-	stashId.Required = true;
-	CreateRepo(stashId);	
-
-	ColumnDef stashHostId;
-	stashHostId.ColumnID = 501;
-	stashHostId.Name = "Stash.HostID";
-	stashHostId.ValueType = standardtypes::Long;
-	stashHostId.RowIDType = standardtypes::Long;
-	stashHostId.BufferType = BufferType_t::Multi;
-	stashHostId.Required = true;
-	CreateRepo(stashHostId);	
-
-	ColumnDef stashColStashId;
-	stashColStashId.ColumnID = 600;
-	stashColStashId.Name = "StashColumn.StashID";
-	stashColStashId.ValueType = standardtypes::Long;
-	stashColStashId.RowIDType = standardtypes::Long;
-	stashColStashId.BufferType = BufferType_t::Multi;
-	stashColStashId.Required = true;
-	CreateRepo(stashColStashId);	
-
-	ColumnDef stashColColId;
-	stashColColId.ColumnID = 601;
-	stashColColId.Name = "StashColumn.ColumnID";
-	stashColColId.ValueType = standardtypes::Long;
-	stashColColId.RowIDType = standardtypes::Long;
-	stashColColId.BufferType = BufferType_t::Multi;
-	stashColColId.Required = true;
-	CreateRepo(stashColColId);
+	//This creates the in memory repo
+	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 
+		[&](const ColumnDef& def) 
+		{
+			CreateRepo(def);
+		} );
 	
 	//This must come after the repos are initialized. Can't add a column to the schema if the schema doesn't exist
-	AddColumnToSchema(id);
-	AddColumnToSchema(name);
-	AddColumnToSchema(vt);
-	AddColumnToSchema(idt);
-	AddColumnToSchema(unique);
-	AddColumnToSchema(topo);
-	AddColumnToSchema(hostId);
-	AddColumnToSchema(podId);
-	AddColumnToSchema(podHostId);
-	AddColumnToSchema(podColPodId);
-	AddColumnToSchema(podColColId);
-	AddColumnToSchema(stashId);
-	AddColumnToSchema(stashHostId);
-	AddColumnToSchema(stashColStashId);
-	AddColumnToSchema(stashColColId);
+	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 
+		[&](const ColumnDef& def) 
+		{
+			AddColumnToSchema(def);
+		} );
 }
 
 void WorkerHandler::CreateRepo(ColumnDef def)
@@ -388,9 +264,6 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 {
 	//for the columns table, the rowId is the columnId
-	ColumnDef def;
-	def.ColumnID = id;	
-
 	std::string rowId;
 	rowId.assign((char*)&id, sizeof(ColumnID));
 
@@ -402,25 +275,26 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 
 	//Name column
 	Answer answer = _repositories[1]->query(query);
-	def.Name = answer.rowIDValues[0].value;
+	string name = answer.rowIDValues[0].value;
 
 	//ValueType
 	answer = _repositories[2]->query(query);
-	def.ValueType = standardtypes::GetTypeFromName(answer.rowIDValues.at(0).value);
+	string valueType = answer.rowIDValues.at(0).value;
 
 	//RowType
 	answer = _repositories[3]->query(query);
-	def.RowIDType = standardtypes::GetTypeFromName(answer.rowIDValues[0].value);
+	string rowType = answer.rowIDValues[0].value;
 
 	//Unique
 	answer = _repositories[4]->query(query);
-	def.BufferType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
+	BufferType_t bType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
 
 	//Required
 	answer = _repositories[5]->query(query);
-	def.Required = *(bool*)(answer.rowIDValues[0].value.data());
+	bool req = *(bool*)(answer.rowIDValues[0].value.data());
 
-	return def;
+	ColumnDef c = { id, name, standardtypes::GetTypeFromName(valueType), standardtypes::GetTypeFromName(rowType), bType, req };
+	return c;
 }
 
 void WorkerHandler::CheckState()
