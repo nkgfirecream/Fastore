@@ -73,6 +73,7 @@ namespace fastore { namespace client
 
 		struct ColumnWriteResult
 		{
+			ColumnWriteResult() : validateRequired(false) { }
 			bool validateRequired;
 			std::map<Revision, std::vector<PodID>> workersByRevision;
 			std::vector<PodID> failedWorkers;

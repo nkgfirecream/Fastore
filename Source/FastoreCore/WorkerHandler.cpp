@@ -223,7 +223,8 @@ void WorkerHandler::Bootstrap()
 	AddColumnToSchema(stashId);
 	AddColumnToSchema(stashHostId);
 	AddColumnToSchema(stashColStashId);
-	AddColumnToSchema(stashColColId);}
+	AddColumnToSchema(stashColColId);
+}
 
 void WorkerHandler::CreateRepo(ColumnDef def)
 {
@@ -283,7 +284,6 @@ void WorkerHandler::SyncToSchema()
 		{
 			if (schemaIds.find(repo->first) == schemaIds.end() && repo->first > MaxSystemColumnID)
 			{
-				repo->second->drop();
 				repo = _repositories.erase(repo);
 			}
 			else
@@ -440,8 +440,18 @@ void WorkerHandler::apply(PrepareResults& _return, const TransactionID transacti
 {
 	CheckState();
 
-	// Your implementation goes here
-	printf("Apply\n");
+	for (auto column = columnIDs.begin(), end = columnIDs.end(); column != end; ++column)
+	{
+		auto repo = _repositories.find(*column);
+		if (repo != _repositories.end())
+		{
+			PrepareResult result;
+			result.__set_actualRevision(repo->second->getRevision());
+			//What determines needs validation?
+			_return.insert(std::make_pair(*column, result));
+		}
+	}
+
 }
 
 void WorkerHandler::commit(const TransactionID transactionID, const Writes& writes) 
@@ -470,7 +480,7 @@ void WorkerHandler::commit(const TransactionID transactionID, const Writes& writ
 			}
 
 			const ColumnWrites& colwrites = write->second;
-			repo->second->apply(transactionID, colwrites);
+			repo->second->apply(repo->second->getRevision() + 1, colwrites);
 		}
 	}
 

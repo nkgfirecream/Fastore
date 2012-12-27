@@ -848,7 +848,7 @@ Query Database::CreateQuery(const Range range, const int limit, const boost::opt
 
 void Database::apply(const std::map<ColumnID, ColumnWrites>& writes, const bool flush)
 {
-	TransactionID transactionID = 0;
+	TransactionID transactionID = generateTransactionID();
 	return apply(transactionID, writes, flush);
 }
 
@@ -1014,22 +1014,23 @@ std::map<PodID, std::future<PrepareResults>> Database::Apply(const ColumnIDs &co
 	// Apply the modification to every worker, even if no work
 	for (auto worker =  workers.left.begin(); worker != workers.left.end(); ++worker)
 	{
+		auto podId = worker->first;
 		tasks.insert
 		(
 			std::make_pair
 			(
-				worker->first,
+				podId,
 				std::future<PrepareResults>
 				(
 					std::async
 					(
 						std::launch::async,
-						[&, worker, columnIDs]()-> PrepareResults
+						[&, podId, transactionID, columnIDs]()-> PrepareResults
 						{
 							PrepareResults result;
 							AttemptWrite
 							(
-								worker->first,
+								podId,
 								[&](WorkerClient client)
 								{
 									return client.apply(result, transactionID, columnIDs);
@@ -1125,6 +1126,7 @@ std::unordered_map<ColumnID, Database::ColumnWriteResult> Database::ProcessPrepa
 			{
 				auto &writeResult = columnWriteResults[workerColumns->second];
 				writeResult.failedWorkers.push_back(task->first);
+				++workerColumns;
 			}
 			continue;
 		}
