@@ -401,4 +401,6 @@ service Store
 
 	/** Waits for the given transaction to be flushed to disk. */
 	void flush(1:TransactionID transactionID),
+
+	void unpark(1:i64 connectionID, 2:string data)
 }

@@ -38,7 +38,8 @@ printf("getStatus\n");
 
 void StoreHandler::getWrites(fastore::communication::GetWritesResults& _return, const fastore::communication::Ranges& ranges) 
 {
-	_logManager->getWrites(ranges, _currentConnection);
+	_currentConnection->park();
+	_logManager->getWrites(ranges, _currentConnection->getId());
 }
 
 void StoreHandler::commit(const TransactionID transactionID, const std::map<ColumnID, Revision>& revisions, const Writes& writes)
@@ -48,7 +49,25 @@ void StoreHandler::commit(const TransactionID transactionID, const std::map<Colu
 
 void StoreHandler::flush(const fastore::communication::TransactionID transactionID) 
 {
-	_logManager->flush(transactionID, _currentConnection);
+	_currentConnection->park();
+	_logManager->flush(transactionID, _currentConnection->getId());
+}
+
+void StoreHandler::unpark(const int64_t connectionId, const std::string&  data)
+{
+	//Post data to the parked connection:
+	//Going through the current connection, find the old connection and post data to it
+	auto conn = _currentConnection->getServer()->getConnectionById(connectionId);
+	if (conn != NULL)
+	{
+		conn->getOutputTransport()->resetBuffer();
+		conn->getOutputTransport()->write((const uint8_t*)data.data(), (uint32_t)data.size());
+		conn->transition();
+	}
+	else
+	{
+		//Operation attempted to unpark a connection that no longer existed. How should we handle this?
+	}
 }
 
 void* StoreHandler::getContext(const char* fn_name, void* serverContext)

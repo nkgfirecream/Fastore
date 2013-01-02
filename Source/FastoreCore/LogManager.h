@@ -123,7 +123,7 @@ private:
 	void offsetByRevision(ColumnInfo& info, int64_t revision, int64_t& outLsn, int64_t& outOffset);
 
 	//Write functions 
-	void internalFlush(const fastore::communication::TransactionID transactionID, apache::thrift::server::TFastoreServer::TConnection* connection);
+	void internalFlush(const fastore::communication::TransactionID transactionID, int64_t connectionID);
 	void internalCommit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions, const fastore::communication::Writes writes);
 	
 	void writeTransactionBegin(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions);
@@ -139,7 +139,7 @@ private:
 	int64_t reuseFileOldLsn(int64_t& outNewLsn);
 
 	//These are read-only functions that can be accessed from any thread.
-	void internalGetWrites(const fastore::communication::Ranges ranges, apache::thrift::server::TFastoreServer::TConnection* connection);
+	void internalGetWrites(const fastore::communication::Ranges ranges, int64_t connectionID);
 	
 	fastore::communication::GetWritesResult getRange(fastore::communication::ColumnID columnId, fastore::communication::Revision from, fastore::communication::Revision to);
 
@@ -151,9 +151,9 @@ public:
 	//Public functions used to schedule work.
 	//TODO: Consider shared pointers. It's possible the server will dispose of an
 	//unused connection.
-	void flush(const fastore::communication::TransactionID transactionID, apache::thrift::server::TFastoreServer::TConnection* connection);
+	void flush(const fastore::communication::TransactionID transactionID, int64_t connectionID);
 	void commit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> & revisions, const fastore::communication::Writes& writes);
-	void getWrites(const fastore::communication::Ranges& ranges, apache::thrift::server::TFastoreServer::TConnection* connection);
+	void getWrites(const fastore::communication::Ranges& ranges, int64_t connectionID);
 	//void saveThrough(std::vector<Change>, int64_t revision, int64_t columnId);
 
 	//void getThrough(int64_t columnId, int64_t revision,  Connection* connection);

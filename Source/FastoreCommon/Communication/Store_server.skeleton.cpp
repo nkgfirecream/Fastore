@@ -57,6 +57,11 @@ class StoreHandler : virtual public StoreIf {
     printf("flush\n");
   }
 
+  void unpark(const int64_t connectionID, const std::string& data) {
+    // Your implementation goes here
+    printf("unpark\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

@@ -69,6 +69,10 @@ using fastore::log_endl;
 
 void TFastoreServer::TConnection::init(SOCKET socket, TFastoreServer * server,	const sockaddr* addr, socklen_t addrLen)
 {
+	//Each time a connection is init'ed it gets a new id. This is so we know that even though the connection object may be reused,
+	//it represents a different logical connection
+	id_ = generateId();
+
 	tSocket_->setSocketFD(int(socket));
 	tSocket_->setCachedAddress(addr, addrLen);
 
@@ -455,10 +459,10 @@ void TFastoreServer::TConnection::checkIdleBufferMemLimit(size_t readLimit,	size
 TFastoreServer::~TFastoreServer() 
 {
 	//Kill our current active connections...
-	for(size_t i = 0; i < activeConnections_.size(); ++i)
+	for(auto begin = activeConnections_.begin(), end = activeConnections_.end(); begin != end; ++begin)
 	{		
-		activeConnections_[i]->close();
-		delete activeConnections_[i];
+		begin->second->close();
+		delete begin->second;
 	}
 
 	// Clean up unused TConnection objects in connectionStack_
@@ -504,7 +508,7 @@ TFastoreServer::TConnection* TFastoreServer::
 		result->init(socket, this, addr, addrLen);
 	}
 
-	activeConnections_.push_back(result);
+	activeConnections_.insert(std::make_pair(result->getId(), result));
 
 	return result;
 }
@@ -514,13 +518,13 @@ TFastoreServer::TConnection* TFastoreServer::
 */
 void TFastoreServer::returnConnections()
 {
-	for (size_t i = 0; i < activeConnections_.size(); ++i)
-	{
-		auto connection = activeConnections_[i];
+	for(auto begin = activeConnections_.begin(), end = activeConnections_.end(); begin != end; )
+	{		
+	
+		auto connection = begin->second;
 		if(!connection->getTSocket()->isOpen())
 		{
-			activeConnections_.erase(activeConnections_.begin() + i);
-			--i; //Going to lose one item, so move back down. Linked list might be better than vector. don't know.
+			begin = activeConnections_.erase(begin);
 			if (connectionPoolLimit_ &&	(connectionPool_.size() >= connectionPoolLimit_))
 			{
 				delete connection;
@@ -530,6 +534,10 @@ void TFastoreServer::returnConnections()
 				connection->checkIdleBufferMemLimit(idleReadBufferLimit_, idleWriteBufferLimit_);
 				connectionPool_.push(connection);
 			}
+		}
+		else
+		{
+			++begin;
 		}
 	}
 }
@@ -696,7 +704,8 @@ bool TFastoreServer::isShuttingDown()
 
 void TFastoreServer::expireConnections()
 {
-	if (connectionExpireTime_ > 0)
+	//TODO adjust this to work with map
+	/*if (connectionExpireTime_ > 0)
 	{
 		int i = 0;
 		while(i < activeConnections_.size())
@@ -708,7 +717,7 @@ void TFastoreServer::expireConnections()
 			}
 			++i;
 		}
-	}
+	}*/
 }
 
 void TFastoreServer::serve()
@@ -754,9 +763,10 @@ void TFastoreServer::run()
 		_fds[0].revents = 0;
 
 		//construct fd array using active connections
-		for (size_t i = 0 ; i < activeConnections_.size(); ++i)	
+		int i = 0;
+		for (auto begin = activeConnections_.begin(), end = activeConnections_.end(); begin != end; ++begin, ++i)	
 		{			
-			auto conn = activeConnections_[i];		
+			auto conn = begin->second;
 			size_t fdindex = i + 1;
 			_fds[fdindex].revents = 0;
 			switch (conn->getState())
@@ -797,11 +807,12 @@ void TFastoreServer::run()
 		}
 		else if(numready > 0 )
 		{
-			for (size_t i = 0; i < activeConnections_.size(); i++)
+			int i = 0;
+			for (auto begin = activeConnections_.begin(), end = activeConnections_.end(); begin != end; ++begin, ++i)	
 			{
 				size_t fdindex = i + 1;
 				if (_fds[fdindex].revents > 0)
-					activeConnections_[i]->workSocket();
+					begin->second->workSocket();
 			}
 
 			//We still accept connections even if we are shutting down
@@ -822,10 +833,6 @@ void TFastoreServer::run()
 		//If we are passed our timeout, or have successfully closed all connections, then stop serving.
 		if (_shutdown &&  /*(clock() - _shutdownStart > _shutdownTimeout || */ activeConnections_.size() == 0) //)
 			stop();
-
-		//For now, just close immediately
-		//if (_shutdown)
-		//	stop();
 	}
 	Log << log_info << "TFastoreServer stopped" << log_endl;
 
@@ -891,6 +898,15 @@ void TFastoreServer::acceptConnections()
 	{
 		GlobalOutput.perror("TFastoreServer: accept() ", errno);
 	}
+}
+
+TFastoreServer::TConnection* TFastoreServer::getConnectionById(int64_t connectionId)
+{
+	auto conn = activeConnections_.find(connectionId);
+	if (conn != activeConnections_.end())
+		return conn->second;
+	else
+		return NULL;
 }
 
 }}} // apache::thrift::server

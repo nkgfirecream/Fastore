@@ -25,6 +25,8 @@ public:
 
 	void flush(const fastore::communication::TransactionID transactionID);
 
+	void unpark(const int64_t connectionId, const std::string&  data); 
+
 	void* getContext(const char* fn_name, void* serverContext);
 
 private:

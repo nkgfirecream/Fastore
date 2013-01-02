@@ -301,50 +301,22 @@ void LogManager::indexRollbackRecord(RollbackRecord& record)
 }
 
 //Public methods
-void LogManager::flush(const fastore::communication::TransactionID transactionID, apache::thrift::server::TFastoreServer::TConnection* connection)
+void LogManager::flush(const fastore::communication::TransactionID transactionID, int64_t connectionID)
 {
-	_lock->lock();	
-	auto entry = _transactions.find(transactionID);
-	if (entry != _transactions.end() && entry->second.state == TransactionState::End)
-	{
-		if (_pendingTransactions.find(transactionID) != _pendingTransactions.end())
-		{
-			//Transaction is complete, but not yet flushed. Park the connection and post flush work.
-			connection->park();
-			_writeService.post(boost::bind(&LogManager::internalFlush, this, transactionID, connection));
-			_lock->unlock();
-		}
-		else
-		{
-			//Transaction has already completed and flushed. Return without waiting.
-			_lock->unlock();
-			return;
-		}
-	}
-	else if (entry != _transactions.end() && entry->second.state != TransactionState::End)
-	{
-		_lock->unlock();
-		throw std::exception("Attempt to flush a transaction that has not ended");
-	}
-	else
-	{
-		_lock->unlock();
-		throw std::exception("Attempt to flush a transaction for which there is no record.");
-	}	
+	_writeService.post(boost::bind(&LogManager::internalFlush, this, transactionID, connectionID));
 }
 void LogManager::commit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> & revisions, const fastore::communication::Writes& writes)
 {
 	_writeService.post(boost::bind(&LogManager::internalCommit, this, transactionID, revisions, writes));
 }
 
-void LogManager::getWrites(const fastore::communication::Ranges& ranges, apache::thrift::server::TFastoreServer::TConnection* connection)
+void LogManager::getWrites(const fastore::communication::Ranges& ranges, int64_t connectionID)
 {
-	connection->park();
-	_readService.post(boost::bind(&LogManager::internalGetWrites, this, ranges, connection));
+	_readService.post(boost::bind(&LogManager::internalGetWrites, this, ranges, connectionID));
 }
 
 //Internal methods
-void LogManager::internalFlush(const fastore::communication::TransactionID transactionID, apache::thrift::server::TFastoreServer::TConnection* connection)
+void LogManager::internalFlush(const fastore::communication::TransactionID transactionID, int64_t connectionID)
 {
 	_lock->lock();
 	_writer->flush();
@@ -355,7 +327,7 @@ void LogManager::internalFlush(const fastore::communication::TransactionID trans
 	_pendingTransactions.clear();
 	_lock->unlock();
 
-	connection->transition();
+
 }
 
 void LogManager::internalCommit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions, const fastore::communication::Writes writes)
@@ -375,7 +347,7 @@ void LogManager::internalCommit(const fastore::communication::TransactionID tran
 	writeTransactionEnd(transactionID);
 }
 
-void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, apache::thrift::server::TFastoreServer::TConnection* connection)
+void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, int64_t connectionID)
 {
 	fastore::communication::GetWritesResults results;
 
@@ -417,18 +389,17 @@ void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, 
 		}
 	}
 
-	//Clean any garbage the processor may have written.
-	//TODO: Figure out how to protect this since the processor is operating on a different thread.
-	auto transport = connection->getOutputProtocol()->getOutputTransport();
-	apache::thrift::transport::TMemoryBuffer* memTransport = dynamic_cast<apache::thrift::transport::TMemoryBuffer*>(transport.get());
-	memTransport->resetBuffer();
+	boost::shared_ptr<apache::thrift::transport::TMemoryBuffer> buffer(new apache::thrift::transport::TMemoryBuffer);
+
+	apache::thrift::protocol::TBinaryProtocol protocol(buffer);
 
 	fastore::communication::Store_getWrites_result wireResult;
 	wireResult.__set_success(results);
 
-	wireResult.write(connection->getOutputProtocol().get());
+	wireResult.write(&protocol);
 
-	connection->transition();
+	std::string result = buffer->getBufferAsString();
+
 }
 
 fastore::communication::GetWritesResult LogManager::getRange(fastore::communication::ColumnID columnId, fastore::communication::Revision from, fastore::communication::Revision to)

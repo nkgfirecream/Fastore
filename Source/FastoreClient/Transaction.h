@@ -30,6 +30,11 @@ namespace fastore { namespace client
 		class LogColumn
 		{
 		public:
+			// Row type
+			ScalarType rowType;
+			// Value type
+			ScalarType valueType;
+
 			// Included rows by value
 			std::shared_ptr<TreeBuffer> includes;
 			// Excluded row IDs
@@ -38,14 +43,13 @@ namespace fastore { namespace client
 			std::unordered_set<std::string> reads;
 			// Isolated Revision (0 reserved for unknown)
 			Revision revision;
-			// Row type
-			const ScalarType& rowType;
-			// Value type
-			const ScalarType& valueType;
+			
 
 			LogColumn(const ScalarType& pRowType, const ScalarType& pValueType) 
-				: revision(0), rowType(pRowType), valueType(pValueType), includes(new TreeBuffer(pRowType, pValueType)) 
-			{ }
+				: revision(0), rowType(pRowType), valueType(pValueType)
+			{
+				includes.reset(new TreeBuffer(rowType, valueType)); 
+			}
 		};
 
 	private:
@@ -57,7 +61,7 @@ namespace fastore { namespace client
 		bool _readsConflict;
 
 		void gatherWrites(std::map<ColumnID,  ColumnWrites>& output);
-		LogColumn ensureColumnLog(const ColumnID& columnId);
+		LogColumn& ensureColumnLog(const ColumnID& columnId);
 		// Build a log entry per column for quick access
 		std::vector<Transaction::LogColumn*> buildLogMap(const ColumnIDs& columnIds, bool &anyMapped);
 		void applyColumnOverrides(LogColumn &colLog, DataSetRow &row, size_t colIndex);

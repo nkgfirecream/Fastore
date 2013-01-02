@@ -26,37 +26,6 @@ const int MaxSystemColumnID = 9999;
 WorkerHandler::WorkerHandler(const PodID podId) 
   : _podId(podId)
 {
-	//* Attempt to open data file
-	//* Check data directory for improper shut down - see Recovery
-	//boost::filesystem::path fpath (_path);
-	////If existing data, load it.
-	//if (boost::filesystem::exists(fpath))
-	//{
-	//	boost::filesystem::directory_iterator iter(fpath), end;
-	//	while(iter != end)
-	//	{
-	//		auto fnpath = iter->path();
-	//		std::string fn = fnpath.filename().string();
-
-	//		std::stringstream ss(fn);
-	//		std::string id;
-	//		std::getline(ss, id, '_');
-	//		
-	//		int64_t columnid = _atoi64(id.c_str());
-
-	//		boost::shared_ptr<Repository> repo(new Repository(columnid, _path));
-	//		_repositories[columnid] = repo;
-	//		++iter;
-	//	}
-	//}
-	//else
-	//{
-	//	//* If (new instance), bootstrap
-	//	
-	//}
-
-	//* Read rest of topology columns into memory; play log files for the same
-
 	Bootstrap();
 }
 
@@ -194,7 +163,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.push_back(include);
 	writes.__set_includes(includes);
 
-	_repositories[0]->apply(0, writes);
+	_repositories[fastore::common::Dictionary::ColumnID]->apply(0, writes);
 
 
 	//name column
@@ -206,7 +175,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.push_back(include);
 	writes.__set_includes(includes);
 
-	_repositories[1]->apply(0, writes);
+	_repositories[fastore::common::Dictionary::ColumnName]->apply(0, writes);
 
 
 	//valueType column
@@ -218,7 +187,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.push_back(include);
 	writes.__set_includes(includes);
 
-	_repositories[2]->apply(0, writes);
+	_repositories[fastore::common::Dictionary::ColumnValueType]->apply(0, writes);
 
 
 	//rowType column
@@ -230,7 +199,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.push_back(include);
 	writes.__set_includes(includes);
 
-	_repositories[3]->apply(0, writes);
+	_repositories[fastore::common::Dictionary::ColumnRowIDType]->apply(0, writes);
 
 
 	//unique column
@@ -245,7 +214,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.push_back(include);
 	writes.__set_includes(includes);
 
-	_repositories[4]->apply(0, writes);	
+	_repositories[fastore::common::Dictionary::ColumnBufferType]->apply(0, writes);	
 
 	//required column
 	includes.clear();
@@ -258,7 +227,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	includes.push_back(include);
 	writes.__set_includes(includes);
 
-	_repositories[5]->apply(0, writes);
+	_repositories[fastore::common::Dictionary::ColumnRequired]->apply(0, writes);
 }
 
 ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
@@ -274,23 +243,23 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 	query.__set_rowIDs(rowIds);	
 
 	//Name column
-	Answer answer = _repositories[1]->query(query);
+	Answer answer = _repositories[fastore::common::Dictionary::ColumnName]->query(query);
 	string name = answer.rowIDValues[0].value;
 
 	//ValueType
-	answer = _repositories[2]->query(query);
+	answer = _repositories[fastore::common::Dictionary::ColumnValueType]->query(query);
 	string valueType = answer.rowIDValues.at(0).value;
 
 	//RowType
-	answer = _repositories[3]->query(query);
+	answer = _repositories[fastore::common::Dictionary::ColumnRowIDType]->query(query);
 	string rowType = answer.rowIDValues[0].value;
 
 	//Unique
-	answer = _repositories[4]->query(query);
+	answer = _repositories[fastore::common::Dictionary::ColumnBufferType]->query(query);
 	BufferType_t bType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
 
 	//Required
-	answer = _repositories[5]->query(query);
+	answer = _repositories[fastore::common::Dictionary::ColumnRequired]->query(query);
 	bool req = *(bool*)(answer.rowIDValues[0].value.data());
 
 	ColumnDef c = { id, name, standardtypes::GetTypeFromName(valueType), standardtypes::GetTypeFromName(rowType), bType, req };
@@ -337,7 +306,7 @@ void WorkerHandler::commit(const TransactionID transactionID, const Writes& writ
 		fastore::communication::ColumnID id = write->first;
 
 		// If pod or column table changes, check if we should update.
-		if (id == 400 || id == 401)
+		if (id == fastore::common::Dictionary::PodColumnPodID || id == fastore::common::Dictionary::PodColumnColumnID)
 			syncSchema = true;
 
 		//If we've worked through all the system tables, we may have encountered includes
@@ -347,7 +316,7 @@ void WorkerHandler::commit(const TransactionID transactionID, const Writes& writ
 		auto repo = _repositories.find(id);
 		if (repo != _repositories.end())
 		{
-			if (syncSchema && id > 401)
+			if (syncSchema && id >  fastore::common::Dictionary::PodColumnColumnID)
 			{
 				syncSchema = false;
 				SyncToSchema();

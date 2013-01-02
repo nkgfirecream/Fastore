@@ -22,6 +22,7 @@ class StoreIf {
   virtual void getWrites(GetWritesResults& _return, const Ranges& ranges) = 0;
   virtual void commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes) = 0;
   virtual void flush(const TransactionID transactionID) = 0;
+  virtual void unpark(const int64_t connectionID, const std::string& data) = 0;
 };
 
 class StoreIfFactory {
@@ -70,6 +71,9 @@ class StoreNull : virtual public StoreIf {
     return;
   }
   void flush(const TransactionID /* transactionID */) {
+    return;
+  }
+  void unpark(const int64_t /* connectionID */, const std::string& /* data */) {
     return;
   }
 };
@@ -706,6 +710,103 @@ class Store_flush_presult {
 
 };
 
+typedef struct _Store_unpark_args__isset {
+  _Store_unpark_args__isset() : connectionID(false), data(false) {}
+  bool connectionID;
+  bool data;
+} _Store_unpark_args__isset;
+
+class Store_unpark_args {
+ public:
+
+  Store_unpark_args() : connectionID(0), data() {
+  }
+
+  virtual ~Store_unpark_args() throw() {}
+
+  int64_t connectionID;
+  std::string data;
+
+  _Store_unpark_args__isset __isset;
+
+  void __set_connectionID(const int64_t val) {
+    connectionID = val;
+  }
+
+  void __set_data(const std::string& val) {
+    data = val;
+  }
+
+  bool operator == (const Store_unpark_args & rhs) const
+  {
+    if (!(connectionID == rhs.connectionID))
+      return false;
+    if (!(data == rhs.data))
+      return false;
+    return true;
+  }
+  bool operator != (const Store_unpark_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_unpark_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_unpark_pargs {
+ public:
+
+
+  virtual ~Store_unpark_pargs() throw() {}
+
+  const int64_t* connectionID;
+  const std::string* data;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_unpark_result {
+ public:
+
+  Store_unpark_result() {
+  }
+
+  virtual ~Store_unpark_result() throw() {}
+
+
+  bool operator == (const Store_unpark_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_unpark_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_unpark_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_unpark_presult {
+ public:
+
+
+  virtual ~Store_unpark_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class StoreClient : virtual public StoreIf {
  public:
   StoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -746,6 +847,9 @@ class StoreClient : virtual public StoreIf {
   void flush(const TransactionID transactionID);
   void send_flush(const TransactionID transactionID);
   void recv_flush();
+  void unpark(const int64_t connectionID, const std::string& data);
+  void send_unpark(const int64_t connectionID, const std::string& data);
+  void recv_unpark();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -768,6 +872,7 @@ class StoreProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_getWrites(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_commit(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_flush(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_unpark(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   StoreProcessor(boost::shared_ptr<StoreIf> iface) :
     iface_(iface) {
@@ -778,6 +883,7 @@ class StoreProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["getWrites"] = &StoreProcessor::process_getWrites;
     processMap_["commit"] = &StoreProcessor::process_commit;
     processMap_["flush"] = &StoreProcessor::process_flush;
+    processMap_["unpark"] = &StoreProcessor::process_unpark;
   }
 
   virtual ~StoreProcessor() {}
@@ -869,6 +975,15 @@ class StoreMultiface : virtual public StoreIf {
       ifaces_[i]->flush(transactionID);
     }
     ifaces_[i]->flush(transactionID);
+  }
+
+  void unpark(const int64_t connectionID, const std::string& data) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->unpark(connectionID, data);
+    }
+    ifaces_[i]->unpark(connectionID, data);
   }
 
 };

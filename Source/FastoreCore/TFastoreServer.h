@@ -221,7 +221,7 @@ private:
 	std::stack<TConnection*> connectionPool_;
 
 	//List of Active connections
-	std::vector<TConnection*> activeConnections_;
+	std::map<int64_t, TConnection*> activeConnections_;
 
 	//List of connections to close when no longer in use
 	std::vector<int> closePool_;
@@ -672,6 +672,8 @@ public:
 	* Return whether or not the server is in a shutdown state
 	*/
 	bool isShuttingDown();
+
+	TConnection* getConnectionById(int64_t connectionId);
 	
 
 private:
@@ -727,7 +729,10 @@ private:
 */
 class TFastoreServer::TConnection
 {
-private:
+private:	
+
+	//Connection Id
+	int64_t id_;
 
 	/// Server handle
 	TFastoreServer* server_;
@@ -795,6 +800,12 @@ private:
 
 	/// Thrift call context, if any
 	void *connectionContext_;	
+
+	int64_t generateId()
+	{
+		static int64_t _idSource(0);
+		return ++_idSource;
+	}
 
 public:
 
@@ -901,16 +912,21 @@ public:
 		return server_;
 	}
 
-	//Be careful with this. It writes directly to the output buffer.
-	//This should only used in combination with connection parking (i.e the Processor ended up writing nothing)
+	//Be careful with this. It writes directly to the output transport,
+	//by passing protocols, etc. This should only used in combination with connection parking (i.e the Processor ended up writing nothing)
 	//Be sure to reset the transport before writing to eliminate any garbage that may be in the buffer.
-	boost::shared_ptr<TProtocol> getOutputProtocol()
+	boost::shared_ptr<TMemoryBuffer> getOutputTransport()
 	{
-		return outputProtocol_;
+		return outputTransport_;
 	}
 
 	/// Close this connection and free or reset its resources.
 	void close();
+
+	int64_t getId()
+	{
+		return id_;
+	}
 
 };
 
