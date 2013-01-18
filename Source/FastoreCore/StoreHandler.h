@@ -11,7 +11,7 @@ class StoreHandler :
 	virtual public apache::thrift::TProcessorEventHandler 
 {
 public:
-	StoreHandler(std::string path);
+	StoreHandler(std::string path, uint64_t port);
 
 	void checkpointBegin(const fastore::communication::ColumnID columnID);
 	void checkpointWrite(const fastore::communication::ColumnID columnID, const fastore::communication::ValueRowsList& values);
@@ -31,6 +31,7 @@ public:
 
 private:
 	std::unique_ptr<LogManager> _logManager;
+	uint64_t _port;
 
 	//Not a shared pointer because we don't own the connection.
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;

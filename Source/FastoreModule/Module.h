@@ -121,8 +121,8 @@ void ensureColumns(module::Connection* connection, std::vector<ColumnDef>& defs)
 				boost::assign::list_of<std::string>
 				(client::Encoder<communication::ColumnID>::Encode(defs[i].ColumnID))
 				(defs[i].Name)
-				(defs[i].ValueType.Name)
-				(defs[i].RowIDType.Name)
+				(defs[i].ValueTypeName)
+				(defs[i].RowIDTypeName)
 				(client::Encoder<BufferType_t>::Encode(defs[i].BufferType))
 				(client::Encoder<bool>::Encode(defs[i].Required))
 			);
@@ -148,11 +148,11 @@ void ensureTablesTable(module::Connection* connection)
 
 	static const ColumnDef tableTable[] =  
 	{ 
-		{ module::Dictionary::TableID, "Table.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
-		{ module::Dictionary::TableName, "Table.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
-		{ module::Dictionary::TableDDL, "Table.DDL", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
-		{ module::Dictionary::TableColumnTableID, "TableColumn.TableID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
-		{ module::Dictionary::TableColumnColumnID, "TableColumn.ColumnID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true }
+		{ module::Dictionary::TableID, "Table.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true }, 
+		{ module::Dictionary::TableName, "Table.Name", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+		{ module::Dictionary::TableDDL, "Table.DDL", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+		{ module::Dictionary::TableColumnTableID, "TableColumn.TableID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ module::Dictionary::TableColumnColumnID, "TableColumn.ColumnID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true }
 	};
 
 	std::vector<ColumnDef> defs;

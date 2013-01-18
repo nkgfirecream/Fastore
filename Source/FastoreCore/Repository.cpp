@@ -3,12 +3,7 @@
 #include <sstream>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
-
-#include "../FastoreCommon/Buffer/UniqueBuffer.h"
-#include "../FastoreCommon/Buffer/UniqueInlineBuffer.h"
-#include "../FastoreCommon/Buffer/TreeBuffer.h"
-#include "../FastoreCommon/Buffer/TreeInlineBuffer.h"
-#include "../FastoreCommon/Buffer/IdentityBuffer.h"
+#include <Buffer/BufferFactory.h>
 #include "TFastoreFileTransport.h"
 #include <thrift/protocol/TBinaryProtocol.h>
 
@@ -23,36 +18,7 @@ Repository::Repository(ColumnDef def) : _def(def), _revision(0)
 
 std::unique_ptr<IColumnBuffer> Repository::createBuffer(const ColumnDef& def)
 {
-	if (def.BufferType == BufferType_t::Identity)
-	{
-		if (def.RowIDType.Name != def.ValueType.Name)
-			throw "Identity Buffers require rowType and ValueType to be the same";
-
-		return std::unique_ptr<IColumnBuffer>(new IdentityBuffer(def.RowIDType));
-	}
-	else if(def.BufferType == BufferType_t::Unique)
-	{
-		//8 is the size of a pointer. If the size is less than 8, it's cheaper (from a memory point of view) to duplicate the value in the reverse index than it is to track pointers and update.
-		if (def.ValueType.Size <= 8) 
-		{
-			return std::unique_ptr<IColumnBuffer>(new UniqueInlineBuffer(def.RowIDType, def.ValueType));
-		}
-		else
-		{
-			return std::unique_ptr<IColumnBuffer>(new UniqueBuffer(def.RowIDType, def.ValueType));
-		}
-	}
-	else
-	{
-		//if (_def.ValueType.Size <= 8)
-		//{
-		//	_buffer = std::unique_ptr<IColumnBuffer>(new TreeInlineBuffer(_def.RowIDType, _def.ValueType));		
-		//}
-		//else
-		//{
-			return std::unique_ptr<IColumnBuffer>(new TreeBuffer(def.RowIDType, def.ValueType));		
-		//}
-	}
+	return BufferFactory::CreateBuffer(def.ValueTypeName, def.RowIDTypeName, def.BufferType);
 }
 
 Answer Repository::query(const fastore::communication::Query& query)

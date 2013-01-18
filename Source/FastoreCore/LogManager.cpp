@@ -17,6 +17,19 @@ LogManager::LogManager(std::string path) :
 		[&](int64_t lsn) { return createReader(lsn); }, 
 		[&](std::shared_ptr<LogReader> reader) { return validateReader(reader); }, 
 		[&](std::shared_ptr<LogReader> reader) { return destroyReader(reader);  }
+	),
+	_stores
+	(
+		[](boost::shared_ptr<TProtocol> proto) { return StoreClient(proto); }, 
+		[&](uint64_t i)
+			{ 
+				NetworkAddress add;
+				add.__set_name("");
+				add.__set_port(int64_t(i));
+				return add;
+			}, 
+		[](StoreClient& client) { client.getInputProtocol()->getTransport()->close(); }, 
+		[](StoreClient& client) { return client.getInputProtocol()->getTransport()->isOpen();}
 	)
 {
 	//Start writer thread.
@@ -301,22 +314,22 @@ void LogManager::indexRollbackRecord(RollbackRecord& record)
 }
 
 //Public methods
-void LogManager::flush(const fastore::communication::TransactionID transactionID, int64_t connectionID)
+void LogManager::flush(const fastore::communication::TransactionID transactionID, uint64_t port, int64_t connectionID)
 {
-	_writeService.post(boost::bind(&LogManager::internalFlush, this, transactionID, connectionID));
+	_writeService.post(boost::bind(&LogManager::internalFlush, this, transactionID, port, connectionID));
 }
 void LogManager::commit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> & revisions, const fastore::communication::Writes& writes)
 {
 	_writeService.post(boost::bind(&LogManager::internalCommit, this, transactionID, revisions, writes));
 }
 
-void LogManager::getWrites(const fastore::communication::Ranges& ranges, int64_t connectionID)
+void LogManager::getWrites(const fastore::communication::Ranges& ranges, uint64_t port, int64_t connectionID)
 {
-	_readService.post(boost::bind(&LogManager::internalGetWrites, this, ranges, connectionID));
+	_readService.post(boost::bind(&LogManager::internalGetWrites, this, ranges, port, connectionID));
 }
 
 //Internal methods
-void LogManager::internalFlush(const fastore::communication::TransactionID transactionID, int64_t connectionID)
+void LogManager::internalFlush(const fastore::communication::TransactionID transactionID, uint64_t port, int64_t connectionID)
 {
 	_lock->lock();
 	_writer->flush();
@@ -327,7 +340,10 @@ void LogManager::internalFlush(const fastore::communication::TransactionID trans
 	_pendingTransactions.clear();
 	_lock->unlock();
 
-
+	auto client = _stores[port];
+	//TODO: Look up how Thrift sends void.
+	client.unpark(connectionID, std::string());
+	_stores.Release(std::make_pair(port, client));
 }
 
 void LogManager::internalCommit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions, const fastore::communication::Writes writes)
@@ -347,7 +363,7 @@ void LogManager::internalCommit(const fastore::communication::TransactionID tran
 	writeTransactionEnd(transactionID);
 }
 
-void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, int64_t connectionID)
+void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, uint64_t port, int64_t connectionID)
 {
 	fastore::communication::GetWritesResults results;
 
@@ -400,6 +416,9 @@ void LogManager::internalGetWrites(const fastore::communication::Ranges ranges, 
 
 	std::string result = buffer->getBufferAsString();
 
+	auto client = _stores[port];
+	client.unpark(connectionID, result);
+	_stores.Release(std::make_pair(port, client));
 }
 
 fastore::communication::GetWritesResult LogManager::getRange(fastore::communication::ColumnID columnId, fastore::communication::Revision from, fastore::communication::Revision to)

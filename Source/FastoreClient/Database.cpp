@@ -1332,8 +1332,8 @@ Schema Database::LoadSchema()
 				{
 					Encoder<ColumnID>::Decode(column.ID),
 					Encoder<std::string>::Decode(column.Values[1].value),
-					standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[2].value)),
-					standardtypes::GetTypeFromName(Encoder<std::string>::Decode(column.Values[3].value)),
+					Encoder<std::string>::Decode(column.Values[2].value),
+					Encoder<std::string>::Decode(column.Values[3].value),
 					Encoder<BufferType_t>::Decode(column.Values[4].value),
 					Encoder<bool>::Decode(column.Values[5].value)
 				};
@@ -1355,12 +1355,12 @@ void Database::BootStrapSchema()
 {
 	static const ColumnDef defaults[] =  
 	{ 
-		{ fastore::common::Dictionary::ColumnID, "Column.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
-		{ fastore::common::Dictionary::ColumnName, "Column.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
-		{ fastore::common::Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
-		{ fastore::common::Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
-		{ fastore::common::Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int, standardtypes::Long, BufferType_t::Multi, true },
-		{ fastore::common::Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool, standardtypes::Long, BufferType_t::Multi, true }
+		{ fastore::common::Dictionary::ColumnID, "Column.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true }, 
+		{ fastore::common::Dictionary::ColumnName, "Column.Name", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+		{ fastore::common::Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ fastore::common::Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ fastore::common::Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ fastore::common::Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool.Name, standardtypes::Long.Name, BufferType_t::Multi, true }
 	};	
 
 	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 

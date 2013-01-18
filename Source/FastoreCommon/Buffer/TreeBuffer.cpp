@@ -23,6 +23,16 @@ Statistic TreeBuffer::GetStatistic()
 	return stat;
 }
 
+const ScalarType& TreeBuffer::GetRowIdType()
+{
+	return _rowType;
+}
+
+const ScalarType& TreeBuffer::GetValueType()
+{
+	return _valueType;
+}
+
 vector<OptionalValue> TreeBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());

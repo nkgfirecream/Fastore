@@ -16,7 +16,7 @@ BTreeType standardtypes::StandardBTreeType;
 NodeType standardtypes::StandardNodeType;
 NoOpNodeType standardtypes::StandardNoOpNodeType;
 
-ScalarType standardtypes::GetTypeFromName(std::string typeName)
+ScalarType& standardtypes::GetTypeFromName(const std::string& typeName)
 {
 	static std::map<std::string, ScalarType> output;
 

@@ -12,6 +12,8 @@ class UniqueInlineBuffer : public IColumnBuffer
 		void Apply(const ColumnWrites& writes);
 		RangeResult GetRows(const RangeRequest& range);
 		Statistic GetStatistic();
+		const ScalarType& GetRowIdType();
+		const ScalarType& GetValueType();
 
 	private:
 		bool Include(void* rowId, void* value);

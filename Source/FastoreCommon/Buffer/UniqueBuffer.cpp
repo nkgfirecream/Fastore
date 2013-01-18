@@ -14,6 +14,16 @@ UniqueBuffer::UniqueBuffer(const ScalarType& rowType, const ScalarType& valueTyp
 	);
 }
 
+const ScalarType& UniqueBuffer::GetRowIdType()
+{
+	return _rowType;
+}
+
+const ScalarType& UniqueBuffer::GetValueType()
+{
+	return _valueType;
+}
+
 Statistic UniqueBuffer::GetStatistic()
 {
 	Statistic stat;

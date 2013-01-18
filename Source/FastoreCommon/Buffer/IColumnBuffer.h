@@ -14,5 +14,7 @@ class IColumnBuffer
 		virtual std::vector<OptionalValue> GetValues(const std::vector<std::string>& rowIds) = 0;
 		virtual OptionalValue GetValue(const std::string &rowId) = 0;
 		virtual Statistic GetStatistic() = 0;
+		virtual const ScalarType& GetRowIdType() = 0;
+		virtual const ScalarType& GetValueType() = 0;
 		virtual ~IColumnBuffer() { };
 };

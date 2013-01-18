@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "IDataAccess.h"
-#include "ConnectionPool.h"
 #include "ServiceAddress.h"
 #include "ClientException.h"
 #include "Transaction.h"
@@ -19,6 +18,7 @@
 #include <Communication/Service.h>
 #include <Communication/Worker.h>
 #include <Communication/Store.h>
+#include <Connection/ConnectionPool.h>
 #include "typedefs.h"
 #include <future>
 #include "TransactionIDGenerator.h"

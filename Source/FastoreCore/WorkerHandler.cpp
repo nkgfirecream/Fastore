@@ -38,22 +38,22 @@ void WorkerHandler::Bootstrap()
 {
 	static const ColumnDef defaults[] =  
 	{ 
-		{ Dictionary::ColumnID, "Column.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true }, 
-		{ Dictionary::ColumnName, "Column.Name", standardtypes::String, standardtypes::Long, BufferType_t::Unique, true },
-		{ Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::TopologyID, "Topology.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true },
-		{ Dictionary::HostID, "Host.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Identity, true },
-		{ Dictionary::PodID, "Pod.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Unique, true },
-		{ Dictionary::PodHostID, "Pod.HostID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::PodColumnPodID, "PodColumn.PodID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::PodColumnColumnID, "PodColumn.ColumnID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::StashID, "Stash.ID", standardtypes::Long, standardtypes::Long, BufferType_t::Unique, true },
-		{ Dictionary::StashHostID, "Stash.HostID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::StashColumnStashID, "StashColumn.StashID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true },
-		{ Dictionary::StashColumnColumnID, "StashColumn.ColumnID", standardtypes::Long, standardtypes::Long, BufferType_t::Multi, true }
+		{ Dictionary::ColumnID, "Column.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true }, 
+		{ Dictionary::ColumnName, "Column.Name", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+		{ Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::TopologyID, "Topology.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true },
+		{ Dictionary::HostID, "Host.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true },
+		{ Dictionary::PodID, "Pod.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+		{ Dictionary::PodHostID, "Pod.HostID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::PodColumnPodID, "PodColumn.PodID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::PodColumnColumnID, "PodColumn.ColumnID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::StashID, "Stash.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+		{ Dictionary::StashHostID, "Stash.HostID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::StashColumnStashID, "StashColumn.StashID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+		{ Dictionary::StashColumnColumnID, "StashColumn.ColumnID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Multi, true }
 	};	
 
 	//This creates the in memory repo
@@ -181,7 +181,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	//valueType column
 	includes.clear();
 
-	include.__set_value(def.ValueType.Name);
+	include.__set_value(def.ValueTypeName);
 	include.__set_rowID(columnId);
 
 	includes.push_back(include);
@@ -193,7 +193,7 @@ void WorkerHandler::AddColumnToSchema(ColumnDef def)
 	//rowType column
 	includes.clear();
 
-	include.__set_value(def.RowIDType.Name);
+	include.__set_value(def.RowIDTypeName);
 	include.__set_rowID(columnId);
 
 	includes.push_back(include);
@@ -262,7 +262,7 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 	answer = _repositories[fastore::common::Dictionary::ColumnRequired]->query(query);
 	bool req = *(bool*)(answer.rowIDValues[0].value.data());
 
-	ColumnDef c = { id, name, standardtypes::GetTypeFromName(valueType), standardtypes::GetTypeFromName(rowType), bType, req };
+	ColumnDef c = { id, name, valueType, rowType, bType, req };
 	return c;
 }
 

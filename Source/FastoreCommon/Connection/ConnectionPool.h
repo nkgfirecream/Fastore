@@ -1,6 +1,4 @@
 ﻿#pragma once
-
-#include "ClientException.h"
 #include <map>
 #include <vector>
 #include <queue>
@@ -242,7 +240,8 @@ namespace fastore { namespace client
 					}
 				}
 				_entries.clear();
-				ClientException::ThrowErrors(errors);
+				//TODO: Setup common exception handling systems
+				//ClientException::ThrowErrors(errors);
 			}
 		}
 		_lock->unlock();

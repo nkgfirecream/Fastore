@@ -1,7 +1,7 @@
 #include "Store.h"
 
 Store::Store(std::string path, uint64_t port, const boost::shared_ptr<Scheduler> pscheduler) :
-	phandler( new StoreHandler(path)),
+	phandler( new StoreHandler(path, port)),
 	pprocessor( new fastore::communication::StoreProcessor(phandler) ),
 	config(port),
 	pendpoint( new Endpoint(config, pprocessor) ),

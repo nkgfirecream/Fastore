@@ -21,5 +21,5 @@ namespace standardtypes
 	extern NodeType StandardNodeType;
 	extern NoOpNodeType StandardNoOpNodeType;
 
-	extern ScalarType GetTypeFromName(std::string typeName);
+	extern ScalarType& GetTypeFromName(const std::string& typeName);
 }

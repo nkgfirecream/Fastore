@@ -12,6 +12,7 @@
 #include <Buffer/TreeBuffer.h>
 #include <unordered_set>
 #include <unordered_map>
+#include <Buffer/BufferFactory.h>
 
 using namespace fastore::communication;
 
@@ -30,13 +31,9 @@ namespace fastore { namespace client
 		class LogColumn
 		{
 		public:
-			// Row type
-			ScalarType rowType;
-			// Value type
-			ScalarType valueType;
 
 			// Included rows by value
-			std::shared_ptr<TreeBuffer> includes;
+			std::unique_ptr<IColumnBuffer> includes;
 			// Excluded row IDs
 			std::unordered_set<std::string> excludes;
 			// Read row IDs
@@ -45,11 +42,15 @@ namespace fastore { namespace client
 			Revision revision;
 			
 
-			LogColumn(const ScalarType& pRowType, const ScalarType& pValueType) 
-				: revision(0), rowType(pRowType), valueType(pValueType)
+			LogColumn(const std::string& rowTypeName, const std::string& valueTypeName) 
+				: revision(0)
 			{
-				includes.reset(new TreeBuffer(rowType, valueType)); 
+				includes = BufferFactory::CreateBuffer(rowTypeName, valueTypeName, BufferType_t::Multi);
 			}
+
+			LogColumn(LogColumn&& other)
+				: revision(other.revision), reads(std::move(other.reads)), excludes(std::move(other.excludes)), includes(std::move(other.includes))
+			{ }
 		};
 
 	private:

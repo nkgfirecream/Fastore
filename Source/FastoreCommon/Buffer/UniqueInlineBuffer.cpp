@@ -15,6 +15,16 @@ Statistic UniqueInlineBuffer::GetStatistic()
 	return stat;
 }
 
+const ScalarType& UniqueInlineBuffer::GetRowIdType()
+{
+	return _rowType;
+}
+
+const ScalarType& UniqueInlineBuffer::GetValueType()
+{
+	return _valueType;
+}
+
 vector<OptionalValue> UniqueInlineBuffer::GetValues(const vector<std::string>& rowIds)
 {
 	vector<OptionalValue> values(rowIds.size());

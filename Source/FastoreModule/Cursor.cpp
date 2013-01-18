@@ -72,7 +72,7 @@ int module::Cursor::next()
 		//If we just pulled a fresh set, compare the value to our filter value
 		if (_index == 0) 
 		{
-			auto valueType = _table->_columns[_colIndex].ValueType;
+			auto valueType = standardtypes::GetTypeFromName(_table->_columns[_colIndex].ValueTypeName);
 
 			//If the new value doesn't match the filter value, set End Of Filter.
 			if (
@@ -237,7 +237,7 @@ int module::Cursor::filter(int idxNum, const char *idxStr, int argc, sqlite3_val
 		{
 			//Attempt to locate the correct value in the current set.
 			//Presumably, this filtered occured after a Next call which iterated off the current value, so check and see if we are already pointing at the right value
-			auto valueType = _table->_columns[_colIndex].ValueType;
+			auto valueType = standardtypes::GetTypeFromName(_table->_columns[_colIndex].ValueTypeName);
 
 			//if we are at the right place, set _eofOfFilter, create new range information (using the new values), and return
 			if (_index >= 0 &&
@@ -354,7 +354,7 @@ int module::Cursor::seekIndex(std::string& value, int columnIndex)
 	int split = 0;
 	int result = -1;
 
-	auto valueType = _table->_columns[_colIndex].ValueType;
+	auto valueType = standardtypes::GetTypeFromName(_table->_columns[_colIndex].ValueTypeName);
 
 	while (lo <= hi)
 	{

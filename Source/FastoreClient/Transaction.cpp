@@ -200,9 +200,9 @@ RangeSet Transaction::getRange(const ColumnIDs& columnIds, const Range& range, c
 				&& 
 				(
 					// Value precedes the selected one
-					(valueComp = rangeLog->valueType.Compare(localRange.valueRowsList[valueIndex].value.data(), (*remoteRow)[range.ColumnID].value.data())) < 0
+					(valueComp = rangeLog->includes->GetValueType().Compare(localRange.valueRowsList[valueIndex].value.data(), (*remoteRow)[range.ColumnID].value.data())) < 0
 						// Or value equals selected on and the row ID precedes the selected one
-						|| (valueComp == 0 && (rowComp = rangeLog->rowType.Compare(localRange.valueRowsList[valueIndex].rowIDs[rowIndex].data(), remoteRow->ID.data())) <= 0)
+						|| (valueComp == 0 && (rowComp = rangeLog->includes->GetRowIdType().Compare(localRange.valueRowsList[valueIndex].rowIDs[rowIndex].data(), remoteRow->ID.data())) <= 0)
 				)
 		)
 		{
@@ -343,7 +343,7 @@ Transaction::LogColumn& Transaction::ensureColumnLog(const ColumnID& columnId)
 		auto def = schema.find(columnId);
 		if (def != schema.end())
 		{
-			auto inserted = _log.insert(std::make_pair(columnId, LogColumn(def->second.RowIDType, def->second.ValueType)));
+			auto inserted = _log.insert(std::make_pair(columnId, LogColumn(def->second.RowIDTypeName, def->second.ValueTypeName)));
 			return inserted.first->second;
 		}
 		else

@@ -6,6 +6,16 @@ IdentityBuffer::IdentityBuffer(const ScalarType& type): _type(type)
 	_count = 0;
 }
 
+const ScalarType& IdentityBuffer::GetRowIdType()
+{
+	return _type;
+}
+
+const ScalarType& IdentityBuffer::GetValueType()
+{
+	return _type;
+}
+
 Statistic IdentityBuffer::GetStatistic()
 {
 	Statistic stat;

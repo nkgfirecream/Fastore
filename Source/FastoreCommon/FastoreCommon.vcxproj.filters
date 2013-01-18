@@ -22,6 +22,9 @@
     <Filter Include="Schema">
       <UniqueIdentifier>{f108da41-43d5-4f98-baa3-a7485f4213e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Connection">
+      <UniqueIdentifier>{4d601713-091c-4cde-b619-f15bb1cf130c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Communication\Comm_constants.cpp">
@@ -92,6 +95,9 @@
     </ClCompile>
     <ClCompile Include="Schema\Dictionary.cpp">
       <Filter>Schema</Filter>
+    </ClCompile>
+    <ClCompile Include="Buffer\BufferFactory.cpp">
+      <Filter>Buffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -187,6 +193,15 @@
     </ClInclude>
     <ClInclude Include="Schema\Dictionary.h">
       <Filter>Schema</Filter>
+    </ClInclude>
+    <ClInclude Include="Connection\ConnectionPool.h">
+      <Filter>Connection</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\BufferFactory.h">
+      <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer\BufferType.h">
+      <Filter>Buffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

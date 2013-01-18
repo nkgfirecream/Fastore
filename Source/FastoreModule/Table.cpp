@@ -283,8 +283,8 @@ void module::Table::createColumn(ColumnDef& column, std::string& combinedName, R
 		boost::assign::list_of<std::string>
 		(client::Encoder<communication::ColumnID>::Encode(column.ColumnID))
 		(combinedName)
-		(column.ValueType.Name)
-		(column.RowIDType.Name)
+		(column.ValueTypeName)
+		(column.RowIDTypeName)
 		(client::Encoder<BufferType_t>::Encode(column.BufferType))
 		(client::Encoder<bool>::Encode(column.Required))
 	);
@@ -534,7 +534,7 @@ int module::Table::bestIndex(sqlite3_index_info* info, double* numRows, double n
 
 double module::Table::costPerRow(int columnIndex)
 {
-	return _columns[columnIndex].ValueType.Name == "String" || _columns[columnIndex].ValueType.Name == "WString" ? 1.1 : 1;
+	return _columns[columnIndex].ValueTypeName == "String" || _columns[columnIndex].ValueTypeName == "WString" ? 1.1 : 1;
 }
 
 client::RangeSet module::Table::getRange(client::Range& range, const ColumnIDs& columnIds, const boost::optional<std::string>& startId)
@@ -765,7 +765,7 @@ ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	bool req = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
 	                  insensitiveStrPos(stringText, std::string("primary key")) >= 0;
 
-	ColumnDef c = {0, name, standardtypes::GetTypeFromName(type), standardtypes::GetTypeFromName(std::string("Long")), bType, req};
+	ColumnDef c = {0, name, type, std::string("Long"), bType, req};
 	return c;
 }
 
@@ -777,7 +777,7 @@ void module::Table::determineRowIDColumn()
 	{
 		ColumnDef col = _columns[i];
 
-		if (col.Required && col.BufferType == BufferType_t::Identity && col.ValueType.Name == "Long")
+		if (col.Required && col.BufferType == BufferType_t::Identity && col.ValueTypeName == "Long")
 		{
 			_rowIDIndex = i;
 			break;

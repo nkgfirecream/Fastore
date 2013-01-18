@@ -8,6 +8,16 @@ TreeInlineBuffer::TreeInlineBuffer(const ScalarType& rowType, const ScalarType &
 	_total = 0;
 }
 
+const ScalarType& TreeInlineBuffer::GetRowIdType()
+{
+	return _rowType;
+}
+
+const ScalarType& TreeInlineBuffer::GetValueType()
+{
+	return _valueType;
+}
+
 Statistic TreeInlineBuffer::GetStatistic()
 {
 	Statistic stat;

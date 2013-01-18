@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Buffer\BufferFactory.cpp" />
     <ClCompile Include="Buffer\IdentityBuffer.cpp" />
     <ClCompile Include="Buffer\TreeBuffer.cpp" />
     <ClCompile Include="Buffer\TreeInlineBuffer.cpp" />
@@ -37,6 +38,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Buffer\BimapConversions.h" />
+    <ClInclude Include="Buffer\BufferFactory.h" />
+    <ClInclude Include="Buffer\BufferType.h" />
     <ClInclude Include="Buffer\ColumnDef.h" />
     <ClInclude Include="Buffer\IColumnBuffer.h" />
     <ClInclude Include="Buffer\IdentityBuffer.h" />
@@ -52,6 +55,7 @@
     <ClInclude Include="Communication\Service.h" />
     <ClInclude Include="Communication\Store.h" />
     <ClInclude Include="Communication\Worker.h" />
+    <ClInclude Include="Connection\ConnectionPool.h" />
     <ClInclude Include="Log\Syslog.h" />
     <ClInclude Include="Schema\Dictionary.h" />
     <ClInclude Include="Tree\BTree.h" />

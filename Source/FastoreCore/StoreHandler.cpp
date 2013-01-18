@@ -4,7 +4,7 @@ using boost::shared_ptr;
 
 using namespace::fastore::communication;
 
-StoreHandler::StoreHandler(std::string path)
+StoreHandler::StoreHandler(std::string path, uint64_t port)
 	: _logManager(new LogManager(path))
 {
 // Your initialization goes here
@@ -39,7 +39,7 @@ printf("getStatus\n");
 void StoreHandler::getWrites(fastore::communication::GetWritesResults& _return, const fastore::communication::Ranges& ranges) 
 {
 	_currentConnection->park();
-	_logManager->getWrites(ranges, _currentConnection->getId());
+	_logManager->getWrites(ranges, _port, _currentConnection->getId());
 }
 
 void StoreHandler::commit(const TransactionID transactionID, const std::map<ColumnID, Revision>& revisions, const Writes& writes)
@@ -50,7 +50,7 @@ void StoreHandler::commit(const TransactionID transactionID, const std::map<Colu
 void StoreHandler::flush(const fastore::communication::TransactionID transactionID) 
 {
 	_currentConnection->park();
-	_logManager->flush(transactionID, _currentConnection->getId());
+	_logManager->flush(transactionID, _port, _currentConnection->getId());
 }
 
 void StoreHandler::unpark(const int64_t connectionId, const std::string&  data)

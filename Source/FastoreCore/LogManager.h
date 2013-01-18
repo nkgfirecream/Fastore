@@ -10,7 +10,9 @@
 #include <boost/thread.hpp>
 #include <boost/circular_buffer.hpp>
 #include <Communication/Comm_types.h>
+#include <Communication/Store.h>
 #include "TFastoreServer.h"
+#include <Connection/ConnectionPool.h>
 
 struct LogFile
 {
@@ -65,6 +67,9 @@ class LogManager
 {
 private:
 	const static int MAXTHREADS = 3;
+
+	//TODO: This will only have one entry for the store on local host - we just want to reuse the management logic
+	fastore::client::ConnectionPool<uint64_t, fastore::communication::StoreClient> _stores;
 
 	//protects structures shared by worker threads
 	//file index, trasaction and revision index, cache
@@ -123,7 +128,7 @@ private:
 	void offsetByRevision(ColumnInfo& info, int64_t revision, int64_t& outLsn, int64_t& outOffset);
 
 	//Write functions 
-	void internalFlush(const fastore::communication::TransactionID transactionID, int64_t connectionID);
+	void internalFlush(const fastore::communication::TransactionID transactionID, uint64_t port, int64_t connectionID);
 	void internalCommit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions, const fastore::communication::Writes writes);
 	
 	void writeTransactionBegin(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions);
@@ -139,9 +144,10 @@ private:
 	int64_t reuseFileOldLsn(int64_t& outNewLsn);
 
 	//These are read-only functions that can be accessed from any thread.
-	void internalGetWrites(const fastore::communication::Ranges ranges, int64_t connectionID);
+	void internalGetWrites(const fastore::communication::Ranges ranges, uint64_t port, int64_t connectionID);
 	
 	fastore::communication::GetWritesResult getRange(fastore::communication::ColumnID columnId, fastore::communication::Revision from, fastore::communication::Revision to);
+
 
 public:
 
@@ -151,9 +157,9 @@ public:
 	//Public functions used to schedule work.
 	//TODO: Consider shared pointers. It's possible the server will dispose of an
 	//unused connection.
-	void flush(const fastore::communication::TransactionID transactionID, int64_t connectionID);
+	void flush(const fastore::communication::TransactionID transactionID, uint64_t port, int64_t connectionID);
 	void commit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> & revisions, const fastore::communication::Writes& writes);
-	void getWrites(const fastore::communication::Ranges& ranges, int64_t connectionID);
+	void getWrites(const fastore::communication::Ranges& ranges, uint64_t port, int64_t connectionID);
 	//void saveThrough(std::vector<Change>, int64_t revision, int64_t columnId);
 
 	//void getThrough(int64_t columnId, int64_t revision,  Connection* connection);
