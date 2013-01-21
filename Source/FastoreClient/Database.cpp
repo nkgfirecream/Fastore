@@ -65,11 +65,15 @@ Database::Database(std::vector<ServiceAddress> addresses)
 		networkAddresses.push_back(n);
 	}
 
-	// Number of potential workers for each service (in case we nee to create the hive)
-	std::vector<int> serviceWorkers(networkAddresses.size());
+	// Number of potential workers for each service (in case we need to create the hive)
+	// If we need to init a hive, we have to assign the various services host ids
+	// For now, their position in the network address vector is their Id
+	std::map<HostID, int> numWorkersByHost;
+	std::map<HostID, NetworkAddress> addressesByHost;
 	for (size_t i = 0; i < networkAddresses.size(); i++)
 	{
-		auto service = _services.Connect(networkAddresses[i]);
+		NetworkAddress address = networkAddresses[i];
+		auto service = _services.Connect(address);
 		try
 		{
 			// Discover the state of the entire hive from the given service
@@ -82,7 +86,8 @@ Database::Database(std::vector<ServiceAddress> addresses)
 				 * workers for the rest of the services, ensuring that they 
 				 * are all not joined.
 				 */
-				serviceWorkers[i] = hiveStateResult.potentialWorkers;
+				numWorkersByHost[i] = hiveStateResult.potentialWorkers;
+				addressesByHost[i] = address;
 				_services.Destroy(service);
 				//Log << log_err << __func__ << ": failed to join "
 				//	<< networkAddresses[i] << log_endl;
@@ -93,9 +98,7 @@ Database::Database(std::vector<ServiceAddress> addresses)
 			if (i > 0)
 				throw ClientException(boost::str(boost::format("Service '{0}' is joined to topology {1}, while at least one other specified service is not part of any topology.") % networkAddresses[i].name % hiveStateResult.hiveState.topologyID));
 			
-			UpdateHiveState(hiveStateResult.hiveState);
-			BootStrapSchema();
-			RefreshHiveState();
+			UpdateHiveStateCache(hiveStateResult.hiveState);
 
 			//Everything worked... exit function
 				//Log << log_err << __func__ << ": joined "
@@ -118,25 +121,23 @@ Database::Database(std::vector<ServiceAddress> addresses)
 		}
 	}
 
-	//Create a new topology instead.
-	auto newTopology = CreateTopology(serviceWorkers);
+	//Couldn't locate a hive state. The hive is (presumably) uninitialized.
 
-	std::map<HostID, NetworkAddress> addressesByHost;
-	for (size_t hostID = 0; hostID  < networkAddresses.size(); hostID++) {
-		addressesByHost[hostID] = networkAddresses[hostID];
-	}
+	//Create a new topology instead. Base the topology to be created on number of possible workers reported.
+	auto newTopology = CreateTopology(numWorkersByHost);
 
 	HiveState newHive;
 	newHive.__set_topologyID(newTopology.topologyID);
 	newHive.__set_services(std::map<HostID, ServiceState>());
-	for (size_t hostID = 0; hostID < networkAddresses.size(); hostID++)
+
+	for (auto begin = addressesByHost.begin(), end = addressesByHost.end(); begin != end; ++begin)
 	{
-		auto service = _services.Connect(networkAddresses[hostID]);
+		auto service = _services.Connect(begin->second);
 		try
 		{
 			ServiceState serviceState;
-			service.init(serviceState, newTopology, addressesByHost, HostID(hostID));
-			newHive.services[hostID] = serviceState;
+			service.init(serviceState, newTopology, addressesByHost, begin->first);
+			newHive.services[begin->first] = serviceState;
 		}
 		catch(const std::exception& e)
 		{
@@ -151,8 +152,7 @@ Database::Database(std::vector<ServiceAddress> addresses)
 		throw runtime_error(msg);
 	}
 
-	UpdateHiveState(newHive);
-	BootStrapSchema();
+	UpdateHiveStateCache(newHive);
 	UpdateTopologySchema(newTopology);
 }
 
@@ -214,23 +214,25 @@ void Database::UpdateTopologySchema(const Topology &newTopology)
 	apply(writes, false);
 }
 
-Topology Database::CreateTopology(const std::vector<int>& serviceWorkers)
+Topology Database::CreateTopology(const std::map<HostID, int>& serviceWorkers)
 {
 	Topology newTopology;
 	newTopology.__set_topologyID(generateTransactionID());
 	newTopology.__set_hosts(std::map<HostID, Host>());
-	auto podID = 0;
-	for (size_t hostID = 0; hostID < serviceWorkers.size(); hostID++)
+	PodID podID = 0;
+	for (auto begin = serviceWorkers.begin(), end = serviceWorkers.end(); begin != end; ++begin)
 	{
 		Host host;
 		host.__set_pods(std::map<PodID, std::vector<ColumnID>>());
 		auto &pods = host.pods;
-		for (int i = 0; i < serviceWorkers[hostID]; i++)
+
+		for (int i = 0; i < begin->second; ++i)
 		{
-			pods.insert(std::make_pair(podID, std::vector<ColumnID>())); // No no columns initially
+			pods.insert(std::make_pair(podID, std::vector<ColumnID>())); // No columns initially
 			podID++;
 		}
-		newTopology.hosts.insert(std::make_pair(HostID(hostID), host));
+
+		newTopology.hosts.insert(std::make_pair(begin->first, host));
 	}
 
 	return newTopology;
@@ -243,14 +245,14 @@ Database::~Database()
 	//We need to call them explicitly to make sure connections are cleaned in spite of any errors.
 	//TODO: Make sure multiple calls to destructor of connection pool doesn't cause problems.
 	//TODO: Perhaps make this a pointer again and pass null to show we are sending an empty state.
-	cleanupActions.push_back([&](){ UpdateHiveState(HiveState()); });
+	cleanupActions.push_back([&](){ UpdateHiveStateCache(HiveState()); });
 
 	ClientException::ForceCleanup(cleanupActions);
 }
 
 //TODO: consider rewriting these in terms of a scoped_lock so that it's always released when it goes out of scope.
 // This requires including more of the boost library. (Or just write some type of autolock).
-NetworkAddress& Database::GetServiceAddress(HostID hostID)
+NetworkAddress Database::GetServiceAddress(HostID hostID)
 {
 	_lock->lock();
 	try
@@ -299,7 +301,7 @@ NetworkAddress Database::GetStoreAddress(HostID hostID)
 	}
 }
 
-HiveState Database::GetHiveState()
+HiveState Database::QueryHiveForState()
 {
 	//TODO: Need to actually try to get new worker information, update topologyID, etc.
 	//This just assumes that we won't add any workers once we are up and running
@@ -347,13 +349,13 @@ HiveState Database::GetHiveState()
 	return newHive;
 }
 
-void Database::RefreshHiveState()
+void Database::RefreshHiveStateCache()
 {
-	HiveState newState = GetHiveState();
-	UpdateHiveState(newState);
+	HiveState newState =QueryHiveForState();
+	UpdateHiveStateCache(newState);
 }
 
-void Database::UpdateHiveState(const HiveState &newState)
+void Database::UpdateHiveStateCache(const HiveState &newState)
 {
 	_lock->lock();
 	_hiveState = newState;
@@ -889,8 +891,8 @@ void Database::apply(TransactionID transactionID, const std::map<ColumnID, Colum
 			
 				if (shouldRefreshSchema)
 				{
-					RefreshSchema();
-					RefreshHiveState();
+					RefreshSchemaCache();
+					RefreshHiveStateCache();
 				}
 		
 				break;
@@ -1319,12 +1321,13 @@ Schema Database::LoadSchema()
 {
 	Schema schema;
 	bool finished = false;
-	while (!finished)
+	std::string startId = Encoder<ColumnID>::Encode(fastore::common::Dictionary::ColumnID);
+	do
 	{
 		Range range;
 		range.Ascending = true;
 		range.ColumnID = fastore::common::Dictionary::ColumnID;
-		RangeSet columns = getRange(fastore::common::Dictionary::ColumnColumns, range, MaxFetchLimit);
+		RangeSet columns = getRange(fastore::common::Dictionary::ColumnColumns, range, MaxFetchLimit, startId);
 
 		for (auto column : columns.Data)
 		{
@@ -1340,37 +1343,44 @@ Schema Database::LoadSchema()
 
 			schema.insert(std::make_pair(def.ColumnID, def));
 		}
-		//TODO: this is wrong. We need to set the startId on the range above for this to resume properly
+
+		if (columns.Data.size() > 0)
+			startId =  columns.Data.rbegin()->ID;
+
 		finished = !columns.Limited;
 	}
+	while(!finished);
+
 	return schema;
 }
 
-void Database::RefreshSchema()
+void Database::RefreshSchemaCache()
 {
 	_schema.clear();
-}
-
-void Database::BootStrapSchema()
-{
-	static const ColumnDef defaults[] =  
-	{ 
-		{ fastore::common::Dictionary::ColumnID, "Column.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true }, 
-		{ fastore::common::Dictionary::ColumnName, "Column.Name", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
-		{ fastore::common::Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
-		{ fastore::common::Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
-		{ fastore::common::Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
-		{ fastore::common::Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool.Name, standardtypes::Long.Name, BufferType_t::Multi, true }
-	};	
-
-	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 
-		[&](const ColumnDef& def) 
-		{
-			_schema[def.ColumnID] = def;
-		} );
-
 	_schema = LoadSchema();
 }
+
+//Must be called AFTER the HiveState is updated to the current version
+//void Database::BootStrapSchema()
+//{
+//	static const ColumnDef defaults[] =  
+//	{ 
+//		{ fastore::common::Dictionary::ColumnID, "Column.ID", standardtypes::Long.Name, standardtypes::Long.Name, BufferType_t::Identity, true }, 
+//		{ fastore::common::Dictionary::ColumnName, "Column.Name", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Unique, true },
+//		{ fastore::common::Dictionary::ColumnValueType, "Column.ValueType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+//		{ fastore::common::Dictionary::ColumnRowIDType, "Column.RowIDType", standardtypes::String.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+//		{ fastore::common::Dictionary::ColumnBufferType, "Column.BufferType", standardtypes::Int.Name, standardtypes::Long.Name, BufferType_t::Multi, true },
+//		{ fastore::common::Dictionary::ColumnRequired, "Column.Required", standardtypes::Bool.Name, standardtypes::Long.Name, BufferType_t::Multi, true }
+//	};	
+//
+//	for_each( defaults, defaults + sizeof(defaults)/sizeof(defaults[0]), 
+//		[&](const ColumnDef& def) 
+//		{
+//			_schema[def.ColumnID] = def;
+//		} );
+//
+//	_schema = LoadSchema();
+//}
 
 std::map<HostID, long long> Database::ping()
 {

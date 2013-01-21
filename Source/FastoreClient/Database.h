@@ -109,19 +109,19 @@ namespace fastore { namespace client
 
 		std::unique_ptr<TransactionIDGenerator> _generator;
 
-		Topology CreateTopology(const std::vector<int>& serviceWorkers);
+		Topology CreateTopology(const std::map<HostID, int>& serviceWorkers);
 		Query GetRowsQuery(const RangeResult& rangeResult);
 		Query CreateQuery(const Range range, const int limit, const boost::optional<std::string>& startId);
 
-		NetworkAddress& GetServiceAddress(HostID hostID);
+		NetworkAddress GetServiceAddress(HostID hostID);
 
 		NetworkAddress GetStoreAddress(HostID hostID);
 
-		void RefreshSchema();
+		void RefreshSchemaCache();
 
-		HiveState GetHiveState();
-		void RefreshHiveState();
-		void UpdateHiveState(const HiveState &newState);
+		HiveState QueryHiveForState();
+		void RefreshHiveStateCache();
+		void UpdateHiveStateCache(const HiveState &newState);
 
 		NetworkAddress GetWorkerAddress(PodID podID);
 

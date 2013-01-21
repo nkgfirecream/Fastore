@@ -21,8 +21,6 @@ namespace fastore { namespace client
 
 		int64_t InternalGenerate(int64_t tableId, int size, boost::optional<int64_t> minId);
 
-		bool IsNoWorkerForColumnException(const ClientException &clientex);
-
 		void EnsureGeneratorTable();
 
 		/// <summary> Defaults the pods based on available pods. </summary>

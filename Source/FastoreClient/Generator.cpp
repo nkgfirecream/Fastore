@@ -18,6 +18,7 @@ Generator::Generator(boost::shared_ptr<Database> database, std::vector<PodID> po
 	: _database(database), _podIDs(podIDs)
 {
 	_lock = boost::shared_ptr<boost::mutex>(new boost::mutex());
+	EnsureGeneratorTable();
 }
 
 int64_t Generator::Generate(int64_t generatorId, boost::optional<int64_t> minId)
@@ -97,10 +98,7 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 			catch (ClientException& e)
 			{
 				Log << log_err << __func__ << ": " << e.what() << log_endl;
-				if (IsNoWorkerForColumnException(e))
-					continue;
-				else
-					throw;
+				throw;
 			}
 		/*	catch (AggregateException *e)
 			{
@@ -119,61 +117,65 @@ int64_t Generator::InternalGenerate(int64_t generatorId, int size, boost::option
 	}
 }
 
-bool Generator::IsNoWorkerForColumnException(const ClientException &clientex)
-{
-	if (clientex.code == ClientException::Codes::NoWorkerForColumn)
-	{
-		EnsureGeneratorTable();
-		return true;
-	}
-
-	return false;
-}
-
 void Generator::EnsureGeneratorTable()
 {
-	// Ensure that we have pod(s) to put the generator column into
-	if (_podIDs.empty())
-		DefaultPods();
+	fastore::client::RangeBound bound;
+	bound.Inclusive = true;
+	bound.Bound = Encoder<ColumnID>::Encode(fastore::client::Dictionary::GeneratorNextValue);
 
-	auto transaction = _database->begin(true);
-	// Add the generator column
-	transaction->include
-	(
-		fastore::common::Dictionary::ColumnColumns,
-		Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
-		list_of<std::string> 
-			(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
-			("Generator.Generator")
-			("Long")
-			("Long")
-			(Encoder<BufferType_t>::Encode(BufferType_t::Multi))
-			(Encoder<bool>::Encode(true))
-	);
+	fastore::client::Range range;
+	range.Ascending = true;
+	range.ColumnID = fastore::common::Dictionary::ColumnID;
+	range.Start = bound;
+	range.End = bound;	
 
-	// Add the association with each pod
-	for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
+	auto result = _database->getRange(fastore::common::Dictionary::ColumnColumns, range, 1);
+
+	if (result.Data.empty())
 	{
+		// Ensure that we have pod(s) to put the generator column into
+		if (_podIDs.empty())
+			DefaultPods();
+
+		auto transaction = _database->begin(true);
+		// Add the generator column
 		transaction->include
 		(
-			fastore::common::Dictionary::PodColumnColumns, 
+			fastore::common::Dictionary::ColumnColumns,
 			Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
 			list_of<std::string> 
-				(Encoder<PodID>::Encode(*podID))
 				(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
+				("Generator.Generator")
+				("Long")
+				("Long")
+				(Encoder<BufferType_t>::Encode(BufferType_t::Multi))
+				(Encoder<bool>::Encode(true))
 		);
+
+		// Add the association with each pod
+		for (auto podID = _podIDs.begin(); podID != _podIDs.end(); ++podID)
+		{
+			transaction->include
+			(
+				fastore::common::Dictionary::PodColumnColumns, 
+				Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue), 
+				list_of<std::string> 
+					(Encoder<PodID>::Encode(*podID))
+					(Encoder<ColumnID>::Encode(Dictionary::GeneratorNextValue))
+			);
+		}
+
+		// Seed the column table to the first user ID
+		transaction->include
+		(
+			Dictionary::GeneratorColumns, 
+			Encoder<ColumnID>::Encode(fastore::common::Dictionary::ColumnID),
+			list_of<std::string> 
+				(Encoder<ColumnID>::Encode(fastore::common::Dictionary::MaxClientColumnID + 1))
+		);
+
+		transaction->commit();
 	}
-
-	// Seed the column table to the first user ID
-	transaction->include
-	(
-		Dictionary::GeneratorColumns, 
-		Encoder<ColumnID>::Encode(fastore::common::Dictionary::ColumnID),
-		list_of<std::string> 
-			(Encoder<ColumnID>::Encode(fastore::common::Dictionary::MaxClientColumnID + 1))
-	);
-
-	transaction->commit();
 }
 
 void Generator::DefaultPods()
