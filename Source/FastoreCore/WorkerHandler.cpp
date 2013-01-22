@@ -254,7 +254,7 @@ ColumnDef WorkerHandler::GetDefFromSchema(ColumnID id)
 	answer = _repositories[fastore::common::Dictionary::ColumnRowIDType]->query(query);
 	string rowType = answer.rowIDValues[0].value;
 
-	//Unique
+	//Buffer Type
 	answer = _repositories[fastore::common::Dictionary::ColumnBufferType]->query(query);
 	BufferType_t bType = (BufferType_t)*(int*)(answer.rowIDValues[0].value.data());
 
@@ -291,6 +291,14 @@ void WorkerHandler::apply(PrepareResults& _return, const TransactionID transacti
 			PrepareResult result;
 			result.__set_actualRevision(repo->second->getRevision());
 			//What determines needs validation?
+			_return.insert(std::make_pair(*column, result));
+		}
+		else
+		{
+			//TODO: figure out what this means... Should we error? Assume the column will be created?
+			//We either don't have the column yet, or something else...
+			PrepareResult result;
+			result.__set_actualRevision(0);
 			_return.insert(std::make_pair(*column, result));
 		}
 	}

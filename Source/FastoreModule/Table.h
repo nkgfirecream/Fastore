@@ -20,7 +20,7 @@ namespace fastore
 
 		private:
 			
-			static std::map<std::string, ScalarType, LexCompare> declaredTypeToFastoreType;
+			static std::map<std::string, std::string, LexCompare> declaredTypeToFastoreType;
 			static std::map<std::string, int, LexCompare>  declaredTypeToSQLiteTypeID;
 
 			static void EnsureFastoreTypeMaps();

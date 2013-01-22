@@ -18,7 +18,7 @@ namespace module = fastore::module;
 namespace client = fastore::client;
 namespace communication = fastore::communication;
 
-std::map<std::string, ScalarType, LexCompare>  module::Table::declaredTypeToFastoreType;
+std::map<std::string, std::string, LexCompare>  module::Table::declaredTypeToFastoreType;
 std::map<std::string, int, LexCompare>  module::Table::declaredTypeToSQLiteTypeID;
 
 module::Table::Table(module::Connection* connection, const std::string& name, const std::string& ddl) 
@@ -31,11 +31,11 @@ void module::Table::EnsureFastoreTypeMaps()
 {
 	if (declaredTypeToFastoreType.size() == 0)
 	{
-		declaredTypeToFastoreType["varchar"] = standardtypes::String;
-		declaredTypeToFastoreType["int"] = standardtypes::Long;
-		declaredTypeToFastoreType["float"] = standardtypes::Double;
-		declaredTypeToFastoreType["date"] = standardtypes::Long;
-		declaredTypeToFastoreType["datetime"] = standardtypes::Long;
+		declaredTypeToFastoreType["varchar"] = standardtypes::String.Name;
+		declaredTypeToFastoreType["int"] = standardtypes::Long.Name;
+		declaredTypeToFastoreType["float"] = standardtypes::Double.Name;
+		declaredTypeToFastoreType["date"] = standardtypes::Long.Name;
+		declaredTypeToFastoreType["datetime"] = standardtypes::Long.Name;
 	}
 
 	if (declaredTypeToSQLiteTypeID.size() == 0)
@@ -744,6 +744,7 @@ ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	}
 
 	std::string type;
+	std::string fastoreType;
 	if (!std::getline(reader, type, ' '))
 	{
 		isDef = false;
@@ -753,6 +754,7 @@ ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	{
 		//More crappy parser-ness. If we don't recongize a type, it'll blow up!
 		_declaredTypes.push_back(type);
+		fastoreType = declaredTypeToFastoreType[type]; 
 	}
 
 	isDef = true;
@@ -765,7 +767,7 @@ ColumnDef module::Table::parseColumnDef(std::string text, bool& isDef)
 	bool req = insensitiveStrPos(stringText, std::string("not null")) >= 0 || 
 	                  insensitiveStrPos(stringText, std::string("primary key")) >= 0;
 
-	ColumnDef c = {0, name, type, std::string("Long"), bType, req};
+	ColumnDef c = {0, name, fastoreType, std::string("Long"), bType, req};
 	return c;
 }
 

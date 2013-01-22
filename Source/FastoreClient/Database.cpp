@@ -1160,9 +1160,11 @@ bool Database::CanFinalizeTransaction(const std::unordered_map<ColumnID, ColumnW
 			totalWorkers += beginWorkerByRevision->second.size();
 		}
 
+		size_t failThreshold = totalWorkers / 2;
+
 		if (writeResult.validateRequired || 
 			writeResult.workersByRevision.size() == 0 ||
-			(writeResult.failedWorkers.size() >= totalWorkers / 2) ||
+			(writeResult.failedWorkers.size() >= failThreshold && failThreshold > 0) ||
 			(writeResult.workersByRevision.rbegin()->second.size() < totalWorkers / 2))
 			return false;
 		else

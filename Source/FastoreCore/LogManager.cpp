@@ -562,7 +562,7 @@ void LogManager::createLogFile()
 	_lock->lock();
 
 	int64_t newLsn;
-	size_t oldLsn = reuseFileOldLsn(newLsn);
+	int64_t oldLsn = reuseFileOldLsn(newLsn);
 
 	LogFile file;
 	file.lsn = newLsn;

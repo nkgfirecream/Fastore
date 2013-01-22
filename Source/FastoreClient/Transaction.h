@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <Buffer/BufferFactory.h>
+#include "typedefs.h"
 
 using namespace fastore::communication;
 
@@ -45,7 +46,7 @@ namespace fastore { namespace client
 			LogColumn(const std::string& rowTypeName, const std::string& valueTypeName) 
 				: revision(0)
 			{
-				includes = BufferFactory::CreateBuffer(rowTypeName, valueTypeName, BufferType_t::Multi);
+				includes = BufferFactory::CreateBuffer(valueTypeName, rowTypeName, BufferType_t::Multi);
 			}
 
 			LogColumn(LogColumn&& other)
@@ -60,6 +61,7 @@ namespace fastore { namespace client
 		// Log entries - by column ID then by row ID - null value means exclude
 		std::unordered_map<ColumnID, LogColumn> _log;
 		bool _readsConflict;
+		Schema _localSchema;
 
 		void gatherWrites(std::map<ColumnID,  ColumnWrites>& output);
 		LogColumn& ensureColumnLog(const ColumnID& columnId);

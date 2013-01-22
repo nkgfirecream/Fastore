@@ -60,7 +60,8 @@
 const static int LogHeaderSize = 1024;
 const static int Version = 0;
 const static char* Signature = "Fastore\0";
-const static int MaxLogSize = 104857600;
+//const static int MaxLogSize = 104857600;
+const static int MaxLogSize = 100000;
 const static char* LogExtension = "fastlog\0";
 
 //These represent the Non-data size of records. We should be able to compute if

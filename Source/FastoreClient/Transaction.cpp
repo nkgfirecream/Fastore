@@ -1,6 +1,8 @@
 ﻿#include "Transaction.h"
 #include <algorithm>
 #include <boost/format.hpp>
+#include <Schema/Dictionary.h>
+#include "Encoder.h"
 
 using namespace fastore::client;
 using namespace fastore::communication;
@@ -291,6 +293,22 @@ void Transaction::include(const ColumnIDs& columnIds, const std::string& rowId, 
 			column.includes->Apply(writes);
 		}
 	}
+
+	//This is an insert into the schema column. We need to update our local schema to permit inserts into this column
+	if (columnIds.size() == fastore::common::Dictionary::ColumnColumns.size() && columnIds[0] == fastore::common::Dictionary::ColumnColumns[0])
+	{
+		ColumnDef def =
+		{
+			Encoder<ColumnID>::Decode(row[0]),
+			row[1],
+			row[2],
+			row[3],
+			Encoder<BufferType_t>::Decode(row[4]),
+			Encoder<bool>::Decode(row[5])
+		};
+
+		_localSchema.insert(std::make_pair(def.ColumnID, def));
+	}
 }
 
 void Transaction::exclude(const ColumnIDs& columnIds, const std::string& rowId)
@@ -339,15 +357,28 @@ Transaction::LogColumn& Transaction::ensureColumnLog(const ColumnID& columnId)
 	auto iter = _log.find(columnId);
 	if (iter == _log.end())
 	{
-		auto schema = _database.getSchema();
-		auto def = schema.find(columnId);
-		if (def != schema.end())
+		ColumnDef def;
+		auto localIter = _localSchema.find(columnId);
+		if (localIter != _localSchema.end())
 		{
-			auto inserted = _log.insert(std::make_pair(columnId, LogColumn(def->second.RowIDTypeName, def->second.ValueTypeName)));
-			return inserted.first->second;
+			def = localIter->second;
 		}
 		else
-			throw ClientException((boost::format("Unable to locate column (%i) in the schema.") % columnId).str());
+		{
+			auto schema = _database.getSchema();
+			auto defIter =  schema.find(columnId);
+			if (defIter != schema.end())
+			{
+				def = defIter->second;
+			}
+			else
+			{
+				throw ClientException((boost::format("Unable to locate column (%i) in the schema.") % columnId).str());
+			}
+		}
+			
+		auto inserted = _log.insert(std::make_pair(columnId, LogColumn(def.RowIDTypeName, def.ValueTypeName)));
+		return inserted.first->second;	
 	}
 	else
 		return iter->second;
