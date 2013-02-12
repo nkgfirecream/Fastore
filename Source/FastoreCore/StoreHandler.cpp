@@ -75,3 +75,8 @@ void* StoreHandler::getContext(const char* fn_name, void* serverContext)
 	_currentConnection = (apache::thrift::server::TFastoreServer::TConnection*)serverContext;
 	return NULL;
 }
+
+void StoreHandler::heartbeat()
+{
+	_logManager->heartbeat();
+}

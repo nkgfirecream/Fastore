@@ -62,6 +62,11 @@ class StoreHandler : virtual public StoreIf {
     printf("unpark\n");
   }
 
+  void heartbeat() {
+    // Your implementation goes here
+    printf("heartbeat\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

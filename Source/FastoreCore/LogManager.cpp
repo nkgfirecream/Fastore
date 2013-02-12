@@ -338,12 +338,17 @@ void LogManager::internalFlush(const fastore::communication::TransactionID trans
 	file.size = _writer->size();
 
 	_pendingTransactions.clear();
+
+	_lastFlush = clock();
 	_lock->unlock();
 
-	auto client = _stores[port];
-	//TODO: Look up how Thrift sends void.
-	client.unpark(connectionID, std::string());
-	_stores.Release(std::make_pair(port, client));
+	if (port != 0)
+	{
+		auto client = _stores[port];
+		//TODO: Look up how Thrift sends void.
+		client.unpark(connectionID, std::string());
+		_stores.Release(std::make_pair(port, client));
+	}
 }
 
 void LogManager::internalCommit(const fastore::communication::TransactionID transactionID, const std::map<fastore::communication::ColumnID, fastore::communication::Revision> revisions, const fastore::communication::Writes writes)
@@ -606,4 +611,12 @@ int64_t LogManager::reuseFileOldLsn(int64_t& outNewLsn)
 		outNewLsn = 0;
 
 	return -1;
+}
+
+void LogManager::heartbeat()
+{
+	clock_t now = clock();
+
+	if (now - _lastFlush > FLUSHINTERVAL)
+		flush(0, 0, 0);
 }

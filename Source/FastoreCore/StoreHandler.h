@@ -29,6 +29,8 @@ public:
 
 	void* getContext(const char* fn_name, void* serverContext);
 
+	void heartbeat();
+
 private:
 	std::unique_ptr<LogManager> _logManager;
 	uint64_t _port;

@@ -1452,7 +1452,7 @@ void Database::checkpoint()
 		{
 			communication::HostID hostId = iter->first;
 			//TODO: needs all columns for all workers on the service
-			//ServiceInvoke(hostId, [](fastore::communication::ServiceClient client)-> void { client.checkpoint(i; });
+			ServiceInvoke(hostId, [](fastore::communication::ServiceClient client)-> void { client.checkpoint(fastore::common::Dictionary::ColumnColumns); });
 		}
 	}
 	catch(...)

@@ -23,6 +23,7 @@ class StoreIf {
   virtual void commit(const TransactionID transactionID, const std::map<ColumnID, Revision> & revisions, const Writes& writes) = 0;
   virtual void flush(const TransactionID transactionID) = 0;
   virtual void unpark(const int64_t connectionID, const std::string& data) = 0;
+  virtual void heartbeat() = 0;
 };
 
 class StoreIfFactory {
@@ -74,6 +75,9 @@ class StoreNull : virtual public StoreIf {
     return;
   }
   void unpark(const int64_t /* connectionID */, const std::string& /* data */) {
+    return;
+  }
+  void heartbeat() {
     return;
   }
 };
@@ -807,6 +811,80 @@ class Store_unpark_presult {
 
 };
 
+
+class Store_heartbeat_args {
+ public:
+
+  Store_heartbeat_args() {
+  }
+
+  virtual ~Store_heartbeat_args() throw() {}
+
+
+  bool operator == (const Store_heartbeat_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_heartbeat_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_heartbeat_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_heartbeat_pargs {
+ public:
+
+
+  virtual ~Store_heartbeat_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_heartbeat_result {
+ public:
+
+  Store_heartbeat_result() {
+  }
+
+  virtual ~Store_heartbeat_result() throw() {}
+
+
+  bool operator == (const Store_heartbeat_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_heartbeat_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_heartbeat_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_heartbeat_presult {
+ public:
+
+
+  virtual ~Store_heartbeat_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class StoreClient : virtual public StoreIf {
  public:
   StoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -850,6 +928,9 @@ class StoreClient : virtual public StoreIf {
   void unpark(const int64_t connectionID, const std::string& data);
   void send_unpark(const int64_t connectionID, const std::string& data);
   void recv_unpark();
+  void heartbeat();
+  void send_heartbeat();
+  void recv_heartbeat();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -873,6 +954,7 @@ class StoreProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_commit(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_flush(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_unpark(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_heartbeat(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   StoreProcessor(boost::shared_ptr<StoreIf> iface) :
     iface_(iface) {
@@ -884,6 +966,7 @@ class StoreProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["commit"] = &StoreProcessor::process_commit;
     processMap_["flush"] = &StoreProcessor::process_flush;
     processMap_["unpark"] = &StoreProcessor::process_unpark;
+    processMap_["heartbeat"] = &StoreProcessor::process_heartbeat;
   }
 
   virtual ~StoreProcessor() {}
@@ -984,6 +1067,15 @@ class StoreMultiface : virtual public StoreIf {
       ifaces_[i]->unpark(connectionID, data);
     }
     ifaces_[i]->unpark(connectionID, data);
+  }
+
+  void heartbeat() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->heartbeat();
+    }
+    ifaces_[i]->heartbeat();
   }
 
 };

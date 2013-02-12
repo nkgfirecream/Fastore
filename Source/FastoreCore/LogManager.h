@@ -67,6 +67,7 @@ class LogManager
 {
 private:
 	const static int MAXTHREADS = 3;
+	const static int FLUSHINTERVAL = 1000;
 
 	//TODO: This will only have one entry for the store on local host - we just want to reuse the management logic
 	fastore::client::ConnectionPool<uint64_t, fastore::communication::StoreClient> _stores;
@@ -74,6 +75,9 @@ private:
 	//protects structures shared by worker threads
 	//file index, trasaction and revision index, cache
 	boost::shared_ptr<boost::mutex> _lock;
+
+	//When the last flush occurred
+	clock_t _lastFlush;
 
 	//Index of physical on-disk log files and their properties
 	std::map<int64_t, LogFile> _files;
@@ -164,4 +168,7 @@ public:
 
 	//void getThrough(int64_t columnId, int64_t revision,  Connection* connection);
 	//void getChanges(int64_t fromRevision, int64_t toRevision, std::vector<Read> reads,  Connection* connection);
+
+	//signal a interval
+	void heartbeat();
 };

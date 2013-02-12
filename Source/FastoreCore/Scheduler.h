@@ -1,5 +1,6 @@
 #pragma once
 #include "../FastoreCommon/Communication/Comm_types.h"
+#include <boost/thread.hpp>
 
 
 // The purpose of the scheduler is to manage events that must happen
@@ -14,13 +15,8 @@
 
 class Scheduler
 {
-private:
-
-	fastore::communication::NetworkAddress _serviceAddress;
-
-
 public:
-
+	enum status_t { idle, running, stopped };
 	Scheduler(fastore::communication::NetworkAddress serviceAddress);
 
 	//Start and stop the scheduler running. 
@@ -31,7 +27,19 @@ public:
 
 	//Once the scheduler is running, it should either ask the service about the state of the workers to find them,
 	//or it should listen for callbacks from workers, or both...
-	void start();
+	bool start();
 	void stop();
+	status_t status() const { return _status; }
+
+private:
+
+	const static int INTERVAL = 1000;
+
+	fastore::communication::NetworkAddress _serviceAddress;
+	boost::shared_ptr<boost::thread>  _pthread;
+	bool _run;
+	status_t _status;
+
+	void run();
 
 };
