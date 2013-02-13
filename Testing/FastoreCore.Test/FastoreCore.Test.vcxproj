@@ -101,7 +101,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BTreeTest.cpp" />
-    <ClCompile Include="BufferSerializationTest.cpp" />
     <ClCompile Include="DataAccessTest.cpp" />
     <ClCompile Include="IdentityBufferTest.cpp" />
     <ClCompile Include="RangeTests.cpp" />

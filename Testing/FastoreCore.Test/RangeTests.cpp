@@ -37,6 +37,13 @@ void OneToOneRangeTest(IColumnBuffer* buf)
 	RangeBound endBound;
 	RangeRequest range;
 
+	//Should BoF/Eof be true if we've returned every value in the requested range, or if
+	//we've hit the first/last values in the set?
+	/*AssignString(endv, 9);
+	AssignBound(endBound, false, endv);
+	AssignRange(range, true, 500, NULL, &endBound);
+	TestRange<int64_t>(buf, range, 0, 8, 5, 2, true, true, false);*/
+		
 	//Entire Set
 	//Range: Entire set ascending
 	//Expected result: values 0 - 98 (inclusive) by 2s.

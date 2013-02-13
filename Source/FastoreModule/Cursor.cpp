@@ -186,7 +186,7 @@ void module::Cursor::getNextSet()
 	//Continuation.
 	else
 	{
-		if (_set.Eof) //end of Range -- This should be right for either equality conversions or normal calls
+		if (!_set.Limited) //we grabbed all the values already
 		{
 			_index = -1;
 			_endOfFilter = true;
