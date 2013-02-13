@@ -327,9 +327,21 @@ void ServiceHandler::getHiveState(OptionalHiveState& _return, const bool forceUp
 {
 	if (!_hiveState)
 		_return.__set_potentialWorkers(GetRecommendedWorkerCount());
-	else
+	else if (!forceUpdate)
 		_return.__set_hiveState(*_hiveState);
-	// TODO: implement force
+	else
+	{
+		// TODO: implement force. Needs to query all services.
+		OptionalServiceState _state;
+		getState(_state);
+		
+		if (_state.__isset.serviceState)
+		{
+			_hiveState->services[_hiveState->reportingHostID] = _state.serviceState;
+		}
+
+		_return.__set_hiveState(*_hiveState);
+	}
 }
 
 void ServiceHandler::getState(OptionalServiceState& _return)

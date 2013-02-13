@@ -102,7 +102,10 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int colIndex)
 	auto value = _set.Data[_index].Values[_colIndexToDataSetIndex[colIndex]];
 
 	if (!value.__isset.value)
+	{
 		sqlite3_result_null(pContext);
+		return SQLITE_OK;
+	}
 
 	auto declaredType = _table->_declaredTypes[colIndex];
 	
@@ -139,7 +142,7 @@ int module::Cursor::setColumnResult(sqlite3_context *pContext, int colIndex)
 		switch(datatype)
 		{
 			case SQLITE_TEXT:
-				sqlite3_result_text(pContext, value.value.data(), -1, SQLITE_TRANSIENT);
+				sqlite3_result_text(pContext, value.value.data(), value.value.size() > 0 ? -1 : 0, SQLITE_TRANSIENT);
 				break;
 			case SQLITE_INTEGER:
 				sqlite3_result_int64(pContext, Encoder<int64_t>::Decode(value.value));

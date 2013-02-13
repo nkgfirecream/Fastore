@@ -278,20 +278,20 @@ void Transaction::include(const ColumnIDs& columnIds, const std::string& rowId, 
 	{
 		// TODO: Introduce non-batch calls into buffers so that this is easier and faster
 		LogColumn& column = ensureColumnLog(columnIds[i]);
-		RangeRequest range;
-		range.first.value = row[i];
-		range.first.inclusive = true;
-		range.rowID = rowId;
-		range.last = range.first;
-		if (column.includes->GetRows(range).valueRowsList.size() == 0)
-		{
+		//RangeRequest range;
+		//range.first.value = row[i];
+		//range.first.inclusive = true;
+		//range.rowID = rowId;
+		//range.last = range.first;
+		//if (column.includes->GetRows(range).valueRowsList.size() == 0)
+		//{
 			ColumnWrites writes;
 			fastore::communication::Cell include;
 			include.__set_rowID(rowId);
 			include.__set_value(row[i]);
 			writes.includes.push_back(include);
 			column.includes->Apply(writes);
-		}
+		//}
 	}
 
 	//This is an insert into the schema column. We need to update our local schema to permit inserts into this column

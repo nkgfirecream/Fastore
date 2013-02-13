@@ -66,7 +66,6 @@ void Scheduler::run()
 		catch (...)
 		{
 			transport->close();
-			throw;
 		}
 
 		usleep(INTERVAL);

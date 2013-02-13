@@ -78,7 +78,7 @@ Database::Database(std::vector<ServiceAddress> addresses)
 		{
 			// Discover the state of the entire hive from the given service
 			OptionalHiveState hiveStateResult;
-			service.getHiveState(hiveStateResult, false);
+			service.getHiveState(hiveStateResult, true);
 			if (!hiveStateResult.__isset.hiveState)
 			{  	/* 
 				 * If no hive state is given, the service is not joined. 
@@ -351,7 +351,7 @@ HiveState Database::QueryHiveForState()
 
 void Database::RefreshHiveStateCache()
 {
-	HiveState newState =QueryHiveForState();
+	HiveState newState = QueryHiveForState();
 	UpdateHiveStateCache(newState);
 }
 

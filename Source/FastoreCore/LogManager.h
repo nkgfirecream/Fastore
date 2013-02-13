@@ -51,11 +51,6 @@ struct ColumnInfo
 	std::vector<RevisionFileInfo> revisions;
 };
 
-//Dummy structs for fleshing out API
-struct Change {};
-struct Read {};
-struct Connection;
-
 //enum LogManagerState
 //{
 //	Stopped,
