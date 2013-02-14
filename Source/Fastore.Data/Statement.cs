@@ -46,7 +46,7 @@ namespace Alphora.Fastore.Data
 		{
 			var result = Provider.Next(_statement);
 			Provider.CheckResult(result.Result);
-			return result.Eof != 0;
+			return result.Eof == 0;
 		}
 
 		public ColumnInfo GetColumnInfo(int index)
