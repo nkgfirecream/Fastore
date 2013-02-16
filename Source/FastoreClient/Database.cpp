@@ -842,6 +842,9 @@ Query Database::CreateQuery(const Range range, const int limit, const boost::opt
 {
 	auto rangeRequest = rangeToRangeRequest(range, limit);
 
+	if(startId)
+		rangeRequest.__set_rowID(*startId);
+
 	Query rangeQuery;
 	rangeQuery.__set_ranges(std::vector<RangeRequest>());
 	rangeQuery.ranges.push_back(rangeRequest);
@@ -1323,7 +1326,7 @@ Schema Database::LoadSchema()
 {
 	Schema schema;
 	bool finished = false;
-	std::string startId = Encoder<ColumnID>::Encode(fastore::common::Dictionary::ColumnID);
+	boost::optional<std::string> startId; //= Encoder<ColumnID>::Encode(fastore::common::Dictionary::ColumnID);
 	do
 	{
 		Range range;

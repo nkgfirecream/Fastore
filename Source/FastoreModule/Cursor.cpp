@@ -412,7 +412,7 @@ void module::Cursor::createRange()
 			bound.Bound = _values[0];
 			bound.Inclusive = true;
 			range.Start = bound;
-			//range.End = bound;
+			range.End = bound;
 
 		}
 		else

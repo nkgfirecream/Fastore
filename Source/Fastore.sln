@@ -70,6 +70,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FastoreCommon", "FastoreCom
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SQLite", "SQLite\SQLite.vcxproj", "{77FD310C-DECD-4913-90F4-F1BB76C69AA7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fastore.Core.Demo3", "Fastore.Core.Demo3\Fastore.Core.Demo3.csproj", "{1ECFF9A6-0565-4418-8780-20817203E7D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.csproj", "{797E096C-6FC5-4B54-AF6D-6EC0C2209919}"
+EndProject
 Global
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True
@@ -250,6 +254,30 @@ Global
 		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|Win32.ActiveCfg = Release|x64
 		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|x64.ActiveCfg = Release|x64
 		{77FD310C-DECD-4913-90F4-F1BB76C69AA7}.Release|x64.Build.0 = Release|x64
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Release|Win32.ActiveCfg = Release|Any CPU
+		{1ECFF9A6-0565-4418-8780-20817203E7D3}.Release|x64.ActiveCfg = Release|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Release|Any CPU.Build.0 = Release|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Release|Win32.ActiveCfg = Release|Any CPU
+		{797E096C-6FC5-4B54-AF6D-6EC0C2209919}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
