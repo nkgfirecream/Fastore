@@ -24,6 +24,8 @@ class StoreIf {
   virtual void flush(const TransactionID transactionID) = 0;
   virtual void unpark(const int64_t connectionID, const std::string& data) = 0;
   virtual void heartbeat() = 0;
+  virtual void start() = 0;
+  virtual void suspend() = 0;
 };
 
 class StoreIfFactory {
@@ -78,6 +80,12 @@ class StoreNull : virtual public StoreIf {
     return;
   }
   void heartbeat() {
+    return;
+  }
+  void start() {
+    return;
+  }
+  void suspend() {
     return;
   }
 };
@@ -885,6 +893,154 @@ class Store_heartbeat_presult {
 
 };
 
+
+class Store_start_args {
+ public:
+
+  Store_start_args() {
+  }
+
+  virtual ~Store_start_args() throw() {}
+
+
+  bool operator == (const Store_start_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_start_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_start_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_start_pargs {
+ public:
+
+
+  virtual ~Store_start_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_start_result {
+ public:
+
+  Store_start_result() {
+  }
+
+  virtual ~Store_start_result() throw() {}
+
+
+  bool operator == (const Store_start_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_start_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_start_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_start_presult {
+ public:
+
+
+  virtual ~Store_start_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+
+class Store_suspend_args {
+ public:
+
+  Store_suspend_args() {
+  }
+
+  virtual ~Store_suspend_args() throw() {}
+
+
+  bool operator == (const Store_suspend_args & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_suspend_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_suspend_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_suspend_pargs {
+ public:
+
+
+  virtual ~Store_suspend_pargs() throw() {}
+
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_suspend_result {
+ public:
+
+  Store_suspend_result() {
+  }
+
+  virtual ~Store_suspend_result() throw() {}
+
+
+  bool operator == (const Store_suspend_result & /* rhs */) const
+  {
+    return true;
+  }
+  bool operator != (const Store_suspend_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const Store_suspend_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class Store_suspend_presult {
+ public:
+
+
+  virtual ~Store_suspend_presult() throw() {}
+
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class StoreClient : virtual public StoreIf {
  public:
   StoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -931,6 +1087,12 @@ class StoreClient : virtual public StoreIf {
   void heartbeat();
   void send_heartbeat();
   void recv_heartbeat();
+  void start();
+  void send_start();
+  void recv_start();
+  void suspend();
+  void send_suspend();
+  void recv_suspend();
  protected:
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;
   boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;
@@ -955,6 +1117,8 @@ class StoreProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_flush(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_unpark(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_heartbeat(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_start(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_suspend(int32_t seqid, apache::thrift::protocol::TProtocol* iprot, apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   StoreProcessor(boost::shared_ptr<StoreIf> iface) :
     iface_(iface) {
@@ -967,6 +1131,8 @@ class StoreProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["flush"] = &StoreProcessor::process_flush;
     processMap_["unpark"] = &StoreProcessor::process_unpark;
     processMap_["heartbeat"] = &StoreProcessor::process_heartbeat;
+    processMap_["start"] = &StoreProcessor::process_start;
+    processMap_["suspend"] = &StoreProcessor::process_suspend;
   }
 
   virtual ~StoreProcessor() {}
@@ -1076,6 +1242,24 @@ class StoreMultiface : virtual public StoreIf {
       ifaces_[i]->heartbeat();
     }
     ifaces_[i]->heartbeat();
+  }
+
+  void start() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->start();
+    }
+    ifaces_[i]->start();
+  }
+
+  void suspend() {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->suspend();
+    }
+    ifaces_[i]->suspend();
   }
 
 };

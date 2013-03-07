@@ -60,9 +60,14 @@ struct ColumnInfo
 
 class LogManager
 {
+public:
+	enum logStatus {initalizing, online, offline};
+
 private:
 	const static int MAXTHREADS = 3;
 	const static int FLUSHINTERVAL = 1000;
+
+	logStatus _status;
 
 	//TODO: This will only have one entry for the store on local host - we just want to reuse the management logic
 	fastore::client::ConnectionPool<uint64_t, fastore::communication::StoreClient> _stores;
@@ -78,13 +83,13 @@ private:
 	std::map<int64_t, LogFile> _files;
 
 	//Index of transaction info (by transaction id)
-	std::map<int64_t, TransactionInfo> _transactions;
+	std::map<fastore::communication::TransactionID, TransactionInfo> _transactions;
 
 	//Transactions that have started, but have not yet been flushed to disk.
 	std::hash_set<fastore::communication::TransactionID> _pendingTransactions;
 
 	//Index of revision info (by column id)
-	std::map<int64_t, ColumnInfo> _columns;
+	std::map<fastore::communication::ColumnID, ColumnInfo> _columns;
 
 	//Thread pool that does reads only.
 	boost::asio::io_service _readService;
@@ -150,6 +155,8 @@ private:
 
 public:
 
+	
+
 	LogManager(std::string path);
 	~LogManager();
 
@@ -164,6 +171,15 @@ public:
 	//void getThrough(int64_t columnId, int64_t revision,  Connection* connection);
 	//void getChanges(int64_t fromRevision, int64_t toRevision, std::vector<Read> reads,  Connection* connection);
 
+	//Return the current latest revisions from the index.
+	std::map<fastore::communication::ColumnID, fastore::communication::Revision> getLatestRevisions();
+
 	//signal a interval
 	void heartbeat();
+
+	//get status
+	logStatus getStatus();
+
+	//set status
+	void setStatus(logStatus status);
 };

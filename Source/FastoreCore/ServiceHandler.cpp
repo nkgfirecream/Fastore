@@ -106,11 +106,17 @@ ServiceHandler::ServiceHandler(const ServiceStartup& startup)
 		cout << "Number of Pods: " << numPods 
 			 << "	Recommended workers: " << GetRecommendedWorkerCount() << " (these should be the same)\r\n";
 	
+		_scheduler = boost::shared_ptr<Scheduler>(new Scheduler(_config->address, _config->joinedHive.reportingHostID));
+
 		// Initialize store
 		initializeStore(thisService->second.store);
 		
 		// Initialize the workers, if joined
-		initializeWorkers(thisService->second.workers);
+		initializeWorkers(thisService->second.workers);		
+
+		// Start scheduler running... Or should it start on the first callback?
+		_scheduler->start();
+
 	}
 	else
 	{
@@ -262,7 +268,7 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 	// Update the configuration
 	_config->__set_joinedHive(*_hiveState);	
 
-	_scheduler = boost::shared_ptr<Scheduler>(new Scheduler(_config->address));
+	_scheduler = boost::shared_ptr<Scheduler>(new Scheduler(_config->address, _config->joinedHive.reportingHostID));
 
 	// Initialize store
 	initializeStore(_return.store);
@@ -272,8 +278,6 @@ void ServiceHandler::init(ServiceState& _return, const Topology& topology, const
 
 	// Start scheduler running... Or should it start on the first callback?
 	_scheduler->start();
-
-	//SaveConfiguration();
 }
 
 void ServiceHandler::join(ServiceState& _return, const HiveState& hiveState, const NetworkAddress& address, const HostID hostID) 
@@ -356,7 +360,7 @@ void ServiceHandler::getState(OptionalServiceState& _return)
 		_return.serviceState.__set_status(ServiceStatus::Online);
 		_return.serviceState.__set_timeStamp((TimeStamp)time(nullptr));
 		_return.serviceState.__set_address(currentState->second.address);
-
+		_return.serviceState.__set_store(currentState->second.store);
 		std::vector<WorkerState> workerStates;
 
 		auto workers = currentState->second.workers;
@@ -488,6 +492,12 @@ void ServiceHandler::shutdown()
 	}
 
 	_currentConnection->getServer()->shutdown();
+}
+
+void ServiceHandler::heartbeat()
+{
+	// TODO: should only save if configuration has changed.
+	SaveConfiguration();
 }
 
 void* ServiceHandler::getContext(const char* fn_name, void* serverContext)

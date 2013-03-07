@@ -30,10 +30,16 @@ public:
 	void* getContext(const char* fn_name, void* serverContext);
 
 	void heartbeat();
+	void start();
+    void suspend();
 
 private:
 	std::unique_ptr<LogManager> _logManager;
 	uint64_t _port;
+
+	enum internalStoreStatus { stopped, processing, logerror };
+
+	internalStoreStatus _status;
 
 	//Not a shared pointer because we don't own the connection.
 	apache::thrift::server::TFastoreServer::TConnection* _currentConnection;

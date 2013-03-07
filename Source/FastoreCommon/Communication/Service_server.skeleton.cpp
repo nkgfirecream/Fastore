@@ -82,6 +82,11 @@ class ServiceHandler : virtual public ServiceIf {
     printf("checkpoint\n");
   }
 
+  void heartbeat() {
+    // Your implementation goes here
+    printf("heartbeat\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

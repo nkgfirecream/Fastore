@@ -181,14 +181,14 @@ uint32_t Store_checkpointWrite_args::read(::apache::thrift::protocol::TProtocol*
         if (ftype == ::apache::thrift::protocol::T_LIST) {
           {
             this->values.clear();
-            uint32_t _size272;
-            ::apache::thrift::protocol::TType _etype275;
-            iprot->readListBegin(_etype275, _size272);
-            this->values.resize(_size272);
-            uint32_t _i276;
-            for (_i276 = 0; _i276 < _size272; ++_i276)
+            uint32_t _size273;
+            ::apache::thrift::protocol::TType _etype276;
+            iprot->readListBegin(_etype276, _size273);
+            this->values.resize(_size273);
+            uint32_t _i277;
+            for (_i277 = 0; _i277 < _size273; ++_i277)
             {
-              xfer += this->values[_i276].read(iprot);
+              xfer += this->values[_i277].read(iprot);
             }
             iprot->readListEnd();
           }
@@ -220,10 +220,10 @@ uint32_t Store_checkpointWrite_args::write(::apache::thrift::protocol::TProtocol
   xfer += oprot->writeFieldBegin("values", ::apache::thrift::protocol::T_LIST, 2);
   {
     xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->values.size()));
-    std::vector<ValueRows> ::const_iterator _iter277;
-    for (_iter277 = this->values.begin(); _iter277 != this->values.end(); ++_iter277)
+    std::vector<ValueRows> ::const_iterator _iter278;
+    for (_iter278 = this->values.begin(); _iter278 != this->values.end(); ++_iter278)
     {
-      xfer += (*_iter277).write(oprot);
+      xfer += (*_iter278).write(oprot);
     }
     xfer += oprot->writeListEnd();
   }
@@ -245,10 +245,10 @@ uint32_t Store_checkpointWrite_pargs::write(::apache::thrift::protocol::TProtoco
   xfer += oprot->writeFieldBegin("values", ::apache::thrift::protocol::T_LIST, 2);
   {
     xfer += oprot->writeListBegin(::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->values)).size()));
-    std::vector<ValueRows> ::const_iterator _iter278;
-    for (_iter278 = (*(this->values)).begin(); _iter278 != (*(this->values)).end(); ++_iter278)
+    std::vector<ValueRows> ::const_iterator _iter279;
+    for (_iter279 = (*(this->values)).begin(); _iter279 != (*(this->values)).end(); ++_iter279)
     {
-      xfer += (*_iter278).write(oprot);
+      xfer += (*_iter279).write(oprot);
     }
     xfer += oprot->writeListEnd();
   }
@@ -645,17 +645,17 @@ uint32_t Store_getWrites_args::read(::apache::thrift::protocol::TProtocol* iprot
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->ranges.clear();
-            uint32_t _size279;
-            ::apache::thrift::protocol::TType _ktype280;
-            ::apache::thrift::protocol::TType _vtype281;
-            iprot->readMapBegin(_ktype280, _vtype281, _size279);
-            uint32_t _i283;
-            for (_i283 = 0; _i283 < _size279; ++_i283)
+            uint32_t _size280;
+            ::apache::thrift::protocol::TType _ktype281;
+            ::apache::thrift::protocol::TType _vtype282;
+            iprot->readMapBegin(_ktype281, _vtype282, _size280);
+            uint32_t _i284;
+            for (_i284 = 0; _i284 < _size280; ++_i284)
             {
-              ColumnID _key284;
-              xfer += iprot->readI64(_key284);
-              ColumnRange& _val285 = this->ranges[_key284];
-              xfer += _val285.read(iprot);
+              ColumnID _key285;
+              xfer += iprot->readI64(_key285);
+              ColumnRange& _val286 = this->ranges[_key285];
+              xfer += _val286.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -683,11 +683,11 @@ uint32_t Store_getWrites_args::write(::apache::thrift::protocol::TProtocol* opro
   xfer += oprot->writeFieldBegin("ranges", ::apache::thrift::protocol::T_MAP, 1);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->ranges.size()));
-    std::map<ColumnID, ColumnRange> ::const_iterator _iter286;
-    for (_iter286 = this->ranges.begin(); _iter286 != this->ranges.end(); ++_iter286)
+    std::map<ColumnID, ColumnRange> ::const_iterator _iter287;
+    for (_iter287 = this->ranges.begin(); _iter287 != this->ranges.end(); ++_iter287)
     {
-      xfer += oprot->writeI64(_iter286->first);
-      xfer += _iter286->second.write(oprot);
+      xfer += oprot->writeI64(_iter287->first);
+      xfer += _iter287->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -705,11 +705,11 @@ uint32_t Store_getWrites_pargs::write(::apache::thrift::protocol::TProtocol* opr
   xfer += oprot->writeFieldBegin("ranges", ::apache::thrift::protocol::T_MAP, 1);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->ranges)).size()));
-    std::map<ColumnID, ColumnRange> ::const_iterator _iter287;
-    for (_iter287 = (*(this->ranges)).begin(); _iter287 != (*(this->ranges)).end(); ++_iter287)
+    std::map<ColumnID, ColumnRange> ::const_iterator _iter288;
+    for (_iter288 = (*(this->ranges)).begin(); _iter288 != (*(this->ranges)).end(); ++_iter288)
     {
-      xfer += oprot->writeI64(_iter287->first);
-      xfer += _iter287->second.write(oprot);
+      xfer += oprot->writeI64(_iter288->first);
+      xfer += _iter288->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -744,17 +744,17 @@ uint32_t Store_getWrites_result::read(::apache::thrift::protocol::TProtocol* ipr
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->success.clear();
-            uint32_t _size288;
-            ::apache::thrift::protocol::TType _ktype289;
-            ::apache::thrift::protocol::TType _vtype290;
-            iprot->readMapBegin(_ktype289, _vtype290, _size288);
-            uint32_t _i292;
-            for (_i292 = 0; _i292 < _size288; ++_i292)
+            uint32_t _size289;
+            ::apache::thrift::protocol::TType _ktype290;
+            ::apache::thrift::protocol::TType _vtype291;
+            iprot->readMapBegin(_ktype290, _vtype291, _size289);
+            uint32_t _i293;
+            for (_i293 = 0; _i293 < _size289; ++_i293)
             {
-              ColumnID _key293;
-              xfer += iprot->readI64(_key293);
-              GetWritesResult& _val294 = this->success[_key293];
-              xfer += _val294.read(iprot);
+              ColumnID _key294;
+              xfer += iprot->readI64(_key294);
+              GetWritesResult& _val295 = this->success[_key294];
+              xfer += _val295.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -785,11 +785,11 @@ uint32_t Store_getWrites_result::write(::apache::thrift::protocol::TProtocol* op
     xfer += oprot->writeFieldBegin("success", ::apache::thrift::protocol::T_MAP, 0);
     {
       xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->success.size()));
-      std::map<ColumnID, GetWritesResult> ::const_iterator _iter295;
-      for (_iter295 = this->success.begin(); _iter295 != this->success.end(); ++_iter295)
+      std::map<ColumnID, GetWritesResult> ::const_iterator _iter296;
+      for (_iter296 = this->success.begin(); _iter296 != this->success.end(); ++_iter296)
       {
-        xfer += oprot->writeI64(_iter295->first);
-        xfer += _iter295->second.write(oprot);
+        xfer += oprot->writeI64(_iter296->first);
+        xfer += _iter296->second.write(oprot);
       }
       xfer += oprot->writeMapEnd();
     }
@@ -824,17 +824,17 @@ uint32_t Store_getWrites_presult::read(::apache::thrift::protocol::TProtocol* ip
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             (*(this->success)).clear();
-            uint32_t _size296;
-            ::apache::thrift::protocol::TType _ktype297;
-            ::apache::thrift::protocol::TType _vtype298;
-            iprot->readMapBegin(_ktype297, _vtype298, _size296);
-            uint32_t _i300;
-            for (_i300 = 0; _i300 < _size296; ++_i300)
+            uint32_t _size297;
+            ::apache::thrift::protocol::TType _ktype298;
+            ::apache::thrift::protocol::TType _vtype299;
+            iprot->readMapBegin(_ktype298, _vtype299, _size297);
+            uint32_t _i301;
+            for (_i301 = 0; _i301 < _size297; ++_i301)
             {
-              ColumnID _key301;
-              xfer += iprot->readI64(_key301);
-              GetWritesResult& _val302 = (*(this->success))[_key301];
-              xfer += _val302.read(iprot);
+              ColumnID _key302;
+              xfer += iprot->readI64(_key302);
+              GetWritesResult& _val303 = (*(this->success))[_key302];
+              xfer += _val303.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -887,17 +887,17 @@ uint32_t Store_commit_args::read(::apache::thrift::protocol::TProtocol* iprot) {
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->revisions.clear();
-            uint32_t _size303;
-            ::apache::thrift::protocol::TType _ktype304;
-            ::apache::thrift::protocol::TType _vtype305;
-            iprot->readMapBegin(_ktype304, _vtype305, _size303);
-            uint32_t _i307;
-            for (_i307 = 0; _i307 < _size303; ++_i307)
+            uint32_t _size304;
+            ::apache::thrift::protocol::TType _ktype305;
+            ::apache::thrift::protocol::TType _vtype306;
+            iprot->readMapBegin(_ktype305, _vtype306, _size304);
+            uint32_t _i308;
+            for (_i308 = 0; _i308 < _size304; ++_i308)
             {
-              ColumnID _key308;
-              xfer += iprot->readI64(_key308);
-              Revision& _val309 = this->revisions[_key308];
-              xfer += iprot->readI64(_val309);
+              ColumnID _key309;
+              xfer += iprot->readI64(_key309);
+              Revision& _val310 = this->revisions[_key309];
+              xfer += iprot->readI64(_val310);
             }
             iprot->readMapEnd();
           }
@@ -910,17 +910,17 @@ uint32_t Store_commit_args::read(::apache::thrift::protocol::TProtocol* iprot) {
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->writes.clear();
-            uint32_t _size310;
-            ::apache::thrift::protocol::TType _ktype311;
-            ::apache::thrift::protocol::TType _vtype312;
-            iprot->readMapBegin(_ktype311, _vtype312, _size310);
-            uint32_t _i314;
-            for (_i314 = 0; _i314 < _size310; ++_i314)
+            uint32_t _size311;
+            ::apache::thrift::protocol::TType _ktype312;
+            ::apache::thrift::protocol::TType _vtype313;
+            iprot->readMapBegin(_ktype312, _vtype313, _size311);
+            uint32_t _i315;
+            for (_i315 = 0; _i315 < _size311; ++_i315)
             {
-              ColumnID _key315;
-              xfer += iprot->readI64(_key315);
-              ColumnWrites& _val316 = this->writes[_key315];
-              xfer += _val316.read(iprot);
+              ColumnID _key316;
+              xfer += iprot->readI64(_key316);
+              ColumnWrites& _val317 = this->writes[_key316];
+              xfer += _val317.read(iprot);
             }
             iprot->readMapEnd();
           }
@@ -952,11 +952,11 @@ uint32_t Store_commit_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   xfer += oprot->writeFieldBegin("revisions", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->revisions.size()));
-    std::map<ColumnID, Revision> ::const_iterator _iter317;
-    for (_iter317 = this->revisions.begin(); _iter317 != this->revisions.end(); ++_iter317)
+    std::map<ColumnID, Revision> ::const_iterator _iter318;
+    for (_iter318 = this->revisions.begin(); _iter318 != this->revisions.end(); ++_iter318)
     {
-      xfer += oprot->writeI64(_iter317->first);
-      xfer += oprot->writeI64(_iter317->second);
+      xfer += oprot->writeI64(_iter318->first);
+      xfer += oprot->writeI64(_iter318->second);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -965,11 +965,11 @@ uint32_t Store_commit_args::write(::apache::thrift::protocol::TProtocol* oprot) 
   xfer += oprot->writeFieldBegin("writes", ::apache::thrift::protocol::T_MAP, 3);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>(this->writes.size()));
-    std::map<ColumnID, ColumnWrites> ::const_iterator _iter318;
-    for (_iter318 = this->writes.begin(); _iter318 != this->writes.end(); ++_iter318)
+    std::map<ColumnID, ColumnWrites> ::const_iterator _iter319;
+    for (_iter319 = this->writes.begin(); _iter319 != this->writes.end(); ++_iter319)
     {
-      xfer += oprot->writeI64(_iter318->first);
-      xfer += _iter318->second.write(oprot);
+      xfer += oprot->writeI64(_iter319->first);
+      xfer += _iter319->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -991,11 +991,11 @@ uint32_t Store_commit_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   xfer += oprot->writeFieldBegin("revisions", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_I64, static_cast<uint32_t>((*(this->revisions)).size()));
-    std::map<ColumnID, Revision> ::const_iterator _iter319;
-    for (_iter319 = (*(this->revisions)).begin(); _iter319 != (*(this->revisions)).end(); ++_iter319)
+    std::map<ColumnID, Revision> ::const_iterator _iter320;
+    for (_iter320 = (*(this->revisions)).begin(); _iter320 != (*(this->revisions)).end(); ++_iter320)
     {
-      xfer += oprot->writeI64(_iter319->first);
-      xfer += oprot->writeI64(_iter319->second);
+      xfer += oprot->writeI64(_iter320->first);
+      xfer += oprot->writeI64(_iter320->second);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -1004,11 +1004,11 @@ uint32_t Store_commit_pargs::write(::apache::thrift::protocol::TProtocol* oprot)
   xfer += oprot->writeFieldBegin("writes", ::apache::thrift::protocol::T_MAP, 3);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_STRUCT, static_cast<uint32_t>((*(this->writes)).size()));
-    std::map<ColumnID, ColumnWrites> ::const_iterator _iter320;
-    for (_iter320 = (*(this->writes)).begin(); _iter320 != (*(this->writes)).end(); ++_iter320)
+    std::map<ColumnID, ColumnWrites> ::const_iterator _iter321;
+    for (_iter321 = (*(this->writes)).begin(); _iter321 != (*(this->writes)).end(); ++_iter321)
     {
-      xfer += oprot->writeI64(_iter320->first);
-      xfer += _iter320->second.write(oprot);
+      xfer += oprot->writeI64(_iter321->first);
+      xfer += _iter321->second.write(oprot);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -1411,6 +1411,256 @@ uint32_t Store_heartbeat_result::write(::apache::thrift::protocol::TProtocol* op
 }
 
 uint32_t Store_heartbeat_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Store_start_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Store_start_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Store_start_args");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Store_start_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Store_start_pargs");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Store_start_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Store_start_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+
+  uint32_t xfer = 0;
+
+  xfer += oprot->writeStructBegin("Store_start_result");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Store_start_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Store_suspend_args::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Store_suspend_args::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Store_suspend_args");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Store_suspend_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {
+  uint32_t xfer = 0;
+  xfer += oprot->writeStructBegin("Store_suspend_pargs");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Store_suspend_result::read(::apache::thrift::protocol::TProtocol* iprot) {
+
+  uint32_t xfer = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TType ftype;
+  int16_t fid;
+
+  xfer += iprot->readStructBegin(fname);
+
+  using ::apache::thrift::protocol::TProtocolException;
+
+
+  while (true)
+  {
+    xfer += iprot->readFieldBegin(fname, ftype, fid);
+    if (ftype == ::apache::thrift::protocol::T_STOP) {
+      break;
+    }
+    switch (fid)
+    {
+      default:
+        xfer += iprot->skip(ftype);
+        break;
+    }
+    xfer += iprot->readFieldEnd();
+  }
+
+  xfer += iprot->readStructEnd();
+
+  return xfer;
+}
+
+uint32_t Store_suspend_result::write(::apache::thrift::protocol::TProtocol* oprot) const {
+
+  uint32_t xfer = 0;
+
+  xfer += oprot->writeStructBegin("Store_suspend_result");
+
+  xfer += oprot->writeFieldStop();
+  xfer += oprot->writeStructEnd();
+  return xfer;
+}
+
+uint32_t Store_suspend_presult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   uint32_t xfer = 0;
   std::string fname;
@@ -1897,6 +2147,110 @@ void StoreClient::recv_heartbeat()
   return;
 }
 
+void StoreClient::start()
+{
+  send_start();
+  recv_start();
+}
+
+void StoreClient::send_start()
+{
+  int32_t cseqid = 0;
+  oprot_->writeMessageBegin("start", ::apache::thrift::protocol::T_CALL, cseqid);
+
+  Store_start_pargs args;
+  args.write(oprot_);
+
+  oprot_->writeMessageEnd();
+  oprot_->getTransport()->writeEnd();
+  oprot_->getTransport()->flush();
+}
+
+void StoreClient::recv_start()
+{
+
+  int32_t rseqid = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TMessageType mtype;
+
+  iprot_->readMessageBegin(fname, mtype, rseqid);
+  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
+    ::apache::thrift::TApplicationException x;
+    x.read(iprot_);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+    throw x;
+  }
+  if (mtype != ::apache::thrift::protocol::T_REPLY) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  if (fname.compare("start") != 0) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  Store_start_presult result;
+  result.read(iprot_);
+  iprot_->readMessageEnd();
+  iprot_->getTransport()->readEnd();
+
+  return;
+}
+
+void StoreClient::suspend()
+{
+  send_suspend();
+  recv_suspend();
+}
+
+void StoreClient::send_suspend()
+{
+  int32_t cseqid = 0;
+  oprot_->writeMessageBegin("suspend", ::apache::thrift::protocol::T_CALL, cseqid);
+
+  Store_suspend_pargs args;
+  args.write(oprot_);
+
+  oprot_->writeMessageEnd();
+  oprot_->getTransport()->writeEnd();
+  oprot_->getTransport()->flush();
+}
+
+void StoreClient::recv_suspend()
+{
+
+  int32_t rseqid = 0;
+  std::string fname;
+  ::apache::thrift::protocol::TMessageType mtype;
+
+  iprot_->readMessageBegin(fname, mtype, rseqid);
+  if (mtype == ::apache::thrift::protocol::T_EXCEPTION) {
+    ::apache::thrift::TApplicationException x;
+    x.read(iprot_);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+    throw x;
+  }
+  if (mtype != ::apache::thrift::protocol::T_REPLY) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  if (fname.compare("suspend") != 0) {
+    iprot_->skip(::apache::thrift::protocol::T_STRUCT);
+    iprot_->readMessageEnd();
+    iprot_->getTransport()->readEnd();
+  }
+  Store_suspend_presult result;
+  result.read(iprot_);
+  iprot_->readMessageEnd();
+  iprot_->getTransport()->readEnd();
+
+  return;
+}
+
 bool StoreProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext) {
   ProcessMap::iterator pfn;
   pfn = processMap_.find(fname);
@@ -2376,6 +2730,112 @@ void StoreProcessor::process_heartbeat(int32_t seqid, ::apache::thrift::protocol
 
   if (this->eventHandler_.get() != NULL) {
     this->eventHandler_->postWrite(ctx, "Store.heartbeat", bytes);
+  }
+}
+
+void StoreProcessor::process_start(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+{
+  void* ctx = NULL;
+  if (this->eventHandler_.get() != NULL) {
+    ctx = this->eventHandler_->getContext("Store.start", callContext);
+  }
+  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Store.start");
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preRead(ctx, "Store.start");
+  }
+
+  Store_start_args args;
+  args.read(iprot);
+  iprot->readMessageEnd();
+  uint32_t bytes = iprot->getTransport()->readEnd();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postRead(ctx, "Store.start", bytes);
+  }
+
+  Store_start_result result;
+  try {
+    iface_->start();
+  } catch (const std::exception& e) {
+    if (this->eventHandler_.get() != NULL) {
+      this->eventHandler_->handlerError(ctx, "Store.start");
+    }
+
+    apache::thrift::TApplicationException x(e.what());
+    oprot->writeMessageBegin("start", apache::thrift::protocol::T_EXCEPTION, seqid);
+    x.write(oprot);
+    oprot->writeMessageEnd();
+    oprot->getTransport()->writeEnd();
+    oprot->getTransport()->flush();
+    return;
+  }
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preWrite(ctx, "Store.start");
+  }
+
+  oprot->writeMessageBegin("start", apache::thrift::protocol::T_REPLY, seqid);
+  result.write(oprot);
+  oprot->writeMessageEnd();
+  bytes = oprot->getTransport()->writeEnd();
+  oprot->getTransport()->flush();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postWrite(ctx, "Store.start", bytes);
+  }
+}
+
+void StoreProcessor::process_suspend(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)
+{
+  void* ctx = NULL;
+  if (this->eventHandler_.get() != NULL) {
+    ctx = this->eventHandler_->getContext("Store.suspend", callContext);
+  }
+  apache::thrift::TProcessorContextFreer freer(this->eventHandler_.get(), ctx, "Store.suspend");
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preRead(ctx, "Store.suspend");
+  }
+
+  Store_suspend_args args;
+  args.read(iprot);
+  iprot->readMessageEnd();
+  uint32_t bytes = iprot->getTransport()->readEnd();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postRead(ctx, "Store.suspend", bytes);
+  }
+
+  Store_suspend_result result;
+  try {
+    iface_->suspend();
+  } catch (const std::exception& e) {
+    if (this->eventHandler_.get() != NULL) {
+      this->eventHandler_->handlerError(ctx, "Store.suspend");
+    }
+
+    apache::thrift::TApplicationException x(e.what());
+    oprot->writeMessageBegin("suspend", apache::thrift::protocol::T_EXCEPTION, seqid);
+    x.write(oprot);
+    oprot->writeMessageEnd();
+    oprot->getTransport()->writeEnd();
+    oprot->getTransport()->flush();
+    return;
+  }
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->preWrite(ctx, "Store.suspend");
+  }
+
+  oprot->writeMessageBegin("suspend", apache::thrift::protocol::T_REPLY, seqid);
+  result.write(oprot);
+  oprot->writeMessageEnd();
+  bytes = oprot->getTransport()->writeEnd();
+  oprot->getTransport()->flush();
+
+  if (this->eventHandler_.get() != NULL) {
+    this->eventHandler_->postWrite(ctx, "Store.suspend", bytes);
   }
 }
 

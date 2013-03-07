@@ -32,6 +32,8 @@ public:
 	Revision getRevision() { return _revision; }
 	Statistic getStatistic();
 
+	void setRevision(Revision revision) { _revision = revision; } 
+
 	Answer query(const Query& query);
 	void apply(const Revision& revision, const ColumnWrites& writes);
 

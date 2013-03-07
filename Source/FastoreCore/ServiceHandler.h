@@ -53,6 +53,7 @@ public:
 	void escalateLock(const fastore::communication::LockID lockID, const fastore::communication::LockTimeout timeout);
 	void releaseLock(const fastore::communication::LockID lockID);
 	void checkpoint(const fastore::communication::ColumnIDs& columnIDs);
+	void heartbeat();
 
 	//TProcessorEventHandler
 	void handlerError(void* ctx, const char* fn_name);

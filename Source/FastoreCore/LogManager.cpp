@@ -11,6 +11,7 @@ LogManager::LogManager(std::string path) :
 	_writeService(1),
 	_writeWork(_writeService),
 	_path(path),
+	_status(logStatus::initalizing),
 	_lock(boost::shared_ptr<boost::mutex>(new boost::mutex())),
 	_readerPool
 	(
@@ -138,6 +139,20 @@ void LogManager::initalizeLogManager()
 	{
 		_readThreadPool.create_thread(boost::bind(&boost::asio::io_service::run, &_readService));
 	}
+
+	setStatus(logStatus::online);
+}
+
+void LogManager::setStatus(logStatus status)
+{
+	_lock->lock();
+	_status = status;
+	_lock->unlock();
+}
+
+LogManager::logStatus LogManager::getStatus()
+{
+	return _status;
 }
 
 void LogManager::indexLogFile(std::string filename)
@@ -619,4 +634,15 @@ void LogManager::heartbeat()
 
 	if (now - _lastFlush > FLUSHINTERVAL)
 		flush(0, 0, 0);
+}
+
+std::map<fastore::communication::ColumnID, fastore::communication::Revision> LogManager::getLatestRevisions()
+{
+	std::map<fastore::communication::ColumnID, fastore::communication::Revision> results;
+	for(auto begin = _columns.begin(), end = _columns.end(); begin != end; ++begin)
+	{
+		fastore::communication::Revision lastRevision = begin->second.revisions.rbegin()->startingRevision + begin->second.revisions.rbegin()->offsets.size() - 1;
+		results.insert(std::make_pair(begin->first, lastRevision));
+	}
+	return results;
 }

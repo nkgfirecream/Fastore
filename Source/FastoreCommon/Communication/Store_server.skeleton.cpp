@@ -67,6 +67,16 @@ class StoreHandler : virtual public StoreIf {
     printf("heartbeat\n");
   }
 
+  void start() {
+    // Your implementation goes here
+    printf("start\n");
+  }
+
+  void suspend() {
+    // Your implementation goes here
+    printf("suspend\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

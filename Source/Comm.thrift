@@ -34,6 +34,15 @@ enum ServiceStatus
 	Unreachable = 4
 }
 
+enum StoreLogStatus
+{
+	Unknown = 1,
+	Loading = 2,
+	Ready = 3,
+	Online = 4,
+	Offline = 5
+}
+
 typedef i64 TimeStamp
 
 struct WorkerState
@@ -172,7 +181,9 @@ service Service
 
 
 	/** Requests a checkpoint be immediately scheduled for the given column IDs. */
-	oneway void checkpoint(1:ColumnIDs columnIDs)
+	oneway void checkpoint(1:ColumnIDs columnIDs),
+
+	oneway void heartbeat()	
 }
 
 // Worker
@@ -370,9 +381,10 @@ typedef map<ColumnID, GetWritesResult> GetWritesResults
 
 struct StoreStatus
 {
-	1:map<ColumnID, Revision> LastCheckpoints,
-	2:set<ColumnID> beganCheckpoints,
-	3:map<ColumnID, Revision> LatestRevisions
+	1:StoreLogStatus LogStatus,
+	2:map<ColumnID, Revision> LastCheckpoints,
+	3:set<ColumnID> beganCheckpoints,
+	4:map<ColumnID, Revision> LatestRevisions
 }
 
 service Store
@@ -405,5 +417,11 @@ service Store
 	void unpark(1:i64 connectionID, 2:string data),
 
 	/** called to tell the store to perform maintenance tasks on  */
-	void heartbeat()
+	void heartbeat(),
+
+	/** signal store to start processing writes */
+	void start(),
+
+	/** signal store to stop processing writes */
+	void suspend()
 }

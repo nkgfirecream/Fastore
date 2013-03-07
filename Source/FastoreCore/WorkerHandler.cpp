@@ -419,18 +419,49 @@ void WorkerHandler::shutdown()
 
 void WorkerHandler::loadBegin(const ColumnID columnID)
 {
+	auto repo = _repositories.find(columnID);
+	if (repo != _repositories.end())
+	{
+		//May not have to do anything.
+	}
+	else
+	{
+		//Theorectically this shouldn't happen. We've should be in a state where all the writes good at this point.
+		throw "Can't find repo!";
+	}
 }
 
 void WorkerHandler::loadBulkWrite(const ColumnID columnID, const ValueRowsList& values)
 {
+
 }
 
 void WorkerHandler::loadWrite(const ColumnID columnID, const ColumnWrites& writes)
 {
+	auto repo = _repositories.find(columnID);
+	if (repo != _repositories.end())
+	{
+		repo->second->apply(repo->second->getRevision() + 1, writes);
+	}
+	else
+	{
+		//Theorectically this shouldn't happen. We've should be in a state where all the writes good at this point.
+		throw "Can't find repo!";
+	}
 }
 
 void WorkerHandler::loadEnd(const ColumnID columnID, const Revision revision)
 {
+	auto repo = _repositories.find(columnID);
+	if (repo != _repositories.end())
+	{
+		repo->second->setRevision(revision);
+	}
+	else
+	{
+		//Theorectically this shouldn't happen. We've should be in a state where all the writes good at this point.
+		throw "Can't find repo!";
+	}
 }
 
 void* WorkerHandler::getContext(const char* fn_name, void* serverContext)

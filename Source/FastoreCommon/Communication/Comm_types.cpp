@@ -38,6 +38,22 @@ const char* _kServiceStatusNames[] = {
 };
 const std::map<int, const char*> _ServiceStatus_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(4, _kServiceStatusValues, _kServiceStatusNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
 
+int _kStoreLogStatusValues[] = {
+  StoreLogStatus::Unknown,
+  StoreLogStatus::Loading,
+  StoreLogStatus::Ready,
+  StoreLogStatus::Online,
+  StoreLogStatus::Offline
+};
+const char* _kStoreLogStatusNames[] = {
+  "Unknown",
+  "Loading",
+  "Ready",
+  "Online",
+  "Offline"
+};
+const std::map<int, const char*> _StoreLogStatus_VALUES_TO_NAMES(::apache::thrift::TEnumIterator(5, _kStoreLogStatusValues, _kStoreLogStatusNames), ::apache::thrift::TEnumIterator(-1, NULL, NULL));
+
 int _kLockModeValues[] = {
   LockMode::Read,
   LockMode::Write
@@ -3093,8 +3109,8 @@ void swap(GetWritesResult &a, GetWritesResult &b) {
   swap(a.__isset, b.__isset);
 }
 
-const char* StoreStatus::ascii_fingerprint = "9C2AEBD7AD53067E75E4507762FC4213";
-const uint8_t StoreStatus::binary_fingerprint[16] = {0x9C,0x2A,0xEB,0xD7,0xAD,0x53,0x06,0x7E,0x75,0xE4,0x50,0x77,0x62,0xFC,0x42,0x13};
+const char* StoreStatus::ascii_fingerprint = "B4F0E0016C547FAE0AA9E0166859840B";
+const uint8_t StoreStatus::binary_fingerprint[16] = {0xB4,0xF0,0xE0,0x01,0x6C,0x54,0x7F,0xAE,0x0A,0xA9,0xE0,0x16,0x68,0x59,0x84,0x0B};
 
 uint32_t StoreStatus::read(::apache::thrift::protocol::TProtocol* iprot) {
 
@@ -3117,20 +3133,30 @@ uint32_t StoreStatus::read(::apache::thrift::protocol::TProtocol* iprot) {
     switch (fid)
     {
       case 1:
+        if (ftype == ::apache::thrift::protocol::T_I32) {
+          int32_t ecast128;
+          xfer += iprot->readI32(ecast128);
+          this->LogStatus = (StoreLogStatus::type)ecast128;
+          this->__isset.LogStatus = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
+      case 2:
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->LastCheckpoints.clear();
-            uint32_t _size128;
-            ::apache::thrift::protocol::TType _ktype129;
-            ::apache::thrift::protocol::TType _vtype130;
-            iprot->readMapBegin(_ktype129, _vtype130, _size128);
-            uint32_t _i132;
-            for (_i132 = 0; _i132 < _size128; ++_i132)
+            uint32_t _size129;
+            ::apache::thrift::protocol::TType _ktype130;
+            ::apache::thrift::protocol::TType _vtype131;
+            iprot->readMapBegin(_ktype130, _vtype131, _size129);
+            uint32_t _i133;
+            for (_i133 = 0; _i133 < _size129; ++_i133)
             {
-              ColumnID _key133;
-              xfer += iprot->readI64(_key133);
-              Revision& _val134 = this->LastCheckpoints[_key133];
-              xfer += iprot->readI64(_val134);
+              ColumnID _key134;
+              xfer += iprot->readI64(_key134);
+              Revision& _val135 = this->LastCheckpoints[_key134];
+              xfer += iprot->readI64(_val135);
             }
             iprot->readMapEnd();
           }
@@ -3139,19 +3165,19 @@ uint32_t StoreStatus::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 2:
+      case 3:
         if (ftype == ::apache::thrift::protocol::T_SET) {
           {
             this->beganCheckpoints.clear();
-            uint32_t _size135;
-            ::apache::thrift::protocol::TType _etype138;
-            iprot->readSetBegin(_etype138, _size135);
-            uint32_t _i139;
-            for (_i139 = 0; _i139 < _size135; ++_i139)
+            uint32_t _size136;
+            ::apache::thrift::protocol::TType _etype139;
+            iprot->readSetBegin(_etype139, _size136);
+            uint32_t _i140;
+            for (_i140 = 0; _i140 < _size136; ++_i140)
             {
-              ColumnID _elem140;
-              xfer += iprot->readI64(_elem140);
-              this->beganCheckpoints.insert(_elem140);
+              ColumnID _elem141;
+              xfer += iprot->readI64(_elem141);
+              this->beganCheckpoints.insert(_elem141);
             }
             iprot->readSetEnd();
           }
@@ -3160,21 +3186,21 @@ uint32_t StoreStatus::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
-      case 3:
+      case 4:
         if (ftype == ::apache::thrift::protocol::T_MAP) {
           {
             this->LatestRevisions.clear();
-            uint32_t _size141;
-            ::apache::thrift::protocol::TType _ktype142;
-            ::apache::thrift::protocol::TType _vtype143;
-            iprot->readMapBegin(_ktype142, _vtype143, _size141);
-            uint32_t _i145;
-            for (_i145 = 0; _i145 < _size141; ++_i145)
+            uint32_t _size142;
+            ::apache::thrift::protocol::TType _ktype143;
+            ::apache::thrift::protocol::TType _vtype144;
+            iprot->readMapBegin(_ktype143, _vtype144, _size142);
+            uint32_t _i146;
+            for (_i146 = 0; _i146 < _size142; ++_i146)
             {
-              ColumnID _key146;
-              xfer += iprot->readI64(_key146);
-              Revision& _val147 = this->LatestRevisions[_key146];
-              xfer += iprot->readI64(_val147);
+              ColumnID _key147;
+              xfer += iprot->readI64(_key147);
+              Revision& _val148 = this->LatestRevisions[_key147];
+              xfer += iprot->readI64(_val148);
             }
             iprot->readMapEnd();
           }
@@ -3199,39 +3225,43 @@ uint32_t StoreStatus::write(::apache::thrift::protocol::TProtocol* oprot) const 
   uint32_t xfer = 0;
   xfer += oprot->writeStructBegin("StoreStatus");
 
-  xfer += oprot->writeFieldBegin("LastCheckpoints", ::apache::thrift::protocol::T_MAP, 1);
+  xfer += oprot->writeFieldBegin("LogStatus", ::apache::thrift::protocol::T_I32, 1);
+  xfer += oprot->writeI32((int32_t)this->LogStatus);
+  xfer += oprot->writeFieldEnd();
+
+  xfer += oprot->writeFieldBegin("LastCheckpoints", ::apache::thrift::protocol::T_MAP, 2);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->LastCheckpoints.size()));
-    std::map<ColumnID, Revision> ::const_iterator _iter148;
-    for (_iter148 = this->LastCheckpoints.begin(); _iter148 != this->LastCheckpoints.end(); ++_iter148)
+    std::map<ColumnID, Revision> ::const_iterator _iter149;
+    for (_iter149 = this->LastCheckpoints.begin(); _iter149 != this->LastCheckpoints.end(); ++_iter149)
     {
-      xfer += oprot->writeI64(_iter148->first);
-      xfer += oprot->writeI64(_iter148->second);
+      xfer += oprot->writeI64(_iter149->first);
+      xfer += oprot->writeI64(_iter149->second);
     }
     xfer += oprot->writeMapEnd();
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("beganCheckpoints", ::apache::thrift::protocol::T_SET, 2);
+  xfer += oprot->writeFieldBegin("beganCheckpoints", ::apache::thrift::protocol::T_SET, 3);
   {
     xfer += oprot->writeSetBegin(::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->beganCheckpoints.size()));
-    std::set<ColumnID> ::const_iterator _iter149;
-    for (_iter149 = this->beganCheckpoints.begin(); _iter149 != this->beganCheckpoints.end(); ++_iter149)
+    std::set<ColumnID> ::const_iterator _iter150;
+    for (_iter150 = this->beganCheckpoints.begin(); _iter150 != this->beganCheckpoints.end(); ++_iter150)
     {
-      xfer += oprot->writeI64((*_iter149));
+      xfer += oprot->writeI64((*_iter150));
     }
     xfer += oprot->writeSetEnd();
   }
   xfer += oprot->writeFieldEnd();
 
-  xfer += oprot->writeFieldBegin("LatestRevisions", ::apache::thrift::protocol::T_MAP, 3);
+  xfer += oprot->writeFieldBegin("LatestRevisions", ::apache::thrift::protocol::T_MAP, 4);
   {
     xfer += oprot->writeMapBegin(::apache::thrift::protocol::T_I64, ::apache::thrift::protocol::T_I64, static_cast<uint32_t>(this->LatestRevisions.size()));
-    std::map<ColumnID, Revision> ::const_iterator _iter150;
-    for (_iter150 = this->LatestRevisions.begin(); _iter150 != this->LatestRevisions.end(); ++_iter150)
+    std::map<ColumnID, Revision> ::const_iterator _iter151;
+    for (_iter151 = this->LatestRevisions.begin(); _iter151 != this->LatestRevisions.end(); ++_iter151)
     {
-      xfer += oprot->writeI64(_iter150->first);
-      xfer += oprot->writeI64(_iter150->second);
+      xfer += oprot->writeI64(_iter151->first);
+      xfer += oprot->writeI64(_iter151->second);
     }
     xfer += oprot->writeMapEnd();
   }
@@ -3244,6 +3274,7 @@ uint32_t StoreStatus::write(::apache::thrift::protocol::TProtocol* oprot) const 
 
 void swap(StoreStatus &a, StoreStatus &b) {
   using ::std::swap;
+  swap(a.LogStatus, b.LogStatus);
   swap(a.LastCheckpoints, b.LastCheckpoints);
   swap(a.beganCheckpoints, b.beganCheckpoints);
   swap(a.LatestRevisions, b.LatestRevisions);

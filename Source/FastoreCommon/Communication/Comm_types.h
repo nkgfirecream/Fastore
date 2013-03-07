@@ -38,6 +38,18 @@ struct ServiceStatus {
 
 extern const std::map<int, const char*> _ServiceStatus_VALUES_TO_NAMES;
 
+struct StoreLogStatus {
+  enum type {
+    Unknown = 1,
+    Loading = 2,
+    Ready = 3,
+    Online = 4,
+    Offline = 5
+  };
+};
+
+extern const std::map<int, const char*> _StoreLogStatus_VALUES_TO_NAMES;
+
 struct LockMode {
   enum type {
     Read = 1,
@@ -1752,7 +1764,8 @@ class GetWritesResult {
 void swap(GetWritesResult &a, GetWritesResult &b);
 
 typedef struct _StoreStatus__isset {
-  _StoreStatus__isset() : LastCheckpoints(false), beganCheckpoints(false), LatestRevisions(false) {}
+  _StoreStatus__isset() : LogStatus(false), LastCheckpoints(false), beganCheckpoints(false), LatestRevisions(false) {}
+  bool LogStatus;
   bool LastCheckpoints;
   bool beganCheckpoints;
   bool LatestRevisions;
@@ -1761,19 +1774,24 @@ typedef struct _StoreStatus__isset {
 class StoreStatus {
  public:
 
-  static const char* ascii_fingerprint; // = "9C2AEBD7AD53067E75E4507762FC4213";
-  static const uint8_t binary_fingerprint[16]; // = {0x9C,0x2A,0xEB,0xD7,0xAD,0x53,0x06,0x7E,0x75,0xE4,0x50,0x77,0x62,0xFC,0x42,0x13};
+  static const char* ascii_fingerprint; // = "B4F0E0016C547FAE0AA9E0166859840B";
+  static const uint8_t binary_fingerprint[16]; // = {0xB4,0xF0,0xE0,0x01,0x6C,0x54,0x7F,0xAE,0x0A,0xA9,0xE0,0x16,0x68,0x59,0x84,0x0B};
 
-  StoreStatus() {
+  StoreStatus() : LogStatus((StoreLogStatus::type)0) {
   }
 
   virtual ~StoreStatus() throw() {}
 
+  StoreLogStatus::type LogStatus;
   std::map<ColumnID, Revision>  LastCheckpoints;
   std::set<ColumnID>  beganCheckpoints;
   std::map<ColumnID, Revision>  LatestRevisions;
 
   _StoreStatus__isset __isset;
+
+  void __set_LogStatus(const StoreLogStatus::type val) {
+    LogStatus = val;
+  }
 
   void __set_LastCheckpoints(const std::map<ColumnID, Revision> & val) {
     LastCheckpoints = val;
@@ -1789,6 +1807,8 @@ class StoreStatus {
 
   bool operator == (const StoreStatus & rhs) const
   {
+    if (!(LogStatus == rhs.LogStatus))
+      return false;
     if (!(LastCheckpoints == rhs.LastCheckpoints))
       return false;
     if (!(beganCheckpoints == rhs.beganCheckpoints))

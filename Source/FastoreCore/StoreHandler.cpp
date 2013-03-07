@@ -5,7 +5,8 @@ using boost::shared_ptr;
 using namespace::fastore::communication;
 
 StoreHandler::StoreHandler(std::string path, uint64_t port)
-	: _logManager(new LogManager(path))
+	: _logManager(new LogManager(path)),
+	_status(internalStoreStatus::stopped)
 {
 // Your initialization goes here
 
@@ -32,8 +33,42 @@ printf("checkpointEnd\n");
 
 void StoreHandler::getStatus(fastore::communication::StoreStatus& _return) 
 {
-// Your implementation goes here
-printf("getStatus\n");
+   //Need to combine our internal status with the log's status.
+	auto logStatus = _logManager->getStatus();
+	if (logStatus == LogManager::logStatus::initalizing && _status == internalStoreStatus::stopped)
+	{
+		_return.__set_LogStatus(StoreLogStatus::Loading);
+	}
+	else if (logStatus == LogManager::logStatus::online && _status == internalStoreStatus::stopped)
+	{
+		_return.__set_LogStatus(StoreLogStatus::Ready);
+	}
+	else if (logStatus == LogManager::logStatus::online && _status == internalStoreStatus::processing)
+	{
+		_return.__set_LogStatus(StoreLogStatus::Online);
+	}
+	else if (logStatus == LogManager::logStatus::offline || _status == internalStoreStatus::logerror)
+	{
+		_return.__set_LogStatus(StoreLogStatus::Offline);
+	}
+	//There will be various other states like log offline, log error, etc.
+	else
+	{
+		_return.__set_LogStatus(StoreLogStatus::Unknown);
+	}
+
+
+	if (_return.LogStatus == StoreLogStatus::Online || _return.LogStatus == StoreLogStatus::Ready)
+	{
+		//TODO: Once we have checkpoints
+		//_return.__set_beganCheckpoints();
+		//_return.__set_LastCheckpoints();
+
+		auto revisions = _logManager->getLatestRevisions();
+		
+	
+		_return.__set_LatestRevisions(revisions);		
+	}	
 }
 
 void StoreHandler::getWrites(fastore::communication::GetWritesResults& _return, const fastore::communication::Ranges& ranges) 
@@ -44,13 +79,19 @@ void StoreHandler::getWrites(fastore::communication::GetWritesResults& _return, 
 
 void StoreHandler::commit(const TransactionID transactionID, const std::map<ColumnID, Revision>& revisions, const Writes& writes)
 {
-	_logManager->commit(transactionID, revisions, writes);
+	if(_status == internalStoreStatus::processing)
+	{
+		_logManager->commit(transactionID, revisions, writes);
+	}
 }
 
 void StoreHandler::flush(const fastore::communication::TransactionID transactionID) 
 {
-	_currentConnection->park();
-	_logManager->flush(transactionID, _port, _currentConnection->getId());
+	if(_status == internalStoreStatus::processing)
+	{
+		_currentConnection->park();
+		_logManager->flush(transactionID, _port, _currentConnection->getId());
+	}
 }
 
 void StoreHandler::unpark(const int64_t connectionId, const std::string&  data)
@@ -76,7 +117,20 @@ void* StoreHandler::getContext(const char* fn_name, void* serverContext)
 	return NULL;
 }
 
+//Signal store manager to do maintenance tasks
 void StoreHandler::heartbeat()
 {
 	_logManager->heartbeat();
+}
+
+//Signal store to start processing writes.
+void StoreHandler::start()
+{
+	_status = internalStoreStatus::processing;
+}
+
+//Signal store to stop processing writes
+void StoreHandler::suspend()
+{
+	_status = internalStoreStatus::stopped;
 }
